@@ -47,7 +47,6 @@
     #transpose-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
     #transpose-controls button { min-width: 44px; min-height: 44px; font-size: 20px;
       background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
-    #transpose-display { min-width: 32px; text-align: center; font-size: 14px; }
     #chord-area { flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
       justify-content: center; gap: 4px; overflow: hidden; }
     body.editing #chord-area { justify-content: flex-start; overflow-y: auto; }
@@ -143,7 +142,6 @@
       <span class="badge" id="badge-capo"></span>
       <div id="transpose-controls">
         <button id="transpose-down">&minus;</button>
-        <span id="transpose-display">0</span>
         <button id="transpose-up">+</button>
       </div>
     </div>
@@ -174,10 +172,8 @@
   <script>
     // ===== STATE =====
     let currentIndex = 0;
-    let transposeShift = 0;
     let editMode = false;
-    let capoActive = true;
-    let pickerTarget = null; // the chord element being edited via picker
+    let pickerTarget = null;
 
     // ===== MUSIC THEORY =====
     const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -282,54 +278,37 @@
       return chords;
     }
 
-    // ===== KEY BADGE =====
+    // ===== KEY MANAGEMENT =====
+    function getCurrentKey(song) {
+      return localStorage.getItem('cheatsheet-key-' + song.title) || song.key;
+    }
+
     function updateKeyBadge(song) {
+      const currentKey = getCurrentKey(song);
       const badge = document.getElementById('badge-key');
-      const effectiveShift = getEffectiveShift(song);
-      if (effectiveShift === 0) {
-        badge.textContent = 'Key: ' + song.key;
+      if (currentKey !== song.key) {
+        badge.textContent = 'Key: ' + currentKey + ' (orig ' + song.key + ')';
       } else {
-        const useFlats = shouldUseFlats(song.key, effectiveShift);
-        const transposedKey = transposeChord(song.key, effectiveShift, useFlats);
-        badge.textContent = 'Key: ' + song.key + ' \u2192 ' + transposedKey;
+        badge.textContent = 'Key: ' + currentKey;
       }
     }
 
-    function updateCapoBadge(song) {
-      const capoBadge = document.getElementById('badge-capo');
-      if (capoActive) {
-        capoBadge.textContent = 'Capo ' + song.capo;
-        capoBadge.classList.remove('capo-off');
-      } else {
-        capoBadge.textContent = 'No Capo';
-        capoBadge.classList.add('capo-off');
-      }
-    }
-
-    function getEffectiveShift(song) {
-      let shift = transposeShift;
-      if (song.capo && !capoActive) shift += song.capo;
-      return ((shift % 12) + 12) % 12;
-    }
-
-    function displayShift(shift) {
-      if (shift === 0) return '0';
-      // Show the shortest interval: +1 to +6, -5 to -1
-      const display = shift > 6 ? shift - 12 : shift;
-      return (display > 0 ? '+' : '') + display;
-    }
-
-    function applyTranspose() {
-      if (editMode) return; // never transpose while editing
+    // Permanently transpose all chords up or down by 1 semitone
+    function permanentTranspose(semitones) {
       const song = SONGS[currentIndex];
+      const currentKey = getCurrentKey(song);
       const sections = getEditedSections(song);
-      document.getElementById('transpose-display').textContent = displayShift(transposeShift);
-      updateKeyBadge(song);
-      const effectiveShift = getEffectiveShift(song);
-      const chordEls = document.querySelectorAll('.section-chords');
-      sections.forEach((section, i) => {
-        if (chordEls[i]) chordEls[i].textContent = transposeChords(section.chords, effectiveShift, song.key);
-      });
+      const useFlats = shouldUseFlats(currentKey, semitones);
+
+      const newSections = sections.map(s => ({
+        name: s.name,
+        chords: s.chords.split(/\s+/).filter(c => c).map(c => transposeChord(c, semitones, useFlats)).join('  ')
+      }));
+
+      const newKey = transposeChord(currentKey, semitones, useFlats);
+      localStorage.setItem('cheatsheet-key-' + song.title, newKey);
+      saveStructure(song, newSections);
+      renderSong();
     }
 
     // ===== SECTION HELPERS =====
@@ -397,21 +376,9 @@
       const sections = getEditedSections(song);
 
       document.getElementById('song-title').textContent = song.title;
-      document.getElementById('badge-key').textContent = 'Key: ' + song.key;
       document.getElementById('badge-bpm').textContent = song.bpm + ' BPM';
       document.getElementById('badge-time').textContent = song.timeSignature;
-
-      capoActive = true;
-      const capoBadge = document.getElementById('badge-capo');
-      if (song.capo) {
-        capoBadge.style.display = '';
-        updateCapoBadge(song);
-      } else {
-        capoBadge.style.display = 'none';
-      }
-
-      transposeShift = 0;
-      document.getElementById('transpose-display').textContent = '0';
+      document.getElementById('badge-capo').style.display = 'none';
       updateKeyBadge(song);
 
       const chordArea = document.getElementById('chord-area');
@@ -475,14 +442,15 @@
     function showChordPicker(chordEl) {
       pickerTarget = chordEl;
       const song = SONGS[currentIndex];
-      const diatonic = getDiatonicChords(song.key);
+      const currentKey = getCurrentKey(song);
+      const diatonic = getDiatonicChords(currentKey);
       const picker = document.getElementById('chord-picker');
       const content = document.getElementById('picker-content');
       content.innerHTML = '';
 
       // Diatonic section
       const dHead = document.createElement('h3');
-      dHead.textContent = 'In Key (' + song.key + ')';
+      dHead.textContent = 'In Key (' + currentKey + ')';
       content.appendChild(dHead);
       const dGrid = document.createElement('div');
       dGrid.className = 'chord-grid';
@@ -566,17 +534,6 @@
       }
       resetBtn.style.display = '';
 
-      // Reset transpose and show real chords for editing
-      transposeShift = 0;
-      const song = SONGS[currentIndex];
-      document.getElementById('transpose-display').textContent = '0';
-      updateKeyBadge(song);
-      const sections = getEditedSections(song);
-      const chordEls = document.querySelectorAll('.section-chords');
-      chordEls.forEach((el, i) => {
-        if (sections[i]) el.textContent = sections[i].chords;
-      });
-
       // Make chords, labels, and notes editable
       document.querySelectorAll('.section-chords').forEach(el => {
         el.contentEditable = true;
@@ -624,7 +581,6 @@
         localStorage.removeItem('cheatsheet-notes-' + song.title);
       }
 
-      applyTranspose();
       autoScaleFont();
     }
 
@@ -646,6 +602,7 @@
       const song = SONGS[currentIndex];
       localStorage.removeItem('cheatsheet-sections-' + song.title);
       localStorage.removeItem('cheatsheet-notes-' + song.title);
+      localStorage.removeItem('cheatsheet-key-' + song.title);
       // Also clean up old format
       localStorage.removeItem('cheatsheet-edits-' + song.title);
       editMode = false;
@@ -828,38 +785,26 @@
       // Chord picker close
       document.getElementById('picker-close').addEventListener('click', hideChordPicker);
 
-      // Capo toggle
-      document.getElementById('badge-capo').addEventListener('click', () => {
-        const song = SONGS[currentIndex];
-        if (!song.capo) return;
-        capoActive = !capoActive;
-        updateCapoBadge(song);
-        applyTranspose();
-      });
-
-      // Transpose buttons
+      // Transpose buttons — permanent key change
       document.getElementById('transpose-up').addEventListener('click', () => {
-        if (editMode) return;
-        transposeShift = ((transposeShift + 1) % 12 + 12) % 12;
-        applyTranspose();
+        permanentTranspose(1);
       });
       document.getElementById('transpose-down').addEventListener('click', () => {
-        if (editMode) return;
-        transposeShift = ((transposeShift - 1) % 12 + 12) % 12;
-        applyTranspose();
+        permanentTranspose(-1);
       });
 
       // Swipe
       initSwipe();
 
       // One-time cleanup: clear any corrupted localStorage from transpose bug
-      if (!localStorage.getItem('cheatsheet-bugfix-v2')) {
+      if (!localStorage.getItem('cheatsheet-bugfix-v3')) {
         SONGS.forEach(s => {
           localStorage.removeItem('cheatsheet-sections-' + s.title);
           localStorage.removeItem('cheatsheet-edits-' + s.title);
           localStorage.removeItem('cheatsheet-notes-' + s.title);
+          localStorage.removeItem('cheatsheet-key-' + s.title);
         });
-        localStorage.setItem('cheatsheet-bugfix-v2', '1');
+        localStorage.setItem('cheatsheet-bugfix-v3', '1');
       }
 
       // Render first song
