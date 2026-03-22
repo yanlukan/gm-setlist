@@ -5,15 +5,15 @@ const SONGS = [
     key: "B",
     bpm: 96,
     timeSignature: "4/4",
-    capo: 4,
-    notes: "Capo 4 — play G shapes. Iconic fingerpicked intro riff on Telecaster. Recording is slightly sharp (~446Hz).",
+    capo: null,
+    notes: "Iconic fingerpicked intro riff on Telecaster. Recording is slightly sharp (~446Hz).",
     sections: [
-      { name: "Intro", chords: "G" },
-      { name: "Verse", chords: "G  C  G  C  G  C  G" },
-      { name: "Pre-Chorus", chords: "C  G  C  G  C  G  Em  Am  D" },
-      { name: "Chorus", chords: "G" },
-      { name: "Solo", chords: "G  C  G  C" },
-      { name: "Outro", chords: "G  C  G" }
+      { name: "Intro", chords: "B" },
+      { name: "Verse", chords: "B  E  B  E  B  E  B" },
+      { name: "Pre-Chorus", chords: "E  B  E  B  E  B  G#m  C#m  F#" },
+      { name: "Chorus", chords: "B" },
+      { name: "Solo", chords: "B  E  B  E" },
+      { name: "Outro", chords: "B  E  B" }
     ]
   },
   {
@@ -38,14 +38,14 @@ const SONGS = [
     key: "Bbm",
     bpm: 103,
     timeSignature: "4/4",
-    capo: 1,
-    notes: "Capo 1 — play Am shapes. Loop-based groove, keep it understated. Based on Patrice Rushen 'Forget Me Nots'.",
+    capo: null,
+    notes: "Loop-based groove, keep it understated. Based on Patrice Rushen 'Forget Me Nots'.",
     sections: [
-      { name: "Intro/Verse", chords: "Am  Em  C  G" },
-      { name: "Pre-Chorus", chords: "Am  Am  Em  F  G  F  G" },
-      { name: "Chorus", chords: "G  Am  Em  Am  Em  Am  Em  F  G" },
-      { name: "Bridge", chords: "Am  Em  C  G" },
-      { name: "Outro", chords: "Am  Em  C  G" }
+      { name: "Intro/Verse", chords: "Bbm  Fm  Db  Ab" },
+      { name: "Pre-Chorus", chords: "Bbm  Bbm  Fm  Gb  Ab  Gb  Ab" },
+      { name: "Chorus", chords: "Ab  Bbm  Fm  Bbm  Fm  Bbm  Fm  Gb  Ab" },
+      { name: "Bridge", chords: "Bbm  Fm  Db  Ab" },
+      { name: "Outro", chords: "Bbm  Fm  Db  Ab" }
     ]
   },
   {
@@ -71,14 +71,14 @@ const SONGS = [
     key: "Bbm",
     bpm: 128,
     timeSignature: "4/4",
-    capo: 1,
-    notes: "Capo 1 — play Am shapes. Keyboard-driven production, guitar doubles synth lines.",
+    capo: null,
+    notes: "Keyboard-driven production, guitar doubles synth lines.",
     sections: [
-      { name: "Intro", chords: "Am  F  Am  F  Am  F" },
-      { name: "Verse", chords: "Am  F  Am  F  Am  F" },
-      { name: "Pre-Chorus", chords: "Dm  Am  G  Dm  F  G" },
-      { name: "Chorus", chords: "Am  F  G  F  G  Am  F  G  F  G  Am" },
-      { name: "Outro", chords: "F  G  F  G  Am" }
+      { name: "Intro", chords: "Bbm  Gb  Bbm  Gb  Bbm  Gb" },
+      { name: "Verse", chords: "Bbm  Gb  Bbm  Gb  Bbm  Gb" },
+      { name: "Pre-Chorus", chords: "Ebm  Bbm  Ab  Ebm  Gb  Ab" },
+      { name: "Chorus", chords: "Bbm  Gb  Ab  Gb  Ab  Bbm  Gb  Ab  Gb  Ab  Bbm" },
+      { name: "Outro", chords: "Gb  Ab  Gb  Ab  Bbm" }
     ]
   },
   {
@@ -151,15 +151,15 @@ const SONGS = [
     key: "C#m",
     bpm: 87,
     timeSignature: "4/4",
-    capo: 4,
-    notes: "Capo 4 — play Am shapes. Lush jazz-influenced harmony with sus and add9 chords.",
+    capo: null,
+    notes: "Lush jazz-influenced harmony with sus and add9 chords.",
     sections: [
-      { name: "Intro", chords: "Am  E7sus4  E7  Fmaj7  E7  Dm  G  Asus4  Am" },
-      { name: "Verse", chords: "Am  E7sus4  E7  Fmaj7  E7  Dm  G  Asus4  Am" },
-      { name: "Pre-Chorus", chords: "Fmaj7  G  Fmaj7  G  Cmaj7  E7sus4  E7" },
-      { name: "Chorus", chords: "Am  G  Fmaj7  Em  Dm  E7  Asus4  Am" },
-      { name: "Bridge", chords: "Am/F#  Am/F  Em  Am" },
-      { name: "Outro", chords: "Am  G  Fmaj7  Em  Dm  E7  Am" }
+      { name: "Intro", chords: "C#m  G#7sus4  G#7  Amaj7  G#7  F#m  B  C#sus4  C#m" },
+      { name: "Verse", chords: "C#m  G#7sus4  G#7  Amaj7  G#7  F#m  B  C#sus4  C#m" },
+      { name: "Pre-Chorus", chords: "Amaj7  B  Amaj7  B  Emaj7  G#7sus4  G#7" },
+      { name: "Chorus", chords: "C#m  B  Amaj7  G#m  F#m  G#7  C#sus4  C#m" },
+      { name: "Bridge", chords: "C#m/A#  C#m/A  G#m  C#m" },
+      { name: "Outro", chords: "C#m  B  Amaj7  G#m  F#m  G#7  C#m" }
     ]
   },
   {
@@ -168,13 +168,13 @@ const SONGS = [
     key: "Gb",
     bpm: 100,
     timeSignature: "4/4",
-    capo: 1,
-    notes: "Capo 1 — play G shapes. Sparse and atmospheric, best fingerpicked.",
+    capo: null,
+    notes: "Sparse and atmospheric, best fingerpicked.",
     sections: [
-      { name: "Intro", chords: "G  D  G  D  G  A  Am  D" },
-      { name: "Verse", chords: "Am  G  Am  G  A  Em  Am  G" },
-      { name: "Chorus", chords: "Am  G  A  Em  Am  G" },
-      { name: "Outro", chords: "Bm  G  Am  G" }
+      { name: "Intro", chords: "Ab  Eb  Ab  Eb  Ab  Bb  Bbm  Eb" },
+      { name: "Verse", chords: "Bbm  Ab  Bbm  Ab  Bb  Fm  Bbm  Ab" },
+      { name: "Chorus", chords: "Bbm  Ab  Bb  Fm  Bbm  Ab" },
+      { name: "Outro", chords: "Cm  Ab  Bbm  Ab" }
     ]
   },
   {
@@ -217,7 +217,7 @@ const SONGS = [
     bpm: 117,
     timeSignature: "4/4",
     capo: null,
-    notes: "Same E–F#m7–B–D#m7 loop throughout. Capo 4 with G/Am/D shapes is an easier option.",
+    notes: "Same E–F#m7–B–D#m7 loop throughout.",
     sections: [
       { name: "Intro", chords: "E  F#m7  B  D#m7" },
       { name: "Verse", chords: "E  F#m7  B  D#m7" },
@@ -232,16 +232,16 @@ const SONGS = [
     key: "Ab",
     bpm: 110,
     timeSignature: "6/8",
-    capo: 1,
-    notes: "Capo 1 — play G shapes. Gospel 6/8 shuffle feel, NOT straight 4/4. George Michael performed this in Ab at the 1992 Freddie Mercury Tribute Concert.",
+    capo: null,
+    notes: "Gospel 6/8 shuffle feel, NOT straight 4/4. George Michael performed this in Ab at the 1992 Freddie Mercury Tribute Concert.",
     sections: [
-      { name: "Intro", chords: "G  D/F#  Em  Em7  C  D  G  D" },
-      { name: "Verse", chords: "G  D/F#  Em  Em7  G  A7  D  C  D  G" },
-      { name: "Pre-Chorus", chords: "G  A7  D  A7/C#  D7  C  G" },
-      { name: "Chorus", chords: "G  D/F#  Em7  C  D  G  D  G" },
-      { name: "Bridge", chords: "C  C7  F  Fm  A7  D  Em/D  D" },
-      { name: "Solo", chords: "G  A7  D  G  D/F#  Em  A7  D  G  D" },
-      { name: "Outro", chords: "G  D/F#  Em7  C  D  G" }
+      { name: "Intro", chords: "Ab  Eb/G  Fm  Fm7  Db  Eb  Ab  Eb" },
+      { name: "Verse", chords: "Ab  Eb/G  Fm  Fm7  Ab  Bb7  Eb  Db  Eb  Ab" },
+      { name: "Pre-Chorus", chords: "Ab  Bb7  Eb  Bb7/D  Eb7  Db  Ab" },
+      { name: "Chorus", chords: "Ab  Eb/G  Fm7  Db  Eb  Ab  Eb  Ab" },
+      { name: "Bridge", chords: "Db  Db7  Gb  Gbm  Bb7  Eb  Fm/Eb  Eb" },
+      { name: "Solo", chords: "Ab  Bb7  Eb  Ab  Eb/G  Fm  Bb7  Eb  Ab  Eb" },
+      { name: "Outro", chords: "Ab  Eb/G  Fm7  Db  Eb  Ab" }
     ]
   },
   {
