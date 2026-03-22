@@ -566,8 +566,11 @@
       }
       resetBtn.style.display = '';
 
-      // Revert chords to untransposed originals before editing
+      // Reset transpose and show real chords for editing
+      transposeShift = 0;
       const song = SONGS[currentIndex];
+      document.getElementById('transpose-display').textContent = '0';
+      updateKeyBadge(song);
       const sections = getEditedSections(song);
       const chordEls = document.querySelectorAll('.section-chords');
       chordEls.forEach((el, i) => {
@@ -850,13 +853,13 @@
       initSwipe();
 
       // One-time cleanup: clear any corrupted localStorage from transpose bug
-      if (!localStorage.getItem('cheatsheet-bugfix-v1')) {
+      if (!localStorage.getItem('cheatsheet-bugfix-v2')) {
         SONGS.forEach(s => {
           localStorage.removeItem('cheatsheet-sections-' + s.title);
           localStorage.removeItem('cheatsheet-edits-' + s.title);
           localStorage.removeItem('cheatsheet-notes-' + s.title);
         });
-        localStorage.setItem('cheatsheet-bugfix-v1', '1');
+        localStorage.setItem('cheatsheet-bugfix-v2', '1');
       }
 
       // Render first song
