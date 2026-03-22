@@ -68,6 +68,8 @@
     body.editing #chord-area { border: 2px solid var(--edit-border); border-radius: 8px; }
     .section-chords.editable { background: var(--badge-bg); border-radius: 4px; padding: 2px 6px; outline: none; }
     #reset-btn { background: #ef4444 !important; color: #fff !important; }
+    #badge-capo { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    #badge-capo.capo-off { text-decoration: line-through; opacity: 0.5; }
   </style>
 </head>
 <body>
@@ -102,6 +104,7 @@
     let currentIndex = 0;
     let transposeShift = 0;
     let editMode = false;
+    let capoActive = true; // when true, show capo shapes; when false, show no-capo chords
 
     const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
     const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
@@ -164,16 +167,35 @@
       }
     }
 
+    function updateCapoBadge(song) {
+      const capoBadge = document.getElementById('badge-capo');
+      if (capoActive) {
+        capoBadge.textContent = 'Capo ' + song.capo;
+        capoBadge.classList.remove('capo-off');
+      } else {
+        capoBadge.textContent = 'No Capo';
+        capoBadge.classList.add('capo-off');
+      }
+    }
+
+    function getEffectiveShift(song) {
+      // When capo is removed, transpose up by capo amount to get concert pitch chords
+      let shift = transposeShift;
+      if (song.capo && !capoActive) shift += song.capo;
+      return ((shift % 12) + 12) % 12;
+    }
+
     function applyTranspose() {
       const song = SONGS[currentIndex];
       const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
       document.getElementById('transpose-display').textContent =
         transposeShift === 0 ? '0' : (transposeShift > 6 ? '' + (transposeShift - 12) : '+' + transposeShift);
       updateKeyBadge(song);
+      const effectiveShift = getEffectiveShift(song);
       const chordEls = document.querySelectorAll('.section-chords');
       song.sections.forEach((section, i) => {
         const chordStr = edits ? (edits[i] || section.chords) : section.chords;
-        chordEls[i].textContent = transposeChords(chordStr, transposeShift, song.key);
+        chordEls[i].textContent = transposeChords(chordStr, effectiveShift, song.key);
       });
     }
 
@@ -226,10 +248,11 @@
       document.getElementById('badge-bpm').textContent = song.bpm + ' BPM';
       document.getElementById('badge-time').textContent = song.timeSignature;
 
+      capoActive = true;
       const capoBadge = document.getElementById('badge-capo');
       if (song.capo) {
-        capoBadge.textContent = 'Capo ' + song.capo;
         capoBadge.style.display = '';
+        updateCapoBadge(song);
       } else {
         capoBadge.style.display = 'none';
       }
@@ -386,6 +409,15 @@
       document.getElementById('edit-btn').addEventListener('click', () => {
         if (editMode) exitEditMode();
         else enterEditMode();
+      });
+
+      // Capo toggle
+      document.getElementById('badge-capo').addEventListener('click', () => {
+        const song = SONGS[currentIndex];
+        if (!song.capo) return;
+        capoActive = !capoActive;
+        updateCapoBadge(song);
+        applyTranspose();
       });
 
       // Transpose buttons
