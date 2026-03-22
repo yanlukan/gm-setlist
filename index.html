@@ -38,7 +38,7 @@
     }
     #top-bar { padding: 12px 16px; }
     #title-row { display: flex; justify-content: space-between; align-items: center; }
-    #song-title { font-size: 20px; font-weight: bold; }
+    #song-title { font-size: 28px; font-weight: bold; }
     #controls { display: flex; gap: 8px; }
     #controls button { min-width: 44px; min-height: 44px; font-size: 16px;
       background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
@@ -60,7 +60,10 @@
     .section-prechorus { color: var(--section-prechorus); }
     .section-intro { color: var(--section-intro); }
     .section-default { color: var(--section-default); }
-    #notes-area { padding: 4px 16px; font-size: 13px; color: var(--text-muted); font-style: italic; display: none; }
+    #notes-area { padding: 8px 16px; font-size: 14px; color: var(--text-muted); font-style: italic;
+      border-top: 1px solid var(--badge-bg); min-height: 32px; }
+    #notes-area:empty::before { content: 'Notes...'; opacity: 0.4; }
+    #notes-area.editable { outline: none; background: var(--badge-bg); border-radius: 4px; }
     #bottom-bar { padding: 8px 16px; display: flex; align-items: center; gap: 12px;
       border-top: 1px solid var(--badge-bg); min-height: 56px; }
     #song-position { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
@@ -411,12 +414,8 @@
       });
 
       const notesArea = document.getElementById('notes-area');
-      if (song.notes) {
-        notesArea.textContent = song.notes;
-        notesArea.style.display = '';
-      } else {
-        notesArea.style.display = 'none';
-      }
+      const savedNotes = localStorage.getItem('cheatsheet-notes-' + song.title);
+      notesArea.textContent = savedNotes !== null ? savedNotes : (song.notes || '');
 
       autoScaleFont();
       renderBottomBar();
@@ -560,7 +559,7 @@
       }
       resetBtn.style.display = '';
 
-      // Make chords and labels editable
+      // Make chords, labels, and notes editable
       document.querySelectorAll('.section-chords').forEach(el => {
         el.contentEditable = true;
         el.classList.add('editable');
@@ -570,6 +569,9 @@
         el.contentEditable = true;
         el.classList.add('editable');
       });
+      const notesEl = document.getElementById('notes-area');
+      notesEl.contentEditable = true;
+      notesEl.classList.add('editable');
     }
 
     function exitEditMode() {
@@ -592,6 +594,17 @@
         el.contentEditable = false;
         el.classList.remove('editable');
       });
+      const notesEl = document.getElementById('notes-area');
+      notesEl.contentEditable = false;
+      notesEl.classList.remove('editable');
+      // Save notes
+      const song = SONGS[currentIndex];
+      const notesText = notesEl.textContent.trim();
+      if (notesText !== (song.notes || '')) {
+        localStorage.setItem('cheatsheet-notes-' + song.title, notesText);
+      } else {
+        localStorage.removeItem('cheatsheet-notes-' + song.title);
+      }
 
       applyTranspose();
       autoScaleFont();
@@ -614,6 +627,7 @@
     function resetEdits() {
       const song = SONGS[currentIndex];
       localStorage.removeItem('cheatsheet-sections-' + song.title);
+      localStorage.removeItem('cheatsheet-notes-' + song.title);
       // Also clean up old format
       localStorage.removeItem('cheatsheet-edits-' + song.title);
       editMode = false;
