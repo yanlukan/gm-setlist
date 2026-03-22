@@ -88,6 +88,23 @@
       border: 2px dashed var(--text-muted); border-radius: 8px; background: transparent;
       color: var(--text-muted); font-size: 14px; cursor: pointer; }
     body.editing #add-section-btn { display: block; }
+    #section-picker { display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--picker-bg); border-top: 2px solid var(--edit-border);
+      padding: 12px; z-index: 101; }
+    #section-picker.visible { display: block; }
+    #section-picker h3 { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+    .section-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .section-type-chip { padding: 10px 16px; border-radius: 8px; border: none;
+      background: var(--badge-bg); color: var(--text); font-size: 15px; font-weight: 600;
+      cursor: pointer; min-height: 44px; }
+    .section-type-chip:active { opacity: 0.7; }
+    .section-type-chip.custom { border: 2px dashed var(--text-muted); background: transparent;
+      color: var(--text-muted); }
+    #custom-section-input { display: none; margin-top: 10px; padding: 10px; width: 100%;
+      border-radius: 8px; border: 2px solid var(--edit-border); background: var(--bg);
+      color: var(--text); font-size: 16px; font-weight: 600; }
+    #section-picker-close { position: absolute; top: 12px; right: 12px; background: var(--badge-bg);
+      color: var(--text); border: none; border-radius: 6px; padding: 4px 12px; font-size: 14px; cursor: pointer; }
 
     /* Chord picker */
     #chord-picker { display: none; position: fixed; bottom: 0; left: 0; right: 0;
@@ -135,6 +152,14 @@
     <div id="song-position"></div>
     <nav id="song-list"></nav>
   </footer>
+
+  <!-- Section picker panel -->
+  <div id="section-picker">
+    <button id="section-picker-close">&times;</button>
+    <h3>Add Section</h3>
+    <div class="section-type-grid" id="section-type-grid"></div>
+    <input type="text" id="custom-section-input" placeholder="Type section name...">
+  </div>
 
   <!-- Chord picker panel -->
   <div id="chord-picker">
@@ -556,6 +581,7 @@
       if (resetBtn) resetBtn.style.display = 'none';
 
       hideChordPicker();
+      hideSectionPicker();
       saveCurrentStructure();
 
       document.querySelectorAll('.section-chords').forEach(el => {
@@ -621,12 +647,44 @@
       rebuildSectionRows(sections);
     }
 
-    function addSection() {
+    const SECTION_TYPES = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Solo', 'Breakdown', 'Instrumental', 'Outro'];
+
+    function showSectionPicker() {
+      hideChordPicker();
+      const grid = document.getElementById('section-type-grid');
+      grid.innerHTML = '';
+      SECTION_TYPES.forEach(name => {
+        const chip = document.createElement('button');
+        chip.className = 'section-type-chip';
+        chip.textContent = name;
+        chip.addEventListener('click', () => addSectionWithName(name));
+        grid.appendChild(chip);
+      });
+      const customChip = document.createElement('button');
+      customChip.className = 'section-type-chip custom';
+      customChip.textContent = 'Custom...';
+      customChip.addEventListener('click', () => {
+        const input = document.getElementById('custom-section-input');
+        input.style.display = 'block';
+        input.value = '';
+        input.focus();
+      });
+      grid.appendChild(customChip);
+      document.getElementById('custom-section-input').style.display = 'none';
+      document.getElementById('section-picker').classList.add('visible');
+    }
+
+    function hideSectionPicker() {
+      document.getElementById('section-picker').classList.remove('visible');
+    }
+
+    function addSectionWithName(name) {
       const song = SONGS[currentIndex];
       const sections = getCurrentSectionsFromDOM();
-      sections.push({ name: 'New', chords: '' });
+      sections.push({ name: name, chords: '' });
       saveStructure(song, sections);
       rebuildSectionRows(sections);
+      hideSectionPicker();
     }
 
     function getCurrentSectionsFromDOM() {
@@ -722,7 +780,18 @@
       });
 
       // Add section button
-      document.getElementById('add-section-btn').addEventListener('click', addSection);
+      document.getElementById('add-section-btn').addEventListener('click', showSectionPicker);
+
+      // Section picker close
+      document.getElementById('section-picker-close').addEventListener('click', hideSectionPicker);
+
+      // Custom section input - enter key
+      document.getElementById('custom-section-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const name = e.target.value.trim();
+          if (name) addSectionWithName(name);
+        }
+      });
 
       // Chord picker close
       document.getElementById('picker-close').addEventListener('click', hideChordPicker);
