@@ -285,13 +285,13 @@
     // ===== KEY BADGE =====
     function updateKeyBadge(song) {
       const badge = document.getElementById('badge-key');
-      if (transposeShift === 0) {
+      const effectiveShift = getEffectiveShift(song);
+      if (effectiveShift === 0) {
         badge.textContent = 'Key: ' + song.key;
       } else {
-        const useFlats = shouldUseFlats(song.key, transposeShift);
-        const transposedKey = transposeChord(song.key, transposeShift, useFlats);
-        const sign = transposeShift > 0 ? '+' : '';
-        badge.textContent = 'Key: ' + song.key + ' (' + sign + transposeShift + ' \u2192 ' + transposedKey + ')';
+        const useFlats = shouldUseFlats(song.key, effectiveShift);
+        const transposedKey = transposeChord(song.key, effectiveShift, useFlats);
+        badge.textContent = 'Key: ' + song.key + ' \u2192 ' + transposedKey;
       }
     }
 
@@ -312,11 +312,18 @@
       return ((shift % 12) + 12) % 12;
     }
 
+    function displayShift(shift) {
+      if (shift === 0) return '0';
+      // Show the shortest interval: +1 to +6, -5 to -1
+      const display = shift > 6 ? shift - 12 : shift;
+      return (display > 0 ? '+' : '') + display;
+    }
+
     function applyTranspose() {
+      if (editMode) return; // never transpose while editing
       const song = SONGS[currentIndex];
       const sections = getEditedSections(song);
-      document.getElementById('transpose-display').textContent =
-        transposeShift === 0 ? '0' : (transposeShift > 6 ? '' + (transposeShift - 12) : '+' + transposeShift);
+      document.getElementById('transpose-display').textContent = displayShift(transposeShift);
       updateKeyBadge(song);
       const effectiveShift = getEffectiveShift(song);
       const chordEls = document.querySelectorAll('.section-chords');
@@ -558,6 +565,14 @@
         document.getElementById('controls').appendChild(resetBtn);
       }
       resetBtn.style.display = '';
+
+      // Revert chords to untransposed originals before editing
+      const song = SONGS[currentIndex];
+      const sections = getEditedSections(song);
+      const chordEls = document.querySelectorAll('.section-chords');
+      chordEls.forEach((el, i) => {
+        if (sections[i]) el.textContent = sections[i].chords;
+      });
 
       // Make chords, labels, and notes editable
       document.querySelectorAll('.section-chords').forEach(el => {
