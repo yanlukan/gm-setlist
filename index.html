@@ -849,6 +849,16 @@
       // Swipe
       initSwipe();
 
+      // One-time cleanup: clear any corrupted localStorage from transpose bug
+      if (!localStorage.getItem('cheatsheet-bugfix-v1')) {
+        SONGS.forEach(s => {
+          localStorage.removeItem('cheatsheet-sections-' + s.title);
+          localStorage.removeItem('cheatsheet-edits-' + s.title);
+          localStorage.removeItem('cheatsheet-notes-' + s.title);
+        });
+        localStorage.setItem('cheatsheet-bugfix-v1', '1');
+      }
+
       // Render first song
       renderSong();
     });
