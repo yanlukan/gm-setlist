@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>GM Setlist</title>
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --text: #ffffff;
+      --text-muted: #888888;
+      --badge-bg: #333333;
+      --section-verse: #4a9eff;
+      --section-chorus: #4ade80;
+      --section-bridge: #fb923c;
+      --section-prechorus: #c084fc;
+      --section-intro: #888888;
+      --section-default: #888888;
+      --edit-border: #f59e0b;
+    }
+    body.light {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #666666;
+      --badge-bg: #e5e7eb;
+      --edit-border: #d97706;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+    #top-bar { padding: 12px 16px; }
+    #title-row { display: flex; justify-content: space-between; align-items: center; }
+    #song-title { font-size: 20px; font-weight: bold; }
+    #controls { display: flex; gap: 8px; }
+    #controls button { min-width: 44px; min-height: 44px; font-size: 16px;
+      background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
+    #meta-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .badge { background: var(--badge-bg); padding: 4px 10px; border-radius: 12px; font-size: 13px; }
+    #transpose-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    #transpose-controls button { min-width: 44px; min-height: 44px; font-size: 20px;
+      background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
+    #transpose-display { min-width: 32px; text-align: center; font-size: 14px; }
+    #chord-area { flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
+      justify-content: center; gap: 4px; overflow: hidden; }
+    .section-row { display: flex; align-items: baseline; gap: 12px; }
+    .section-label { min-width: 80px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+    .section-chords { flex: 1; font-size: 24px; font-weight: bold; }
+    .section-verse { color: var(--section-verse); }
+    .section-chorus { color: var(--section-chorus); }
+    .section-bridge { color: var(--section-bridge); }
+    .section-prechorus { color: var(--section-prechorus); }
+    .section-intro { color: var(--section-intro); }
+    .section-default { color: var(--section-default); }
+    #notes-area { padding: 4px 16px; font-size: 13px; color: var(--text-muted); font-style: italic; display: none; }
+    #bottom-bar { padding: 8px 16px; display: flex; align-items: center; gap: 12px;
+      border-top: 1px solid var(--badge-bg); min-height: 56px; }
+    #song-position { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+    #song-list { display: flex; gap: 6px; overflow-x: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+    .song-btn { white-space: nowrap; padding: 8px 12px; border: none; border-radius: 8px;
+      background: var(--badge-bg); color: var(--text-muted); font-size: 13px; cursor: pointer; min-height: 44px; }
+    .song-btn.active { background: #4a9eff; color: #fff; }
+    body.editing #chord-area { border: 2px solid var(--edit-border); border-radius: 8px; }
+    .section-chords.editable { background: var(--badge-bg); border-radius: 4px; padding: 2px 6px; outline: none; }
+    #reset-btn { background: #ef4444 !important; color: #fff !important; }
+  </style>
+</head>
+<body>
+  <header id="top-bar">
+    <div id="title-row">
+      <h1 id="song-title"></h1>
+      <div id="controls">
+        <button id="edit-btn">Edit</button>
+        <button id="theme-btn">☀️</button>
+      </div>
+    </div>
+    <div id="meta-row">
+      <span class="badge" id="badge-key"></span>
+      <span class="badge" id="badge-bpm"></span>
+      <span class="badge" id="badge-time"></span>
+      <span class="badge" id="badge-capo"></span>
+      <div id="transpose-controls">
+        <button id="transpose-down">−</button>
+        <span id="transpose-display">0</span>
+        <button id="transpose-up">+</button>
+      </div>
+    </div>
+  </header>
+  <main id="chord-area"></main>
+  <div id="notes-area"></div>
+  <footer id="bottom-bar">
+    <div id="song-position"></div>
+    <nav id="song-list"></nav>
+  </footer>
+  <script src="songs.js"></script>
+  <script>
+    let currentIndex = 0;
+    let transposeShift = 0;
+    let editMode = false;
+
+    const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+    const FLAT_KEYS = ['F','Bb','Eb','Ab','Db','Gb','Dm','Gm','Cm','Fm','Bbm','Ebm'];
+
+    function parseChord(chord) {
+      const match = chord.match(/^([A-G][#b]?)(.*)/);
+      if (!match) return null;
+      return { root: match[1], quality: match[2] };
+    }
+
+    function noteIndex(note) {
+      let idx = SHARPS.indexOf(note);
+      if (idx === -1) idx = FLATS.indexOf(note);
+      return idx;
+    }
+
+    function transposeNote(note, semitones, useFlats) {
+      const idx = noteIndex(note);
+      if (idx === -1) return note;
+      const newIdx = ((idx + semitones) % 12 + 12) % 12;
+      return useFlats ? FLATS[newIdx] : SHARPS[newIdx];
+    }
+
+    function shouldUseFlats(originalKey, semitones) {
+      const parsed = parseChord(originalKey);
+      if (!parsed) return false;
+      const targetIdx = ((noteIndex(parsed.root) + semitones) % 12 + 12) % 12;
+      const targetNote = SHARPS[targetIdx];
+      const targetKey = targetNote + parsed.quality;
+      return FLAT_KEYS.includes(targetKey) || FLAT_KEYS.includes(targetNote);
+    }
+
+    function transposeChord(chord, semitones, useFlats) {
+      if (semitones === 0) return chord;
+      if (chord.includes('/')) {
+        const [main, bass] = chord.split('/');
+        return transposeChord(main, semitones, useFlats) + '/' + transposeChord(bass, semitones, useFlats);
+      }
+      const parsed = parseChord(chord);
+      if (!parsed) return chord;
+      return transposeNote(parsed.root, semitones, useFlats) + parsed.quality;
+    }
+
+    function transposeChords(chordsStr, semitones, songKey) {
+      if (semitones === 0) return chordsStr;
+      const useFlats = shouldUseFlats(songKey, semitones);
+      return chordsStr.split(/\s+/).map(c => transposeChord(c, semitones, useFlats)).join('  ');
+    }
+
+    function updateKeyBadge(song) {
+      const badge = document.getElementById('badge-key');
+      if (transposeShift === 0) {
+        badge.textContent = 'Key: ' + song.key;
+      } else {
+        const useFlats = shouldUseFlats(song.key, transposeShift);
+        const transposedKey = transposeChord(song.key, transposeShift, useFlats);
+        const sign = transposeShift > 0 ? '+' : '';
+        badge.textContent = 'Key: ' + song.key + ' (' + sign + transposeShift + ' → ' + transposedKey + ')';
+      }
+    }
+
+    function applyTranspose() {
+      const song = SONGS[currentIndex];
+      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
+      document.getElementById('transpose-display').textContent =
+        transposeShift === 0 ? '0' : (transposeShift > 6 ? '' + (transposeShift - 12) : '+' + transposeShift);
+      updateKeyBadge(song);
+      const chordEls = document.querySelectorAll('.section-chords');
+      song.sections.forEach((section, i) => {
+        const chordStr = edits ? (edits[i] || section.chords) : section.chords;
+        chordEls[i].textContent = transposeChords(chordStr, transposeShift, song.key);
+      });
+    }
+
+    function sectionType(name) {
+      const n = name.toLowerCase();
+      if (n.includes('verse')) return 'verse';
+      if (n.includes('chorus')) return 'chorus';
+      if (n.includes('bridge')) return 'bridge';
+      if (n.includes('pre-chorus') || n.includes('prechorus')) return 'prechorus';
+      if (n.includes('intro') || n.includes('outro')) return 'intro';
+      return 'default';
+    }
+
+    function autoScaleFont() {
+      const chordArea = document.getElementById('chord-area');
+      const rows = chordArea.querySelectorAll('.section-chords');
+      let fontSize = 28;
+      rows.forEach(r => r.style.fontSize = fontSize + 'px');
+      while (chordArea.scrollHeight > chordArea.clientHeight && fontSize > 16) {
+        fontSize -= 1;
+        rows.forEach(r => r.style.fontSize = fontSize + 'px');
+      }
+    }
+
+    function renderBottomBar() {
+      document.getElementById('song-position').textContent = (currentIndex + 1) + ' / ' + SONGS.length;
+      const nav = document.getElementById('song-list');
+      nav.innerHTML = '';
+      SONGS.forEach((song, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'song-btn' + (i === currentIndex ? ' active' : '');
+        btn.textContent = song.title;
+        btn.addEventListener('click', () => {
+          currentIndex = i;
+          exitEditMode();
+          renderSong();
+        });
+        nav.appendChild(btn);
+      });
+      const activeBtn = nav.querySelector('.song-btn.active');
+      if (activeBtn) activeBtn.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+    }
+
+    function renderSong() {
+      const song = SONGS[currentIndex];
+      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
+
+      document.getElementById('song-title').textContent = song.title;
+      document.getElementById('badge-key').textContent = 'Key: ' + song.key;
+      document.getElementById('badge-bpm').textContent = song.bpm + ' BPM';
+      document.getElementById('badge-time').textContent = song.timeSignature;
+
+      const capoBadge = document.getElementById('badge-capo');
+      if (song.capo) {
+        capoBadge.textContent = 'Capo ' + song.capo;
+        capoBadge.style.display = '';
+      } else {
+        capoBadge.style.display = 'none';
+      }
+
+      transposeShift = 0;
+      document.getElementById('transpose-display').textContent = '0';
+      updateKeyBadge(song);
+
+      const chordArea = document.getElementById('chord-area');
+      chordArea.innerHTML = '';
+      song.sections.forEach((section, i) => {
+        const row = document.createElement('div');
+        row.className = 'section-row';
+        const label = document.createElement('span');
+        label.className = 'section-label section-' + sectionType(section.name);
+        label.textContent = section.name;
+        const chords = document.createElement('span');
+        chords.className = 'section-chords';
+        const chordStr = edits ? (edits[i] || section.chords) : section.chords;
+        chords.textContent = chordStr;
+        row.appendChild(label);
+        row.appendChild(chords);
+        chordArea.appendChild(row);
+      });
+
+      const notesArea = document.getElementById('notes-area');
+      if (song.notes) {
+        notesArea.textContent = song.notes;
+        notesArea.style.display = '';
+      } else {
+        notesArea.style.display = 'none';
+      }
+
+      autoScaleFont();
+      renderBottomBar();
+    }
+
+    function enterEditMode() {
+      editMode = true;
+      document.body.classList.add('editing');
+      document.getElementById('edit-btn').textContent = 'Done';
+      let resetBtn = document.getElementById('reset-btn');
+      if (!resetBtn) {
+        resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-btn';
+        resetBtn.textContent = 'Reset';
+        resetBtn.addEventListener('click', resetEdits);
+        document.getElementById('controls').appendChild(resetBtn);
+      }
+      resetBtn.style.display = '';
+      const song = SONGS[currentIndex];
+      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
+      const chordEls = document.querySelectorAll('.section-chords');
+      chordEls.forEach((el, i) => {
+        const chordStr = edits ? (edits[i] || song.sections[i].chords) : song.sections[i].chords;
+        el.textContent = chordStr;
+        el.contentEditable = true;
+        el.classList.add('editable');
+      });
+    }
+
+    function exitEditMode() {
+      if (!editMode) return;
+      editMode = false;
+      document.body.classList.remove('editing');
+      document.getElementById('edit-btn').textContent = 'Edit';
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) resetBtn.style.display = 'none';
+      saveEdits();
+      document.querySelectorAll('.section-chords').forEach(el => {
+        el.contentEditable = false;
+        el.classList.remove('editable');
+      });
+      applyTranspose();
+    }
+
+    function saveEdits() {
+      const song = SONGS[currentIndex];
+      const chordEls = document.querySelectorAll('.section-chords');
+      const edits = {};
+      let hasChanges = false;
+      chordEls.forEach((el, i) => {
+        const current = el.textContent.trim();
+        if (current !== song.sections[i].chords) {
+          edits[i] = current;
+          hasChanges = true;
+        }
+      });
+      if (hasChanges) {
+        localStorage.setItem('cheatsheet-edits-' + song.title, JSON.stringify(edits));
+      } else {
+        localStorage.removeItem('cheatsheet-edits-' + song.title);
+      }
+    }
+
+    function resetEdits() {
+      const song = SONGS[currentIndex];
+      localStorage.removeItem('cheatsheet-edits-' + song.title);
+      exitEditMode();
+      renderSong();
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function initSwipe() {
+      const chordArea = document.getElementById('chord-area');
+      chordArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      chordArea.addEventListener('touchend', (e) => {
+        if (editMode) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+        if (dx < 0 && currentIndex < SONGS.length - 1) {
+          currentIndex++;
+          renderSong();
+        } else if (dx > 0 && currentIndex > 0) {
+          currentIndex--;
+          renderSong();
+        } else {
+          const area = document.getElementById('chord-area');
+          area.style.transition = 'transform 0.15s';
+          area.style.transform = dx < 0 ? 'translateX(-20px)' : 'translateX(20px)';
+          setTimeout(() => {
+            area.style.transform = '';
+            setTimeout(() => area.style.transition = '', 150);
+          }, 150);
+        }
+      }, { passive: true });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Theme
+      const savedTheme = localStorage.getItem('cheatsheet-theme');
+      if (savedTheme === 'light') document.body.classList.add('light');
+
+      const themeBtn = document.getElementById('theme-btn');
+      function updateThemeBtn() {
+        themeBtn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
+      }
+      updateThemeBtn();
+      themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light');
+        localStorage.setItem('cheatsheet-theme',
+          document.body.classList.contains('light') ? 'light' : 'dark');
+        updateThemeBtn();
+      });
+
+      // Edit button
+      document.getElementById('edit-btn').addEventListener('click', () => {
+        if (editMode) exitEditMode();
+        else enterEditMode();
+      });
+
+      // Transpose buttons
+      document.getElementById('transpose-up').addEventListener('click', () => {
+        if (editMode) return;
+        transposeShift = ((transposeShift + 1) % 12 + 12) % 12;
+        applyTranspose();
+      });
+      document.getElementById('transpose-down').addEventListener('click', () => {
+        if (editMode) return;
+        transposeShift = ((transposeShift - 1) % 12 + 12) % 12;
+        applyTranspose();
+      });
+
+      // Swipe
+      initSwipe();
+
+      // Render first song
+      renderSong();
+    });
+  </script>
+</body>
+</html>
