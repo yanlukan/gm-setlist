@@ -17,6 +17,7 @@
       --section-intro: #888888;
       --section-default: #888888;
       --edit-border: #f59e0b;
+      --picker-bg: #2a2a2a;
     }
     body.light {
       --bg: #ffffff;
@@ -24,6 +25,7 @@
       --text-muted: #666666;
       --badge-bg: #e5e7eb;
       --edit-border: #d97706;
+      --picker-bg: #f3f4f6;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; }
@@ -48,8 +50,9 @@
     #transpose-display { min-width: 32px; text-align: center; font-size: 14px; }
     #chord-area { flex: 1; padding: 12px 16px; display: flex; flex-direction: column;
       justify-content: center; gap: 4px; overflow: hidden; }
-    .section-row { display: flex; align-items: baseline; gap: 12px; }
-    .section-label { min-width: 80px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+    body.editing #chord-area { justify-content: flex-start; overflow-y: auto; }
+    .section-row { display: flex; align-items: baseline; gap: 8px; }
+    .section-label { min-width: 72px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
     .section-chords { flex: 1; font-size: 24px; font-weight: bold; }
     .section-verse { color: var(--section-verse); }
     .section-chorus { color: var(--section-chorus); }
@@ -67,9 +70,41 @@
     .song-btn.active { background: #4a9eff; color: #fff; }
     body.editing #chord-area { border: 2px solid var(--edit-border); border-radius: 8px; }
     .section-chords.editable { background: var(--badge-bg); border-radius: 4px; padding: 2px 6px; outline: none; }
+    .section-label.editable { background: var(--badge-bg); border-radius: 4px; padding: 2px 4px; outline: none;
+      min-width: auto; }
     #reset-btn { background: #ef4444 !important; color: #fff !important; }
     #badge-capo { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
     #badge-capo.capo-off { text-decoration: line-through; opacity: 0.5; }
+
+    /* Edit mode section controls */
+    .section-controls { display: none; flex-shrink: 0; gap: 2px; align-items: center; }
+    body.editing .section-controls { display: flex; }
+    .section-controls button { width: 28px; height: 28px; border: none; border-radius: 4px;
+      background: var(--badge-bg); color: var(--text-muted); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; padding: 0; }
+    .section-controls button:active { opacity: 0.7; }
+    .btn-delete { background: #ef4444 !important; color: #fff !important; }
+    #add-section-btn { display: none; width: 100%; padding: 8px; margin-top: 4px;
+      border: 2px dashed var(--text-muted); border-radius: 8px; background: transparent;
+      color: var(--text-muted); font-size: 14px; cursor: pointer; }
+    body.editing #add-section-btn { display: block; }
+
+    /* Chord picker */
+    #chord-picker { display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--picker-bg); border-top: 2px solid var(--edit-border);
+      padding: 8px 12px; z-index: 100; max-height: 45vh; overflow-y: auto; }
+    #chord-picker.visible { display: block; }
+    #chord-picker h3 { font-size: 12px; color: var(--text-muted); margin: 4px 0; text-transform: uppercase; }
+    .chord-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .chord-chip { padding: 6px 12px; border-radius: 6px; border: none;
+      background: var(--badge-bg); color: var(--text); font-size: 16px; font-weight: bold;
+      cursor: pointer; min-width: 44px; min-height: 36px; text-align: center; }
+    .chord-chip:active { opacity: 0.7; }
+    .chord-chip.diatonic { border: 2px solid #4a9eff; }
+    #picker-close { position: absolute; top: 8px; right: 12px; background: var(--badge-bg);
+      color: var(--text); border: none; border-radius: 6px; padding: 4px 12px; font-size: 14px; cursor: pointer; }
+    #picker-more { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--text-muted);
+      background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -78,7 +113,7 @@
       <h1 id="song-title"></h1>
       <div id="controls">
         <button id="edit-btn">Edit</button>
-        <button id="theme-btn">☀️</button>
+        <button id="theme-btn"></button>
       </div>
     </div>
     <div id="meta-row">
@@ -87,28 +122,61 @@
       <span class="badge" id="badge-time"></span>
       <span class="badge" id="badge-capo"></span>
       <div id="transpose-controls">
-        <button id="transpose-down">−</button>
+        <button id="transpose-down">&minus;</button>
         <span id="transpose-display">0</span>
         <button id="transpose-up">+</button>
       </div>
     </div>
   </header>
   <main id="chord-area"></main>
+  <button id="add-section-btn">+ Add Section</button>
   <div id="notes-area"></div>
   <footer id="bottom-bar">
     <div id="song-position"></div>
     <nav id="song-list"></nav>
   </footer>
+
+  <!-- Chord picker panel -->
+  <div id="chord-picker">
+    <button id="picker-close">Done</button>
+    <div id="picker-content"></div>
+  </div>
+
   <script src="songs.js"></script>
   <script>
+    // ===== STATE =====
     let currentIndex = 0;
     let transposeShift = 0;
     let editMode = false;
-    let capoActive = true; // when true, show capo shapes; when false, show no-capo chords
+    let capoActive = true;
+    let pickerTarget = null; // the chord element being edited via picker
 
+    // ===== MUSIC THEORY =====
     const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
     const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
     const FLAT_KEYS = ['F','Bb','Eb','Ab','Db','Gb','Dm','Gm','Cm','Fm','Bbm','Ebm'];
+
+    // Diatonic chords for major keys (semitone intervals from root)
+    // I  ii  iii  IV  V  vi  vii°
+    const MAJOR_PATTERN = [
+      { interval: 0, quality: '', type: 'maj' },
+      { interval: 2, quality: 'm', type: 'min' },
+      { interval: 4, quality: 'm', type: 'min' },
+      { interval: 5, quality: '', type: 'maj' },
+      { interval: 7, quality: '', type: 'maj' },
+      { interval: 9, quality: 'm', type: 'min' },
+      { interval: 11, quality: 'dim', type: 'dim' },
+    ];
+    // Natural minor: i  ii°  III  iv  v  VI  VII
+    const MINOR_PATTERN = [
+      { interval: 0, quality: 'm', type: 'min' },
+      { interval: 2, quality: 'dim', type: 'dim' },
+      { interval: 3, quality: '', type: 'maj' },
+      { interval: 5, quality: 'm', type: 'min' },
+      { interval: 7, quality: 'm', type: 'min' },
+      { interval: 8, quality: '', type: 'maj' },
+      { interval: 10, quality: '', type: 'maj' },
+    ];
 
     function parseChord(chord) {
       const match = chord.match(/^([A-G][#b]?)(.*)/);
@@ -155,6 +223,38 @@
       return chordsStr.split(/\s+/).map(c => transposeChord(c, semitones, useFlats)).join('  ');
     }
 
+    function isMinorKey(key) {
+      const parsed = parseChord(key);
+      return parsed && parsed.quality.startsWith('m') && !parsed.quality.startsWith('maj');
+    }
+
+    function getDiatonicChords(songKey) {
+      const parsed = parseChord(songKey);
+      if (!parsed) return [];
+      const rootIdx = noteIndex(parsed.root);
+      const useFlats = FLAT_KEYS.includes(songKey) || FLAT_KEYS.includes(parsed.root);
+      const scale = useFlats ? FLATS : SHARPS;
+      const pattern = isMinorKey(songKey) ? MINOR_PATTERN : MAJOR_PATTERN;
+      return pattern.map(p => {
+        const idx = (rootIdx + p.interval) % 12;
+        return scale[idx] + p.quality;
+      });
+    }
+
+    function getAllChords(songKey) {
+      const parsed = parseChord(songKey);
+      if (!parsed) return [];
+      const useFlats = FLAT_KEYS.includes(songKey) || FLAT_KEYS.includes(parsed.root);
+      const scale = useFlats ? FLATS : SHARPS;
+      const qualities = ['', 'm', '7', 'm7', 'maj7', 'sus4', 'sus2', 'dim', 'aug', '9', 'add9', '6'];
+      const chords = [];
+      scale.forEach(note => {
+        qualities.forEach(q => chords.push(note + q));
+      });
+      return chords;
+    }
+
+    // ===== KEY BADGE =====
     function updateKeyBadge(song) {
       const badge = document.getElementById('badge-key');
       if (transposeShift === 0) {
@@ -163,7 +263,7 @@
         const useFlats = shouldUseFlats(song.key, transposeShift);
         const transposedKey = transposeChord(song.key, transposeShift, useFlats);
         const sign = transposeShift > 0 ? '+' : '';
-        badge.textContent = 'Key: ' + song.key + ' (' + sign + transposeShift + ' → ' + transposedKey + ')';
+        badge.textContent = 'Key: ' + song.key + ' (' + sign + transposeShift + ' \u2192 ' + transposedKey + ')';
       }
     }
 
@@ -179,7 +279,6 @@
     }
 
     function getEffectiveShift(song) {
-      // When capo is removed, transpose up by capo amount to get concert pitch chords
       let shift = transposeShift;
       if (song.capo && !capoActive) shift += song.capo;
       return ((shift % 12) + 12) % 12;
@@ -187,18 +286,18 @@
 
     function applyTranspose() {
       const song = SONGS[currentIndex];
-      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
+      const sections = getEditedSections(song);
       document.getElementById('transpose-display').textContent =
         transposeShift === 0 ? '0' : (transposeShift > 6 ? '' + (transposeShift - 12) : '+' + transposeShift);
       updateKeyBadge(song);
       const effectiveShift = getEffectiveShift(song);
       const chordEls = document.querySelectorAll('.section-chords');
-      song.sections.forEach((section, i) => {
-        const chordStr = edits ? (edits[i] || section.chords) : section.chords;
-        chordEls[i].textContent = transposeChords(chordStr, effectiveShift, song.key);
+      sections.forEach((section, i) => {
+        if (chordEls[i]) chordEls[i].textContent = transposeChords(section.chords, effectiveShift, song.key);
       });
     }
 
+    // ===== SECTION HELPERS =====
     function sectionType(name) {
       const n = name.toLowerCase();
       if (n.includes('verse')) return 'verse';
@@ -209,6 +308,24 @@
       return 'default';
     }
 
+    function getEditedSections(song) {
+      const saved = localStorage.getItem('cheatsheet-sections-' + song.title);
+      if (saved) return JSON.parse(saved);
+      return song.sections.map(s => ({ name: s.name, chords: s.chords }));
+    }
+
+    function saveStructure(song, sections) {
+      const orig = song.sections;
+      const changed = sections.length !== orig.length ||
+        sections.some((s, i) => !orig[i] || s.name !== orig[i].name || s.chords !== orig[i].chords);
+      if (changed) {
+        localStorage.setItem('cheatsheet-sections-' + song.title, JSON.stringify(sections));
+      } else {
+        localStorage.removeItem('cheatsheet-sections-' + song.title);
+      }
+    }
+
+    // ===== AUTO SCALE =====
     function autoScaleFont() {
       const chordArea = document.getElementById('chord-area');
       const rows = chordArea.querySelectorAll('.section-chords');
@@ -220,6 +337,7 @@
       }
     }
 
+    // ===== RENDER =====
     function renderBottomBar() {
       document.getElementById('song-position').textContent = (currentIndex + 1) + ' / ' + SONGS.length;
       const nav = document.getElementById('song-list');
@@ -241,7 +359,7 @@
 
     function renderSong() {
       const song = SONGS[currentIndex];
-      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
+      const sections = getEditedSections(song);
 
       document.getElementById('song-title').textContent = song.title;
       document.getElementById('badge-key').textContent = 'Key: ' + song.key;
@@ -263,19 +381,8 @@
 
       const chordArea = document.getElementById('chord-area');
       chordArea.innerHTML = '';
-      song.sections.forEach((section, i) => {
-        const row = document.createElement('div');
-        row.className = 'section-row';
-        const label = document.createElement('span');
-        label.className = 'section-label section-' + sectionType(section.name);
-        label.textContent = section.name;
-        const chords = document.createElement('span');
-        chords.className = 'section-chords';
-        const chordStr = edits ? (edits[i] || section.chords) : section.chords;
-        chords.textContent = chordStr;
-        row.appendChild(label);
-        row.appendChild(chords);
-        chordArea.appendChild(row);
+      sections.forEach((section, i) => {
+        chordArea.appendChild(createSectionRow(section, i, sections.length));
       });
 
       const notesArea = document.getElementById('notes-area');
@@ -290,10 +397,134 @@
       renderBottomBar();
     }
 
+    function createSectionRow(section, index, total) {
+      const row = document.createElement('div');
+      row.className = 'section-row';
+      row.dataset.index = index;
+
+      const label = document.createElement('span');
+      label.className = 'section-label section-' + sectionType(section.name);
+      label.textContent = section.name;
+
+      const chords = document.createElement('span');
+      chords.className = 'section-chords';
+      chords.textContent = section.chords;
+
+      // Edit controls
+      const controls = document.createElement('span');
+      controls.className = 'section-controls';
+
+      const upBtn = document.createElement('button');
+      upBtn.textContent = '\u25B2';
+      upBtn.title = 'Move up';
+      upBtn.addEventListener('click', () => moveSection(index, -1));
+
+      const downBtn = document.createElement('button');
+      downBtn.textContent = '\u25BC';
+      downBtn.title = 'Move down';
+      downBtn.addEventListener('click', () => moveSection(index, 1));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-delete';
+      delBtn.textContent = '\u2715';
+      delBtn.title = 'Delete section';
+      delBtn.addEventListener('click', () => deleteSection(index));
+
+      controls.appendChild(upBtn);
+      controls.appendChild(downBtn);
+      controls.appendChild(delBtn);
+
+      row.appendChild(controls);
+      row.appendChild(label);
+      row.appendChild(chords);
+      return row;
+    }
+
+    // ===== CHORD PICKER =====
+    function showChordPicker(chordEl) {
+      pickerTarget = chordEl;
+      const song = SONGS[currentIndex];
+      const diatonic = getDiatonicChords(song.key);
+      const picker = document.getElementById('chord-picker');
+      const content = document.getElementById('picker-content');
+      content.innerHTML = '';
+
+      // Diatonic section
+      const dHead = document.createElement('h3');
+      dHead.textContent = 'In Key (' + song.key + ')';
+      content.appendChild(dHead);
+      const dGrid = document.createElement('div');
+      dGrid.className = 'chord-grid';
+      diatonic.forEach(c => {
+        const chip = document.createElement('button');
+        chip.className = 'chord-chip diatonic';
+        chip.textContent = c;
+        chip.addEventListener('click', () => insertChord(c));
+        dGrid.appendChild(chip);
+      });
+      // Add common 7th variants of diatonic chords
+      diatonic.forEach(c => {
+        const p = parseChord(c);
+        if (!p) return;
+        const seventh = p.root + (p.quality === '' ? '7' : (p.quality === 'm' ? 'm7' : ''));
+        if (seventh !== c) {
+          const chip = document.createElement('button');
+          chip.className = 'chord-chip diatonic';
+          chip.textContent = seventh;
+          chip.addEventListener('click', () => insertChord(seventh));
+          dGrid.appendChild(chip);
+        }
+      });
+      content.appendChild(dGrid);
+
+      // More button to expand all chords
+      const moreBtn = document.createElement('button');
+      moreBtn.id = 'picker-more';
+      moreBtn.textContent = 'Show all chords...';
+      moreBtn.addEventListener('click', () => {
+        moreBtn.style.display = 'none';
+        allSection.style.display = '';
+      });
+      content.appendChild(moreBtn);
+
+      // All chords (hidden initially)
+      const allSection = document.createElement('div');
+      allSection.style.display = 'none';
+      const aHead = document.createElement('h3');
+      aHead.textContent = 'All Chords';
+      allSection.appendChild(aHead);
+      const aGrid = document.createElement('div');
+      aGrid.className = 'chord-grid';
+      getAllChords(song.key).forEach(c => {
+        const chip = document.createElement('button');
+        chip.className = 'chord-chip';
+        chip.textContent = c;
+        chip.addEventListener('click', () => insertChord(c));
+        aGrid.appendChild(chip);
+      });
+      allSection.appendChild(aGrid);
+      content.appendChild(allSection);
+
+      picker.classList.add('visible');
+    }
+
+    function insertChord(chord) {
+      if (!pickerTarget) return;
+      const current = pickerTarget.textContent.trim();
+      pickerTarget.textContent = current ? current + '  ' + chord : chord;
+    }
+
+    function hideChordPicker() {
+      document.getElementById('chord-picker').classList.remove('visible');
+      pickerTarget = null;
+    }
+
+    // ===== EDIT MODE =====
     function enterEditMode() {
       editMode = true;
       document.body.classList.add('editing');
       document.getElementById('edit-btn').textContent = 'Done';
+
       let resetBtn = document.getElementById('reset-btn');
       if (!resetBtn) {
         resetBtn = document.createElement('button');
@@ -303,12 +534,14 @@
         document.getElementById('controls').appendChild(resetBtn);
       }
       resetBtn.style.display = '';
-      const song = SONGS[currentIndex];
-      const edits = JSON.parse(localStorage.getItem('cheatsheet-edits-' + song.title) || 'null');
-      const chordEls = document.querySelectorAll('.section-chords');
-      chordEls.forEach((el, i) => {
-        const chordStr = edits ? (edits[i] || song.sections[i].chords) : song.sections[i].chords;
-        el.textContent = chordStr;
+
+      // Make chords and labels editable
+      document.querySelectorAll('.section-chords').forEach(el => {
+        el.contentEditable = true;
+        el.classList.add('editable');
+        el.addEventListener('focus', () => showChordPicker(el));
+      });
+      document.querySelectorAll('.section-label').forEach(el => {
         el.contentEditable = true;
         el.classList.add('editable');
       });
@@ -321,40 +554,116 @@
       document.getElementById('edit-btn').textContent = 'Edit';
       const resetBtn = document.getElementById('reset-btn');
       if (resetBtn) resetBtn.style.display = 'none';
-      saveEdits();
+
+      hideChordPicker();
+      saveCurrentStructure();
+
       document.querySelectorAll('.section-chords').forEach(el => {
         el.contentEditable = false;
         el.classList.remove('editable');
       });
+      document.querySelectorAll('.section-label').forEach(el => {
+        el.contentEditable = false;
+        el.classList.remove('editable');
+      });
+
       applyTranspose();
+      autoScaleFont();
     }
 
-    function saveEdits() {
+    function saveCurrentStructure() {
       const song = SONGS[currentIndex];
-      const chordEls = document.querySelectorAll('.section-chords');
-      const edits = {};
-      let hasChanges = false;
-      chordEls.forEach((el, i) => {
-        const current = el.textContent.trim();
-        if (current !== song.sections[i].chords) {
-          edits[i] = current;
-          hasChanges = true;
+      const rows = document.querySelectorAll('.section-row');
+      const sections = [];
+      rows.forEach(row => {
+        const label = row.querySelector('.section-label');
+        const chords = row.querySelector('.section-chords');
+        if (label && chords) {
+          sections.push({ name: label.textContent.trim(), chords: chords.textContent.trim() });
         }
       });
-      if (hasChanges) {
-        localStorage.setItem('cheatsheet-edits-' + song.title, JSON.stringify(edits));
-      } else {
-        localStorage.removeItem('cheatsheet-edits-' + song.title);
-      }
+      saveStructure(song, sections);
     }
 
     function resetEdits() {
       const song = SONGS[currentIndex];
+      localStorage.removeItem('cheatsheet-sections-' + song.title);
+      // Also clean up old format
       localStorage.removeItem('cheatsheet-edits-' + song.title);
-      exitEditMode();
+      editMode = false;
+      document.body.classList.remove('editing');
+      document.getElementById('edit-btn').textContent = 'Edit';
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) resetBtn.style.display = 'none';
+      hideChordPicker();
       renderSong();
     }
 
+    // ===== SECTION MANAGEMENT =====
+    function moveSection(index, direction) {
+      const song = SONGS[currentIndex];
+      const sections = getCurrentSectionsFromDOM();
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= sections.length) return;
+      const temp = sections[index];
+      sections[index] = sections[newIndex];
+      sections[newIndex] = temp;
+      saveStructure(song, sections);
+      rebuildSectionRows(sections);
+    }
+
+    function deleteSection(index) {
+      const song = SONGS[currentIndex];
+      const sections = getCurrentSectionsFromDOM();
+      if (sections.length <= 1) return; // keep at least one
+      sections.splice(index, 1);
+      saveStructure(song, sections);
+      rebuildSectionRows(sections);
+    }
+
+    function addSection() {
+      const song = SONGS[currentIndex];
+      const sections = getCurrentSectionsFromDOM();
+      sections.push({ name: 'New', chords: '' });
+      saveStructure(song, sections);
+      rebuildSectionRows(sections);
+    }
+
+    function getCurrentSectionsFromDOM() {
+      const rows = document.querySelectorAll('.section-row');
+      const sections = [];
+      rows.forEach(row => {
+        const label = row.querySelector('.section-label');
+        const chords = row.querySelector('.section-chords');
+        if (label && chords) {
+          sections.push({ name: label.textContent.trim(), chords: chords.textContent.trim() });
+        }
+      });
+      return sections;
+    }
+
+    function rebuildSectionRows(sections) {
+      const chordArea = document.getElementById('chord-area');
+      chordArea.innerHTML = '';
+      sections.forEach((section, i) => {
+        chordArea.appendChild(createSectionRow(section, i, sections.length));
+      });
+      // Re-apply edit mode to new rows
+      if (editMode) {
+        document.querySelectorAll('.section-chords').forEach(el => {
+          el.contentEditable = true;
+          el.classList.add('editable');
+          el.addEventListener('focus', () => showChordPicker(el));
+        });
+        document.querySelectorAll('.section-label').forEach(el => {
+          el.contentEditable = true;
+          el.classList.add('editable');
+        });
+      }
+      autoScaleFont();
+    }
+
+    // ===== SWIPE NAVIGATION =====
     let touchStartX = 0;
     let touchStartY = 0;
 
@@ -388,6 +697,7 @@
       }, { passive: true });
     }
 
+    // ===== INIT =====
     document.addEventListener('DOMContentLoaded', () => {
       // Theme
       const savedTheme = localStorage.getItem('cheatsheet-theme');
@@ -395,7 +705,7 @@
 
       const themeBtn = document.getElementById('theme-btn');
       function updateThemeBtn() {
-        themeBtn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
+        themeBtn.textContent = document.body.classList.contains('light') ? '\uD83C\uDF19' : '\u2600\uFE0F';
       }
       updateThemeBtn();
       themeBtn.addEventListener('click', () => {
@@ -410,6 +720,12 @@
         if (editMode) exitEditMode();
         else enterEditMode();
       });
+
+      // Add section button
+      document.getElementById('add-section-btn').addEventListener('click', addSection);
+
+      // Chord picker close
+      document.getElementById('picker-close').addEventListener('click', hideChordPicker);
 
       // Capo toggle
       document.getElementById('badge-capo').addEventListener('click', () => {
