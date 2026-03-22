@@ -56,7 +56,7 @@ Fields:
 
 ### Top bar
 - Song title — large, bold, left-aligned
-- Badges: Key (updates with transpose), BPM, Time Signature, Capo (if set)
+- Badges: Key (updates with transpose), BPM, Time Signature, Capo (shown only when not null; hidden otherwise)
 - Transpose controls: `−` / `+` buttons with current shift shown (e.g. "+2")
 - Dark/light mode toggle icon
 - Edit mode toggle button
@@ -64,8 +64,8 @@ Fields:
 ### Main area
 - Section rows fill the screen
 - Each row: section label on the left (fixed width), chords on the right
-- If `notes` is present, shown as a muted line at the bottom
-- All content fits one screen — no scrolling
+- If `notes` is present, shown as a muted line at the bottom of the section list (above the bottom navigation bar)
+- All content fits one screen — if a song has many sections, font size auto-scales down to fit (minimum 16pt). Sections are listed once per unique chord pattern (e.g. one "Verse" row, not repeated for Verse 1/2/3)
 
 ### Bottom bar
 - Horizontal scrollable song list — tap any title to jump
@@ -78,16 +78,22 @@ Fields:
 ### Transpose
 - `−` / `+` buttons shift all chords by semitones
 - Top bar shows transposed key: "Key: C (+2 → D)"
-- Sharp/flat preference follows the target key (flat keys use flats)
+- Chromatic scale: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
+- Flat keys (F, Bb, Eb, Ab, Db, Gb and their relative minors) display using flats: C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B
+- Chord parsing: root is the first 1-2 characters (letter + optional # or b), everything after is the quality (m, 7, maj7, m7b5, sus4, etc.) and is preserved as-is
+- Slash chords (e.g. Am/G): both root and bass note are transposed
+- Enharmonic input is normalized to the target key's spelling
 - Per-song, resets on navigation
 - Original data in `songs.js` is never modified
 
 ### Edit mode
 - Toggle via Edit button in top bar
 - Chord strings become inline-editable text fields
-- Changes persist in `localStorage`
-- Reset button reverts to original `songs.js` data
-- Visual indicator when edit mode is active
+- Edit mode always shows and edits the **original (untransposed)** chords; transpose is temporarily disabled during editing
+- Changes persist in `localStorage` keyed by song title (e.g. `cheatsheet-edits-Faith`)
+- Reset button reverts a **single song** to its original `songs.js` data
+- User can edit chords only (not metadata like key/BPM)
+- Visual indicator when edit mode is active (e.g. colored border)
 
 ### Dark/light mode
 - **Dark:** background #1a1a1a, white chord text, muted gray labels
@@ -96,14 +102,15 @@ Fields:
 - Preference saved to `localStorage`
 
 ### Navigation
-- Swipe left/right to move between songs
-- Bottom bar song list for tap-to-jump
+- Swipe left/right to move between songs (minimum 50px horizontal swipe; disabled when edit mode is active)
+- At first/last song, swipe shows a visual bounce (no wrap-around)
+- Bottom bar song list for tap-to-jump, auto-scrolls to keep current song centered
 - Current position shown ("3 / 16")
 
 ## Styling
 
 - System sans-serif font stack (San Francisco on iPad)
-- Chord text: ~24-28pt, bold, high contrast
+- Chord text: 24-28pt default, auto-scales down (min 16pt) for songs with many sections; bold, high contrast
 - Section labels: smaller, muted color, fixed-width column
 - Section label color coding:
   - Verse — blue
