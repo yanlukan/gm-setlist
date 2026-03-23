@@ -416,6 +416,7 @@ const SONGS = [
 
     // Permanently transpose all chords up or down by 1 semitone
     function permanentTranspose(semitones) {
+      if (editMode) return;
       const song = SONGS[currentIndex];
       const currentKey = getCurrentKey(song);
       const sections = getEditedSections(song);
