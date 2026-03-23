@@ -8,6 +8,62 @@ import json
 import warnings
 warnings.filterwarnings('ignore')
 
+# Enharmonic correction: pick sharp/flat spelling based on key
+SHARP_KEYS = {'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#',
+              'Am', 'Em', 'Bm', 'F#m', 'C#m', 'G#m', 'D#m'}
+FLAT_KEYS = {'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb',
+             'Dm', 'Gm', 'Cm', 'Fm', 'Bbm', 'Ebm'}
+
+ENHARMONIC_TO_SHARP = {
+    'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+    'Dbm': 'C#m', 'Ebm': 'D#m', 'Gbm': 'F#m', 'Abm': 'G#m', 'Bbm': 'A#m',
+}
+ENHARMONIC_TO_FLAT = {
+    'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
+    'C#m': 'Dbm', 'D#m': 'Ebm', 'F#m': 'Gbm', 'G#m': 'Abm', 'A#m': 'Bbm',
+}
+
+def fix_enharmonic(chord, key):
+    """Respell chord to match the key's sharp/flat convention."""
+    if not chord or chord == 'N':
+        return chord
+    use_sharps = key in SHARP_KEYS
+    if use_sharps:
+        return ENHARMONIC_TO_SHARP.get(chord, chord)
+    else:
+        return ENHARMONIC_TO_FLAT.get(chord, chord)
+
+def simplify_chord_sequence(chords):
+    """
+    Find the shortest repeating pattern in a chord sequence.
+    e.g., [Am, C, G, F, Am, C, G, F] → [Am, C, G, F]
+    """
+    if len(chords) <= 4:
+        return chords
+
+    # Try pattern lengths from 2 to half the sequence
+    for plen in range(2, len(chords) // 2 + 1):
+        pattern = chords[:plen]
+        matches = True
+        for i in range(plen, len(chords)):
+            if chords[i] != pattern[i % plen]:
+                matches = False
+                break
+        if matches:
+            return pattern
+
+    # No exact repeat — try approximate: if first half ≈ second half
+    half = len(chords) // 2
+    if half >= 2:
+        first = chords[:half]
+        second = chords[half:half*2]
+        match_count = sum(1 for a, b in zip(first, second) if a == b)
+        if match_count / half > 0.7:  # 70% match = close enough
+            return first
+
+    return chords
+
+
 def analyze(file_path):
     import essentia.standard as es
     import numpy as np
@@ -64,6 +120,8 @@ def analyze(file_path):
         h = hpcp(freqs, mags)
         hpcp_frames.append(h)
 
+    detected_key = results['key']
+
     if hpcp_frames:
         hpcp_array = np.array(hpcp_frames)
         chords, strengths = chords_detection(hpcp_array)
@@ -75,6 +133,8 @@ def analyze(file_path):
 
         for i, (chord, strength) in enumerate(zip(chords, strengths)):
             time = i * hop_size / sr
+            # Fix enharmonic spelling to match key
+            chord = fix_enharmonic(chord, detected_key)
             if chord != current_chord:
                 if current_chord and current_chord != 'N':
                     chord_timeline.append({
@@ -97,6 +157,9 @@ def analyze(file_path):
                 'duration': round(end_time - current_start, 3),
                 'confidence': round(float(np.mean(current_strengths)), 3)
             })
+
+        # Filter out very short chords (< 0.5s) — likely detection noise
+        chord_timeline = [c for c in chord_timeline if c['duration'] >= 0.5]
 
         results['chords'] = chord_timeline
     else:

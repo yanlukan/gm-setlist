@@ -46,6 +46,51 @@ export function analyzeLocal(filePath, onProgress) {
   });
 }
 
+/**
+ * Find the shortest repeating pattern in a chord sequence.
+ * e.g., [Am, C, G, F, Am, C, G, F] → [Am, C, G, F]
+ */
+function simplifyChords(chords) {
+  if (chords.length <= 4) return chords;
+
+  // Try exact repeating patterns (length 2 to half)
+  for (let plen = 2; plen <= Math.floor(chords.length / 2); plen++) {
+    const pattern = chords.slice(0, plen);
+    let matches = true;
+    for (let i = plen; i < chords.length; i++) {
+      if (chords[i] !== pattern[i % plen]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return pattern;
+  }
+
+  // Try approximate: if first half ≈ second half (70%+ match)
+  const half = Math.floor(chords.length / 2);
+  if (half >= 2) {
+    const first = chords.slice(0, half);
+    const second = chords.slice(half, half * 2);
+    const matchCount = first.filter((c, i) => second[i] === c).length;
+    if (matchCount / half > 0.7) return first;
+  }
+
+  // If still too many chords (>12), just keep the most common ones in order
+  if (chords.length > 12) {
+    const seen = new Set();
+    const unique = [];
+    for (const c of chords) {
+      if (!seen.has(c)) {
+        seen.add(c);
+        unique.push(c);
+      }
+    }
+    return unique;
+  }
+
+  return chords;
+}
+
 function formatResults(raw) {
   const { key, keyConfidence, bpm, timeSignature, chords, sections } = raw;
 
@@ -54,6 +99,7 @@ function formatResults(raw) {
       c.time >= section.start && c.time < section.end
     );
 
+    // Deduplicate consecutive same chords
     const deduped = [];
     for (const c of sectionChords) {
       if (deduped.length === 0 || deduped[deduped.length - 1].chord !== c.chord) {
@@ -61,17 +107,22 @@ function formatResults(raw) {
       }
     }
 
-    const avgConfidence = deduped.length > 0
-      ? deduped.reduce((sum, c) => sum + c.confidence, 0) / deduped.length
+    // Find repeating pattern to simplify
+    const chordNames = deduped.map(c => c.chord);
+    const simplified = simplifyChords(chordNames);
+    const simplifiedDetail = simplified.map(name => {
+      const match = deduped.find(c => c.chord === name);
+      return { chord: name, confidence: match ? match.confidence : 0 };
+    });
+
+    const avgConfidence = simplifiedDetail.length > 0
+      ? simplifiedDetail.reduce((sum, c) => sum + c.confidence, 0) / simplifiedDetail.length
       : 0;
 
     return {
       name: section.name,
-      chords: deduped.map(c => c.chord).join('  '),
-      chordsDetail: deduped.map(c => ({
-        chord: c.chord,
-        confidence: c.confidence,
-      })),
+      chords: simplified.join('  '),
+      chordsDetail: simplifiedDetail,
       confidence: Math.round(avgConfidence * 100),
     };
   });
