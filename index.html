@@ -57,7 +57,7 @@
     .section-row { display: flex; align-items: baseline; gap: 8px; }
     .section-label { min-width: 72px; max-width: 90px; font-size: 11px; font-weight: 600; text-transform: uppercase;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .section-chords { flex: 1; font-size: 24px; font-weight: bold; letter-spacing: 1px; word-spacing: 12px; }
+    .section-chords { flex: 1; font-size: 32px; font-weight: bold; letter-spacing: 1px; word-spacing: 14px; }
     .section-verse { color: var(--section-verse); }
     .section-chorus { color: var(--section-chorus); }
     .section-bridge { color: var(--section-bridge); }
@@ -70,7 +70,6 @@
     #notes-area.editable { outline: none; background: var(--badge-bg); border-radius: 4px; }
     #bottom-bar { padding: 8px 16px; display: flex; align-items: center; gap: 12px;
       border-top: 1px solid var(--badge-bg); min-height: 56px; }
-    #song-position { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
     #song-list { display: flex; gap: 6px; overflow-x: auto; flex: 1; -webkit-overflow-scrolling: touch; }
     .song-btn { white-space: nowrap; padding: 8px 12px; border: none; border-radius: 8px;
       background: var(--badge-bg); color: var(--text-muted); font-size: 13px; cursor: pointer; min-height: 44px; }
@@ -129,6 +128,29 @@
       color: var(--text); border: none; border-radius: 6px; padding: 4px 12px; font-size: 14px; cursor: pointer; }
     #picker-more { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--text-muted);
       background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+
+    /* Stage mode — maximum contrast */
+    body.stage { --bg: #000000; --text: #ffffff; --text-muted: #999999; --badge-bg: #222222;
+      --section-verse: #ffffff; --section-chorus: #ffffff; --section-bridge: #ffffff;
+      --section-prechorus: #ffffff; --section-intro: #cccccc; --section-default: #cccccc;
+      --picker-bg: #111111; }
+
+    /* Song position badge */
+    #position-badge { position: absolute; top: 8px; right: 8px; font-size: 18px; font-weight: bold;
+      color: var(--text-muted); pointer-events: none; z-index: 1; }
+
+    /* Swipe animation */
+    #chord-area { position: relative; transition: none; }
+    #chord-area.slide-left { animation: slideLeft 200ms ease-out; }
+    #chord-area.slide-right { animation: slideRight 200ms ease-out; }
+    @keyframes slideLeft { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideRight { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Stay-awake tip */
+    #awake-tip { padding: 10px 16px; background: #2563eb; color: #fff; font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    #awake-tip button { background: transparent; border: 1px solid rgba(255,255,255,0.5);
+      color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -137,6 +159,7 @@
       <h1 id="song-title"></h1>
       <div id="controls">
         <button id="edit-btn">Edit</button>
+        <button id="stage-btn">Stage</button>
         <button id="theme-btn"></button>
       </div>
     </div>
@@ -151,11 +174,16 @@
       </div>
     </div>
   </header>
-  <main id="chord-area"></main>
+  <div id="awake-tip" style="display:none">
+    <span>Tip: Set Auto-Lock to "Never" in iPad Settings before your gig</span>
+    <button id="awake-dismiss">Got it</button>
+  </div>
+  <main id="chord-area">
+    <span id="position-badge"></span>
+  </main>
   <button id="add-section-btn">+ Add Section</button>
   <div id="notes-area"></div>
   <footer id="bottom-bar">
-    <div id="song-position"></div>
     <nav id="song-list"></nav>
   </footer>
 
@@ -465,17 +493,16 @@ const SONGS = [
     function autoScaleFont() {
       const chordArea = document.getElementById('chord-area');
       const rows = chordArea.querySelectorAll('.section-chords');
-      let fontSize = 28;
+      let fontSize = 32;
       rows.forEach(r => r.style.fontSize = fontSize + 'px');
-      while (chordArea.scrollHeight > chordArea.clientHeight && fontSize > 16) {
-        fontSize -= 1;
+      while (chordArea.scrollHeight > chordArea.clientHeight && fontSize > 18) {
+        fontSize -= 2;
         rows.forEach(r => r.style.fontSize = fontSize + 'px');
       }
     }
 
     // ===== RENDER =====
     function renderBottomBar() {
-      document.getElementById('song-position').textContent = (currentIndex + 1) + ' / ' + SONGS.length;
       const nav = document.getElementById('song-list');
       nav.innerHTML = '';
       SONGS.forEach((song, i) => {
@@ -503,8 +530,13 @@ const SONGS = [
       document.getElementById('badge-capo').style.display = 'none';
       updateKeyBadge(song);
 
+      // Position badge
+      document.getElementById('position-badge').textContent = (currentIndex + 1) + ' / ' + SONGS.length;
+
       const chordArea = document.getElementById('chord-area');
+      const positionBadge = document.getElementById('position-badge');
       chordArea.innerHTML = '';
+      chordArea.appendChild(positionBadge);
       sections.forEach((section, i) => {
         chordArea.appendChild(createSectionRow(section, i, sections.length));
       });
@@ -851,9 +883,11 @@ const SONGS = [
         if (dx < 0 && currentIndex < SONGS.length - 1) {
           currentIndex++;
           renderSong();
+          animateSlide('slide-left');
         } else if (dx > 0 && currentIndex > 0) {
           currentIndex--;
           renderSong();
+          animateSlide('slide-right');
         } else {
           const area = document.getElementById('chord-area');
           area.style.transition = 'transform 0.15s';
@@ -864,6 +898,14 @@ const SONGS = [
           }, 150);
         }
       }, { passive: true });
+    }
+
+    function animateSlide(className) {
+      const area = document.getElementById('chord-area');
+      area.classList.remove('slide-left', 'slide-right');
+      void area.offsetWidth; // force reflow
+      area.classList.add(className);
+      area.addEventListener('animationend', () => area.classList.remove(className), { once: true });
     }
 
     // ===== SERVICE WORKER =====
@@ -887,6 +929,22 @@ const SONGS = [
         localStorage.setItem('cheatsheet-theme',
           document.body.classList.contains('light') ? 'light' : 'dark');
         updateThemeBtn();
+      });
+
+      // Stage mode toggle
+      const stageBtn = document.getElementById('stage-btn');
+      stageBtn.addEventListener('click', () => {
+        document.body.classList.toggle('stage');
+        stageBtn.textContent = document.body.classList.contains('stage') ? 'Exit Stage' : 'Stage';
+      });
+
+      // Stay-awake tip
+      if (!localStorage.getItem('cheatsheet-awake-dismissed')) {
+        document.getElementById('awake-tip').style.display = 'flex';
+      }
+      document.getElementById('awake-dismiss').addEventListener('click', () => {
+        document.getElementById('awake-tip').style.display = 'none';
+        localStorage.setItem('cheatsheet-awake-dismissed', '1');
       });
 
       // Edit button
