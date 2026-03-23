@@ -48,6 +48,7 @@
       background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
     #meta-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
     .badge { background: var(--badge-bg); padding: 4px 10px; border-radius: 12px; font-size: 13px; }
+    #badge-bpm { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     #transpose-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
     #transpose-controls button { min-width: 44px; min-height: 44px; font-size: 20px;
       background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
@@ -194,6 +195,21 @@
       padding: 4px 10px; font-size: 13px; cursor: pointer; min-height: 36px; }
     #diagrams-btn.active { background: #4a9eff; color: #fff; }
 
+    /* Tap tempo modal */
+    #tap-tempo-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; }
+    #tap-tempo-modal.visible { display: flex; }
+    #tap-tempo-box { background: var(--bg); border: 2px solid var(--badge-bg); border-radius: 16px;
+      padding: 24px; text-align: center; min-width: 250px; }
+    #tap-tempo-display { font-size: 48px; font-weight: bold; margin: 16px 0; }
+    #tap-tempo-pad { width: 100%; padding: 24px; border: none; border-radius: 12px;
+      background: #4a9eff; color: #fff; font-size: 20px; font-weight: bold; cursor: pointer;
+      min-height: 80px; margin-bottom: 12px; }
+    #tap-tempo-pad:active { background: #2563eb; }
+    #tap-tempo-actions { display: flex; gap: 8px; justify-content: center; }
+    #tap-tempo-actions button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px;
+      cursor: pointer; min-height: 44px; }
+
     /* Stage mode — maximum contrast */
     body.stage { --bg: #000000; --text: #ffffff; --text-muted: #999999; --badge-bg: #222222;
       --section-verse: #ffffff; --section-chorus: #ffffff; --section-bridge: #ffffff;
@@ -254,6 +270,19 @@
   <footer id="bottom-bar">
     <nav id="song-list"></nav>
   </footer>
+
+  <!-- Tap tempo modal -->
+  <div id="tap-tempo-modal">
+    <div id="tap-tempo-box">
+      <div style="font-size:16px;color:var(--text-muted)">Tap Tempo</div>
+      <div id="tap-tempo-display">-- BPM</div>
+      <button id="tap-tempo-pad">TAP</button>
+      <div id="tap-tempo-actions">
+        <button id="tap-tempo-save" style="background:#4ade80;color:#000">Save</button>
+        <button id="tap-tempo-cancel" style="background:var(--badge-bg);color:var(--text)">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Chord chart modal -->
   <div id="chord-chart-modal">
@@ -611,8 +640,16 @@ const SONGS = [
         });
         nav.appendChild(btn);
       });
-      const activeBtn = nav.querySelector('.song-btn.active');
-      if (activeBtn) activeBtn.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+      // Scroll active song to center after DOM updates
+      requestAnimationFrame(() => {
+        const activeBtn = nav.querySelector('.song-btn.active');
+        if (activeBtn) {
+          const navRect = nav.getBoundingClientRect();
+          const btnRect = activeBtn.getBoundingClientRect();
+          const scrollLeft = nav.scrollLeft + (btnRect.left - navRect.left) - (navRect.width / 2) + (btnRect.width / 2);
+          nav.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        }
+      });
     }
 
     function renderSong() {
@@ -623,7 +660,8 @@ const SONGS = [
       const sections = getEditedSections(song);
 
       document.getElementById('song-title').textContent = song.title;
-      document.getElementById('badge-bpm').textContent = song.bpm + ' BPM';
+      const savedBpm = localStorage.getItem('cheatsheet-bpm-' + song.title);
+      document.getElementById('badge-bpm').textContent = (savedBpm || song.bpm) + ' BPM';
       document.getElementById('badge-time').textContent = song.timeSignature;
       document.getElementById('badge-capo').style.display = 'none';
       updateKeyBadge(song);
@@ -1518,6 +1556,42 @@ const SONGS = [
       document.getElementById('setlist-screen').classList.remove('visible');
     }
 
+    // ===== TAP TEMPO =====
+    let tapTimes = [];
+
+    function showTapTempo() {
+      tapTimes = [];
+      document.getElementById('tap-tempo-display').textContent = '-- BPM';
+      document.getElementById('tap-tempo-modal').classList.add('visible');
+    }
+
+    function handleTap() {
+      const now = Date.now();
+      tapTimes.push(now);
+      if (tapTimes.length > 8) tapTimes.shift(); // keep last 8 taps
+      if (tapTimes.length >= 2) {
+        const intervals = [];
+        for (let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
+        const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+        const bpm = Math.round(60000 / avgInterval);
+        document.getElementById('tap-tempo-display').textContent = bpm + ' BPM';
+      }
+    }
+
+    function saveTapTempo() {
+      const text = document.getElementById('tap-tempo-display').textContent;
+      const bpm = parseInt(text);
+      if (bpm && bpm > 20 && bpm < 300) {
+        const songs = getSetlistSongs();
+        const song = songs[currentIndex];
+        if (song) {
+          localStorage.setItem('cheatsheet-bpm-' + song.title, bpm);
+          document.getElementById('badge-bpm').textContent = bpm + ' BPM';
+        }
+      }
+      document.getElementById('tap-tempo-modal').classList.remove('visible');
+    }
+
     function animateSlide(className) {
       const area = document.getElementById('chord-area');
       area.classList.remove('slide-left', 'slide-right');
@@ -1563,6 +1637,14 @@ const SONGS = [
       document.getElementById('awake-dismiss').addEventListener('click', () => {
         document.getElementById('awake-tip').style.display = 'none';
         localStorage.setItem('cheatsheet-awake-dismissed', '1');
+      });
+
+      // Tap tempo
+      document.getElementById('badge-bpm').addEventListener('click', showTapTempo);
+      document.getElementById('tap-tempo-pad').addEventListener('click', handleTap);
+      document.getElementById('tap-tempo-save').addEventListener('click', saveTapTempo);
+      document.getElementById('tap-tempo-cancel').addEventListener('click', () => {
+        document.getElementById('tap-tempo-modal').classList.remove('visible');
       });
 
       // Chord chart close
