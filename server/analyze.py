@@ -152,7 +152,7 @@ def analyze(file_path, start_time_hint=0):
     detected_key = results['key']
 
     try:
-        chord_timeline = detect_chords(file_path)
+        chord_timeline = detect_chords(file_path, music_start=music_start)
 
         # Fix enharmonic spelling to match detected key
         for c in chord_timeline:

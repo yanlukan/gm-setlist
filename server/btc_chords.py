@@ -49,9 +49,13 @@ def _load_model():
     _idx_to_chord = idx2voca_chord()
 
 
-def detect_chords(audio_path):
+def detect_chords(audio_path, music_start=0):
     """
     Detect chords from an audio file using BTC large vocab model.
+
+    Args:
+        audio_path: Path to audio file
+        music_start: Skip this many seconds from the start (e.g. spoken intros)
 
     Returns list of dicts: [{chord, time, duration, confidence}, ...]
     """
@@ -59,6 +63,16 @@ def detect_chords(audio_path):
 
     device = torch.device('cpu')
     n_timestep = _config.model['timestep']
+
+    # If music starts late, trim audio to avoid confusing the model with non-music
+    if music_start > 2:
+        import tempfile, soundfile as sf
+        y, sr = librosa.load(audio_path, sr=_config.mp3['song_hz'], mono=True)
+        start_sample = int(music_start * sr)
+        y = y[start_sample:]
+        tmp = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+        sf.write(tmp.name, y, sr)
+        audio_path = tmp.name
 
     # Extract CQT features
     feature, feature_per_second, song_length = audio_file_to_features(audio_path, _config)
@@ -129,4 +143,76 @@ def detect_chords(audio_path):
                 else:
                     prev_probs.append(conf)
 
-    return chords
+    # Clean up temp file if we created one
+    if music_start > 2:
+        import os as _os
+        _os.unlink(audio_path)
+
+    # Offset timestamps back to original audio timeline
+    if music_start > 2:
+        for c in chords:
+            c['time'] = round(c['time'] + music_start, 3)
+
+    return _clean_chords(chords)
+
+
+def _clean_chords(chords):
+    """Post-process BTC output to remove noise and merge fragments.
+
+    Strategy:
+    1. Remove very brief low-confidence chords (<1s and <0.5 confidence)
+       and absorb their time into the surrounding chord.
+    2. Merge consecutive identical chords (caused by noise removal).
+    3. Strip chord quality down to root when confidence is low — a low-confidence
+       C#:min7 is more likely just C#m or even wrong entirely.
+    """
+    if not chords:
+        return chords
+
+    # Pass 1: Remove brief low-confidence noise chords
+    # A chord < 1s with < 0.5 confidence between two identical chords is noise
+    cleaned = []
+    for i, c in enumerate(chords):
+        is_brief = c['duration'] < 1.0
+        is_low_conf = c['confidence'] < 0.5
+
+        if is_brief and is_low_conf:
+            # Check if surrounding chords are the same — if so, skip this noise
+            prev_chord = cleaned[-1]['chord'] if cleaned else None
+            next_chord = chords[i + 1]['chord'] if i + 1 < len(chords) else None
+            if prev_chord and prev_chord == next_chord:
+                # Absorb duration into previous chord
+                cleaned[-1]['duration'] = round(
+                    cleaned[-1]['duration'] + c['duration'], 3)
+                continue
+
+        cleaned.append(c)
+
+    # Pass 2: Merge consecutive identical chords
+    merged = []
+    for c in cleaned:
+        if merged and merged[-1]['chord'] == c['chord']:
+            # Weighted average confidence by duration
+            prev = merged[-1]
+            total_dur = prev['duration'] + c['duration']
+            prev['confidence'] = round(
+                (prev['confidence'] * prev['duration'] +
+                 c['confidence'] * c['duration']) / total_dur, 3)
+            prev['duration'] = round(total_dur, 3)
+        else:
+            merged.append(c)
+
+    # Pass 3: Second noise pass — now catch brief low-conf chords that
+    # weren't between identical chords before but are after merging
+    final = []
+    for i, c in enumerate(merged):
+        is_brief = c['duration'] < 0.8
+        is_low_conf = c['confidence'] < 0.45
+        if is_brief and is_low_conf and final:
+            # Absorb into previous
+            final[-1]['duration'] = round(
+                final[-1]['duration'] + c['duration'], 3)
+            continue
+        final.append(c)
+
+    return final
