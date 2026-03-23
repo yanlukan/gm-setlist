@@ -1,30 +1,49 @@
-import { exec, execSync } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const TMP_DIR = path.join(os.tmpdir(), 'gm-setlist');
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+
+/**
+ * Strip playlist/radio params from YouTube URL — keep only the video.
+ */
+function cleanYouTubeUrl(url) {
+  try {
+    const u = new URL(url);
+    const videoId = u.searchParams.get('v');
+    if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+    return url; // youtu.be or shorts — pass through
+  } catch {
+    return url;
+  }
+}
 
 export async function extractAudio(url, onProgress) {
   const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)/;
   if (!ytRegex.test(url)) throw new Error('Invalid YouTube URL');
 
+  const cleanUrl = cleanYouTubeUrl(url);
   onProgress?.({ stage: 'downloading', message: 'Downloading audio...' });
   const outputPath = path.join(TMP_DIR, `${Date.now()}`);
 
   try {
-    const { stdout: metaJson } = await execAsync(
-      `yt-dlp --dump-json --no-download "${url}"`, { timeout: 30000 }
+    // Get metadata first (execFile = no shell, safe with special chars)
+    const { stdout: metaJson } = await execFileAsync(
+      'yt-dlp', ['--dump-json', '--no-download', cleanUrl],
+      { timeout: 30000 }
     );
     const meta = JSON.parse(metaJson);
     if (meta.duration > 600) throw new Error('Video exceeds 10-minute limit');
 
-    await execAsync(
-      `yt-dlp -x --audio-format wav --audio-quality 0 -o "${outputPath}.%(ext)s" "${url}"`,
+    // Download audio as wav
+    await execFileAsync(
+      'yt-dlp', ['-x', '--audio-format', 'wav', '--audio-quality', '0',
+        '-o', `${outputPath}.%(ext)s`, cleanUrl],
       { timeout: 120000 }
     );
 
@@ -53,8 +72,8 @@ export async function extractAudio(url, onProgress) {
 
 export async function searchYouTube(query, maxResults = 5) {
   try {
-    const { stdout } = await execAsync(
-      `yt-dlp --flat-playlist --dump-json "ytsearch${maxResults}:${query.replace(/"/g, '\\"')}"`,
+    const { stdout } = await execFileAsync(
+      'yt-dlp', ['--flat-playlist', '--dump-json', `ytsearch${maxResults}:${query}`],
       { timeout: 15000 }
     );
 
