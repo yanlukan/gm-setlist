@@ -46,7 +46,8 @@ app.use('/api/analyze', (req, res, next) => {
 // Check if Python ML models are available
 let localMLAvailable = false;
 try {
-  execSync('python3 -c "import essentia; import allin1"', { stdio: 'ignore' });
+  const venvPython = path.join(path.dirname(new URL(import.meta.url).pathname), '.venv', 'bin', 'python3');
+  execSync(`${venvPython} -c "import essentia"`, { stdio: 'ignore' });
   localMLAvailable = true;
 } catch { /* ML not installed — will use Music AI API */ }
 
