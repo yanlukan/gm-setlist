@@ -55,7 +55,8 @@
       justify-content: center; gap: 4px; overflow: hidden; }
     body.editing #chord-area { justify-content: flex-start; overflow-y: auto; }
     .section-row { display: flex; align-items: baseline; gap: 8px; }
-    .section-label { min-width: 72px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+    .section-label { min-width: 72px; max-width: 90px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .section-chords { flex: 1; font-size: 24px; font-weight: bold; letter-spacing: 1px; word-spacing: 12px; }
     .section-verse { color: var(--section-verse); }
     .section-chorus { color: var(--section-chorus); }
