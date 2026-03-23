@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { execSync } from 'child_process';
+import { searchYouTube } from './youtube.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,19 @@ try {
   execSync('which yt-dlp', { stdio: 'ignore' });
   ytdlpAvailable = true;
 } catch { /* yt-dlp not installed */ }
+
+app.post('/api/analyze/search', async (req, res) => {
+  const { query } = req.body;
+  if (!query || typeof query !== 'string') {
+    return res.status(400).json({ error: 'Missing search query' });
+  }
+  try {
+    const results = await searchYouTube(query);
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({
