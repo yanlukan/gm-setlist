@@ -11,7 +11,7 @@ export function analyzeLocal(filePath, onProgress) {
     onProgress?.({ stage: 'analyzing', message: 'Analyzing audio (chords, key, tempo, sections)...' });
 
     const proc = spawn(PYTHON, [SCRIPT, filePath], {
-      timeout: 300000,
+      timeout: 600000, // 10 min — librosa segmentation is slow on long songs
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -23,7 +23,9 @@ export function analyzeLocal(filePath, onProgress) {
 
     proc.on('close', (code) => {
       if (code !== 0) {
-        return reject(new Error(`Analysis failed: ${stderr || 'unknown error'}`));
+        // Filter out Python warnings from stderr
+        const errorLines = stderr.split('\n').filter(l => !l.includes('Warning') && !l.includes('FutureWarning') && l.trim());
+        return reject(new Error(`Analysis failed: ${errorLines.join(' ') || 'unknown error (exit code ' + code + ')'}`));
       }
       try {
         const result = JSON.parse(stdout);

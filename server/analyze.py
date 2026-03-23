@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Audio analysis script. Accepts an audio file path, outputs JSON to stdout.
-Uses Essentia for chords/key/tempo and allin1 for section segmentation.
+Uses Essentia for chords/key/tempo and librosa for section segmentation.
 """
 import sys
 import json
@@ -102,25 +102,130 @@ def analyze(file_path):
     else:
         results['chords'] = []
 
-    # --- Section detection via allin1 ---
+    # --- Section detection via librosa Laplacian segmentation ---
     try:
-        import allin1
-        analysis = allin1.analyze(file_path)
+        import librosa
+        from sklearn.cluster import KMeans
+        from collections import Counter
+
+        # Use lower sr and larger hop for speed on long songs
+        y_lib, sr_lib = librosa.load(file_path, sr=11025)
+        duration = len(y_lib) / sr_lib
+        hop_seg = 2048  # larger hop = fewer frames = faster
+
+        # Extract features for segmentation
+        chroma = librosa.feature.chroma_cqt(y=y_lib, sr=sr_lib, hop_length=hop_seg)
+        mfcc = librosa.feature.mfcc(y=y_lib, sr=sr_lib, n_mfcc=13, hop_length=hop_seg)
+
+        # Stack and normalize
+        features = np.vstack([chroma, mfcc])
+        features = librosa.util.normalize(features, axis=1)
+
+        # Subsample if too many frames (> 2000)
+        n_frames = features.shape[1]
+        subsample = max(1, n_frames // 2000)
+        if subsample > 1:
+            features = features[:, ::subsample]
+
+        # Build recurrence matrix
+        R = librosa.segment.recurrence_matrix(
+            features, width=3, mode='affinity', sym=True
+        )
+        R_enhanced = librosa.segment.path_enhance(R, 15)
+
+        # Normalized Laplacian
+        degree = R_enhanced.sum(axis=1, keepdims=True) + 1e-8
+        L = np.eye(R_enhanced.shape[0]) - R_enhanced / degree
+
+        # Eigen decomposition
+        eigenvalues, eigenvectors = np.linalg.eigh(L)
+
+        # Estimate number of sections (4-10)
+        diffs = np.diff(eigenvalues[:20])
+        k = max(4, min(10, int(np.argmax(diffs[2:]) + 3)))
+
+        # Cluster frames
+        km = KMeans(n_clusters=k, random_state=0, n_init=10)
+        frame_labels = km.fit_predict(eigenvectors[:, :k])
+
+        # Convert frame labels to time-based sections
+        effective_hop = hop_seg * subsample
+        frame_times = librosa.frames_to_time(
+            np.arange(len(frame_labels)), sr=sr_lib, hop_length=effective_hop
+        )
+
+        # Merge consecutive same-label frames into sections
+        raw_sections = []
+        current_label = frame_labels[0]
+        current_start = 0.0
+        for i in range(1, len(frame_labels)):
+            if frame_labels[i] != current_label:
+                raw_sections.append({
+                    'cluster': int(current_label),
+                    'start': round(current_start, 3),
+                    'end': round(frame_times[i], 3),
+                })
+                current_label = frame_labels[i]
+                current_start = frame_times[i]
+        raw_sections.append({
+            'cluster': int(current_label),
+            'start': round(current_start, 3),
+            'end': round(duration, 3),
+        })
+
+        # Filter out very short sections (< 5s) — merge with previous
+        merged = []
+        for sec in raw_sections:
+            if sec['end'] - sec['start'] < 5.0 and merged:
+                merged[-1]['end'] = sec['end']
+            else:
+                merged.append(sec)
+
+        # Heuristic labeling
+        cluster_counts = Counter(s['cluster'] for s in merged)
+        total_sections = len(merged)
+        sorted_clusters = cluster_counts.most_common()
+        chorus_cluster = sorted_clusters[0][0] if sorted_clusters else -1
+        verse_cluster = sorted_clusters[1][0] if len(sorted_clusters) > 1 else -1
+
         sections = []
-        label_map = {
-            'verse': 'Verse', 'chorus': 'Chorus', 'bridge': 'Bridge',
-            'pre-chorus': 'Pre-Chorus', 'intro': 'Intro', 'outro': 'Outro',
-            'inst': 'Instrumental', 'solo': 'Solo', 'break': 'Break',
-        }
-        for segment in analysis.segments:
-            label = segment.label.lower().strip()
-            name = label_map.get(label, label.title() if label else 'Section')
+        verse_count = 0
+        chorus_count = 0
+        for i, sec in enumerate(merged):
+            c = sec['cluster']
+            sec_duration = sec['end'] - sec['start']
+
+            if i == 0 and (sec_duration < 20 or cluster_counts[c] == 1):
+                name = 'Intro'
+            elif i == total_sections - 1 and (sec_duration < 20 or cluster_counts[c] == 1):
+                name = 'Outro'
+            elif c == chorus_cluster:
+                chorus_count += 1
+                name = 'Chorus' if chorus_count <= 1 else f'Chorus {chorus_count}'
+            elif c == verse_cluster:
+                verse_count += 1
+                name = 'Verse' if verse_count <= 1 else f'Verse {verse_count}'
+            elif cluster_counts[c] == 1:
+                name = 'Bridge'
+            else:
+                name = 'Section'
+
             sections.append({
                 'name': name,
-                'start': round(float(segment.start), 3),
-                'end': round(float(segment.end), 3),
+                'start': sec['start'],
+                'end': sec['end'],
             })
-        results['sections'] = sections
+
+        # Merge consecutive same-name sections
+        final_sections = [sections[0]]
+        for sec in sections[1:]:
+            if sec['name'] == final_sections[-1]['name']:
+                final_sections[-1]['end'] = sec['end']
+            else:
+                final_sections.append(sec)
+
+        results['sections'] = final_sections
+
     except Exception as e:
         results['sections'] = [{
             'name': 'Full Song',
