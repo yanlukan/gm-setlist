@@ -232,6 +232,73 @@
       display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     #awake-tip button { background: transparent; border: 1px solid rgba(255,255,255,0.5);
       color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+
+    /* Import modal */
+    #import-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 160; flex-direction: column; overflow-y: auto; }
+    #import-modal.visible { display: flex; }
+    #import-header { padding: 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--badge-bg); }
+    #import-header h2 { font-size: 24px; font-weight: bold; }
+    #import-close { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: 16px; cursor: pointer; min-height: 44px; }
+    #import-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--badge-bg); }
+    .import-tab { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-muted);
+      font-size: 15px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+    .import-tab.active { color: #4a9eff; border-bottom-color: #4a9eff; }
+    .import-panel { display: none; padding: 16px; flex: 1; }
+    .import-panel.active { display: flex; flex-direction: column; gap: 12px; }
+    .import-input { padding: 12px; border: 2px solid var(--badge-bg); border-radius: 8px;
+      background: var(--bg); color: var(--text); font-size: 16px; width: 100%; }
+    .import-input:focus { border-color: #4a9eff; outline: none; }
+    #import-analyze-btn, #import-search-btn { padding: 12px; border: none; border-radius: 8px;
+      background: #4a9eff; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+      min-height: 48px; }
+    #import-analyze-btn:disabled, #import-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #import-upload-label { display: flex; align-items: center; justify-content: center; padding: 32px;
+      border: 2px dashed var(--text-muted); border-radius: 12px; cursor: pointer; color: var(--text-muted);
+      font-size: 16px; }
+    #import-upload-input { display: none; }
+    .search-result { display: flex; gap: 12px; padding: 12px; border: 1px solid var(--badge-bg);
+      border-radius: 8px; cursor: pointer; align-items: center; }
+    .search-result:active { background: var(--badge-bg); }
+    .search-result-info { flex: 1; }
+    .search-result-title { font-size: 14px; font-weight: 600; }
+    .search-result-duration { font-size: 12px; color: var(--text-muted); }
+
+    /* Progress screen */
+    #import-progress { display: none; padding: 16px; flex: 1; }
+    #import-progress.active { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+    .progress-step { display: flex; align-items: center; gap: 8px; font-size: 15px; padding: 4px 0; }
+    .progress-step .icon { width: 20px; text-align: center; }
+    .progress-step.done { color: #4ade80; }
+    .progress-step.active { color: var(--text); font-weight: 600; }
+    .progress-step.pending { color: var(--text-muted); }
+
+    /* Results screen */
+    #import-results { display: none; padding: 16px; flex: 1; overflow-y: auto; }
+    #import-results.active { display: flex; flex-direction: column; gap: 12px; }
+    #result-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #result-meta .badge { background: var(--badge-bg); padding: 4px 10px; border-radius: 12px; font-size: 13px; }
+    #result-title-input, #result-artist-input { padding: 8px; border: 1px solid var(--badge-bg);
+      border-radius: 6px; background: var(--bg); color: var(--text); font-size: 16px; width: 100%; }
+    #result-title-input { font-size: 20px; font-weight: bold; }
+    #confidence-banner { padding: 10px; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 600; }
+    #confidence-banner.high { background: rgba(74,222,128,0.15); color: #4ade80; }
+    #confidence-banner.medium { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    #confidence-banner.low { background: rgba(239,68,68,0.15); color: #ef4444; }
+    #refine-btn { padding: 10px; border: none; border-radius: 8px; background: #8b5cf6; color: #fff;
+      font-size: 14px; cursor: pointer; min-height: 44px; }
+    .result-section { display: flex; gap: 8px; align-items: baseline; }
+    .result-section-label { min-width: 72px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .result-section-chords { flex: 1; font-size: 18px; font-weight: bold; letter-spacing: 1px; word-spacing: 10px; }
+    .chord-high { color: #4ade80; }
+    .chord-medium { color: #fbbf24; }
+    .chord-low { color: #ef4444; }
+    #result-capo { padding: 8px; border: 1px solid var(--badge-bg); border-radius: 6px;
+      background: var(--bg); color: var(--text); font-size: 14px; }
+    #save-song-btn { padding: 14px; border: none; border-radius: 8px; background: #4ade80; color: #000;
+      font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px; margin-top: auto; }
   </style>
 </head>
 <body>
@@ -239,6 +306,7 @@
     <div id="title-row">
       <h1 id="song-title"></h1>
       <div id="controls">
+        <button id="import-btn" style="font-size:20px;font-weight:bold">+</button>
         <button id="edit-btn">Edit</button>
         <button id="stage-btn">Stage</button>
         <button id="theme-btn"></button>
@@ -322,6 +390,63 @@
   <div id="chord-picker">
     <button id="picker-close">Done</button>
     <div id="picker-content"></div>
+  </div>
+
+  <!-- Import song modal -->
+  <div id="import-modal">
+    <div id="import-header">
+      <h2>Add Song</h2>
+      <button id="import-close">Cancel</button>
+    </div>
+    <div id="import-tabs">
+      <button class="import-tab active" data-tab="url">URL</button>
+      <button class="import-tab" data-tab="search">Search</button>
+      <button class="import-tab" data-tab="upload">Upload</button>
+    </div>
+
+    <!-- URL panel -->
+    <div class="import-panel active" id="panel-url">
+      <input type="text" class="import-input" id="import-url-input" placeholder="Paste YouTube URL...">
+      <button id="import-analyze-btn">Analyze</button>
+    </div>
+
+    <!-- Search panel -->
+    <div class="import-panel" id="panel-search">
+      <input type="text" class="import-input" id="import-search-input" placeholder="Song name + artist...">
+      <button id="import-search-btn">Search</button>
+      <div id="search-results"></div>
+    </div>
+
+    <!-- Upload panel -->
+    <div class="import-panel" id="panel-upload">
+      <label id="import-upload-label">
+        Tap to select audio file (mp3, wav, m4a, flac)
+        <input type="file" id="import-upload-input" accept="audio/*">
+      </label>
+    </div>
+
+    <!-- Progress screen -->
+    <div id="import-progress"></div>
+
+    <!-- Results screen -->
+    <div id="import-results">
+      <input type="text" id="result-title-input" placeholder="Song title">
+      <input type="text" id="result-artist-input" placeholder="Artist">
+      <div id="result-meta"></div>
+      <div id="confidence-banner"></div>
+      <button id="refine-btn" style="display:none">Refine with Music AI</button>
+      <div id="result-sections"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:13px;color:var(--text-muted)">Capo:</span>
+        <select id="result-capo">
+          <option value="">None</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        </select>
+      </div>
+      <button id="save-song-btn">Save Song</button>
+    </div>
   </div>
 
   <script>
