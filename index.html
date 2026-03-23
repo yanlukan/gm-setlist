@@ -194,7 +194,7 @@ const SONGS = [
       { name: "Pre-Chorus", chords: "Bbm  Bbm  Fm  Gb  Ab  Gb  Ab" },
       { name: "Chorus", chords: "Ab  Bbm  Fm  Bbm  Fm  Bbm  Fm  Gb  Ab" },
       { name: "Bridge", chords: "Bbm  Fm  Db  Ab" }, { name: "Outro", chords: "Bbm  Fm  Db  Ab" }] },
-  { title: "Wake Me Up Before You Go-Go", artist: "Wham!", key: "C", bpm: 82, timeSignature: "4/4", capo: null,
+  { title: "Wake Me Up Before You Go-Go", shortTitle: "Wake Me Up", artist: "Wham!", key: "C", bpm: 82, timeSignature: "4/4", capo: null,
     notes: "Opens with percussive palm-muted 'Jitterbug' vamp. Straight 8th strums throughout.",
     sections: [
       { name: "Intro", chords: "C" }, { name: "Verse", chords: "C  Dm  C  Dm  C  Dm" },
@@ -214,7 +214,7 @@ const SONGS = [
       { name: "Intro", chords: "Gm9  C6" }, { name: "Verse", chords: "Gm9  C6" },
       { name: "Chorus", chords: "Gm9  C6" }, { name: "Bridge", chords: "Cm7  Cm6  Gm9  Gm  Cm7  Cm6" },
       { name: "Outro", chords: "Gm9  C6  Dsus4" }] },
-  { title: "Papa Was a Rolling Stone", artist: "The Temptations (cover)", key: "Bbm", bpm: 120, timeSignature: "4/4", capo: null,
+  { title: "Papa Was a Rolling Stone", shortTitle: "Papa Rolling Stone", artist: "The Temptations (cover)", key: "Bbm", bpm: 120, timeSignature: "4/4", capo: null,
     notes: "Almost entirely one chord \u2014 the groove IS the song. Wah-wah guitar essential. Extended intro (~90s live).",
     sections: [
       { name: "Intro", chords: "Bbm7" }, { name: "Verse", chords: "Bbm7" },
@@ -233,7 +233,7 @@ const SONGS = [
       { name: "Intro", chords: "G  F  C  G" }, { name: "Verse", chords: "G  F  C  G" },
       { name: "Pre-Chorus", chords: "Am  Am(maj7)  Am7  Am6" }, { name: "Chorus", chords: "G  F  C  G" },
       { name: "Bridge", chords: "Am  Am(maj7)  Am7  Am6" }, { name: "Outro", chords: "G  F  C  G" }] },
-  { title: "Jesus to a Child", artist: "George Michael", key: "C#m", bpm: 87, timeSignature: "4/4", capo: null,
+  { title: "Jesus to a Child", shortTitle: "Jesus Child", artist: "George Michael", key: "C#m", bpm: 87, timeSignature: "4/4", capo: null,
     notes: "Lush jazz-influenced harmony with sus and add9 chords.",
     sections: [
       { name: "Intro", chords: "C#m  G#7sus4  G#7  Amaj7  G#7  F#m  B  C#sus4  C#m" },
@@ -242,7 +242,7 @@ const SONGS = [
       { name: "Chorus", chords: "C#m  B  Amaj7  G#m  F#m  G#7  C#sus4  C#m" },
       { name: "Bridge", chords: "C#m/A#  C#m/A  G#m  C#m" },
       { name: "Outro", chords: "C#m  B  Amaj7  G#m  F#m  G#7  C#m" }] },
-  { title: "A Different Corner", artist: "George Michael", key: "Gb", bpm: 100, timeSignature: "4/4", capo: null,
+  { title: "A Different Corner", shortTitle: "Diff. Corner", artist: "George Michael", key: "Gb", bpm: 100, timeSignature: "4/4", capo: null,
     notes: "Sparse and atmospheric, best fingerpicked.",
     sections: [
       { name: "Intro", chords: "Ab  Eb  Ab  Eb  Ab  Bb  Bbm  Eb" },
@@ -255,7 +255,7 @@ const SONGS = [
       { name: "Intro", chords: "Dm7  Gm7" }, { name: "Verse", chords: "Dm7  Gm7" },
       { name: "Pre-Chorus", chords: "F  G  F  G" }, { name: "Chorus", chords: "Dm  F  G  C" },
       { name: "Bridge", chords: "Dm7" }, { name: "Outro", chords: "Dm  F  G  C" }] },
-  { title: "Everything She Wants", artist: "Wham!", key: "F#m", bpm: 115, timeSignature: "4/4", capo: null,
+  { title: "Everything She Wants", shortTitle: "Everything", artist: "Wham!", key: "F#m", bpm: 115, timeSignature: "4/4", capo: null,
     notes: "Synth-driven. F#sus4 voicing essential for intro feel. Verse alternates major/minor F#.",
     sections: [
       { name: "Intro", chords: "F#sus4  F#  Bm7  E" },
@@ -268,7 +268,7 @@ const SONGS = [
       { name: "Intro", chords: "E  F#m7  B  D#m7" }, { name: "Verse", chords: "E  F#m7  B  D#m7" },
       { name: "Chorus", chords: "E  F#m7  B  D#m7" }, { name: "Instrumental", chords: "E  F#m7  B  D#m7" },
       { name: "Outro", chords: "E  F#m7  B  D#m7" }] },
-  { title: "Somebody to Love", artist: "Queen (cover)", key: "Ab", bpm: 110, timeSignature: "6/8", capo: null,
+  { title: "Somebody to Love", shortTitle: "Somebody", artist: "Queen (cover)", key: "Ab", bpm: 110, timeSignature: "6/8", capo: null,
     notes: "Gospel 6/8 shuffle feel, NOT straight 4/4. George Michael performed this in Ab at the 1992 Freddie Mercury Tribute Concert.",
     sections: [
       { name: "Intro", chords: "Ab  Eb/G  Fm  Fm7  Db  Eb  Ab  Eb" },
@@ -278,7 +278,7 @@ const SONGS = [
       { name: "Bridge", chords: "Db  Db7  Gb  Gbm  Bb7  Eb  Fm/Eb  Eb" },
       { name: "Solo", chords: "Ab  Bb7  Eb  Ab  Eb/G  Fm  Bb7  Eb  Ab  Eb" },
       { name: "Outro", chords: "Ab  Eb/G  Fm7  Db  Eb  Ab" }] },
-  { title: "Careless Whisper", artist: "George Michael", key: "Dm", bpm: 77, timeSignature: "4/4", capo: null,
+  { title: "Careless Whisper", shortTitle: "Careless W.", artist: "George Michael", key: "Dm", bpm: 77, timeSignature: "4/4", capo: null,
     notes: "Same 4-chord loop throughout entire song. BPM is 77, not 153 (double-time misread). Sax line is essential.",
     sections: [
       { name: "Intro (sax)", chords: "Dm  Gm7  Bbmaj7  Am7" }, { name: "Verse", chords: "Dm  Gm7  Bbmaj7  Am7" },
@@ -481,7 +481,7 @@ const SONGS = [
       SONGS.forEach((song, i) => {
         const btn = document.createElement('button');
         btn.className = 'song-btn' + (i === currentIndex ? ' active' : '');
-        btn.textContent = song.title;
+        btn.textContent = song.shortTitle || song.title;
         btn.addEventListener('click', () => {
           currentIndex = i;
           exitEditMode();
