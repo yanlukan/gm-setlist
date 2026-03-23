@@ -164,6 +164,22 @@
     #setlist-add-btn { margin: 12px 16px; padding: 12px; border: 2px dashed var(--text-muted);
       border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 16px;
       cursor: pointer; text-align: center; }
+    #setlist-tabs { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto;
+      border-bottom: 1px solid var(--badge-bg); -webkit-overflow-scrolling: touch; }
+    .setlist-tab { padding: 8px 14px; border: none; border-radius: 8px; background: var(--badge-bg);
+      color: var(--text-muted); font-size: 14px; cursor: pointer; white-space: nowrap; min-height: 36px; }
+    .setlist-tab.active { background: #4a9eff; color: #fff; }
+    #new-setlist-btn { padding: 8px 14px; border: 2px dashed var(--text-muted); border-radius: 8px;
+      background: transparent; color: var(--text-muted); font-size: 14px; cursor: pointer;
+      white-space: nowrap; min-height: 36px; }
+    #setlist-name-input { padding: 8px 12px; border: 2px solid var(--edit-border); border-radius: 8px;
+      background: var(--bg); color: var(--text); font-size: 16px; font-weight: 600; width: 100%;
+      margin: 8px 16px; display: none; }
+    .setlist-actions { display: flex; gap: 8px; padding: 8px 16px; }
+    .setlist-actions button { padding: 8px 14px; border: none; border-radius: 8px; font-size: 14px;
+      cursor: pointer; min-height: 36px; }
+    #rename-setlist-btn { background: var(--badge-bg); color: var(--text); }
+    #delete-setlist-btn { background: #ef4444; color: #fff; }
     #setlist-btn { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
       padding: 4px 10px; font-size: 13px; cursor: pointer; min-height: 36px; }
 
@@ -252,8 +268,14 @@
   <!-- Setlist management screen -->
   <div id="setlist-screen">
     <div id="setlist-header">
-      <h2>Setlist</h2>
+      <h2>Setlists</h2>
       <button id="setlist-close">Done</button>
+    </div>
+    <div id="setlist-tabs"></div>
+    <input type="text" id="setlist-name-input" placeholder="Setlist name...">
+    <div class="setlist-actions">
+      <button id="rename-setlist-btn">Rename</button>
+      <button id="delete-setlist-btn">Delete Setlist</button>
     </div>
     <div id="setlist-songs"></div>
     <button id="setlist-add-btn">+ Add Song Manually</button>
@@ -575,9 +597,10 @@ const SONGS = [
 
     // ===== RENDER =====
     function renderBottomBar() {
+      const songs = getSetlistSongs();
       const nav = document.getElementById('song-list');
       nav.innerHTML = '';
-      SONGS.forEach((song, i) => {
+      songs.forEach((song, i) => {
         const btn = document.createElement('button');
         btn.className = 'song-btn' + (i === currentIndex ? ' active' : '');
         btn.textContent = song.shortTitle || song.title;
@@ -593,7 +616,10 @@ const SONGS = [
     }
 
     function renderSong() {
-      const song = SONGS[currentIndex];
+      const songs = getSetlistSongs();
+      if (currentIndex >= songs.length) currentIndex = Math.max(0, songs.length - 1);
+      const song = songs[currentIndex];
+      if (!song) return;
       const sections = getEditedSections(song);
 
       document.getElementById('song-title').textContent = song.title;
@@ -603,7 +629,7 @@ const SONGS = [
       updateKeyBadge(song);
 
       // Position badge
-      document.getElementById('position-badge').textContent = (currentIndex + 1) + ' / ' + SONGS.length;
+      document.getElementById('position-badge').textContent = (currentIndex + 1) + ' / ' + songs.length;
 
       const chordArea = document.getElementById('chord-area');
       const positionBadge = document.getElementById('position-badge');
@@ -954,7 +980,7 @@ const SONGS = [
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
-        if (dx < 0 && currentIndex < SONGS.length - 1) {
+        if (dx < 0 && currentIndex < getSetlistSongs().length - 1) {
           currentIndex++;
           renderSong();
           animateSlide('slide-left');
@@ -1282,17 +1308,106 @@ const SONGS = [
       });
     }
 
-    // ===== SETLIST MANAGEMENT =====
+    // ===== SETLIST MANAGEMENT (multi-setlist) =====
+    // Data model: localStorage 'cheatsheet-setlists' = { lists: { id: { name, songTitles[] } }, activeId }
+    // SONGS array order is the active setlist order. Songs not in setlist are still in SONGS but hidden.
+
+    function getSetlistData() {
+      const saved = localStorage.getItem('cheatsheet-setlists');
+      if (saved) return JSON.parse(saved);
+      // Default: one setlist with all songs
+      const defaultList = { name: 'GM Tribute', songTitles: SONGS.map(s => s.title) };
+      return { lists: { 'default': defaultList }, activeId: 'default' };
+    }
+
+    function saveSetlistData(data) {
+      localStorage.setItem('cheatsheet-setlists', JSON.stringify(data));
+    }
+
+    function getActiveSetlist() {
+      const data = getSetlistData();
+      return data.lists[data.activeId] || Object.values(data.lists)[0];
+    }
+
+    function switchToSetlist(id) {
+      const data = getSetlistData();
+      data.activeId = id;
+      saveSetlistData(data);
+      currentIndex = 0;
+      renderSong();
+      renderBottomBar();
+    }
+
+    // Get songs for current setlist (ordered)
+    function getSetlistSongs() {
+      const setlist = getActiveSetlist();
+      if (!setlist) return SONGS;
+      return setlist.songTitles.map(t => SONGS.find(s => s.title === t)).filter(Boolean);
+    }
+
     function showSetlistScreen() {
+      const data = getSetlistData();
       const screen = document.getElementById('setlist-screen');
+
+      // Render tabs
+      const tabs = document.getElementById('setlist-tabs');
+      tabs.innerHTML = '';
+      Object.entries(data.lists).forEach(([id, list]) => {
+        const tab = document.createElement('button');
+        tab.className = 'setlist-tab' + (id === data.activeId ? ' active' : '');
+        tab.textContent = list.name;
+        tab.addEventListener('click', () => {
+          data.activeId = id;
+          saveSetlistData(data);
+          showSetlistScreen();
+        });
+        tabs.appendChild(tab);
+      });
+
+      // New setlist button
+      const newBtn = document.createElement('button');
+      newBtn.id = 'new-setlist-btn';
+      newBtn.textContent = '+ New';
+      newBtn.addEventListener('click', () => {
+        const input = document.getElementById('setlist-name-input');
+        input.style.display = 'block';
+        input.value = '';
+        input.focus();
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            const newId = 'sl-' + Date.now();
+            data.lists[newId] = { name: input.value.trim(), songTitles: [] };
+            data.activeId = newId;
+            saveSetlistData(data);
+            input.style.display = 'none';
+            showSetlistScreen();
+          }
+        };
+      });
+      tabs.appendChild(newBtn);
+
+      // Hide name input
+      document.getElementById('setlist-name-input').style.display = 'none';
+
+      // Active setlist info
+      const activeList = data.lists[data.activeId];
+      const isDefault = data.activeId === 'default';
+
+      // Show/hide delete button (can't delete default)
+      document.getElementById('delete-setlist-btn').style.display = isDefault ? 'none' : '';
+
+      // Render songs
       const container = document.getElementById('setlist-songs');
       container.innerHTML = '';
 
-      SONGS.forEach((song, i) => {
+      const songTitles = activeList.songTitles;
+      songTitles.forEach((title, i) => {
+        const song = SONGS.find(s => s.title === title);
+        if (!song) return;
+
         const item = document.createElement('div');
         item.className = 'setlist-item';
         item.draggable = true;
-        item.dataset.index = i;
 
         const handle = document.createElement('span');
         handle.className = 'drag-handle';
@@ -1300,49 +1415,103 @@ const SONGS = [
 
         const info = document.createElement('div');
         info.className = 'song-info';
-        const name = document.createElement('div');
-        name.className = 'song-name';
-        name.textContent = (i + 1) + '. ' + song.title;
+        const nameEl = document.createElement('div');
+        nameEl.className = 'song-name';
+        nameEl.textContent = (i + 1) + '. ' + song.title;
         const meta = document.createElement('div');
         meta.className = 'song-meta';
-        const currentKey = getCurrentKey(song);
-        meta.textContent = 'Key: ' + currentKey + ' | ' + song.bpm + ' BPM | ' + song.timeSignature;
-        info.appendChild(name);
+        meta.textContent = 'Key: ' + getCurrentKey(song) + ' | ' + song.bpm + ' BPM | ' + song.timeSignature;
+        info.appendChild(nameEl);
         info.appendChild(meta);
 
-        item.appendChild(handle);
-        item.appendChild(info);
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => {
+          activeList.songTitles.splice(i, 1);
+          saveSetlistData(data);
+          showSetlistScreen();
+          if (currentIndex >= activeList.songTitles.length) currentIndex = Math.max(0, activeList.songTitles.length - 1);
+          renderSong();
+          renderBottomBar();
+        });
 
-        // Drag events for reordering
+        // Drag reorder
         item.addEventListener('dragstart', (e) => {
           e.dataTransfer.setData('text/plain', i);
           item.classList.add('dragging');
         });
         item.addEventListener('dragend', () => item.classList.remove('dragging'));
-        item.addEventListener('dragover', (e) => { e.preventDefault(); });
+        item.addEventListener('dragover', (e) => e.preventDefault());
         item.addEventListener('drop', (e) => {
           e.preventDefault();
           const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
-          const toIdx = i;
-          if (fromIdx !== toIdx) {
-            const moved = SONGS.splice(fromIdx, 1)[0];
-            SONGS.splice(toIdx, 0, moved);
-            showSetlistScreen(); // refresh
-            renderSong();
+          if (fromIdx !== i) {
+            const moved = activeList.songTitles.splice(fromIdx, 1)[0];
+            activeList.songTitles.splice(i, 0, moved);
+            saveSetlistData(data);
+            showSetlistScreen();
+            renderBottomBar();
           }
         });
 
-        // Tap song to jump to it
         info.addEventListener('click', () => {
           currentIndex = i;
           hideSetlistScreen();
           renderSong();
         });
 
+        item.appendChild(handle);
+        item.appendChild(info);
+        item.appendChild(removeBtn);
         container.appendChild(item);
       });
 
+      // "Add Song" — show songs NOT in this setlist
+      const addBtn = document.getElementById('setlist-add-btn');
+      addBtn.textContent = '+ Add Song';
+      addBtn.onclick = () => showAddSongPicker(data, activeList);
+
       screen.classList.add('visible');
+    }
+
+    function showAddSongPicker(data, activeList) {
+      const container = document.getElementById('setlist-songs');
+      container.innerHTML = '';
+      const head = document.createElement('div');
+      head.style.cssText = 'padding:8px 0;font-size:14px;color:var(--text-muted)';
+      head.textContent = 'Tap to add:';
+      container.appendChild(head);
+
+      SONGS.forEach(song => {
+        const alreadyIn = activeList.songTitles.includes(song.title);
+        const item = document.createElement('div');
+        item.className = 'setlist-item';
+        item.style.opacity = alreadyIn ? '0.3' : '1';
+
+        const info = document.createElement('div');
+        info.className = 'song-info';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'song-name';
+        nameEl.textContent = (alreadyIn ? '\u2713 ' : '+ ') + song.title;
+        const meta = document.createElement('div');
+        meta.className = 'song-meta';
+        meta.textContent = 'Key: ' + getCurrentKey(song) + ' | ' + song.bpm + ' BPM';
+        info.appendChild(nameEl);
+        info.appendChild(meta);
+        item.appendChild(info);
+
+        if (!alreadyIn) {
+          item.style.cursor = 'pointer';
+          item.addEventListener('click', () => {
+            activeList.songTitles.push(song.title);
+            saveSetlistData(data);
+            showSetlistScreen();
+            renderBottomBar();
+          });
+        }
+        container.appendChild(item);
+      });
     }
 
     function hideSetlistScreen() {
@@ -1408,7 +1577,42 @@ const SONGS = [
 
       // Setlist button
       document.getElementById('setlist-btn').addEventListener('click', showSetlistScreen);
-      document.getElementById('setlist-close').addEventListener('click', hideSetlistScreen);
+      document.getElementById('setlist-close').addEventListener('click', () => {
+        hideSetlistScreen();
+        currentIndex = 0;
+        renderSong();
+      });
+
+      // Rename setlist
+      document.getElementById('rename-setlist-btn').addEventListener('click', () => {
+        const data = getSetlistData();
+        const list = data.lists[data.activeId];
+        const input = document.getElementById('setlist-name-input');
+        input.style.display = 'block';
+        input.value = list.name;
+        input.focus();
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            list.name = input.value.trim();
+            saveSetlistData(data);
+            input.style.display = 'none';
+            showSetlistScreen();
+          }
+        };
+      });
+
+      // Delete setlist
+      document.getElementById('delete-setlist-btn').addEventListener('click', () => {
+        const data = getSetlistData();
+        if (data.activeId === 'default') return;
+        delete data.lists[data.activeId];
+        data.activeId = Object.keys(data.lists)[0];
+        saveSetlistData(data);
+        currentIndex = 0;
+        showSetlistScreen();
+        renderSong();
+        renderBottomBar();
+      });
 
       // Edit button
       document.getElementById('edit-btn').addEventListener('click', () => {
