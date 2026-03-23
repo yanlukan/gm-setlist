@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { execSync } from 'child_process';
 import { searchYouTube } from './youtube.js';
+import { analyzeMusicAI } from './music-ai.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
