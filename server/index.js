@@ -96,12 +96,12 @@ app.post('/api/analyze/url', async (req, res) => {
   try {
     const onProgress = (p) => sendSSE(res, 'progress', p);
 
-    const { filePath: fp, title, artist, duration } = await extractAudio(url, onProgress);
+    const { filePath: fp, title, artist, duration, startTime } = await extractAudio(url, onProgress);
     filePath = fp;
 
     let result;
     if (localMLAvailable) {
-      result = await analyzeLocal(filePath, onProgress);
+      result = await analyzeLocal(filePath, onProgress, startTime || 0);
     } else if (process.env.MUSIC_AI_API_KEY) {
       onProgress({ stage: 'cloud', message: 'Analyzing with Music AI...' });
       result = await analyzeMusicAI(filePath, onProgress);

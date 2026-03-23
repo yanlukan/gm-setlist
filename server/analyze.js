@@ -6,11 +6,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PYTHON = path.join(__dirname, '.venv', 'bin', 'python3');
 const SCRIPT = path.join(__dirname, 'analyze.py');
 
-export function analyzeLocal(filePath, onProgress) {
+export function analyzeLocal(filePath, onProgress, startTimeHint = 0) {
   return new Promise((resolve, reject) => {
     onProgress?.({ stage: 'analyzing', message: 'Analyzing audio (chords, key, tempo, sections)...' });
 
-    const proc = spawn(PYTHON, [SCRIPT, filePath], {
+    const args = [SCRIPT, filePath];
+    if (startTimeHint > 0) args.push(String(startTimeHint));
+
+    const proc = spawn(PYTHON, args, {
       timeout: 600000, // 10 min — librosa segmentation is slow on long songs
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -92,7 +95,7 @@ function simplifyChords(chords) {
 }
 
 function formatResults(raw) {
-  const { key, keyConfidence, bpm, timeSignature, chords, sections } = raw;
+  const { key, keyConfidence, bpm, timeSignature, chords, sections, musicStart } = raw;
 
   const formattedSections = sections.map(section => {
     const sectionChords = chords.filter(c =>
@@ -137,6 +140,7 @@ function formatResults(raw) {
     keyConfidence: Math.round(keyConfidence * 100),
     bpm,
     timeSignature,
+    musicStart: musicStart || 0,
     sections: formattedSections,
     confidence: overallConfidence,
     canRefine: true,

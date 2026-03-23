@@ -13,14 +13,33 @@ if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 /**
  * Strip playlist/radio params from YouTube URL — keep only the video.
  */
+/**
+ * Strip playlist/radio/tracking params from YouTube URL.
+ * Returns { url, startTime } where startTime is from t= param (seconds) or 0.
+ */
 function cleanYouTubeUrl(url) {
   try {
     const u = new URL(url);
-    const videoId = u.searchParams.get('v');
-    if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
-    return url; // youtu.be or shorts — pass through
+    let videoId;
+    let startTime = 0;
+
+    if (u.hostname === 'youtu.be') {
+      videoId = u.pathname.slice(1); // /N61LHFFfiik → N61LHFFfiik
+      startTime = parseInt(u.searchParams.get('t') || '0', 10);
+    } else {
+      videoId = u.searchParams.get('v');
+      startTime = parseInt(u.searchParams.get('t') || '0', 10);
+    }
+
+    if (videoId) {
+      return {
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+        startTime,
+      };
+    }
+    return { url, startTime: 0 };
   } catch {
-    return url;
+    return { url, startTime: 0 };
   }
 }
 
@@ -28,7 +47,7 @@ export async function extractAudio(url, onProgress) {
   const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)/;
   if (!ytRegex.test(url)) throw new Error('Invalid YouTube URL');
 
-  const cleanUrl = cleanYouTubeUrl(url);
+  const { url: cleanUrl, startTime } = cleanYouTubeUrl(url);
   onProgress?.({ stage: 'downloading', message: 'Downloading audio...' });
   const outputPath = path.join(TMP_DIR, `${Date.now()}`);
 
@@ -56,6 +75,7 @@ export async function extractAudio(url, onProgress) {
       title: meta.title || 'Unknown',
       artist: meta.artist || meta.uploader || 'Unknown',
       duration: meta.duration || 0,
+      startTime, // from t= param — hint for where music actually starts
     };
   } catch (err) {
     const possibleFiles = [`${outputPath}.wav`, `${outputPath}.webm`, `${outputPath}.m4a`];

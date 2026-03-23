@@ -64,7 +64,37 @@ def simplify_chord_sequence(chords):
     return chords
 
 
-def analyze(file_path):
+def detect_music_start(file_path):
+    """
+    Detect when music actually starts by finding where sustained
+    audio energy kicks in. Returns start time in seconds.
+    Useful for live recordings with applause/talking before music.
+    """
+    import librosa
+    import numpy as np
+
+    y, sr = librosa.load(file_path, sr=11025, duration=120)  # check first 2 min
+    # RMS energy in 1-second windows
+    hop = sr  # 1 second
+    rms = librosa.feature.rms(y=y, frame_length=sr, hop_length=hop)[0]
+
+    if len(rms) < 5:
+        return 0
+
+    # Find the sustained energy threshold
+    # Music has higher, more consistent energy than talking/silence
+    median_energy = np.median(rms)
+    threshold = median_energy * 0.5
+
+    # Find first point where energy stays above threshold for 3+ seconds
+    for i in range(len(rms) - 3):
+        if all(rms[i:i+3] > threshold):
+            return max(0, i - 1)  # 1 second before for safety
+
+    return 0
+
+
+def analyze(file_path, start_time_hint=0):
     import essentia.standard as es
     import numpy as np
 
@@ -72,7 +102,19 @@ def analyze(file_path):
     loader = es.MonoLoader(filename=file_path, sampleRate=44100)
     audio = loader()
 
+    # Detect where music actually starts (applause/talking detection)
+    music_start = detect_music_start(file_path)
+    if start_time_hint > 0:
+        music_start = max(music_start, start_time_hint)
+
     results = {}
+    results['musicStart'] = round(music_start, 1)
+
+    # Trim audio to music portion for better chord/key detection
+    sr = 44100
+    if music_start > 2:
+        start_sample = int(music_start * sr)
+        audio = audio[start_sample:]
 
     # --- Key detection ---
     key_extractor = es.KeyExtractor()
@@ -377,12 +419,13 @@ def analyze(file_path):
     return results
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print(json.dumps({'error': 'Usage: analyze.py <audio_file_path>'}))
+    if len(sys.argv) < 2:
+        print(json.dumps({'error': 'Usage: analyze.py <audio_file_path> [start_time_hint]'}))
         sys.exit(1)
 
     try:
-        result = analyze(sys.argv[1])
+        hint = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        result = analyze(sys.argv[1], start_time_hint=hint)
         print(json.dumps(result))
     except Exception as e:
         print(json.dumps({'error': str(e)}))
