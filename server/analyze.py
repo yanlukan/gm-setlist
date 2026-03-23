@@ -244,34 +244,92 @@ def analyze(file_path):
             else:
                 merged.append(sec)
 
-        # Heuristic labeling
+        # --- Smart heuristic labeling ---
+        # Strategy: use position, repetition, and song structure conventions
+        #
+        # Typical pop structure:
+        #   Intro → Verse → (Pre-Chorus) → Chorus → Verse → Chorus → Bridge → Chorus → Outro
+        #
+        # Rules:
+        # 1. First cluster seen = likely Intro or Verse
+        # 2. First REPEATED cluster = likely Chorus (choruses repeat)
+        # 3. Cluster that appears only once (not first/last) = Bridge or Solo
+        # 4. First section if short or unique = Intro
+        # 5. Last section if short or unique = Outro
+        # 6. Section right before a chorus (different cluster) = Pre-Chorus or Verse
+
         cluster_counts = Counter(s['cluster'] for s in merged)
         total_sections = len(merged)
-        sorted_clusters = cluster_counts.most_common()
-        chorus_cluster = sorted_clusters[0][0] if sorted_clusters else -1
-        verse_cluster = sorted_clusters[1][0] if len(sorted_clusters) > 1 else -1
 
+        # Track first appearance order of each cluster
+        first_seen = {}
+        for i, sec in enumerate(merged):
+            if sec['cluster'] not in first_seen:
+                first_seen[sec['cluster']] = i
+
+        # Find the chorus cluster: most repeated cluster that isn't only
+        # at the start/end. If tied, pick the one first seen later (choruses
+        # typically appear after verses).
+        repeating = {c: cnt for c, cnt in cluster_counts.items() if cnt >= 2}
+        if repeating:
+            # Among repeating clusters, chorus = the one first seen latest
+            # (verses come first, choruses come after)
+            chorus_cluster = max(repeating.keys(), key=lambda c: first_seen[c])
+        else:
+            chorus_cluster = -1
+
+        # Verse cluster: most common repeating cluster that isn't chorus
+        verse_candidates = {c: cnt for c, cnt in repeating.items() if c != chorus_cluster}
+        if verse_candidates:
+            verse_cluster = max(verse_candidates.keys(), key=lambda c: verse_candidates[c])
+        else:
+            # If only one repeating cluster, the first-seen cluster is verse
+            non_chorus = [c for c in first_seen if c != chorus_cluster]
+            verse_cluster = non_chorus[0] if non_chorus else -1
+
+        # Assign names
         sections = []
-        verse_count = 0
-        chorus_count = 0
+        cluster_label_map = {}  # track what we've named each cluster
+        instance_count = {}     # count instances per label type
+
         for i, sec in enumerate(merged):
             c = sec['cluster']
             sec_duration = sec['end'] - sec['start']
 
-            if i == 0 and (sec_duration < 20 or cluster_counts[c] == 1):
+            # Intro: first section, if short (<25s) or unique cluster
+            if i == 0 and (sec_duration < 25 or cluster_counts[c] == 1):
                 name = 'Intro'
-            elif i == total_sections - 1 and (sec_duration < 20 or cluster_counts[c] == 1):
+            # Outro: last section, if short (<25s) or unique cluster
+            elif i == total_sections - 1 and (sec_duration < 25 or cluster_counts[c] == 1):
                 name = 'Outro'
+            # Already assigned this cluster a name — reuse it
+            elif c in cluster_label_map:
+                base = cluster_label_map[c]
+                instance_count[base] = instance_count.get(base, 1) + 1
+                name = f'{base} {instance_count[base]}'
+            # Chorus cluster
             elif c == chorus_cluster:
-                chorus_count += 1
-                name = 'Chorus' if chorus_count <= 1 else f'Chorus {chorus_count}'
+                name = 'Chorus'
+                cluster_label_map[c] = 'Chorus'
+                instance_count['Chorus'] = 1
+            # Verse cluster
             elif c == verse_cluster:
-                verse_count += 1
-                name = 'Verse' if verse_count <= 1 else f'Verse {verse_count}'
+                name = 'Verse'
+                cluster_label_map[c] = 'Verse'
+                instance_count['Verse'] = 1
+            # Unique cluster (appears once) = Bridge or Solo
             elif cluster_counts[c] == 1:
+                # If it's between two choruses, it's a Bridge
                 name = 'Bridge'
+            # Pre-chorus: appears right before chorus, repeats but isn't verse/chorus
+            elif (i + 1 < total_sections and merged[i + 1]['cluster'] == chorus_cluster
+                  and cluster_counts[c] >= 2):
+                name = 'Pre-Chorus'
+                cluster_label_map[c] = 'Pre-Chorus'
+                instance_count['Pre-Chorus'] = 1
             else:
                 name = 'Section'
+                cluster_label_map[c] = 'Section'
 
             sections.append({
                 'name': name,
@@ -279,13 +337,32 @@ def analyze(file_path):
                 'end': sec['end'],
             })
 
-        # Merge consecutive same-name sections
+        # Merge consecutive same-base-name sections
+        # (e.g., Verse + Verse 2 back-to-back = one longer Verse)
         final_sections = [sections[0]]
         for sec in sections[1:]:
-            if sec['name'] == final_sections[-1]['name']:
+            prev_base = final_sections[-1]['name'].split()[0]
+            curr_base = sec['name'].split()[0]
+            if prev_base == curr_base:
                 final_sections[-1]['end'] = sec['end']
             else:
                 final_sections.append(sec)
+
+        # Renumber after merging
+        label_counts = {}
+        for sec in final_sections:
+            base = sec['name'].split()[0]
+            label_counts[base] = label_counts.get(base, 0) + 1
+
+        # Only number if there are multiple of the same type
+        running = {}
+        for sec in final_sections:
+            base = sec['name'].split()[0]
+            running[base] = running.get(base, 0) + 1
+            if label_counts[base] > 1:
+                sec['name'] = f'{base} {running[base]}'
+            else:
+                sec['name'] = base
 
         results['sections'] = final_sections
 
