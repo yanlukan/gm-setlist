@@ -1206,7 +1206,7 @@ const SONGS = [
     }
 
     // ===== DIAGRAMS BAR =====
-    let diagramsVisible = false;
+    let diagramsVisible = true;
 
     function toggleDiagrams() {
       diagramsVisible = !diagramsVisible;
@@ -1402,7 +1402,8 @@ const SONGS = [
         if (e.target === document.getElementById('chord-chart-modal')) hideChordChart();
       });
 
-      // Diagrams toggle
+      // Diagrams toggle (visible by default)
+      document.getElementById('diagrams-btn').classList.add('active');
       document.getElementById('diagrams-btn').addEventListener('click', toggleDiagrams);
 
       // Setlist button
