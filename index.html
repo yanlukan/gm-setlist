@@ -129,6 +129,44 @@
     #picker-more { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--text-muted);
       background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
 
+    /* Chord chart modal */
+    #chord-chart-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; }
+    #chord-chart-modal.visible { display: flex; }
+    #chord-chart-box { background: var(--bg); border: 2px solid var(--badge-bg); border-radius: 16px;
+      padding: 20px; text-align: center; min-width: 200px; }
+    #chord-chart-name { font-size: 24px; font-weight: bold; margin-bottom: 12px; }
+    #chord-chart-svg { display: block; margin: 0 auto; }
+    #chord-chart-fret { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    #chord-chart-close { margin-top: 12px; padding: 8px 24px; border: none; border-radius: 8px;
+      background: var(--badge-bg); color: var(--text); font-size: 16px; cursor: pointer; min-height: 44px; }
+
+    /* Setlist management screen */
+    #setlist-screen { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 150; flex-direction: column; overflow-y: auto; }
+    #setlist-screen.visible { display: flex; }
+    #setlist-header { padding: 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--badge-bg); }
+    #setlist-header h2 { font-size: 24px; font-weight: bold; }
+    #setlist-close { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: 16px; cursor: pointer; min-height: 44px; }
+    #setlist-songs { flex: 1; padding: 8px 16px; overflow-y: auto; }
+    .setlist-item { display: flex; align-items: center; gap: 12px; padding: 12px 8px;
+      border-bottom: 1px solid var(--badge-bg); }
+    .setlist-item .drag-handle { font-size: 20px; color: var(--text-muted); cursor: grab;
+      user-select: none; -webkit-user-select: none; padding: 0 4px; }
+    .setlist-item .song-info { flex: 1; }
+    .setlist-item .song-info .song-name { font-size: 16px; font-weight: 600; }
+    .setlist-item .song-info .song-meta { font-size: 12px; color: var(--text-muted); }
+    .setlist-item .remove-btn { background: #ef4444; color: #fff; border: none; border-radius: 6px;
+      padding: 6px 12px; font-size: 14px; cursor: pointer; min-height: 36px; }
+    .setlist-item.dragging { opacity: 0.5; background: var(--badge-bg); border-radius: 8px; }
+    #setlist-add-btn { margin: 12px 16px; padding: 12px; border: 2px dashed var(--text-muted);
+      border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 16px;
+      cursor: pointer; text-align: center; }
+    #setlist-btn { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
+      padding: 4px 10px; font-size: 13px; cursor: pointer; min-height: 36px; }
+
     /* Stage mode — maximum contrast */
     body.stage { --bg: #000000; --text: #ffffff; --text-muted: #999999; --badge-bg: #222222;
       --section-verse: #ffffff; --section-chorus: #ffffff; --section-bridge: #ffffff;
@@ -168,6 +206,7 @@
       <span class="badge" id="badge-bpm"></span>
       <span class="badge" id="badge-time"></span>
       <span class="badge" id="badge-capo"></span>
+      <button id="setlist-btn">Setlist</button>
       <div id="transpose-controls">
         <button id="transpose-down">&minus;</button>
         <button id="transpose-up">+</button>
@@ -186,6 +225,26 @@
   <footer id="bottom-bar">
     <nav id="song-list"></nav>
   </footer>
+
+  <!-- Chord chart modal -->
+  <div id="chord-chart-modal">
+    <div id="chord-chart-box">
+      <div id="chord-chart-name"></div>
+      <svg id="chord-chart-svg" width="160" height="180" viewBox="0 0 160 180"></svg>
+      <div id="chord-chart-fret"></div>
+      <button id="chord-chart-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Setlist management screen -->
+  <div id="setlist-screen">
+    <div id="setlist-header">
+      <h2>Setlist</h2>
+      <button id="setlist-close">Done</button>
+    </div>
+    <div id="setlist-songs"></div>
+    <button id="setlist-add-btn">+ Add Song Manually</button>
+  </div>
 
   <!-- Section picker panel -->
   <div id="section-picker">
@@ -547,6 +606,7 @@ const SONGS = [
 
       autoScaleFont();
       renderBottomBar();
+      attachChordTapHandlers();
     }
 
     function createSectionRow(section, index, total) {
@@ -900,6 +960,221 @@ const SONGS = [
       }, { passive: true });
     }
 
+    // ===== CHORD CHART =====
+    // Chord fingering database: [strings low E to high E], -1=mute, 0=open, N=fret
+    // Format: [frets], startFret (0 = open position)
+    const CHORD_DB = {
+      'A':[[null,0,2,2,2,0],0],'Am':[[null,0,2,2,1,0],0],'A7':[[null,0,2,0,2,0],0],
+      'Am7':[[null,0,2,0,1,0],0],'Amaj7':[[null,0,2,1,2,0],0],'Asus4':[[null,0,2,2,3,0],0],
+      'Asus2':[[null,0,2,2,0,0],0],'Adim':[[null,0,1,2,1,null],0],'Aaug':[[null,0,3,2,2,1],0],
+      'B':[[null,2,4,4,4,2],1],'Bm':[[null,2,4,4,3,2],1],'B7':[[null,2,1,2,0,2],0],
+      'Bm7':[[null,2,0,2,0,2],0],'Bmaj7':[[null,2,1,3,0,2],0],
+      'Bb':[[null,1,3,3,3,1],0],'Bbm':[[null,1,3,3,2,1],0],'Bb7':[[null,1,3,1,3,1],0],
+      'Bbm7':[[null,1,3,1,2,1],0],'Bbmaj7':[[null,1,3,2,3,1],0],
+      'C':[[null,3,2,0,1,0],0],'Cm':[[null,3,5,5,4,3],2],'C7':[[null,3,2,3,1,0],0],
+      'Cm7':[[null,3,5,3,4,3],2],'Cmaj7':[[null,3,2,0,0,0],0],'Csus4':[[null,3,3,0,1,1],0],
+      'C#m':[[null,4,6,6,5,4],3],'C#sus4':[[null,4,6,6,7,4],3],
+      'D':[[null,null,0,2,3,2],0],'Dm':[[null,null,0,2,3,1],0],'D7':[[null,null,0,2,1,2],0],
+      'Dm7':[[null,null,0,2,1,1],0],'Dmaj7':[[null,null,0,2,2,2],0],'Dsus4':[[null,null,0,2,3,3],0],
+      'Dsus2':[[null,null,0,2,3,0],0],'Ddim':[[null,null,0,1,3,1],0],
+      'D#m':[[null,null,1,3,4,2],0],
+      'Db':[[null,4,3,1,2,1],0],'Db7':[[null,4,3,4,2,1],0],
+      'E':[[0,2,2,1,0,0],0],'Em':[[0,2,2,0,0,0],0],'E7':[[0,2,0,1,0,0],0],
+      'Em7':[[0,2,0,0,0,0],0],'Emaj7':[[0,2,1,1,0,0],0],
+      'E7sus4':[[0,2,0,2,0,0],0],
+      'Eb':[[null,null,1,3,4,3],0],'Ebm':[[null,null,1,3,4,2],0],
+      'Eb7':[[null,null,1,0,2,3],0],'Ebm7':[[null,null,1,3,2,2],0],
+      'F':[[1,3,3,2,1,1],0],'Fm':[[1,3,3,1,1,1],0],'F7':[[1,3,1,2,1,1],0],
+      'Fm7':[[1,3,1,1,1,1],0],'Fmaj7':[[null,null,3,2,1,0],0],
+      'F#':[[2,4,4,3,2,2],1],'F#m':[[2,4,4,2,2,2],1],'F#7':[[2,4,2,3,2,2],1],
+      'F#m7':[[2,4,2,2,2,2],1],'F#sus4':[[2,4,4,4,2,2],1],
+      'G':[[3,2,0,0,0,3],0],'Gm':[[3,5,5,3,3,3],2],'G7':[[3,2,0,0,0,1],0],
+      'Gm7':[[3,5,3,3,3,3],2],'Gmaj7':[[3,2,0,0,0,2],0],
+      'Gm9':[[3,5,3,3,3,5],2],
+      'G#':[[4,6,6,5,4,4],3],'G#m':[[4,6,6,4,4,4],3],'G#7':[[4,6,4,5,4,4],3],
+      'G#7sus4':[[4,6,4,6,4,4],3],'G#m7':[[4,6,4,4,4,4],3],
+      'Ab':[[4,6,6,5,4,4],3],'Abm':[[4,6,6,4,4,4],3],
+      'C6':[[null,3,2,2,1,0],0],
+    };
+
+    function showChordChart(chordName) {
+      // Strip slash chord bass note
+      const displayChord = chordName.includes('/') ? chordName.split('/')[0] : chordName;
+      const data = CHORD_DB[displayChord];
+      if (!data) return; // no chart available
+
+      const [frets, startFret] = data;
+      const svg = document.getElementById('chord-chart-svg');
+      svg.innerHTML = '';
+
+      const ox = 30, oy = 30, sw = 24, fh = 28; // offsets, string width, fret height
+      const numFrets = 5;
+
+      // Nut or fret indicator
+      if (startFret === 0) {
+        const nut = document.createElementNS('http://www.w3.org/2000/svg','line');
+        Object.entries({x1:ox,y1:oy,x2:ox+sw*5,y2:oy,stroke:'white','stroke-width':4}).forEach(([k,v])=>nut.setAttribute(k,v));
+        svg.appendChild(nut);
+      }
+
+      // Fret lines
+      for (let f = 0; f <= numFrets; f++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        Object.entries({x1:ox,y1:oy+f*fh,x2:ox+sw*5,y2:oy+f*fh,stroke:'#666','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
+        svg.appendChild(line);
+      }
+
+      // String lines
+      for (let s = 0; s < 6; s++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        Object.entries({x1:ox+s*sw,y1:oy,x2:ox+s*sw,y2:oy+numFrets*fh,stroke:'#666','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
+        svg.appendChild(line);
+      }
+
+      // Finger dots, mutes, opens
+      frets.forEach((fret, s) => {
+        const x = ox + s * sw;
+        if (fret === null) {
+          // Muted string — X above nut
+          const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+          Object.entries({x:x,y:oy-10,'text-anchor':'middle',fill:'#999','font-size':'14px'}).forEach(([k,v])=>txt.setAttribute(k,v));
+          txt.textContent = 'x';
+          svg.appendChild(txt);
+        } else if (fret === 0) {
+          // Open string — O above nut
+          const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          Object.entries({cx:x,cy:oy-10,r:5,fill:'none',stroke:'white','stroke-width':2}).forEach(([k,v])=>circ.setAttribute(k,v));
+          svg.appendChild(circ);
+        } else {
+          // Fretted note — filled circle
+          const displayFret = fret - startFret;
+          const cy = oy + (displayFret - 0.5) * fh;
+          const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          Object.entries({cx:x,cy:cy,r:9,fill:'white'}).forEach(([k,v])=>circ.setAttribute(k,v));
+          svg.appendChild(circ);
+        }
+      });
+
+      document.getElementById('chord-chart-name').textContent = chordName;
+      document.getElementById('chord-chart-fret').textContent = startFret > 0 ? 'Fret ' + (startFret + 1) : '';
+      document.getElementById('chord-chart-modal').classList.add('visible');
+    }
+
+    function hideChordChart() {
+      document.getElementById('chord-chart-modal').classList.remove('visible');
+    }
+
+    // Make chords tappable in non-edit mode
+    function attachChordTapHandlers() {
+      if (editMode) return;
+      document.querySelectorAll('.section-chords').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (editMode) return;
+          // Find which chord was tapped by checking text position
+          const text = el.textContent.trim();
+          const chords = text.split(/\s+/);
+          if (chords.length === 1) {
+            showChordChart(chords[0]);
+          } else {
+            // Show a quick picker of the chords in this section
+            showSectionChordPicker(chords);
+          }
+        });
+      });
+    }
+
+    function showSectionChordPicker(chords) {
+      const unique = [...new Set(chords)];
+      if (unique.length === 1) { showChordChart(unique[0]); return; }
+      // Reuse chord picker panel to show just these chords
+      const picker = document.getElementById('chord-picker');
+      const content = document.getElementById('picker-content');
+      content.innerHTML = '';
+      const head = document.createElement('h3');
+      head.textContent = 'Tap a chord to see fingering';
+      content.appendChild(head);
+      const grid = document.createElement('div');
+      grid.className = 'chord-grid';
+      unique.forEach(c => {
+        const chip = document.createElement('button');
+        chip.className = 'chord-chip';
+        const displayC = c.includes('/') ? c.split('/')[0] : c;
+        if (CHORD_DB[displayC]) chip.classList.add('diatonic'); // highlight available charts
+        chip.textContent = c;
+        chip.addEventListener('click', () => { hideChordPicker(); showChordChart(c); });
+        grid.appendChild(chip);
+      });
+      content.appendChild(grid);
+      picker.classList.add('visible');
+    }
+
+    // ===== SETLIST MANAGEMENT =====
+    function showSetlistScreen() {
+      const screen = document.getElementById('setlist-screen');
+      const container = document.getElementById('setlist-songs');
+      container.innerHTML = '';
+
+      SONGS.forEach((song, i) => {
+        const item = document.createElement('div');
+        item.className = 'setlist-item';
+        item.draggable = true;
+        item.dataset.index = i;
+
+        const handle = document.createElement('span');
+        handle.className = 'drag-handle';
+        handle.textContent = '\u2630';
+
+        const info = document.createElement('div');
+        info.className = 'song-info';
+        const name = document.createElement('div');
+        name.className = 'song-name';
+        name.textContent = (i + 1) + '. ' + song.title;
+        const meta = document.createElement('div');
+        meta.className = 'song-meta';
+        const currentKey = getCurrentKey(song);
+        meta.textContent = 'Key: ' + currentKey + ' | ' + song.bpm + ' BPM | ' + song.timeSignature;
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        item.appendChild(handle);
+        item.appendChild(info);
+
+        // Drag events for reordering
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', i);
+          item.classList.add('dragging');
+        });
+        item.addEventListener('dragend', () => item.classList.remove('dragging'));
+        item.addEventListener('dragover', (e) => { e.preventDefault(); });
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+          const toIdx = i;
+          if (fromIdx !== toIdx) {
+            const moved = SONGS.splice(fromIdx, 1)[0];
+            SONGS.splice(toIdx, 0, moved);
+            showSetlistScreen(); // refresh
+            renderSong();
+          }
+        });
+
+        // Tap song to jump to it
+        info.addEventListener('click', () => {
+          currentIndex = i;
+          hideSetlistScreen();
+          renderSong();
+        });
+
+        container.appendChild(item);
+      });
+
+      screen.classList.add('visible');
+    }
+
+    function hideSetlistScreen() {
+      document.getElementById('setlist-screen').classList.remove('visible');
+    }
+
     function animateSlide(className) {
       const area = document.getElementById('chord-area');
       area.classList.remove('slide-left', 'slide-right');
@@ -946,6 +1221,16 @@ const SONGS = [
         document.getElementById('awake-tip').style.display = 'none';
         localStorage.setItem('cheatsheet-awake-dismissed', '1');
       });
+
+      // Chord chart close
+      document.getElementById('chord-chart-close').addEventListener('click', hideChordChart);
+      document.getElementById('chord-chart-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('chord-chart-modal')) hideChordChart();
+      });
+
+      // Setlist button
+      document.getElementById('setlist-btn').addEventListener('click', showSetlistScreen);
+      document.getElementById('setlist-close').addEventListener('click', hideSetlistScreen);
 
       // Edit button
       document.getElementById('edit-btn').addEventListener('click', () => {
