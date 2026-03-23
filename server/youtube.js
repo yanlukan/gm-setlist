@@ -4,7 +4,8 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-const execFileAsync = promisify(execFile);
+const execFileAsync = (cmd, args, opts = {}) =>
+  promisify(execFile)(cmd, args, { maxBuffer: 10 * 1024 * 1024, ...opts });
 const TMP_DIR = path.join(os.tmpdir(), 'gm-setlist');
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
