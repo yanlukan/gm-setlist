@@ -340,9 +340,13 @@ const SONGS = [
       const parsed = parseChord(originalKey);
       if (!parsed) return false;
       const targetIdx = ((noteIndex(parsed.root) + semitones) % 12 + 12) % 12;
-      const targetNote = SHARPS[targetIdx];
-      const targetKey = targetNote + parsed.quality;
-      return FLAT_KEYS.includes(targetKey) || FLAT_KEYS.includes(targetNote);
+      const sharpNote = SHARPS[targetIdx];
+      const flatNote = FLATS[targetIdx];
+      const sharpKey = sharpNote + parsed.quality;
+      const flatKey = flatNote + parsed.quality;
+      // Check both sharp and flat spellings against known flat keys
+      return FLAT_KEYS.includes(sharpKey) || FLAT_KEYS.includes(sharpNote) ||
+             FLAT_KEYS.includes(flatKey) || FLAT_KEYS.includes(flatNote);
     }
 
     function transposeChord(chord, semitones, useFlats) {
