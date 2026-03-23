@@ -167,6 +167,17 @@
     #setlist-btn { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
       padding: 4px 10px; font-size: 13px; cursor: pointer; min-height: 36px; }
 
+    /* Diagrams mode — show chord charts inline */
+    #diagrams-bar { display: none; padding: 8px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      border-bottom: 1px solid var(--badge-bg); max-width: 700px; width: 100%; margin: 0 auto; }
+    #diagrams-bar.visible { display: flex; gap: 12px; flex-shrink: 0; }
+    .diagram-card { text-align: center; flex-shrink: 0; }
+    .diagram-card .diagram-label { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
+    .diagram-card .diagram-pos { font-size: 10px; color: var(--text-muted); }
+    #diagrams-btn { background: var(--badge-bg); color: var(--text); border: none; border-radius: 8px;
+      padding: 4px 10px; font-size: 13px; cursor: pointer; min-height: 36px; }
+    #diagrams-btn.active { background: #4a9eff; color: #fff; }
+
     /* Stage mode — maximum contrast */
     body.stage { --bg: #000000; --text: #ffffff; --text-muted: #999999; --badge-bg: #222222;
       --section-verse: #ffffff; --section-chorus: #ffffff; --section-bridge: #ffffff;
@@ -206,6 +217,7 @@
       <span class="badge" id="badge-bpm"></span>
       <span class="badge" id="badge-time"></span>
       <span class="badge" id="badge-capo"></span>
+      <button id="diagrams-btn">Chords</button>
       <button id="setlist-btn">Setlist</button>
       <div id="transpose-controls">
         <button id="transpose-down">&minus;</button>
@@ -217,6 +229,7 @@
     <span>Tip: Set Auto-Lock to "Never" in iPad Settings before your gig</span>
     <button id="awake-dismiss">Got it</button>
   </div>
+  <div id="diagrams-bar"></div>
   <main id="chord-area">
     <span id="position-badge"></span>
   </main>
@@ -604,6 +617,7 @@ const SONGS = [
       const savedNotes = localStorage.getItem('cheatsheet-notes-' + song.title);
       notesArea.textContent = savedNotes !== null ? savedNotes : (song.notes || '');
 
+      if (diagramsVisible) renderDiagramsBar();
       autoScaleFont();
       renderBottomBar();
       attachChordTapHandlers();
@@ -1191,6 +1205,68 @@ const SONGS = [
       document.getElementById('chord-chart-modal').classList.remove('visible');
     }
 
+    // ===== DIAGRAMS BAR =====
+    let diagramsVisible = false;
+
+    function toggleDiagrams() {
+      diagramsVisible = !diagramsVisible;
+      document.getElementById('diagrams-btn').classList.toggle('active', diagramsVisible);
+      if (diagramsVisible) {
+        renderDiagramsBar();
+      } else {
+        document.getElementById('diagrams-bar').classList.remove('visible');
+        document.getElementById('diagrams-bar').innerHTML = '';
+      }
+      autoScaleFont();
+    }
+
+    function renderDiagramsBar() {
+      const bar = document.getElementById('diagrams-bar');
+      bar.innerHTML = '';
+
+      // Collect all unique chords from current song
+      const song = SONGS[currentIndex];
+      const sections = getEditedSections(song);
+      const allChords = [];
+      sections.forEach(s => {
+        s.chords.split(/\s+/).forEach(c => {
+          if (c && !allChords.includes(c)) allChords.push(c);
+        });
+      });
+
+      // Render each chord that has a diagram
+      allChords.forEach(c => {
+        const dc = c.includes('/') ? c.split('/')[0] : c;
+        const voicings = CHORD_DB[dc];
+        if (!voicings) return;
+
+        const card = document.createElement('div');
+        card.className = 'diagram-card';
+        card.style.cursor = 'pointer';
+
+        const label = document.createElement('div');
+        label.className = 'diagram-label';
+        label.textContent = c;
+        card.appendChild(label);
+
+        card.appendChild(renderChordSVG(voicings[0], 80));
+
+        if (voicings.length > 1) {
+          const pos = document.createElement('div');
+          pos.className = 'diagram-pos';
+          pos.textContent = voicings[0].l;
+          card.appendChild(pos);
+        }
+
+        // Tap to see all voicings
+        card.addEventListener('click', () => showChordVoicings(c));
+
+        bar.appendChild(card);
+      });
+
+      bar.classList.add('visible');
+    }
+
     // Tap chords: play mode → show all section charts, edit mode → show voicings
     function attachChordTapHandlers() {
       document.querySelectorAll('.section-chords').forEach(el => {
@@ -1325,6 +1401,9 @@ const SONGS = [
       document.getElementById('chord-chart-modal').addEventListener('click', (e) => {
         if (e.target === document.getElementById('chord-chart-modal')) hideChordChart();
       });
+
+      // Diagrams toggle
+      document.getElementById('diagrams-btn').addEventListener('click', toggleDiagrams);
 
       // Setlist button
       document.getElementById('setlist-btn').addEventListener('click', showSetlistScreen);
