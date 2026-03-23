@@ -23,6 +23,26 @@ app.use('/api/analyze', (req, res, next) => {
   next();
 });
 
+// Simple rate limiting (for droplet — prevent abuse)
+const rateLimitMap = new Map();
+app.use('/api/analyze', (req, res, next) => {
+  const ip = req.ip;
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxRequests = 10;
+
+  const requests = rateLimitMap.get(ip) || [];
+  const recent = requests.filter(t => now - t < windowMs);
+
+  if (recent.length >= maxRequests) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again later.' });
+  }
+
+  recent.push(now);
+  rateLimitMap.set(ip, recent);
+  next();
+});
+
 // Check if Python ML models are available
 let localMLAvailable = false;
 try {
