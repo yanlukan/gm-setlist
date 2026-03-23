@@ -1479,7 +1479,7 @@ const SONGS = [
       const saved = localStorage.getItem('cheatsheet-setlists');
       if (saved) return JSON.parse(saved);
       // Default: one setlist with all songs
-      const defaultList = { name: 'GM Tribute', songTitles: SONGS.map(s => s.title) };
+      const defaultList = { name: 'GM Tribute', songTitles: getAllSongs().map(s => s.title) };
       return { lists: { 'default': defaultList }, activeId: 'default' };
     }
 
@@ -1504,8 +1504,8 @@ const SONGS = [
     // Get songs for current setlist (ordered)
     function getSetlistSongs() {
       const setlist = getActiveSetlist();
-      if (!setlist) return SONGS;
-      return setlist.songTitles.map(t => SONGS.find(s => s.title === t)).filter(Boolean);
+      if (!setlist) return getAllSongs();
+      return setlist.songTitles.map(t => getAllSongs().find(s => s.title === t)).filter(Boolean);
     }
 
     function showSetlistScreen() {
@@ -1565,7 +1565,7 @@ const SONGS = [
 
       const songTitles = activeList.songTitles;
       songTitles.forEach((title, i) => {
-        const song = SONGS.find(s => s.title === title);
+        const song = getAllSongs().find(s => s.title === title);
         if (!song) return;
 
         const item = document.createElement('div');
@@ -1646,7 +1646,7 @@ const SONGS = [
       head.textContent = 'Tap to add:';
       container.appendChild(head);
 
-      SONGS.forEach(song => {
+      getAllSongs().forEach(song => {
         const alreadyIn = activeList.songTitles.includes(song.title);
         const item = document.createElement('div');
         item.className = 'setlist-item';
@@ -1723,6 +1723,432 @@ const SONGS = [
       void area.offsetWidth; // force reflow
       area.classList.add(className);
       area.addEventListener('animationend', () => area.classList.remove(className), { once: true });
+    }
+
+    // ===== SONG PERSISTENCE =====
+    function getCustomSongs() {
+      try { return JSON.parse(localStorage.getItem('cheatsheet-songs-custom') || '[]'); }
+      catch { return []; }
+    }
+
+    function saveCustomSongs(songs) {
+      localStorage.setItem('cheatsheet-songs-custom', JSON.stringify(songs));
+    }
+
+    function getAllSongs() {
+      return [...SONGS, ...getCustomSongs()];
+    }
+
+    // ===== IMPORT SONG =====
+    let serverUrl = null;
+    let serverToken = null;
+    let currentAnalysis = null;
+
+    const DROPLET_API_TOKEN = '';
+
+    async function detectServer() {
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 2500);
+        const res = await fetch('http://localhost:3000/api/health', { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          serverUrl = 'http://localhost:3000';
+          serverToken = null;
+          return data;
+        }
+      } catch {}
+
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 5000);
+        const headers = {};
+        if (DROPLET_API_TOKEN) headers['x-api-token'] = DROPLET_API_TOKEN;
+        const res = await fetch('https://api.stratlab.uk/api/health', {
+          signal: controller.signal, headers
+        });
+        if (res.ok) {
+          const data = await res.json();
+          serverUrl = 'https://api.stratlab.uk';
+          serverToken = DROPLET_API_TOKEN;
+          return data;
+        }
+      } catch {}
+
+      return null;
+    }
+
+    function getHeaders(contentType) {
+      const h = {};
+      if (contentType) h['Content-Type'] = contentType;
+      if (serverToken) h['x-api-token'] = serverToken;
+      return h;
+    }
+
+    function showImportModal() {
+      document.getElementById('import-modal').classList.add('visible');
+      switchImportTab('url');
+      document.getElementById('import-url-input').value = '';
+      document.getElementById('import-search-input').value = '';
+      document.getElementById('search-results').innerHTML = '';
+      hideImportProgress();
+      hideImportResults();
+    }
+
+    function hideImportModal() {
+      document.getElementById('import-modal').classList.remove('visible');
+      currentAnalysis = null;
+    }
+
+    function switchImportTab(tab) {
+      document.querySelectorAll('.import-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.import-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById('panel-' + tab);
+      if (panel) panel.classList.add('active');
+      hideImportProgress();
+      hideImportResults();
+    }
+
+    function showImportProgress(stages) {
+      const el = document.getElementById('import-progress');
+      el.innerHTML = stages.map((s, i) => `
+        <div class="progress-step pending" id="progress-${s.id}">
+          <span class="icon">${i === 0 ? '&#9679;' : '&#9675;'}</span>
+          <span>${s.label}</span>
+        </div>
+      `).join('');
+      el.classList.add('active');
+      document.querySelectorAll('.import-panel').forEach(p => p.classList.remove('active'));
+    }
+
+    function updateProgress(stage) {
+      const steps = document.querySelectorAll('.progress-step');
+      let found = false;
+      steps.forEach(step => {
+        if (step.id === 'progress-' + stage) {
+          step.className = 'progress-step active';
+          step.querySelector('.icon').innerHTML = '&#9679;';
+          found = true;
+        } else if (!found) {
+          step.className = 'progress-step done';
+          step.querySelector('.icon').innerHTML = '&#10003;';
+        }
+      });
+    }
+
+    function hideImportProgress() {
+      const el = document.getElementById('import-progress');
+      el.classList.remove('active');
+      el.innerHTML = '';
+    }
+
+    function showImportResults(result) {
+      currentAnalysis = result;
+      hideImportProgress();
+
+      document.getElementById('result-title-input').value = result.title || '';
+      document.getElementById('result-artist-input').value = result.artist || '';
+      document.getElementById('result-meta').innerHTML = `
+        <span class="badge">Key: ${result.key}</span>
+        <span class="badge">${result.bpm} BPM</span>
+        <span class="badge">${result.timeSignature}</span>
+      `;
+
+      const banner = document.getElementById('confidence-banner');
+      const conf = result.confidence;
+      if (result.source === 'music-ai') {
+        banner.textContent = 'Analyzed with Music AI';
+        banner.className = 'high';
+      } else if (conf >= 80) {
+        banner.textContent = `Local detection: ${conf}% confident`;
+        banner.className = 'high';
+      } else if (conf >= 60) {
+        banner.textContent = `Local detection: ${conf}% confident — review recommended`;
+        banner.className = 'medium';
+      } else {
+        banner.textContent = `Local detection: ${conf}% confident — refinement recommended`;
+        banner.className = 'low';
+      }
+
+      const refineBtn = document.getElementById('refine-btn');
+      if (result.canRefine) {
+        const estCost = result.duration ? '$' + (result.duration / 60 * 0.04).toFixed(2) : '~$0.16';
+        refineBtn.textContent = `Refine with Music AI (${estCost})`;
+        refineBtn.style.display = '';
+      } else {
+        refineBtn.style.display = 'none';
+      }
+
+      const sectionsEl = document.getElementById('result-sections');
+      sectionsEl.innerHTML = '';
+      (result.sections || []).forEach(sec => {
+        const row = document.createElement('div');
+        row.className = 'result-section';
+
+        const label = document.createElement('span');
+        label.className = 'result-section-label section-' + sectionType(sec.name);
+        label.textContent = sec.name;
+
+        const chords = document.createElement('span');
+        chords.className = 'result-section-chords';
+
+        if (sec.chordsDetail) {
+          sec.chordsDetail.forEach((c, i) => {
+            if (i > 0) chords.appendChild(document.createTextNode('  '));
+            const span = document.createElement('span');
+            span.textContent = c.chord;
+            span.className = c.confidence > 0.85 ? 'chord-high' :
+                             c.confidence > 0.6 ? 'chord-medium' : 'chord-low';
+            chords.appendChild(span);
+          });
+        } else {
+          chords.textContent = sec.chords;
+        }
+
+        row.appendChild(label);
+        row.appendChild(chords);
+        sectionsEl.appendChild(row);
+      });
+
+      document.getElementById('result-capo').value = '';
+      document.getElementById('import-results').classList.add('active');
+    }
+
+    function hideImportResults() {
+      document.getElementById('import-results').classList.remove('active');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    async function parseSSEStream(response, onProgress, onResult, onError) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        let eventType = '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) eventType = line.slice(7);
+          else if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+            if (eventType === 'progress') onProgress(data);
+            else if (eventType === 'result') onResult(data);
+            else if (eventType === 'error') onError(data);
+          }
+        }
+      }
+    }
+
+    async function analyzeFromURL(url) {
+      const server = await detectServer();
+      if (!server) {
+        alert('Cannot connect to analysis server. Make sure the local server is running.');
+        return;
+      }
+
+      if (!server.localML) {
+        if (!confirm('Local server unavailable. Analyze with Music AI (~$0.16)?')) return;
+      }
+
+      showImportProgress([
+        { id: 'downloading', label: 'Downloading audio...' },
+        { id: 'analyzing', label: 'Analyzing audio...' },
+        { id: 'formatting', label: 'Formatting results...' },
+      ]);
+
+      try {
+        const response = await fetch(serverUrl + '/api/analyze/url', {
+          method: 'POST',
+          headers: getHeaders('application/json'),
+          body: JSON.stringify({ url }),
+        });
+
+        await parseSSEStream(response,
+          (data) => updateProgress(data.stage),
+          (data) => showImportResults(data),
+          (data) => { hideImportProgress(); alert('Analysis failed: ' + data.message); }
+        );
+      } catch (err) {
+        hideImportProgress();
+        alert('Analysis failed: ' + err.message);
+      }
+    }
+
+    async function analyzeFromUpload(file) {
+      const server = await detectServer();
+      if (!server) {
+        alert('Cannot connect to analysis server. Make sure the local server is running.');
+        return;
+      }
+
+      if (!server.localML) {
+        if (!confirm('Local server unavailable. Analyze with Music AI (~$0.16)?')) return;
+      }
+
+      if (file.size > 50 * 1024 * 1024) {
+        alert('File exceeds 50MB limit. Try a compressed format (MP3).');
+        return;
+      }
+
+      showImportProgress([
+        { id: 'uploading', label: 'Uploading file...' },
+        { id: 'analyzing', label: 'Analyzing audio...' },
+        { id: 'formatting', label: 'Formatting results...' },
+      ]);
+
+      try {
+        const formData = new FormData();
+        formData.append('audio', file);
+
+        const headers = {};
+        if (serverToken) headers['x-api-token'] = serverToken;
+
+        const response = await fetch(serverUrl + '/api/analyze/upload', {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+
+        await parseSSEStream(response,
+          (data) => updateProgress(data.stage),
+          (data) => showImportResults(data),
+          (data) => { hideImportProgress(); alert('Analysis failed: ' + data.message); }
+        );
+      } catch (err) {
+        hideImportProgress();
+        alert('Analysis failed: ' + err.message);
+      }
+    }
+
+    async function searchAndAnalyze(query) {
+      const server = await detectServer();
+      if (!server) {
+        alert('Cannot connect to analysis server. Make sure the local server is running.');
+        return;
+      }
+
+      const searchBtn = document.getElementById('import-search-btn');
+      searchBtn.disabled = true;
+      searchBtn.textContent = 'Searching...';
+
+      try {
+        const res = await fetch(serverUrl + '/api/analyze/search', {
+          method: 'POST',
+          headers: getHeaders('application/json'),
+          body: JSON.stringify({ query }),
+        });
+        const { results } = await res.json();
+
+        const container = document.getElementById('search-results');
+        container.innerHTML = '';
+        results.forEach(r => {
+          const div = document.createElement('div');
+          div.className = 'search-result';
+          div.innerHTML = `
+            ${r.thumbnail ? `<img src="${r.thumbnail}" style="width:64px;height:48px;border-radius:4px;object-fit:cover">` : ''}
+            <div class="search-result-info">
+              <div class="search-result-title">${escapeHtml(r.title)}</div>
+              <div class="search-result-duration">${r.duration}</div>
+            </div>
+          `;
+          div.addEventListener('click', () => analyzeFromURL(r.url));
+          container.appendChild(div);
+        });
+      } catch (err) {
+        alert('Search failed: ' + err.message);
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = 'Search';
+      }
+    }
+
+    function saveSongFromAnalysis() {
+      if (!currentAnalysis) return;
+
+      const title = document.getElementById('result-title-input').value.trim() || 'Untitled';
+      const artist = document.getElementById('result-artist-input').value.trim() || 'Unknown';
+      const capoVal = document.getElementById('result-capo').value;
+
+      const allSongs = getAllSongs();
+      const existingIdx = allSongs.findIndex(s =>
+        s.title.toLowerCase() === title.toLowerCase() &&
+        s.artist.toLowerCase() === artist.toLowerCase()
+      );
+      if (existingIdx !== -1) {
+        if (!confirm(`"${title}" by ${artist} already exists. Replace it?`)) return;
+        const customSongs = getCustomSongs();
+        const customIdx = customSongs.findIndex(s =>
+          s.title.toLowerCase() === title.toLowerCase() &&
+          s.artist.toLowerCase() === artist.toLowerCase()
+        );
+        if (customIdx !== -1) customSongs.splice(customIdx, 1);
+        saveCustomSongs(customSongs);
+        localStorage.removeItem('cheatsheet-sections-' + title);
+        localStorage.removeItem('cheatsheet-notes-' + title);
+        localStorage.removeItem('cheatsheet-key-' + title);
+      }
+
+      const newSong = {
+        title,
+        artist,
+        key: currentAnalysis.key,
+        bpm: currentAnalysis.bpm,
+        timeSignature: currentAnalysis.timeSignature,
+        capo: capoVal ? parseInt(capoVal) : null,
+        notes: `Auto-detected (${currentAnalysis.source}, ${currentAnalysis.confidence}% confidence)`,
+        sections: (currentAnalysis.sections || []).map(s => ({
+          name: s.name,
+          chords: s.chords,
+        })),
+        imported: true,
+      };
+
+      const customSongs = getCustomSongs();
+      customSongs.push(newSong);
+      saveCustomSongs(customSongs);
+
+      currentIndex = getAllSongs().length - 1;
+      hideImportModal();
+      renderSong();
+    }
+
+    async function refineWithMusicAI() {
+      if (!currentAnalysis?.jobId) return;
+
+      const refineBtn = document.getElementById('refine-btn');
+      refineBtn.disabled = true;
+      refineBtn.textContent = 'Refining...';
+
+      try {
+        const response = await fetch(serverUrl + '/api/analyze/refine/' + currentAnalysis.jobId, {
+          method: 'POST',
+          headers: getHeaders(),
+        });
+
+        await parseSSEStream(response,
+          () => {},
+          (data) => {
+            data.title = currentAnalysis.title;
+            data.artist = currentAnalysis.artist;
+            showImportResults(data);
+          },
+          (data) => alert('Refinement failed: ' + data.message)
+        );
+      } catch (err) {
+        alert('Refinement failed: ' + err.message);
+      } finally {
+        refineBtn.disabled = false;
+      }
     }
 
     // ===== SERVICE WORKER =====
@@ -1865,6 +2291,33 @@ const SONGS = [
         });
         localStorage.setItem('cheatsheet-bugfix-v3', '1');
       }
+
+      // Import modal triggers
+      document.getElementById('import-btn').addEventListener('click', showImportModal);
+      document.getElementById('import-close').addEventListener('click', hideImportModal);
+      document.querySelectorAll('.import-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchImportTab(tab.dataset.tab));
+      });
+      document.getElementById('import-analyze-btn').addEventListener('click', () => {
+        const url = document.getElementById('import-url-input').value.trim();
+        if (url) analyzeFromURL(url);
+      });
+      document.getElementById('import-search-btn').addEventListener('click', () => {
+        const query = document.getElementById('import-search-input').value.trim();
+        if (query) searchAndAnalyze(query);
+      });
+      document.getElementById('import-search-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const query = e.target.value.trim();
+          if (query) searchAndAnalyze(query);
+        }
+      });
+      document.getElementById('import-upload-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) analyzeFromUpload(file);
+      });
+      document.getElementById('save-song-btn').addEventListener('click', saveSongFromAnalysis);
+      document.getElementById('refine-btn').addEventListener('click', refineWithMusicAI);
 
       // Render first song
       renderSong();
