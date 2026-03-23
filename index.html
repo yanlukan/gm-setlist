@@ -134,7 +134,7 @@
       background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; }
     #chord-chart-modal.visible { display: flex; }
     #chord-chart-box { background: var(--bg); border: 2px solid var(--badge-bg); border-radius: 16px;
-      padding: 20px; text-align: center; min-width: 200px; }
+      padding: 20px; text-align: center; min-width: 200px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
     #chord-chart-name { font-size: 24px; font-weight: bold; margin-bottom: 12px; }
     #chord-chart-svg { display: block; margin: 0 auto; }
     #chord-chart-fret { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
@@ -961,102 +961,229 @@ const SONGS = [
     }
 
     // ===== CHORD CHART =====
-    // Chord fingering database: [strings low E to high E], -1=mute, 0=open, N=fret
-    // Format: [frets], startFret (0 = open position)
+    // Chord fingering database: each chord has an array of voicings
+    // Each voicing: { frets: [low E to high E], start: startFret, label: "position name" }
+    // null = mute, 0 = open
     const CHORD_DB = {
-      'A':[[null,0,2,2,2,0],0],'Am':[[null,0,2,2,1,0],0],'A7':[[null,0,2,0,2,0],0],
-      'Am7':[[null,0,2,0,1,0],0],'Amaj7':[[null,0,2,1,2,0],0],'Asus4':[[null,0,2,2,3,0],0],
-      'Asus2':[[null,0,2,2,0,0],0],'Adim':[[null,0,1,2,1,null],0],'Aaug':[[null,0,3,2,2,1],0],
-      'B':[[null,2,4,4,4,2],1],'Bm':[[null,2,4,4,3,2],1],'B7':[[null,2,1,2,0,2],0],
-      'Bm7':[[null,2,0,2,0,2],0],'Bmaj7':[[null,2,1,3,0,2],0],
-      'Bb':[[null,1,3,3,3,1],0],'Bbm':[[null,1,3,3,2,1],0],'Bb7':[[null,1,3,1,3,1],0],
-      'Bbm7':[[null,1,3,1,2,1],0],'Bbmaj7':[[null,1,3,2,3,1],0],
-      'C':[[null,3,2,0,1,0],0],'Cm':[[null,3,5,5,4,3],2],'C7':[[null,3,2,3,1,0],0],
-      'Cm7':[[null,3,5,3,4,3],2],'Cmaj7':[[null,3,2,0,0,0],0],'Csus4':[[null,3,3,0,1,1],0],
-      'C#m':[[null,4,6,6,5,4],3],'C#sus4':[[null,4,6,6,7,4],3],
-      'D':[[null,null,0,2,3,2],0],'Dm':[[null,null,0,2,3,1],0],'D7':[[null,null,0,2,1,2],0],
-      'Dm7':[[null,null,0,2,1,1],0],'Dmaj7':[[null,null,0,2,2,2],0],'Dsus4':[[null,null,0,2,3,3],0],
-      'Dsus2':[[null,null,0,2,3,0],0],'Ddim':[[null,null,0,1,3,1],0],
-      'D#m':[[null,null,1,3,4,2],0],
-      'Db':[[null,4,3,1,2,1],0],'Db7':[[null,4,3,4,2,1],0],
-      'E':[[0,2,2,1,0,0],0],'Em':[[0,2,2,0,0,0],0],'E7':[[0,2,0,1,0,0],0],
-      'Em7':[[0,2,0,0,0,0],0],'Emaj7':[[0,2,1,1,0,0],0],
-      'E7sus4':[[0,2,0,2,0,0],0],
-      'Eb':[[null,null,1,3,4,3],0],'Ebm':[[null,null,1,3,4,2],0],
-      'Eb7':[[null,null,1,0,2,3],0],'Ebm7':[[null,null,1,3,2,2],0],
-      'F':[[1,3,3,2,1,1],0],'Fm':[[1,3,3,1,1,1],0],'F7':[[1,3,1,2,1,1],0],
-      'Fm7':[[1,3,1,1,1,1],0],'Fmaj7':[[null,null,3,2,1,0],0],
-      'F#':[[2,4,4,3,2,2],1],'F#m':[[2,4,4,2,2,2],1],'F#7':[[2,4,2,3,2,2],1],
-      'F#m7':[[2,4,2,2,2,2],1],'F#sus4':[[2,4,4,4,2,2],1],
-      'G':[[3,2,0,0,0,3],0],'Gm':[[3,5,5,3,3,3],2],'G7':[[3,2,0,0,0,1],0],
-      'Gm7':[[3,5,3,3,3,3],2],'Gmaj7':[[3,2,0,0,0,2],0],
-      'Gm9':[[3,5,3,3,3,5],2],
-      'G#':[[4,6,6,5,4,4],3],'G#m':[[4,6,6,4,4,4],3],'G#7':[[4,6,4,5,4,4],3],
-      'G#7sus4':[[4,6,4,6,4,4],3],'G#m7':[[4,6,4,4,4,4],3],
-      'Ab':[[4,6,6,5,4,4],3],'Abm':[[4,6,6,4,4,4],3],
-      'C6':[[null,3,2,2,1,0],0],
+      'A':[{f:[null,0,2,2,2,0],s:0,l:'Open'},{f:[5,7,7,6,5,5],s:4,l:'5th fret'}],
+      'Am':[{f:[null,0,2,2,1,0],s:0,l:'Open'},{f:[5,7,7,5,5,5],s:4,l:'5th fret'}],
+      'A7':[{f:[null,0,2,0,2,0],s:0,l:'Open'},{f:[5,7,5,6,5,5],s:4,l:'5th fret'}],
+      'Am7':[{f:[null,0,2,0,1,0],s:0,l:'Open'},{f:[5,7,5,5,5,5],s:4,l:'5th fret'}],
+      'Amaj7':[{f:[null,0,2,1,2,0],s:0,l:'Open'}],
+      'Asus4':[{f:[null,0,2,2,3,0],s:0,l:'Open'}],
+      'Asus2':[{f:[null,0,2,2,0,0],s:0,l:'Open'}],
+      'Adim':[{f:[null,0,1,2,1,null],s:0,l:'Open'}],
+      'B':[{f:[null,2,4,4,4,2],s:1,l:'2nd fret'},{f:[7,9,9,8,7,7],s:6,l:'7th fret'}],
+      'Bm':[{f:[null,2,4,4,3,2],s:1,l:'2nd fret'},{f:[7,9,9,7,7,7],s:6,l:'7th fret'}],
+      'B7':[{f:[null,2,1,2,0,2],s:0,l:'Open'},{f:[7,9,7,8,7,7],s:6,l:'7th fret'}],
+      'Bm7':[{f:[null,2,0,2,0,2],s:0,l:'Open'},{f:[7,9,7,7,7,7],s:6,l:'7th fret'}],
+      'Bb':[{f:[null,1,3,3,3,1],s:0,l:'1st fret'},{f:[6,8,8,7,6,6],s:5,l:'6th fret'}],
+      'Bbm':[{f:[null,1,3,3,2,1],s:0,l:'1st fret'},{f:[6,8,8,6,6,6],s:5,l:'6th fret'}],
+      'Bb7':[{f:[null,1,3,1,3,1],s:0,l:'1st fret'}],
+      'Bbm7':[{f:[null,1,3,1,2,1],s:0,l:'1st fret'}],
+      'Bbmaj7':[{f:[null,1,3,2,3,1],s:0,l:'1st fret'},{f:[6,8,7,7,6,6],s:5,l:'6th fret'}],
+      'C':[{f:[null,3,2,0,1,0],s:0,l:'Open'},{f:[8,10,10,9,8,8],s:7,l:'8th fret'}],
+      'Cm':[{f:[null,3,5,5,4,3],s:2,l:'3rd fret'},{f:[8,10,10,8,8,8],s:7,l:'8th fret'}],
+      'C7':[{f:[null,3,2,3,1,0],s:0,l:'Open'},{f:[8,10,8,9,8,8],s:7,l:'8th fret'}],
+      'Cm7':[{f:[null,3,5,3,4,3],s:2,l:'3rd fret'}],
+      'Cm6':[{f:[null,3,1,2,1,3],s:0,l:'Open'}],
+      'Cmaj7':[{f:[null,3,2,0,0,0],s:0,l:'Open'}],
+      'C#m':[{f:[null,4,6,6,5,4],s:3,l:'4th fret'},{f:[9,11,11,9,9,9],s:8,l:'9th fret'}],
+      'C#sus4':[{f:[null,4,6,6,7,4],s:3,l:'4th fret'}],
+      'D':[{f:[null,null,0,2,3,2],s:0,l:'Open'},{f:[null,5,7,7,7,5],s:4,l:'5th fret'}],
+      'Dm':[{f:[null,null,0,2,3,1],s:0,l:'Open'},{f:[null,5,7,7,6,5],s:4,l:'5th fret'}],
+      'D7':[{f:[null,null,0,2,1,2],s:0,l:'Open'},{f:[null,5,7,5,7,5],s:4,l:'5th fret'}],
+      'Dm7':[{f:[null,null,0,2,1,1],s:0,l:'Open'},{f:[null,5,7,5,6,5],s:4,l:'5th fret'}],
+      'Dmaj7':[{f:[null,null,0,2,2,2],s:0,l:'Open'}],
+      'Dsus4':[{f:[null,null,0,2,3,3],s:0,l:'Open'}],
+      'Db':[{f:[null,4,3,1,2,1],s:0,l:'4th fret'},{f:[null,4,6,6,6,4],s:3,l:'E shape'}],
+      'Db7':[{f:[null,4,3,4,2,1],s:0,l:'4th fret'}],
+      'E':[{f:[0,2,2,1,0,0],s:0,l:'Open'},{f:[null,7,9,9,9,7],s:6,l:'7th fret'}],
+      'Em':[{f:[0,2,2,0,0,0],s:0,l:'Open'},{f:[null,7,9,9,8,7],s:6,l:'7th fret'}],
+      'E7':[{f:[0,2,0,1,0,0],s:0,l:'Open'}],
+      'Em7':[{f:[0,2,0,0,0,0],s:0,l:'Open'}],
+      'Emaj7':[{f:[0,2,1,1,0,0],s:0,l:'Open'}],
+      'E7sus4':[{f:[0,2,0,2,0,0],s:0,l:'Open'}],
+      'Eb':[{f:[null,null,1,3,4,3],s:0,l:'Open'},{f:[null,6,8,8,8,6],s:5,l:'6th fret'}],
+      'Ebm':[{f:[null,null,1,3,4,2],s:0,l:'Open'},{f:[null,6,8,8,7,6],s:5,l:'6th fret'}],
+      'Eb7':[{f:[null,null,1,0,2,3],s:0,l:'Open'}],
+      'Ebm7':[{f:[null,null,1,3,2,2],s:0,l:'Open'}],
+      'F':[{f:[1,3,3,2,1,1],s:0,l:'1st fret'},{f:[null,null,3,2,1,1],s:0,l:'Partial'}],
+      'Fm':[{f:[1,3,3,1,1,1],s:0,l:'1st fret'}],
+      'F7':[{f:[1,3,1,2,1,1],s:0,l:'1st fret'}],
+      'Fm7':[{f:[1,3,1,1,1,1],s:0,l:'1st fret'}],
+      'Fmaj7':[{f:[null,null,3,2,1,0],s:0,l:'Open'},{f:[1,3,2,2,1,1],s:0,l:'Full barre'}],
+      'F#':[{f:[2,4,4,3,2,2],s:1,l:'2nd fret'}],
+      'F#m':[{f:[2,4,4,2,2,2],s:1,l:'2nd fret'}],
+      'F#7':[{f:[2,4,2,3,2,2],s:1,l:'2nd fret'}],
+      'F#m7':[{f:[2,4,2,2,2,2],s:1,l:'2nd fret'}],
+      'F#sus4':[{f:[2,4,4,4,2,2],s:1,l:'2nd fret'}],
+      'G':[{f:[3,2,0,0,0,3],s:0,l:'Open'},{f:[3,5,5,4,3,3],s:2,l:'3rd fret'}],
+      'Gm':[{f:[3,5,5,3,3,3],s:2,l:'3rd fret'}],
+      'G7':[{f:[3,2,0,0,0,1],s:0,l:'Open'},{f:[3,5,3,4,3,3],s:2,l:'3rd fret'}],
+      'Gm7':[{f:[3,5,3,3,3,3],s:2,l:'3rd fret'}],
+      'Gmaj7':[{f:[3,2,0,0,0,2],s:0,l:'Open'}],
+      'Gm9':[{f:[3,5,3,3,3,5],s:2,l:'3rd fret'}],
+      'Gb':[{f:[2,4,4,3,2,2],s:1,l:'2nd fret'}],
+      'Gbm':[{f:[2,4,4,2,2,2],s:1,l:'2nd fret'}],
+      'G#':[{f:[4,6,6,5,4,4],s:3,l:'4th fret'}],
+      'G#m':[{f:[4,6,6,4,4,4],s:3,l:'4th fret'}],
+      'G#7':[{f:[4,6,4,5,4,4],s:3,l:'4th fret'}],
+      'G#7sus4':[{f:[4,6,4,6,4,4],s:3,l:'4th fret'}],
+      'G#m7':[{f:[4,6,4,4,4,4],s:3,l:'4th fret'}],
+      'Ab':[{f:[4,6,6,5,4,4],s:3,l:'4th fret'}],
+      'Abm':[{f:[4,6,6,4,4,4],s:3,l:'4th fret'}],
+      'C6':[{f:[null,3,2,2,1,0],s:0,l:'Open'}],
     };
 
-    function showChordChart(chordName) {
-      // Strip slash chord bass note
-      const displayChord = chordName.includes('/') ? chordName.split('/')[0] : chordName;
-      const data = CHORD_DB[displayChord];
-      if (!data) return; // no chart available
+    // Render a single chord diagram SVG and return it
+    function renderChordSVG(voicing, size) {
+      const w = size || 120, h = size ? size * 1.2 : 140;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('width', w); svg.setAttribute('height', h);
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
 
-      const [frets, startFret] = data;
-      const svg = document.getElementById('chord-chart-svg');
-      svg.innerHTML = '';
+      const frets = voicing.f, startFret = voicing.s;
+      const sw = (w - 40) / 5, fh = (h - 40) / 5;
+      const ox = 20, oy = 25, numFrets = 5;
 
-      const ox = 30, oy = 30, sw = 24, fh = 28; // offsets, string width, fret height
-      const numFrets = 5;
-
-      // Nut or fret indicator
+      // Nut
       if (startFret === 0) {
         const nut = document.createElementNS('http://www.w3.org/2000/svg','line');
-        Object.entries({x1:ox,y1:oy,x2:ox+sw*5,y2:oy,stroke:'white','stroke-width':4}).forEach(([k,v])=>nut.setAttribute(k,v));
+        Object.entries({x1:ox,y1:oy,x2:ox+sw*5,y2:oy,stroke:'white','stroke-width':3}).forEach(([k,v])=>nut.setAttribute(k,v));
         svg.appendChild(nut);
+      } else {
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        Object.entries({x:ox-14,y:oy+fh*0.7,fill:'#999','font-size':'11px','text-anchor':'middle'}).forEach(([k,v])=>txt.setAttribute(k,v));
+        txt.textContent = (startFret+1)+'fr';
+        svg.appendChild(txt);
       }
 
-      // Fret lines
       for (let f = 0; f <= numFrets; f++) {
         const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-        Object.entries({x1:ox,y1:oy+f*fh,x2:ox+sw*5,y2:oy+f*fh,stroke:'#666','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
+        Object.entries({x1:ox,y1:oy+f*fh,x2:ox+sw*5,y2:oy+f*fh,stroke:'#555','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
         svg.appendChild(line);
       }
-
-      // String lines
       for (let s = 0; s < 6; s++) {
         const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-        Object.entries({x1:ox+s*sw,y1:oy,x2:ox+s*sw,y2:oy+numFrets*fh,stroke:'#666','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
+        Object.entries({x1:ox+s*sw,y1:oy,x2:ox+s*sw,y2:oy+numFrets*fh,stroke:'#555','stroke-width':1}).forEach(([k,v])=>line.setAttribute(k,v));
         svg.appendChild(line);
       }
 
-      // Finger dots, mutes, opens
       frets.forEach((fret, s) => {
         const x = ox + s * sw;
         if (fret === null) {
-          // Muted string — X above nut
           const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
-          Object.entries({x:x,y:oy-10,'text-anchor':'middle',fill:'#999','font-size':'14px'}).forEach(([k,v])=>txt.setAttribute(k,v));
-          txt.textContent = 'x';
-          svg.appendChild(txt);
+          Object.entries({x:x,y:oy-8,'text-anchor':'middle',fill:'#999','font-size':'12px'}).forEach(([k,v])=>txt.setAttribute(k,v));
+          txt.textContent = 'x'; svg.appendChild(txt);
         } else if (fret === 0) {
-          // Open string — O above nut
           const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
-          Object.entries({cx:x,cy:oy-10,r:5,fill:'none',stroke:'white','stroke-width':2}).forEach(([k,v])=>circ.setAttribute(k,v));
+          Object.entries({cx:x,cy:oy-8,r:4,fill:'none',stroke:'white','stroke-width':2}).forEach(([k,v])=>circ.setAttribute(k,v));
           svg.appendChild(circ);
         } else {
-          // Fretted note — filled circle
           const displayFret = fret - startFret;
           const cy = oy + (displayFret - 0.5) * fh;
           const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
-          Object.entries({cx:x,cy:cy,r:9,fill:'white'}).forEach(([k,v])=>circ.setAttribute(k,v));
+          Object.entries({cx:x,cy:cy,r:Math.min(sw/2.5,8),fill:'white'}).forEach(([k,v])=>circ.setAttribute(k,v));
           svg.appendChild(circ);
         }
       });
+      return svg;
+    }
 
-      document.getElementById('chord-chart-name').textContent = chordName;
-      document.getElementById('chord-chart-fret').textContent = startFret > 0 ? 'Fret ' + (startFret + 1) : '';
+    // Show ALL chord diagrams for a section (play mode)
+    function showSectionChords(chords) {
+      const unique = [...new Set(chords)].filter(c => {
+        const dc = c.includes('/') ? c.split('/')[0] : c;
+        return CHORD_DB[dc];
+      });
+      if (unique.length === 0) return;
+
+      const box = document.getElementById('chord-chart-box');
+      box.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.id = 'chord-chart-name';
+      title.textContent = 'Chord Shapes';
+      box.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:12px 0';
+
+      unique.forEach(c => {
+        const dc = c.includes('/') ? c.split('/')[0] : c;
+        const voicings = CHORD_DB[dc];
+        if (!voicings) return;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'text-align:center';
+        const label = document.createElement('div');
+        label.style.cssText = 'font-size:16px;font-weight:bold;margin-bottom:4px';
+        label.textContent = c;
+        card.appendChild(label);
+        card.appendChild(renderChordSVG(voicings[0], 100));
+        if (voicings.length > 1) {
+          const pos = document.createElement('div');
+          pos.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:2px';
+          pos.textContent = voicings[0].l;
+          card.appendChild(pos);
+        }
+        grid.appendChild(card);
+      });
+
+      box.appendChild(grid);
+
+      const closeBtn = document.createElement('button');
+      closeBtn.id = 'chord-chart-close';
+      closeBtn.textContent = 'Close';
+      closeBtn.addEventListener('click', hideChordChart);
+      box.appendChild(closeBtn);
+
+      document.getElementById('chord-chart-modal').classList.add('visible');
+    }
+
+    // Show a single chord with voicing picker (edit mode or tap single chord)
+    function showChordVoicings(chordName) {
+      const dc = chordName.includes('/') ? chordName.split('/')[0] : chordName;
+      const voicings = CHORD_DB[dc];
+      if (!voicings) return;
+
+      const box = document.getElementById('chord-chart-box');
+      box.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.id = 'chord-chart-name';
+      title.textContent = chordName;
+      box.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:12px 0';
+
+      voicings.forEach((v, i) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'text-align:center;cursor:pointer;padding:8px;border-radius:8px;border:2px solid transparent';
+        if (i === 0) card.style.borderColor = '#4a9eff';
+        card.addEventListener('click', () => {
+          // Highlight selected
+          grid.querySelectorAll('div').forEach(d => d.style.borderColor = 'transparent');
+          card.style.borderColor = '#4a9eff';
+        });
+        card.appendChild(renderChordSVG(v, 110));
+        const pos = document.createElement('div');
+        pos.style.cssText = 'font-size:12px;color:var(--text-muted);margin-top:4px';
+        pos.textContent = v.l;
+        card.appendChild(pos);
+        grid.appendChild(card);
+      });
+
+      box.appendChild(grid);
+
+      const closeBtn = document.createElement('button');
+      closeBtn.id = 'chord-chart-close';
+      closeBtn.textContent = 'Close';
+      closeBtn.addEventListener('click', hideChordChart);
+      box.appendChild(closeBtn);
+
       document.getElementById('chord-chart-modal').classList.add('visible');
     }
 
@@ -1064,48 +1191,19 @@ const SONGS = [
       document.getElementById('chord-chart-modal').classList.remove('visible');
     }
 
-    // Make chords tappable in non-edit mode
+    // Tap chords: play mode → show all section charts, edit mode → show voicings
     function attachChordTapHandlers() {
-      if (editMode) return;
       document.querySelectorAll('.section-chords').forEach(el => {
         el.addEventListener('click', (e) => {
-          if (editMode) return;
-          // Find which chord was tapped by checking text position
-          const text = el.textContent.trim();
-          const chords = text.split(/\s+/);
+          if (editMode) return; // edit mode has its own chord picker
+          const chords = el.textContent.trim().split(/\s+/);
           if (chords.length === 1) {
-            showChordChart(chords[0]);
+            showChordVoicings(chords[0]);
           } else {
-            // Show a quick picker of the chords in this section
-            showSectionChordPicker(chords);
+            showSectionChords(chords);
           }
         });
       });
-    }
-
-    function showSectionChordPicker(chords) {
-      const unique = [...new Set(chords)];
-      if (unique.length === 1) { showChordChart(unique[0]); return; }
-      // Reuse chord picker panel to show just these chords
-      const picker = document.getElementById('chord-picker');
-      const content = document.getElementById('picker-content');
-      content.innerHTML = '';
-      const head = document.createElement('h3');
-      head.textContent = 'Tap a chord to see fingering';
-      content.appendChild(head);
-      const grid = document.createElement('div');
-      grid.className = 'chord-grid';
-      unique.forEach(c => {
-        const chip = document.createElement('button');
-        chip.className = 'chord-chip';
-        const displayC = c.includes('/') ? c.split('/')[0] : c;
-        if (CHORD_DB[displayC]) chip.classList.add('diatonic'); // highlight available charts
-        chip.textContent = c;
-        chip.addEventListener('click', () => { hideChordPicker(); showChordChart(c); });
-        grid.appendChild(chip);
-      });
-      content.appendChild(grid);
-      picker.classList.add('visible');
     }
 
     // ===== SETLIST MANAGEMENT =====
