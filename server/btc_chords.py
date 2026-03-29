@@ -1,6 +1,7 @@
 """
 BTC (Bi-directional Transformer for Chords) wrapper for chord detection.
-Uses the large vocabulary model (170 classes: 12 roots x 14 qualities + N + X).
+Uses the BTC-PL (pseudo-label) model from ChordMini for improved accuracy.
+Large vocabulary: 170 classes (12 roots x 14 qualities + N + X).
 """
 import os
 import sys
@@ -37,13 +38,28 @@ def _load_model():
     _config.feature['large_voca'] = True
     _config.model['num_chords'] = 170
 
-    model_path = os.path.join(BTC_DIR, 'test', 'btc_model_large_voca.pt')
+    model_path = os.path.join(BTC_DIR, 'test', 'btc_model_best.pth')
     _model = BTC_model(config=_config.model).to(device)
 
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-    _mean = checkpoint['mean']
-    _std = checkpoint['std']
-    _model.load_state_dict(checkpoint['model'])
+
+    # BTC-PL checkpoint uses different format than original BTC
+    if 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+        # Strip DataParallel prefix if present
+        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+        _model.load_state_dict(state_dict)
+        norm = checkpoint['normalization']
+        mean_val = norm['mean'].item() if hasattr(norm['mean'], 'item') else norm['mean']
+        std_val = norm['std'].item() if hasattr(norm['std'], 'item') else norm['std']
+        _mean = np.full(144, mean_val)
+        _std = np.full(144, std_val)
+    else:
+        # Fallback: original BTC checkpoint format
+        _model.load_state_dict(checkpoint['model'])
+        _mean = checkpoint['mean']
+        _std = checkpoint['std']
+
     _model.eval()
 
     _idx_to_chord = idx2voca_chord()

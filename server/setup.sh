@@ -18,7 +18,7 @@ fi
 
 echo "Installing Python dependencies..."
 .venv/bin/pip install --upgrade pip
-.venv/bin/pip install essentia librosa scikit-learn numpy torch pyyaml mir_eval
+.venv/bin/pip install essentia librosa scikit-learn numpy torch pyyaml mir_eval soundfile
 
 # BTC chord detection model
 if [ ! -d "btc" ]; then
@@ -35,6 +35,19 @@ if [ ! -d "btc" ]; then
   echo "BTC model ready (170 chord classes)"
 else
   echo "BTC already present, skipping..."
+fi
+
+# Download improved BTC-PL (pseudo-label) weights from ChordMini
+if [ ! -f "btc/test/btc_model_best.pth" ]; then
+  echo "Downloading BTC-PL model weights from ChordMini..."
+  cd /tmp
+  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/ptnghia-j/ChordMini.git chordmini-dl 2>/dev/null
+  cp chordmini-dl/checkpoints/btc_model_best.pth "$OLDPWD/btc/test/btc_model_best.pth"
+  rm -rf chordmini-dl
+  cd "$OLDPWD"
+  echo "BTC-PL model ready (+2.5% accuracy over original BTC)"
+else
+  echo "BTC-PL weights already present, skipping..."
 fi
 
 # yt-dlp for YouTube imports

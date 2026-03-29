@@ -693,7 +693,7 @@ const SONGS = [
     // Permanently transpose all chords up or down by 1 semitone
     function permanentTranspose(semitones) {
       if (editMode) return;
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const currentKey = getCurrentKey(song);
       const sections = getEditedSections(song);
       const useFlats = shouldUseFlats(currentKey, semitones);
@@ -759,8 +759,8 @@ const SONGS = [
         btn.className = 'song-btn' + (i === currentIndex ? ' active' : '');
         btn.textContent = song.shortTitle || song.title;
         btn.addEventListener('click', () => {
-          currentIndex = i;
           exitEditMode();
+          currentIndex = i;
           renderSong();
         });
         nav.appendChild(btn);
@@ -788,7 +788,14 @@ const SONGS = [
       const savedBpm = localStorage.getItem('cheatsheet-bpm-' + song.title);
       document.getElementById('badge-bpm').textContent = (savedBpm || song.bpm) + ' BPM';
       document.getElementById('badge-time').textContent = song.timeSignature;
-      document.getElementById('badge-capo').style.display = 'none';
+      const capoBadge = document.getElementById('badge-capo');
+      if (song.capo) {
+        capoBadge.textContent = 'Capo ' + song.capo;
+        capoBadge.style.display = '';
+        capoBadge.classList.remove('capo-off');
+      } else {
+        capoBadge.style.display = 'none';
+      }
       updateKeyBadge(song);
 
       // Position badge
@@ -858,7 +865,7 @@ const SONGS = [
     // ===== CHORD PICKER =====
     function showChordPicker(chordEl) {
       pickerTarget = chordEl;
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const currentKey = getCurrentKey(song);
       const diatonic = getDiatonicChords(currentKey);
       const picker = document.getElementById('chord-picker');
@@ -990,7 +997,7 @@ const SONGS = [
       notesEl.contentEditable = false;
       notesEl.classList.remove('editable');
       // Save notes
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const notesText = notesEl.textContent.trim();
       if (notesText !== (song.notes || '')) {
         localStorage.setItem('cheatsheet-notes-' + song.title, notesText);
@@ -1002,7 +1009,7 @@ const SONGS = [
     }
 
     function saveCurrentStructure() {
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const rows = document.querySelectorAll('.section-row');
       const sections = [];
       rows.forEach(row => {
@@ -1016,7 +1023,7 @@ const SONGS = [
     }
 
     function resetEdits() {
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       localStorage.removeItem('cheatsheet-sections-' + song.title);
       localStorage.removeItem('cheatsheet-notes-' + song.title);
       localStorage.removeItem('cheatsheet-key-' + song.title);
@@ -1033,7 +1040,7 @@ const SONGS = [
 
     // ===== SECTION MANAGEMENT =====
     function moveSection(index, direction) {
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const sections = getCurrentSectionsFromDOM();
       const newIndex = index + direction;
       if (newIndex < 0 || newIndex >= sections.length) return;
@@ -1045,7 +1052,7 @@ const SONGS = [
     }
 
     function deleteSection(index) {
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const sections = getCurrentSectionsFromDOM();
       if (sections.length <= 1) return; // keep at least one
       sections.splice(index, 1);
@@ -1085,7 +1092,7 @@ const SONGS = [
     }
 
     function addSectionWithName(name) {
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const sections = getCurrentSectionsFromDOM();
       sections.push({ name: name, chords: '' });
       saveStructure(song, sections);
@@ -1108,7 +1115,9 @@ const SONGS = [
 
     function rebuildSectionRows(sections) {
       const chordArea = document.getElementById('chord-area');
+      const positionBadge = document.getElementById('position-badge');
       chordArea.innerHTML = '';
+      chordArea.appendChild(positionBadge);
       sections.forEach((section, i) => {
         chordArea.appendChild(createSectionRow(section, i, sections.length));
       });
@@ -1414,7 +1423,7 @@ const SONGS = [
       bar.innerHTML = '';
 
       // Collect all unique chords from current song
-      const song = SONGS[currentIndex];
+      const song = getSetlistSongs()[currentIndex];
       const sections = getEditedSections(song);
       const allChords = [];
       sections.forEach(s => {
@@ -1480,7 +1489,9 @@ const SONGS = [
       if (saved) return JSON.parse(saved);
       // Default: one setlist with all songs
       const defaultList = { name: 'GM Tribute', songTitles: getAllSongs().map(s => s.title) };
-      return { lists: { 'default': defaultList }, activeId: 'default' };
+      const defaultData = { lists: { 'default': defaultList }, activeId: 'default' };
+      saveSetlistData(defaultData);
+      return defaultData;
     }
 
     function saveSetlistData(data) {
@@ -2055,12 +2066,17 @@ const SONGS = [
           const div = document.createElement('div');
           div.className = 'search-result';
           div.innerHTML = `
-            ${r.thumbnail ? `<img src="${r.thumbnail}" style="width:64px;height:48px;border-radius:4px;object-fit:cover">` : ''}
             <div class="search-result-info">
               <div class="search-result-title">${escapeHtml(r.title)}</div>
-              <div class="search-result-duration">${r.duration}</div>
+              <div class="search-result-duration">${escapeHtml(r.duration)}</div>
             </div>
           `;
+          if (r.thumbnail) {
+            const img = document.createElement('img');
+            img.src = r.thumbnail;
+            img.style.cssText = 'width:64px;height:48px;border-radius:4px;object-fit:cover';
+            div.prepend(img);
+          }
           div.addEventListener('click', () => analyzeFromURL(r.url));
           container.appendChild(div);
         });
@@ -2117,7 +2133,14 @@ const SONGS = [
       customSongs.push(newSong);
       saveCustomSongs(customSongs);
 
-      currentIndex = getAllSongs().length - 1;
+      // Add to active setlist so it's visible
+      const setlistData = getSetlistData();
+      const activeSetlist = setlistData.lists[setlistData.activeId];
+      if (activeSetlist) {
+        activeSetlist.songTitles.push(newSong.title);
+        saveSetlistData(setlistData);
+      }
+      currentIndex = getSetlistSongs().length - 1;
       hideImportModal();
       renderSong();
     }
@@ -2281,15 +2304,17 @@ const SONGS = [
       // Swipe
       initSwipe();
 
-      // One-time cleanup: clear any corrupted localStorage from transpose bug
-      if (!localStorage.getItem('cheatsheet-bugfix-v3')) {
-        SONGS.forEach(s => {
+      // One-time cleanup: clear corrupted localStorage from setlist indexing bug
+      // v3: transpose bug, v4: SONGS[currentIndex] saved edits under wrong song titles
+      if (!localStorage.getItem('cheatsheet-bugfix-v4')) {
+        getAllSongs().forEach(s => {
           localStorage.removeItem('cheatsheet-sections-' + s.title);
           localStorage.removeItem('cheatsheet-edits-' + s.title);
           localStorage.removeItem('cheatsheet-notes-' + s.title);
           localStorage.removeItem('cheatsheet-key-' + s.title);
         });
-        localStorage.setItem('cheatsheet-bugfix-v3', '1');
+        localStorage.removeItem('cheatsheet-setlists');
+        localStorage.setItem('cheatsheet-bugfix-v4', '1');
       }
 
       // Import modal triggers

@@ -395,7 +395,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        hint = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        hint = float(sys.argv[2]) if len(sys.argv) > 2 else 0
         result = analyze(sys.argv[1], start_time_hint=hint)
         print(json.dumps(result))
     except Exception as e:

@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import multer from 'multer';
 import path from 'path';
 import os from 'os';
+import crypto from 'crypto';
 import { searchYouTube, extractAudio, cleanupFile } from './youtube.js';
 import { analyzeMusicAI } from './music-ai.js';
 import { analyzeLocal } from './analyze.js';
@@ -66,7 +67,9 @@ const upload = multer({
 const analysisCache = new Map();
 
 function sendSSE(res, event, data) {
-  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  if (!res.writableEnded) {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  }
 }
 
 app.post('/api/analyze/search', async (req, res) => {
@@ -113,7 +116,7 @@ app.post('/api/analyze/url', async (req, res) => {
     result.artist = artist;
     result.duration = duration;
 
-    const jobId = Date.now().toString(36);
+    const jobId = crypto.randomUUID();
     analysisCache.set(jobId, { filePath, result });
     result.jobId = jobId;
 
@@ -160,7 +163,7 @@ app.post('/api/analyze/upload', upload.single('audio'), async (req, res) => {
     result.title = req.body.title || 'Unknown';
     result.artist = req.body.artist || 'Unknown';
 
-    const jobId = Date.now().toString(36);
+    const jobId = crypto.randomUUID();
     analysisCache.set(jobId, { filePath, result });
     result.jobId = jobId;
 
@@ -234,9 +237,9 @@ app.post('/api/analyze/refine/:jobId', async (req, res) => {
       canRefine: false,
     };
 
-    refinedResult.confidence = Math.round(
-      merged.reduce((s, sec) => s + sec.confidence, 0) / merged.length
-    );
+    refinedResult.confidence = merged.length > 0
+      ? Math.round(merged.reduce((s, sec) => s + sec.confidence, 0) / merged.length)
+      : 0;
 
     sendSSE(res, 'result', refinedResult);
   } catch (err) {

@@ -44,7 +44,10 @@ export async function analyzeMusicAI(filePath, onProgress) {
 
   const jobId = job.id;
   let status = 'QUEUED';
+  const maxPolls = 150; // 5 minutes at 2s intervals
+  let polls = 0;
   while (status !== 'SUCCEEDED' && status !== 'FAILED') {
+    if (++polls > maxPolls) throw new Error('Music AI analysis timed out');
     await new Promise(r => setTimeout(r, 2000));
     const statusRes = await fetch(`${BASE_URL}/job/${jobId}`, { headers });
     if (!statusRes.ok) throw new Error('Failed to check job status');
@@ -58,6 +61,7 @@ export async function analyzeMusicAI(filePath, onProgress) {
       return formatMusicAIResult(statusData);
     }
   }
+  throw new Error('Music AI analysis ended with unexpected status: ' + status);
 }
 
 function formatMusicAIResult(jobData) {

@@ -1,5 +1,5 @@
 const CACHE_NAME = 'gm-setlist-v1';
-const URLS_TO_CACHE = ['/', '/index.html'];
+const URLS_TO_CACHE = ['./', './index.html'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
