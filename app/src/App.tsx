@@ -6,6 +6,7 @@ import { BottomBar } from './components/layout/BottomBar'
 import { SongSheet } from './components/song/SongSheet'
 import { DiagramsBar } from './components/diagrams/DiagramsBar'
 import { useSwipe } from './hooks/use-swipe'
+import { useWakeLock } from './hooks/use-wake-lock'
 
 export function App() {
   const hydrate = useStore(s => s.hydrate)
@@ -16,6 +17,8 @@ export function App() {
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const sheetRef = useRef<HTMLDivElement>(null)
+
+  useWakeLock(viewMode === 'stage')
 
   useEffect(() => {
     async function init() {
