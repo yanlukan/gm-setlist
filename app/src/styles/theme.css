@@ -1,0 +1,40 @@
+:root {
+  --bg: #1a1a1a;
+  --text: #ffffff;
+  --text-muted: #888888;
+  --badge-bg: #333333;
+  --edit-border: #f59e0b;
+  --picker-bg: #2a2a2a;
+  --accent: #4a9eff;
+  --success: #4ade80;
+  --danger: #ef4444;
+  --section-verse: #4a9eff;
+  --section-chorus: #4ade80;
+  --section-bridge: #fb923c;
+  --section-prechorus: #c084fc;
+  --section-intro: #888888;
+  --section-default: #888888;
+}
+
+body.light {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #666666;
+  --badge-bg: #e5e7eb;
+  --edit-border: #d97706;
+  --picker-bg: #f3f4f6;
+}
+
+body.stage {
+  --bg: #000000;
+  --text: #ffffff;
+  --text-muted: #999999;
+  --badge-bg: #222222;
+  --picker-bg: #111111;
+  --section-verse: #ffffff;
+  --section-chorus: #ffffff;
+  --section-bridge: #ffffff;
+  --section-prechorus: #ffffff;
+  --section-intro: #cccccc;
+  --section-default: #cccccc;
+}
