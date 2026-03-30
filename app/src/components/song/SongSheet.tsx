@@ -107,7 +107,8 @@ export function SongSheet() {
   const chordAreaStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: editMode ? 'flex-start' : 'center',
+    alignItems: 'stretch',
+    justifyContent: editMode ? 'flex-start' : 'center',
     gap: 4,
     flex: 1,
     overflow: 'hidden',
