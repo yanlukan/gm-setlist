@@ -5,15 +5,30 @@ import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
 
 export function DiagramsBar() {
-  const currentSong = useStore(s => s.currentSong)
-  const getEditedSections = useStore(s => s.getEditedSections)
+  // Primitive selectors — no method calls
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const setlistData = useStore(s => s.setlistData)
+  const edits = useStore(s => s.edits)
+  const currentIndex = useStore(s => s.currentIndex)
+
   const [pickerChord, setPickerChord] = useState<string | null>(null)
 
-  const song = currentSong()
+  const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
+
+  const song = useMemo(() => {
+    const active = setlistData.lists[setlistData.activeId]
+    if (!active) return undefined
+    const setlistArr = active.songTitles
+      .map(title => allSongs.find(s => s.title === title))
+      .filter(Boolean)
+    return setlistArr[currentIndex]
+  }, [allSongs, setlistData, currentIndex])
 
   const uniqueChords = useMemo(() => {
     if (!song) return []
-    const sections = getEditedSections(song.title)
+    const songEdits = edits[song.title]
+    const sections = songEdits?.sections ?? song.sections ?? []
     const seen = new Set<string>()
     const result: string[] = []
     for (const section of sections) {
@@ -26,7 +41,7 @@ export function DiagramsBar() {
       }
     }
     return result
-  }, [song, getEditedSections])
+  }, [song, edits])
 
   if (!song || uniqueChords.length === 0) return null
 
@@ -37,8 +52,10 @@ export function DiagramsBar() {
           display: 'flex',
           overflowX: 'auto',
           gap: 8,
-          padding: '8px 0',
+          padding: '8px',
           WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          borderTop: '1px solid var(--border)',
         }}
       >
         {uniqueChords.map(name => {
@@ -58,11 +75,11 @@ export function DiagramsBar() {
                 background: 'rgba(255,255,255,0.05)',
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>
                 {name}
               </span>
               <ChordDiagram voicing={voicing} size={80} />
-              <span style={{ fontSize: 10, color: '#888', marginTop: 2 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                 {voicing.l}
               </span>
             </div>

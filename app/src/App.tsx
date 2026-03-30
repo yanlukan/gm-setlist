@@ -47,7 +47,7 @@ export function App() {
   return (
     <>
       <TopBar />
-      <div ref={sheetRef} style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+      <div ref={sheetRef} style={{ flex: 1, overflow: 'auto', display: 'flex', minHeight: 0 }}>
         <SongSheet />
       </div>
       {diagramsVisible && <DiagramsBar />}

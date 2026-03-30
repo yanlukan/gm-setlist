@@ -1,18 +1,17 @@
-import { useState, type CSSProperties } from 'react'
+import { useState, useMemo, type CSSProperties } from 'react'
 import { useStore } from '../../store/use-store'
 import { useAutoScale } from '../../hooks/use-auto-scale'
 import { SectionRow } from './SectionRow'
-import { Badge } from '../shared/Badge'
 import { ChordPicker } from '../edit/ChordPicker'
 import { SectionPicker } from '../edit/SectionPicker'
 
 export function SongSheet() {
-  const currentSong = useStore(s => s.currentSong)
-  const getEditedSections = useStore(s => s.getEditedSections)
-  const getEditedNotes = useStore(s => s.getEditedNotes)
-  const getCurrentKey = useStore(s => s.getCurrentKey)
+  // Select primitives / stable references from store
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const setlistData = useStore(s => s.setlistData)
+  const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
-  const setlistSongs = useStore(s => s.setlistSongs)
   const editMode = useStore(s => s.editMode)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
@@ -20,18 +19,42 @@ export function SongSheet() {
   const [pickerTarget, setPickerTarget] = useState<HTMLDivElement | null>(null)
   const [showSectionPicker, setShowSectionPicker] = useState(false)
 
-  const song = currentSong()
-  if (!song) return null
+  // Derive computed values in the component
+  const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
 
-  const sections = getEditedSections(song.title)
-  const notes = getEditedNotes(song.title)
-  const currentKey = getCurrentKey(song.title)
-  const total = setlistSongs().length
-  const isTransposed = currentKey !== song.key
+  const setlistSongs = useMemo(() => {
+    const active = setlistData.lists[setlistData.activeId]
+    if (!active) return []
+    return active.songTitles
+      .map(title => allSongs.find(s => s.title === title))
+      .filter(Boolean) as typeof songs
+  }, [allSongs, setlistData])
+
+  const song = setlistSongs[currentIndex]
+
+  const sections = useMemo(() => {
+    if (!song) return []
+    if (edits[song.title]?.sections) return edits[song.title].sections!
+    return song.sections ?? []
+  }, [song, edits])
+
+  const notes = useMemo(() => {
+    if (!song) return ''
+    if (edits[song.title]?.notes !== undefined) return edits[song.title].notes!
+    return song.notes ?? ''
+  }, [song, edits])
+
+  const currentKey = useMemo(() => {
+    if (!song) return ''
+    if (edits[song.title]?.key !== undefined) return edits[song.title].key!
+    return song.key ?? ''
+  }, [song, edits])
 
   const [chordRef, fontSize] = useAutoScale(
     [sections, currentKey],
   )
+
+  if (!song) return null
 
   const handleSectionChange = (index: number, field: 'name' | 'chords', value: string) => {
     const updated = sections.map((s, i) =>
@@ -67,7 +90,6 @@ export function SongSheet() {
     const current = pickerTarget.textContent ?? ''
     const separator = current.length > 0 ? '  ' : ''
     pickerTarget.textContent = current + separator + chord
-    // Trigger blur-like save by dispatching a synthetic event
     pickerTarget.dispatchEvent(new Event('blur', { bubbles: true }))
   }
 
@@ -79,14 +101,6 @@ export function SongSheet() {
     fontSize: 28,
     fontWeight: 'bold',
     margin: 0,
-  }
-
-  const metaRowStyle: CSSProperties = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
   }
 
   const chordAreaStyle: CSSProperties = {
@@ -115,11 +129,6 @@ export function SongSheet() {
     }),
   }
 
-  const positionBadgeStyle: CSSProperties = {
-    marginLeft: 'auto',
-    color: 'var(--text-muted)',
-  }
-
   const addSectionBtnStyle: CSSProperties = {
     marginTop: 8,
     padding: '8px 16px',
@@ -133,21 +142,8 @@ export function SongSheet() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 12px' }}>
       <h1 style={titleStyle}>{song.title}</h1>
-
-      <div style={metaRowStyle}>
-        <Badge>
-          Key: {currentKey}
-          {isTransposed ? ` (orig ${song.key})` : ''}
-        </Badge>
-        <Badge>{song.bpm} BPM</Badge>
-        <Badge>{song.timeSignature}</Badge>
-        {song.capo != null && <Badge>Capo {song.capo}</Badge>}
-        <Badge style={positionBadgeStyle}>
-          {currentIndex + 1} / {total}
-        </Badge>
-      </div>
 
       <div ref={chordRef} style={chordAreaStyle}>
         {sections.map((section, i) => (

@@ -1,12 +1,23 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 
 export function BottomBar() {
-  const songs = useStore(s => s.setlistSongs)()
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const setlistData = useStore(s => s.setlistData)
   const currentIndex = useStore(s => s.currentIndex)
   const goToSong = useStore(s => s.goToSong)
   const activeRef = useRef<HTMLButtonElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const setlistSongs = useMemo(() => {
+    const active = setlistData.lists[setlistData.activeId]
+    if (!active) return []
+    const all = [...songs, ...customSongs]
+    return active.songTitles
+      .map(title => all.find(s => s.title === title))
+      .filter(Boolean) as typeof songs
+  }, [songs, customSongs, setlistData])
 
   useEffect(() => {
     if (!activeRef.current || !scrollRef.current) return
@@ -25,6 +36,7 @@ export function BottomBar() {
         display: 'flex',
         gap: 4,
         padding: '6px 8px',
+        paddingBottom: 'max(6px, env(safe-area-inset-bottom))',
         overflowX: 'auto',
         background: 'var(--bg)',
         borderTop: '1px solid var(--border)',
@@ -32,7 +44,7 @@ export function BottomBar() {
         scrollbarWidth: 'none',
       }}
     >
-      {songs.map((song, i) => {
+      {setlistSongs.map((song, i) => {
         const isActive = i === currentIndex
         return (
           <button
