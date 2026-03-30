@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
+import { exportAllData, importAllData } from '../../store/persistence'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
 import { Badge } from '../shared/Badge'
@@ -27,6 +28,37 @@ export function TopBar() {
 
   const [showSetlist, setShowSetlist] = useState(false)
   const [showTapTempo, setShowTapTempo] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const hydrate = useStore(s => s.hydrate)
+
+  const handleExport = async () => {
+    const json = await exportAllData()
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `playbook-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    setShowMenu(false)
+  }
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const json = await file.text()
+      await importAllData(json)
+      await hydrate()
+      setShowMenu(false)
+      alert('Data imported successfully. Page will reload.')
+      location.reload()
+    } catch (err) {
+      alert('Import failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    }
+    e.target.value = ''
+  }
 
   // Derive computed values in component
   const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
@@ -188,6 +220,41 @@ export function TopBar() {
             <button style={btnStyle} onClick={toggleTheme}>
               {theme === 'dark' ? '\u2600' : '\u263D'}
             </button>
+            <div style={{ position: 'relative' }}>
+              <button style={btnStyle} onClick={() => setShowMenu(!showMenu)}>
+                &#8942;
+              </button>
+              {showMenu && (
+                <div style={{
+                  position: 'absolute', right: 0, top: '100%', marginTop: 4,
+                  background: 'var(--picker-bg, #2a2a2a)', borderRadius: 8,
+                  border: '1px solid var(--badge-bg)', zIndex: 300,
+                  minWidth: 160, overflow: 'hidden',
+                }}>
+                  <button onClick={handleExport} style={{
+                    display: 'block', width: '100%', padding: '10px 14px',
+                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                    background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
+                  }}>
+                    Export Backup
+                  </button>
+                  <button onClick={() => fileInputRef.current?.click()} style={{
+                    display: 'block', width: '100%', padding: '10px 14px',
+                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                    background: 'transparent',
+                  }}>
+                    Import Backup
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImport}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -216,6 +283,12 @@ export function TopBar() {
         )}
       </div>
 
+      {showMenu && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 299 }}
+          onClick={() => setShowMenu(false)}
+        />
+      )}
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
     </>

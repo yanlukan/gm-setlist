@@ -83,3 +83,62 @@ export async function getSelectedVoicings(): Promise<Record<string, number> | un
   const d = await db()
   return d.get('settings', 'selectedVoicings')
 }
+
+// ---- Export / Import all data ----
+
+export async function exportAllData(): Promise<string> {
+  const d = await db()
+  const allEdits = await d.getAll('songEdits')
+  const setlists = await d.get('setlists', 'current')
+  const customSongs = await d.get('customSongs', 'all')
+  const theme = await d.get('settings', 'theme')
+  const voicings = await d.get('settings', 'selectedVoicings')
+
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    songEdits: allEdits ?? [],
+    setlists: setlists ?? null,
+    customSongs: customSongs ?? [],
+    theme: theme ?? null,
+    selectedVoicings: voicings ?? null,
+  }
+  return JSON.stringify(backup, null, 2)
+}
+
+export async function importAllData(json: string): Promise<void> {
+  const backup = JSON.parse(json)
+  if (!backup.version) throw new Error('Invalid backup file')
+
+  const d = await db()
+
+  // Song edits
+  if (Array.isArray(backup.songEdits)) {
+    const tx = d.transaction('songEdits', 'readwrite')
+    await tx.objectStore('songEdits').clear()
+    for (const edit of backup.songEdits) {
+      await tx.objectStore('songEdits').put(edit)
+    }
+    await tx.done
+  }
+
+  // Setlists
+  if (backup.setlists) {
+    await d.put('setlists', backup.setlists, 'current')
+  }
+
+  // Custom songs
+  if (Array.isArray(backup.customSongs)) {
+    await d.put('customSongs', backup.customSongs, 'all')
+  }
+
+  // Theme
+  if (backup.theme) {
+    await d.put('settings', backup.theme, 'theme')
+  }
+
+  // Voicings
+  if (backup.selectedVoicings) {
+    await d.put('settings', backup.selectedVoicings, 'selectedVoicings')
+  }
+}
