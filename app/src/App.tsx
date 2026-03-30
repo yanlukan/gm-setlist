@@ -26,6 +26,10 @@ export function App() {
       await hydrate()
     }
     init()
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {})
+    }
   }, [hydrate])
 
   useEffect(() => {
