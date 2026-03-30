@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 
 declare const __BUILD_TIME__: string
-const APP_VERSION = '2.1.1'
+const APP_VERSION = '2.2.0'
 import { useStore } from './store/use-store'
 import { migrateFromLocalStorage } from './store/migrate'
 import { TopBar } from './components/layout/TopBar'

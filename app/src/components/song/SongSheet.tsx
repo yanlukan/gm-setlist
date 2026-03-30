@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { SectionRow } from './SectionRow'
 import { ChordPicker } from '../edit/ChordPicker'
@@ -16,8 +16,6 @@ export function SongSheet() {
 
   const [pickerTarget, setPickerTarget] = useState<HTMLDivElement | null>(null)
   const [showSectionPicker, setShowSectionPicker] = useState(false)
-  const [fontSize, setFontSize] = useState(32)
-  const chordRef = useRef<HTMLDivElement>(null)
 
   const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
 
@@ -50,30 +48,8 @@ export function SongSheet() {
     return song.key ?? ''
   }, [song, edits])
 
-  // Auto-scale font to fit container
-  useEffect(() => {
-    const el = chordRef.current
-    if (!el) return
-
-    // In edit mode, don't shrink — just use a readable size
-    if (editMode) {
-      setFontSize(22)
-      return
-    }
-
-    // Reset to max size then shrink until fits
-    let size = 32
-    el.style.fontSize = size + 'px'
-
-    // Use rAF to measure after browser layout
-    requestAnimationFrame(() => {
-      while (el.scrollHeight > el.clientHeight && size > 16) {
-        size -= 2
-        el.style.fontSize = size + 'px'
-      }
-      setFontSize(size)
-    })
-  }, [sections, editMode, song?.title])
+  // Simple font size: smaller for songs with many sections
+  const fontSize = sections.length > 10 ? 18 : sections.length > 6 ? 22 : 26
 
   if (!song) {
     return (
@@ -132,26 +108,21 @@ export function SongSheet() {
       maxWidth: 700,
       margin: '0 auto',
       padding: '0 12px',
-      overflow: editMode ? 'auto' : 'hidden',
+      overflow: 'auto',
       height: '100%',
+      WebkitOverflowScrolling: 'touch',
     }}>
       {/* Title */}
       <h1 style={{ fontSize: 24, fontWeight: 'bold', margin: '8px 0 4px', flexShrink: 0 }}>
         {song.title}
       </h1>
 
-      {/* Sections */}
-      <div
-        ref={chordRef}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          flex: 1,
-          minHeight: 0,
-          overflow: editMode ? 'visible' : 'hidden',
-        }}
-      >
+      {/* Sections — always visible, scrollable */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}>
         {sections.map((section, i) => (
           <SectionRow
             key={`${song.title}-${i}`}
