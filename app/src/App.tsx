@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 declare const __BUILD_TIME__: string
-const APP_VERSION = '2.0.1'
+const APP_VERSION = '2.0.2'
 import { useStore } from './store/use-store'
 import { migrateFromLocalStorage } from './store/migrate'
 import { TopBar } from './components/layout/TopBar'
@@ -64,7 +64,7 @@ export function App() {
   return (
     <>
       <TopBar />
-      <div ref={sheetRef} style={{ flex: 1, overflow: 'auto', display: 'flex', minHeight: 0 }}>
+      <div ref={sheetRef} style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
         <SongSheet />
       </div>
       {diagramsVisible && <DiagramsBar />}

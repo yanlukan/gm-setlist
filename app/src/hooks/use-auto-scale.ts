@@ -1,23 +1,36 @@
-import { useRef, useLayoutEffect, useState } from 'react'
+import { useRef, useCallback, useState } from 'react'
 
-export function useAutoScale(deps: unknown[], maxFont = 32, minFont = 18): [React.RefObject<HTMLDivElement | null>, number] {
-  const ref = useRef<HTMLDivElement>(null)
+export function useAutoScale(maxFont = 32, minFont = 18): [React.RefCallback<HTMLDivElement>, number] {
   const [fontSize, setFontSize] = useState(maxFont)
+  const observerRef = useRef<ResizeObserver | null>(null)
 
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    // Reset to max and measure by mutating DOM directly — no React re-renders
-    let size = maxFont
-    el.style.fontSize = size + 'px'
-    while (el.scrollHeight > el.clientHeight && size > minFont) {
-      size -= 2
-      el.style.fontSize = size + 'px'
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    // Cleanup previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+      observerRef.current = null
     }
-    // Single state update at the end
-    if (size !== fontSize) setFontSize(size)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deps, maxFont, minFont])
+
+    if (!node) return
+
+    const measure = () => {
+      let size = maxFont
+      node.style.fontSize = size + 'px'
+      // Only shrink if content overflows
+      while (node.scrollHeight > node.clientHeight && size > minFont) {
+        size -= 2
+        node.style.fontSize = size + 'px'
+      }
+      setFontSize(size)
+    }
+
+    // Measure now
+    measure()
+
+    // Re-measure when container resizes
+    observerRef.current = new ResizeObserver(measure)
+    observerRef.current.observe(node)
+  }, [maxFont, minFont])
 
   return [ref, fontSize]
 }
