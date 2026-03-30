@@ -31,8 +31,16 @@ export function App() {
 
   useEffect(() => {
     async function init() {
-      await migrateFromLocalStorage()
-      await hydrate()
+      try {
+        await migrateFromLocalStorage()
+      } catch (e) {
+        console.warn('Migration failed:', e)
+      }
+      try {
+        await hydrate()
+      } catch (e) {
+        console.warn('Hydration failed:', e)
+      }
     }
     init()
     // Register service worker

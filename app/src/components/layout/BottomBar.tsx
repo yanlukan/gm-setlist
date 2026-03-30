@@ -11,12 +11,13 @@ export function BottomBar() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const setlistSongs = useMemo(() => {
-    const active = setlistData.lists[setlistData.activeId]
-    if (!active) return []
     const all = [...songs, ...customSongs]
-    return active.songTitles
+    const active = setlistData.lists[setlistData.activeId]
+    if (!active) return all
+    const mapped = active.songTitles
       .map(title => all.find(s => s.title === title))
       .filter(Boolean) as typeof songs
+    return mapped.length > 0 ? mapped : all
   }, [songs, customSongs, setlistData])
 
   useEffect(() => {

@@ -33,10 +33,11 @@ export function TopBar() {
 
   const setlistSongs = useMemo(() => {
     const active = setlistData.lists[setlistData.activeId]
-    if (!active) return []
-    return active.songTitles
+    if (!active) return allSongs
+    const mapped = active.songTitles
       .map(title => allSongs.find(s => s.title === title))
       .filter(Boolean) as typeof songs
+    return mapped.length > 0 ? mapped : allSongs
   }, [allSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
