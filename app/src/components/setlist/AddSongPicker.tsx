@@ -100,7 +100,7 @@ function ChordSearch({ setlistId, onDone }: { setlistId: string; onDone: () => v
         Search Chord Charts
       </h3>
       <p style={{ fontSize: 13, color: 'var(--text-muted, #888)', margin: '0 0 12px' }}>
-        Search 275,000 songs from the Chordonomicon database
+        Search 31,000+ songs with chords (requires server running)
       </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>

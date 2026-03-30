@@ -249,126 +249,50 @@ app.post('/api/analyze/refine/:jobId', async (req, res) => {
   }
 });
 
-// ---- Chordonomicon: search songs by name, get chord charts ----
+// ---- Song chord search — local DB, no external API needed ----
 
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const chordIndexPath = path.join(__dirname, 'data', 'chordonomicon-index.json');
-let chordIndex = null;
+const songsDbPath = path.join(__dirname, 'data', 'songs-db.json');
+let songsDb = null;
 
-if (existsSync(chordIndexPath)) {
+if (existsSync(songsDbPath)) {
   try {
-    chordIndex = JSON.parse(readFileSync(chordIndexPath, 'utf-8'));
-    console.log(`Chordonomicon: ${Object.keys(chordIndex).length} songs loaded`);
+    songsDb = JSON.parse(readFileSync(songsDbPath, 'utf-8'));
+    console.log(`Song DB: ${songsDb.length} songs loaded`);
   } catch (e) {
-    console.warn('Failed to load Chordonomicon index:', e.message);
+    console.warn('Failed to load song DB:', e.message);
   }
 }
 
-// Spotify Client Credentials — auto-refreshing token
-let spotifyToken = null;
-let spotifyTokenExpiry = 0;
-
-async function getSpotifyToken() {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return null;
-
-  if (spotifyToken && Date.now() < spotifyTokenExpiry) return spotifyToken;
-
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64'),
-    },
-    body: 'grant_type=client_credentials',
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  spotifyToken = data.access_token;
-  spotifyTokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-  return spotifyToken;
-}
-
-app.post('/api/chords/search', async (req, res) => {
+app.post('/api/chords/search', (req, res) => {
   const { query } = req.body;
   if (!query || typeof query !== 'string') {
     return res.status(400).json({ error: 'Missing search query' });
   }
-  if (!chordIndex) {
-    return res.status(503).json({ error: 'Chord database not available. Run: python chordonomicon.py build' });
+  if (!songsDb) {
+    return res.status(503).json({ error: 'Song database not available' });
   }
 
-  try {
-    const token = await getSpotifyToken();
-    if (!token) {
-      return res.status(503).json({
-        error: 'Spotify credentials not configured. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env',
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const results = [];
+
+  for (const song of songsDb) {
+    const haystack = (song.t + ' ' + song.a).toLowerCase();
+    if (terms.every(term => haystack.includes(term))) {
+      results.push({
+        title: song.t,
+        artist: song.a,
+        sections: song.s,
+        genre: song.g || '',
       });
+      if (results.length >= 20) break;
     }
-
-    // Search Spotify for tracks matching the query
-    const searchRes = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=20`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-
-    if (!searchRes.ok) {
-      return res.status(502).json({ error: 'Spotify search failed' });
-    }
-
-    const data = await searchRes.json();
-    const results = [];
-
-    for (const track of data.tracks?.items ?? []) {
-      const entry = chordIndex[track.id];
-      if (entry) {
-        results.push({
-          title: track.name,
-          artist: track.artists.map(a => a.name).join(', '),
-          spotifyId: track.id,
-          thumbnail: track.album?.images?.[1]?.url || track.album?.images?.[0]?.url,
-          sections: entry.sections,
-          genre: entry.genre,
-          decade: entry.decade,
-        });
-      }
-    }
-
-    res.json({ results, source: 'chordonomicon' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Direct lookup by Spotify track ID
-app.get('/api/chords/lookup/:spotifyId', async (req, res) => {
-  if (!chordIndex) {
-    return res.status(503).json({ error: 'Chord database not available' });
   }
 
-  const entry = chordIndex[req.params.spotifyId];
-  if (!entry) {
-    return res.status(404).json({ error: 'Song not found in chord database' });
-  }
-
-  // Get title from oEmbed
-  let title = '', thumbnail = '';
-  try {
-    const oembed = await spotifyOembed(req.params.spotifyId);
-    title = oembed?.title ?? '';
-    thumbnail = oembed?.thumbnail_url ?? '';
-  } catch { /* ignore */ }
-
-  res.json({
-    title,
-    spotifyId: req.params.spotifyId,
-    thumbnail,
-    ...entry,
-  });
+  res.json({ results, source: 'local-db', total: songsDb.length });
 });
 
 app.get('/api/health', (req, res) => {
