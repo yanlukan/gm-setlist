@@ -1,4 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+declare const __BUILD_TIME__: string
+const APP_VERSION = '2.0.1'
 import { useStore } from './store/use-store'
 import { migrateFromLocalStorage } from './store/migrate'
 import { TopBar } from './components/layout/TopBar'
@@ -18,7 +21,13 @@ export function App() {
   const prevSong = useStore(s => s.prevSong)
   const sheetRef = useRef<HTMLDivElement>(null)
 
+  const [showVersion, setShowVersion] = useState(false)
+
   useWakeLock(viewMode === 'stage')
+
+  useEffect(() => {
+    console.log(`PlayBook v${APP_VERSION} built ${__BUILD_TIME__}`)
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -51,6 +60,40 @@ export function App() {
         <SongSheet />
       </div>
       {diagramsVisible && <DiagramsBar />}
+      {showVersion && (
+        <div
+          onClick={() => setShowVersion(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.85)',
+            zIndex: 999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 24, fontWeight: 'bold' }}>PlayBook</div>
+          <div style={{ fontSize: 16, color: '#888' }}>v{APP_VERSION}</div>
+          <div style={{ fontSize: 13, color: '#666' }}>Built: {__BUILD_TIME__}</div>
+          <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>Tap to close</div>
+        </div>
+      )}
+      <div
+        onClick={() => setShowVersion(true)}
+        style={{
+          position: 'fixed',
+          bottom: 2,
+          right: 8,
+          fontSize: 10,
+          color: '#555',
+          zIndex: 50,
+        }}
+      >
+        v{APP_VERSION}
+      </div>
       <BottomBar />
     </>
   )

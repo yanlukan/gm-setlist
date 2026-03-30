@@ -1,24 +1,11 @@
-const CACHE_NAME = 'gm-setlist-v1';
-const URLS_TO_CACHE = ['./', './index.html'];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
-  );
-  self.skipWaiting();
-});
-
+// Self-destruct: unregister this old service worker and clear its caches
+// so the browser loads the new React app instead of the cached old HTML app
+self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
-  );
-});
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.matchAll())
+      .then(clients => clients.forEach(c => c.navigate(c.url)))
+  )
+})
