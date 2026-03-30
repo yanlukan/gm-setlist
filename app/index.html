@@ -10,6 +10,20 @@
 </head>
 <body>
   <div id="root"></div>
+  <script>
+    // Force SW update + nuke old caches on every page load
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.update() })
+      })
+      // Clear any stale caches from old app versions
+      if (caches) caches.keys().then(function(keys) {
+        keys.forEach(function(k) {
+          if (k === 'gm-setlist-v1' || k === 'playbook-v1') caches.delete(k)
+        })
+      })
+    }
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

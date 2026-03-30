@@ -59,9 +59,7 @@ function AppInner() {
       setReady(true)
     }
     init()
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {})
-    }
+    // SW registered via index.html inline script for earliest possible cache-busting
   }, [hydrate])
 
   useEffect(() => {
