@@ -11,6 +11,8 @@ import {
   getCustomSongs,
   saveTheme,
   getTheme,
+  saveSelectedVoicings,
+  getSelectedVoicings,
 } from './persistence'
 
 const defaultSetlistData: SetlistData = {
@@ -35,6 +37,7 @@ interface StoreState {
   theme: Theme
   viewMode: ViewMode
   diagramsVisible: boolean
+  selectedVoicings: Record<string, number>
 
   // Computed
   allSongs: () => Song[]
@@ -67,6 +70,7 @@ interface StoreState {
   removeSongFromSetlist: (id: string, songTitle: string) => void
 
   // Other actions
+  selectVoicing: (chord: string, index: number) => void
   addCustomSong: (song: Song) => void
   toggleTheme: () => void
   toggleViewMode: () => void
@@ -85,6 +89,7 @@ export const useStore = create<StoreState>((set, get) => ({
   theme: 'dark' as Theme,
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
+  selectedVoicings: {},
 
   // Computed
   allSongs: () => {
@@ -309,6 +314,15 @@ export const useStore = create<StoreState>((set, get) => ({
     saveSetlistData(data)
   },
 
+  // Voicing selection
+  selectVoicing: (chord: string, index: number) => {
+    set(state => ({
+      selectedVoicings: { ...state.selectedVoicings, [chord]: index },
+    }))
+    const { selectedVoicings } = get()
+    saveSelectedVoicings(selectedVoicings)
+  },
+
   // Other actions
   addCustomSong: (song: Song) => {
     set(state => ({ customSongs: [...state.customSongs, song] }))
@@ -335,11 +349,12 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   hydrate: async () => {
-    const [, setlistDataResult, customSongsResult, themeResult] = await Promise.all([
+    const [, setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult] = await Promise.all([
       Promise.resolve(null), // placeholder — edits are loaded per-song below
       getSetlistData(),
       getCustomSongs(),
       getTheme(),
+      getSelectedVoicings(),
     ])
 
     // Load all song edits
@@ -362,6 +377,7 @@ export const useStore = create<StoreState>((set, get) => ({
       ...(setlistDataResult && { setlistData: setlistDataResult }),
       ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
       ...(themeResult && { theme: themeResult }),
+      ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
       edits,
     })
   },

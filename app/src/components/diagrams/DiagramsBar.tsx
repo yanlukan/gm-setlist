@@ -11,6 +11,8 @@ export function DiagramsBar() {
   const setlistData = useStore(s => s.setlistData)
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
+  const selectedVoicings = useStore(s => s.selectedVoicings)
+  const selectVoicing = useStore(s => s.selectVoicing)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
 
@@ -59,7 +61,9 @@ export function DiagramsBar() {
         }}
       >
         {uniqueChords.map(name => {
-          const voicing = CHORD_DB[name][0]
+          const voicingIndex = selectedVoicings[name] ?? 0
+          const voicings = CHORD_DB[name]
+          const voicing = voicings[voicingIndex] ?? voicings[0]
           return (
             <div
               key={name}
@@ -88,7 +92,15 @@ export function DiagramsBar() {
       </div>
 
       {pickerChord && (
-        <VoicingPicker chord={pickerChord} onClose={() => setPickerChord(null)} />
+        <VoicingPicker
+          chord={pickerChord}
+          selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          onSelect={(index) => {
+            selectVoicing(pickerChord, index)
+            setPickerChord(null)
+          }}
+          onClose={() => setPickerChord(null)}
+        />
       )}
     </>
   )

@@ -73,3 +73,13 @@ export async function getTheme(): Promise<Theme | undefined> {
   const d = await db()
   return d.get('settings', 'theme')
 }
+
+export async function saveSelectedVoicings(voicings: Record<string, number>): Promise<void> {
+  const d = await db()
+  await d.put('settings', voicings, 'selectedVoicings')
+}
+
+export async function getSelectedVoicings(): Promise<Record<string, number> | undefined> {
+  const d = await db()
+  return d.get('settings', 'selectedVoicings')
+}

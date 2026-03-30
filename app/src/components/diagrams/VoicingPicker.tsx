@@ -1,16 +1,16 @@
-import { useState } from 'react'
 import { Modal } from '../shared/Modal'
 import { CHORD_DB } from '../../data/chords-db'
 import { ChordDiagram } from './ChordDiagram'
 
 interface VoicingPickerProps {
   chord: string
+  selectedIndex: number
+  onSelect: (index: number) => void
   onClose: () => void
 }
 
-export function VoicingPicker({ chord, onClose }: VoicingPickerProps) {
+export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: VoicingPickerProps) {
   const voicings = CHORD_DB[chord] ?? []
-  const [selectedIndex, setSelectedIndex] = useState(0)
 
   return (
     <Modal open onClose={onClose}>
@@ -53,7 +53,7 @@ export function VoicingPicker({ chord, onClose }: VoicingPickerProps) {
           {voicings.map((voicing, i) => (
             <div
               key={i}
-              onClick={() => setSelectedIndex(i)}
+              onClick={() => onSelect(i)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -62,13 +62,18 @@ export function VoicingPicker({ chord, onClose }: VoicingPickerProps) {
                 padding: 6,
                 borderRadius: 8,
                 border: i === selectedIndex ? '2px solid #3b82f6' : '2px solid transparent',
-                background: 'rgba(255,255,255,0.05)',
+                background: i === selectedIndex ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)',
               }}
             >
               <ChordDiagram voicing={voicing} size={110} />
               <span style={{ fontSize: 10, color: '#888', marginTop: 4 }}>
                 {voicing.l}
               </span>
+              {i === selectedIndex && (
+                <span style={{ fontSize: 9, color: '#3b82f6', marginTop: 2, fontWeight: 600 }}>
+                  Selected
+                </span>
+              )}
             </div>
           ))}
         </div>
