@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
-import { CHORD_DB } from '../../data/chords-db'
+import { lookupChord } from '../../data/chords-db'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
 
@@ -36,7 +36,7 @@ export function DiagramsBar() {
     for (const section of sections) {
       const names = section.chords.split(/[\s|,]+/).filter(Boolean)
       for (const name of names) {
-        if (!seen.has(name) && CHORD_DB[name]) {
+        if (!seen.has(name) && lookupChord(name)) {
           seen.add(name)
           result.push(name)
         }
@@ -62,7 +62,8 @@ export function DiagramsBar() {
       >
         {uniqueChords.map(name => {
           const voicingIndex = selectedVoicings[name] ?? 0
-          const voicings = CHORD_DB[name]
+          const voicings = lookupChord(name)
+          if (!voicings) return null
           const voicing = voicings[voicingIndex] ?? voicings[0]
           return (
             <div

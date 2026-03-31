@@ -110,4 +110,69 @@ function buildChordDB(): Record<string, ChordVoicing[]> {
   return db
 }
 
-export const CHORD_DB = buildChordDB()
+const RAW_DB = buildChordDB()
+
+// Enharmonic map for normalization
+const ENHARMONIC: Record<string, string> = {
+  'A#': 'Bb', 'B#': 'C', 'C#': 'Db', 'D#': 'Eb',
+  'E#': 'F', 'F#': 'Gb', 'G#': 'Ab',
+  'Cb': 'B', 'Fb': 'E',
+}
+
+/**
+ * Smart chord lookup — tries exact match first, then progressively
+ * simplifies the chord name to find the closest diagram.
+ */
+export function lookupChord(name: string): ChordVoicing[] | undefined {
+  if (!name) return undefined
+
+  // Exact match
+  if (RAW_DB[name]) return RAW_DB[name]
+
+  // Normalize: strip slash bass note (Am7/G -> Am7)
+  let normalized = name.replace(/\/[A-G][#b]?$/, '')
+  if (RAW_DB[normalized]) return RAW_DB[normalized]
+
+  // Try enharmonic: A# -> Bb
+  const rootMatch = normalized.match(/^([A-G][#b]?)(.*)$/)
+  if (rootMatch) {
+    const [, root, quality] = rootMatch
+    const altRoot = ENHARMONIC[root]
+    if (altRoot && RAW_DB[altRoot + quality]) return RAW_DB[altRoot + quality]
+
+    // Reverse enharmonic: Bb -> A#
+    for (const [from, to] of Object.entries(ENHARMONIC)) {
+      if (to === root && RAW_DB[from + quality]) return RAW_DB[from + quality]
+    }
+
+    // Strip complex extensions: add9 -> add9, add11 -> maj, add13 -> maj
+    let simpleQuality = quality
+      .replace('no3d', '')       // Chordonomicon no-third notation
+      .replace('add11', '')
+      .replace('add13', '')
+      .replace('add9', 'add9')   // keep add9
+      .replace(/^us/, 'sus')     // fix A#us2 -> A#sus2
+
+    if (simpleQuality !== quality && RAW_DB[root + simpleQuality]) {
+      return RAW_DB[root + simpleQuality]
+    }
+    if (altRoot && simpleQuality !== quality && RAW_DB[altRoot + simpleQuality]) {
+      return RAW_DB[altRoot + simpleQuality]
+    }
+
+    // Power chord (5) -> major
+    if (quality === '5' || quality.endsWith('5')) {
+      if (RAW_DB[root]) return RAW_DB[root]
+      if (altRoot && RAW_DB[altRoot]) return RAW_DB[altRoot]
+    }
+
+    // Last resort: just the root (major chord)
+    if (RAW_DB[root]) return RAW_DB[root]
+    if (altRoot && RAW_DB[altRoot]) return RAW_DB[altRoot]
+  }
+
+  return undefined
+}
+
+// Export both raw DB and lookup function
+export const CHORD_DB = RAW_DB

@@ -1,5 +1,5 @@
 import { Modal } from '../shared/Modal'
-import { CHORD_DB } from '../../data/chords-db'
+import { lookupChord } from '../../data/chords-db'
 import { ChordDiagram } from './ChordDiagram'
 
 interface VoicingPickerProps {
@@ -10,7 +10,7 @@ interface VoicingPickerProps {
 }
 
 export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: VoicingPickerProps) {
-  const voicings = CHORD_DB[chord] ?? []
+  const voicings = lookupChord(chord) ?? []
 
   return (
     <Modal open onClose={onClose}>
