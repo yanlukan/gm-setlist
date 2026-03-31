@@ -9,7 +9,8 @@ export function SongSheet() {
   const setlistData = useStore(s => s.setlistData)
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
-  const editMode = useStore(s => s.editMode)
+  const saveSections = useStore(s => s.saveSections)
+  const saveNotes = useStore(s => s.saveNotes)
 
   const [showFullView, setShowFullView] = useState(false)
 
@@ -46,35 +47,33 @@ export function SongSheet() {
     )
   }
 
-  // Simple font size based on section count
   const fontSize = sections.length > 10 ? 18 : sections.length > 6 ? 22 : 26
 
-  // Full-screen song view (same as search view)
-  if (showFullView && !editMode) {
+  // Full-screen song view with editing
+  if (showFullView) {
     return (
       <SongView
         title={song.title}
         artist={song.artist}
         sections={sections}
+        notes={notes}
         onClose={() => setShowFullView(false)}
+        editable
+        onSectionsChange={s => saveSections(song.title, s)}
+        onNotesChange={n => saveNotes(song.title, n)}
       />
     )
   }
 
+  // Compact setlist view — tap to open full view
   return (
     <div
-      onClick={() => { if (!editMode) setShowFullView(true) }}
+      onClick={() => setShowFullView(true)}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        maxWidth: 700,
-        margin: '0 auto',
-        padding: '0 12px',
-        overflow: 'auto',
-        height: '100%',
-        WebkitOverflowScrolling: 'touch',
-        cursor: editMode ? 'default' : 'pointer',
+        display: 'flex', flexDirection: 'column', width: '100%',
+        maxWidth: 700, margin: '0 auto', padding: '0 12px',
+        overflow: 'auto', height: '100%',
+        WebkitOverflowScrolling: 'touch', cursor: 'pointer',
       }}
     >
       <h1 style={{ fontSize: 24, fontWeight: 'bold', margin: '8px 0 4px', flexShrink: 0 }}>
@@ -86,17 +85,11 @@ export function SongSheet() {
           <div key={`${song.title}-${i}`} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <div style={{
               minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
-              textTransform: 'uppercase', color: sectionColor(section.name),
-              flexShrink: 0,
-            }}>
-              {section.name}
-            </div>
+              textTransform: 'uppercase', color: sectionColor(section.name), flexShrink: 0,
+            }}>{section.name}</div>
             <div style={{
-              fontSize, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 14,
-              whiteSpace: 'pre-wrap',
-            }}>
-              {section.chords}
-            </div>
+              fontSize, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 14, whiteSpace: 'pre-wrap',
+            }}>{section.chords}</div>
           </div>
         ))}
       </div>
@@ -105,9 +98,7 @@ export function SongSheet() {
         <div style={{
           fontSize: 14, fontStyle: 'italic', color: 'var(--text-muted)',
           borderTop: '1px solid var(--badge-bg)', paddingTop: 6, marginTop: 6,
-        }}>
-          {notes}
-        </div>
+        }}>{notes}</div>
       )}
     </div>
   )
