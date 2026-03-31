@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { sectionColor } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
-import { ChordDiagram } from '../diagrams/ChordDiagram'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 
 export function SongSheet() {
@@ -43,22 +42,6 @@ export function SongSheet() {
     if (edits[song.title]?.notes !== undefined) return edits[song.title].notes!
     return song.notes ?? ''
   }, [song, edits])
-
-  // Unique chords for diagram bar
-  const uniqueChords = useMemo(() => {
-    const seen = new Set<string>()
-    const result: string[] = []
-    for (const sec of sections) {
-      for (const c of sec.chords.split(/\s+/)) {
-        const t = c.trim()
-        if (t && !seen.has(t) && lookupChord(t)) {
-          seen.add(t)
-          result.push(t)
-        }
-      }
-    }
-    return result
-  }, [sections])
 
   if (!song) {
     return (
@@ -251,30 +234,6 @@ export function SongSheet() {
           borderTop: '1px solid var(--badge-bg)', paddingTop: 6, marginTop: 6,
         }}>{notes}</div>
       ) : null}
-
-      {/* Chord diagram bar (inline, not in edit mode) */}
-      {!editMode && uniqueChords.length > 0 && (
-        <div style={{
-          display: 'flex', overflowX: 'auto', gap: 8, padding: '8px 0', marginTop: 8,
-          borderTop: '1px solid var(--badge-bg)',
-          WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', flexShrink: 0,
-        }}>
-          {uniqueChords.map(name => {
-            const voicings = lookupChord(name)
-            if (!voicings) return null
-            return (
-              <div key={name} onClick={() => setPickerChord(name)} style={{
-                flexShrink: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', cursor: 'pointer', padding: 4, borderRadius: 6,
-                background: 'rgba(255,255,255,0.05)',
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{name}</span>
-                <ChordDiagram voicing={voicings[0]} size={70} />
-              </div>
-            )
-          })}
-        </div>
-      )}
 
       {/* Voicing picker */}
       {pickerChord && (
