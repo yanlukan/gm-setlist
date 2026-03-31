@@ -155,111 +155,84 @@ export function TopBar() {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        {/* Row 1: Action buttons */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          {/* Left group: Edit, Setlist, Chords */}
-          <div style={groupStyle}>
-            <button
-              style={editMode ? activeBtnStyle : btnStyle}
-              onClick={toggleEditMode}
-            >
-              {editMode ? 'Done' : 'Edit'}
-            </button>
-            <button style={btnStyle} onClick={() => setShowSetlist(true)}>
-              Setlist
-            </button>
-            <button style={btnStyle} onClick={() => setShowSearch(true)}>
-              Search
-            </button>
-            <button
-              style={diagramsVisible ? activeBtnStyle : btnStyle}
-              onClick={toggleDiagrams}
-            >
-              Chords
-            </button>
-            {editMode && song && (
-              <button
-                style={dangerBtnStyle}
-                onClick={() => resetEdits(song.title)}
-              >
-                Reset
-              </button>
-            )}
-          </div>
+        {/* Action buttons — single row, fits phone screen */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button style={editMode ? activeBtnStyle : btnStyle} onClick={toggleEditMode}>
+            {editMode ? 'Done' : 'Edit'}
+          </button>
+          {editMode && song && (
+            <button style={dangerBtnStyle} onClick={() => resetEdits(song.title)}>Reset</button>
+          )}
+          {!editMode && (
+            <>
+              <button style={btnStyle} onClick={() => setShowSetlist(true)}>Setlist</button>
+              <button style={btnStyle} onClick={() => setShowSearch(true)}>Search</button>
+            </>
+          )}
 
-          {/* Spacer */}
           <div style={{ flex: 1 }} />
 
-          {/* Right group: Transpose, Stage, Theme */}
-          <div style={groupStyle}>
-            <button
-              style={{ ...btnStyle, opacity: editMode ? 0.4 : 1 }}
-              disabled={editMode}
-              onClick={() => transpose(-1)}
-            >
-              -
-            </button>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Key</span>
-            <button
-              style={{ ...btnStyle, opacity: editMode ? 0.4 : 1 }}
-              disabled={editMode}
-              onClick={() => transpose(1)}
-            >
-              +
-            </button>
-
-            <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 2px' }} />
-
-            <button
-              style={viewMode === 'stage' ? activeBtnStyle : btnStyle}
-              onClick={toggleViewMode}
-            >
-              {viewMode === 'stage' ? 'Exit' : 'Stage'}
-            </button>
-            <button style={btnStyle} onClick={toggleTheme}>
-              {theme === 'dark' ? '\u2600' : '\u263D'}
-            </button>
-            <div style={{ position: 'relative' }}>
-              <button style={btnStyle} onClick={() => setShowMenu(!showMenu)}>
-                &#8942;
-              </button>
-              {showMenu && (
-                <div style={{
-                  position: 'absolute', right: 0, top: '100%', marginTop: 4,
-                  background: 'var(--picker-bg, #2a2a2a)', borderRadius: 8,
-                  border: '1px solid var(--badge-bg)', zIndex: 300,
-                  minWidth: 160, overflow: 'hidden',
-                }}>
-                  <button onClick={handleExport} style={{
-                    display: 'block', width: '100%', padding: '10px 14px',
-                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                    background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
-                  }}>
-                    Export Backup
-                  </button>
-                  <button onClick={() => fileInputRef.current?.click()} style={{
-                    display: 'block', width: '100%', padding: '10px 14px',
-                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                    background: 'transparent',
-                  }}>
-                    Import Backup
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json"
-                    onChange={handleImport}
-                    style={{ display: 'none' }}
-                  />
-                </div>
-              )}
+          {!editMode && (
+            <div style={groupStyle}>
+              <button style={{ ...btnStyle, fontSize: 15 }} onClick={() => transpose(-1)}>-</button>
+              <button style={{ ...btnStyle, fontSize: 15 }} onClick={() => transpose(1)}>+</button>
             </div>
+          )}
+
+          {/* Menu — contains Stage, Theme, Chords, Export/Import */}
+          <div style={{ position: 'relative' }}>
+            <button style={btnStyle} onClick={() => setShowMenu(!showMenu)}>&#8942;</button>
+            {showMenu && (
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', marginTop: 4,
+                background: 'var(--picker-bg, #2a2a2a)', borderRadius: 8,
+                border: '1px solid var(--badge-bg)', zIndex: 300,
+                minWidth: 180, overflow: 'hidden',
+              }}>
+                <button onClick={() => { toggleViewMode(); setShowMenu(false) }} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
+                }}>
+                  {viewMode === 'stage' ? 'Exit Stage Mode' : 'Stage Mode'}
+                </button>
+                <button onClick={() => { toggleDiagrams(); setShowMenu(false) }} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
+                }}>
+                  {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
+                </button>
+                <button onClick={() => { toggleTheme(); setShowMenu(false) }} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
+                }}>
+                  {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+                </button>
+                <button onClick={handleExport} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
+                }}>
+                  Export Backup
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent',
+                }}>
+                  Import Backup
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
