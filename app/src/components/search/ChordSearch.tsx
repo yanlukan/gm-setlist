@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
+import { lookupChord } from '../../data/chords-db'
+import { ChordDiagram } from '../diagrams/ChordDiagram'
+import { VoicingPicker } from '../diagrams/VoicingPicker'
 import type { Song } from '../../types'
 
 async function findServer(): Promise<string | null> {
@@ -48,6 +51,7 @@ export function ChordSearch({ onClose }: Props) {
   const [added, setAdded] = useState(false)
   const [showLyrics, setShowLyrics] = useState(false)
   const [transposeSemitones, setTransposeSemitones] = useState(0)
+  const [pickerChord, setPickerChord] = useState<string | null>(null)
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -127,6 +131,53 @@ export function ChordSearch({ onClose }: Props) {
       return line
     })
   }, [viewing, transposeSemitones])
+
+  // Unique chords from transposed sections for diagram bar
+  const uniqueChords = useMemo(() => {
+    if (!viewing) return []
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const sec of transposedSections) {
+      for (const c of sec.chords.split(/\s+/)) {
+        const trimmed = c.trim()
+        if (trimmed && !seen.has(trimmed) && lookupChord(trimmed)) {
+          seen.add(trimmed)
+          result.push(trimmed)
+        }
+      }
+    }
+    return result
+  }, [viewing, transposedSections])
+
+  // Render chord text with tappable chord names
+  const renderTappableChords = (text: string, fontSize: number, color?: string) => {
+    const tokens = text.split(/(\s+)/)
+    return (
+      <span>
+        {tokens.map((token, i) => {
+          if (!token.trim()) return <span key={i}>{token}</span>
+          const hasVoicing = lookupChord(token)
+          return (
+            <span
+              key={i}
+              onClick={hasVoicing ? (e) => { e.stopPropagation(); setPickerChord(token) } : undefined}
+              style={{
+                cursor: hasVoicing ? 'pointer' : 'default',
+                textDecoration: hasVoicing ? 'underline' : 'none',
+                textDecorationColor: 'var(--badge-bg)',
+                textUnderlineOffset: 3,
+                fontSize,
+                fontWeight: 'bold',
+                color: color || 'inherit',
+              }}
+            >
+              {token}
+            </span>
+          )
+        })}
+      </span>
+    )
+  }
 
   // Quick view mode — show chords for a song
   if (viewing) {
@@ -210,11 +261,10 @@ export function ChordSearch({ onClose }: Props) {
                 if (line.c) {
                   return (
                     <div key={i} style={{
-                      fontSize: 16, fontWeight: 'bold', color: 'var(--accent)',
                       letterSpacing: 1, wordSpacing: 8,
                       marginTop: 8,
                     }}>
-                      {line.c}
+                      {renderTappableChords(line.c, 16, 'var(--accent)')}
                     </div>
                   )
                 }
@@ -239,15 +289,54 @@ export function ChordSearch({ onClose }: Props) {
                   {section.name}
                 </div>
                 <div style={{
-                  fontSize: 20, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
+                  letterSpacing: 1, wordSpacing: 10,
                   whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                 }}>
-                  {section.chords}
+                  {renderTappableChords(section.chords, 20)}
                 </div>
               </div>
             ))
           )}
         </div>
+
+        {/* Chord diagram bar */}
+        {uniqueChords.length > 0 && (
+          <div style={{
+            display: 'flex', overflowX: 'auto', gap: 8, padding: 8,
+            borderTop: '1px solid var(--badge-bg)',
+            WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
+            flexShrink: 0,
+          }}>
+            {uniqueChords.map(name => {
+              const voicings = lookupChord(name)
+              if (!voicings) return null
+              return (
+                <div
+                  key={name}
+                  onClick={() => setPickerChord(name)}
+                  style={{
+                    flexShrink: 0, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', cursor: 'pointer', padding: 4, borderRadius: 6,
+                    background: 'rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <span style={{ fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{name}</span>
+                  <ChordDiagram voicing={voicings[0]} size={70} />
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Voicing picker */}
+        {pickerChord && (
+          <VoicingPicker
+            chord={pickerChord}
+            selectedIndex={0}
+            onSelect={() => setPickerChord(null)}
+            onClose={() => setPickerChord(null)}
+          />
+        )}
       </div>
     )
   }
