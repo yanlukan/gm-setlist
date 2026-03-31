@@ -3,8 +3,6 @@ import { useStore } from '../../store/use-store'
 import { sectionColor } from '../../music/theory'
 import type { Song } from '../../types'
 
-const SERVER_URLS = ['http://localhost:3000']
-
 async function findServer(): Promise<string | null> {
   const urls = [
     'http://localhost:3000',
