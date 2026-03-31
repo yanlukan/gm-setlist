@@ -10,8 +10,6 @@ export function SongSheet() {
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
   const editMode = useStore(s => s.editMode)
-  const saveSections = useStore(s => s.saveSections)
-  const saveNotes = useStore(s => s.saveNotes)
 
   const [showFullView, setShowFullView] = useState(false)
 
