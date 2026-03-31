@@ -3,7 +3,7 @@
  * Search mode: transpose, lyrics, tappable chords, diagram bar
  * Setlist mode: + edit mode (reorder/add/delete sections, edit chords, notes)
  */
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { ChordDiagram } from '../diagrams/ChordDiagram'
@@ -42,7 +42,6 @@ export function SongView({
   const [editMode, setEditMode] = useState(false)
   const [showAddSection, setShowAddSection] = useState(false)
   const [customSectionName, setCustomSectionName] = useState('')
-  const [editingNotes, setEditingNotes] = useState(false)
 
   const sections = initialSections
   const notes = initialNotes || ''
@@ -291,9 +290,7 @@ export function SongView({
             <div
               contentEditable
               suppressContentEditableWarning
-              onFocus={() => setEditingNotes(true)}
               onBlur={e => {
-                setEditingNotes(false)
                 onNotesChange?.(e.currentTarget.textContent ?? '')
               }}
               style={{
