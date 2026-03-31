@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
-import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
+import { sectionColor } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { ChordDiagram } from '../diagrams/ChordDiagram'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
