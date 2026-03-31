@@ -3,6 +3,7 @@ import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData } from '../../store/persistence'
 import { SetlistScreen } from '../setlist/SetlistScreen'
+import { ChordSearch } from '../search/ChordSearch'
 import { TapTempo } from '../shared/TapTempo'
 import { Badge } from '../shared/Badge'
 
@@ -27,6 +28,7 @@ export function TopBar() {
   const currentIndex = useStore(s => s.currentIndex)
 
   const [showSetlist, setShowSetlist] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
   const [showTapTempo, setShowTapTempo] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -172,6 +174,9 @@ export function TopBar() {
             <button style={btnStyle} onClick={() => setShowSetlist(true)}>
               Setlist
             </button>
+            <button style={btnStyle} onClick={() => setShowSearch(true)}>
+              Search
+            </button>
             <button
               style={diagramsVisible ? activeBtnStyle : btnStyle}
               onClick={toggleDiagrams}
@@ -290,6 +295,7 @@ export function TopBar() {
         />
       )}
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
+      {showSearch && <ChordSearch onClose={() => setShowSearch(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
     </>
   )
