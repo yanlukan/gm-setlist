@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
-import { sectionColor } from '../../music/theory'
+import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
 import type { Song } from '../../types'
 
 async function findServer(): Promise<string | null> {
@@ -47,6 +47,7 @@ export function ChordSearch({ onClose }: Props) {
   const [viewing, setViewing] = useState<SearchResult | null>(null)
   const [added, setAdded] = useState(false)
   const [showLyrics, setShowLyrics] = useState(false)
+  const [transposeSemitones, setTransposeSemitones] = useState(0)
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -100,6 +101,33 @@ export function ChordSearch({ onClose }: Props) {
     setTimeout(() => setAdded(false), 2000)
   }
 
+  // Transpose helper for a space-separated chord string
+  const transposeChordString = (chords: string, semitones: number): string => {
+    if (semitones === 0) return chords
+    const key = guessKey(viewing?.sections ?? [])
+    const useFlats = shouldUseFlats(key, semitones)
+    return chords.split(/(\s+)/).map(token =>
+      token.trim() ? transposeChord(token, semitones, useFlats) : token
+    ).join('')
+  }
+
+  // Transposed view data
+  const transposedSections = useMemo(() => {
+    if (!viewing || transposeSemitones === 0) return viewing?.sections ?? []
+    return viewing.sections.map(s => ({
+      ...s,
+      chords: transposeChordString(s.chords, transposeSemitones),
+    }))
+  }, [viewing, transposeSemitones])
+
+  const transposedLyrics = useMemo(() => {
+    if (!viewing?.lyrics || transposeSemitones === 0) return viewing?.lyrics ?? null
+    return viewing.lyrics.map(line => {
+      if (line.c) return { c: transposeChordString(line.c, transposeSemitones) }
+      return line
+    })
+  }, [viewing, transposeSemitones])
+
   // Quick view mode — show chords for a song
   if (viewing) {
     const hasLyrics = viewing.lyrics && viewing.lyrics.length > 0
@@ -116,11 +144,34 @@ export function ChordSearch({ onClose }: Props) {
           flexShrink: 0,
         }}>
           <button
-            onClick={() => { setViewing(null); setShowLyrics(false) }}
+            onClick={() => { setViewing(null); setShowLyrics(false); setTransposeSemitones(0) }}
             style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
           >
             Back
           </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
+            <button
+              onClick={() => setTransposeSemitones(s => s - 1)}
+              style={{
+                padding: '4px 10px', borderRadius: 6, fontSize: 15, fontWeight: 600,
+                background: 'var(--badge-bg)', color: 'var(--text)', border: 'none',
+              }}
+            >
+              -
+            </button>
+            <span style={{ fontSize: 12, color: transposeSemitones === 0 ? 'var(--text-muted)' : 'var(--accent)', fontWeight: 600, minWidth: 24, textAlign: 'center' }}>
+              {transposeSemitones === 0 ? 'Key' : (transposeSemitones > 0 ? '+' : '') + transposeSemitones}
+            </span>
+            <button
+              onClick={() => setTransposeSemitones(s => s + 1)}
+              style={{
+                padding: '4px 10px', borderRadius: 6, fontSize: 15, fontWeight: 600,
+                background: 'var(--badge-bg)', color: 'var(--text)', border: 'none',
+              }}
+            >
+              +
+            </button>
+          </div>
           <div style={{ flex: 1 }} />
           {hasLyrics && (
             <button
@@ -155,7 +206,7 @@ export function ChordSearch({ onClose }: Props) {
           {showLyrics && hasLyrics ? (
             // Lyrics view — chords above lyrics
             <div>
-              {viewing.lyrics!.map((line, i) => {
+              {(transposedLyrics ?? viewing.lyrics!).map((line, i) => {
                 if (line.c) {
                   return (
                     <div key={i} style={{
@@ -179,7 +230,7 @@ export function ChordSearch({ onClose }: Props) {
             </div>
           ) : (
             // Chords-only view (sections)
-            viewing.sections.map((section, i) => (
+            transposedSections.map((section, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{
                   fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
