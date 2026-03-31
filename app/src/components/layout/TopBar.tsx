@@ -71,7 +71,7 @@ export function TopBar() {
     const mapped = active.songTitles
       .map(title => allSongs.find(s => s.title === title))
       .filter(Boolean) as typeof songs
-    return mapped.length > 0 ? mapped : allSongs
+    return mapped
   }, [allSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
@@ -250,7 +250,7 @@ export function TopBar() {
               Key: {currentKey}
               {isTransposed ? ` (orig ${song.key})` : ''}
             </Badge>
-            <Badge>{song.bpm} BPM</Badge>
+            <Badge style={{ cursor: 'pointer' }} onClick={() => setShowTapTempo(true)}>{song.bpm} BPM</Badge>
             <Badge>{song.timeSignature}</Badge>
             {song.capo != null && <Badge>Capo {song.capo}</Badge>}
             <span style={{ flex: 1 }} />

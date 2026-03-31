@@ -11,6 +11,8 @@ export function SongSheet() {
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
   const editMode = useStore(s => s.editMode)
+  const selectedVoicings = useStore(s => s.selectedVoicings)
+  const selectVoicing = useStore(s => s.selectVoicing)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
 
@@ -26,7 +28,7 @@ export function SongSheet() {
     const mapped = active.songTitles
       .map(title => allSongs.find(s => s.title === title))
       .filter(Boolean) as typeof songs
-    return mapped.length > 0 ? mapped : allSongs
+    return mapped
   }, [allSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
@@ -237,8 +239,8 @@ export function SongSheet() {
 
       {/* Voicing picker */}
       {pickerChord && (
-        <VoicingPicker chord={pickerChord} selectedIndex={0}
-          onSelect={() => setPickerChord(null)} onClose={() => setPickerChord(null)} />
+        <VoicingPicker chord={pickerChord} selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          onSelect={(i) => { selectVoicing(pickerChord, i); setPickerChord(null) }} onClose={() => setPickerChord(null)} />
       )}
     </div>
   )

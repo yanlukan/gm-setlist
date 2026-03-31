@@ -17,7 +17,7 @@ export function BottomBar() {
     const mapped = active.songTitles
       .map(title => all.find(s => s.title === title))
       .filter(Boolean) as typeof songs
-    return mapped.length > 0 ? mapped : all
+    return mapped
   }, [songs, customSongs, setlistData])
 
   useEffect(() => {

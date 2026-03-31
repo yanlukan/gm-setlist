@@ -4,6 +4,7 @@
  * Setlist mode: + edit mode (reorder/add/delete sections, edit chords, notes)
  */
 import { useState, useMemo } from 'react'
+import { useStore } from '../../store/use-store'
 import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { ChordDiagram } from '../diagrams/ChordDiagram'
@@ -36,6 +37,8 @@ export function SongView({
   onClose, actionLabel, onAction, actionDone,
   editable, onSectionsChange, onNotesChange,
 }: SongViewProps) {
+  const selectedVoicings = useStore(s => s.selectedVoicings)
+  const selectVoicing = useStore(s => s.selectVoicing)
   const [showLyrics, setShowLyrics] = useState(false)
   const [transposeSemitones, setTransposeSemitones] = useState(0)
   const [pickerChord, setPickerChord] = useState<string | null>(null)
@@ -333,8 +336,8 @@ export function SongView({
       )}
 
       {pickerChord && (
-        <VoicingPicker chord={pickerChord} selectedIndex={0}
-          onSelect={() => setPickerChord(null)} onClose={() => setPickerChord(null)} />
+        <VoicingPicker chord={pickerChord} selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          onSelect={(i) => { selectVoicing(pickerChord, i); setPickerChord(null) }} onClose={() => setPickerChord(null)} />
       )}
     </div>
   )

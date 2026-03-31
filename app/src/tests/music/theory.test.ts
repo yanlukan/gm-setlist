@@ -4,7 +4,6 @@ import {
   shouldUseFlats,
   getDiatonicChords,
   getDiatonic7ths,
-  getCurrentKey,
   sectionColor,
   getAllChordNames,
 } from '../../music/theory';
@@ -120,17 +119,6 @@ describe('shouldUseFlats', () => {
     expect(shouldUseFlats('C', 5)).toBe(true);
     // C transposed up 7 = G, not a flat key
     expect(shouldUseFlats('C', 7)).toBe(false);
-  });
-});
-
-describe('getCurrentKey', () => {
-  it('returns editedKey when provided', () => {
-    expect(getCurrentKey('C', 'G')).toBe('G');
-  });
-
-  it('returns originalKey when editedKey is undefined', () => {
-    expect(getCurrentKey('C')).toBe('C');
-    expect(getCurrentKey('Am', undefined)).toBe('Am');
   });
 });
 

@@ -101,10 +101,6 @@ export function getDiatonic7ths(key: string): string[] {
   );
 }
 
-export function getCurrentKey(originalKey: string, editedKey?: string): string {
-  return editedKey ?? originalKey;
-}
-
 export function sectionColor(name: string): string {
   const lower = name.toLowerCase().replace(/[\s-_]/g, '');
   if (lower === 'verse') return 'var(--section-verse)';

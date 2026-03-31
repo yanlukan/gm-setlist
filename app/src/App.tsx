@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useMemo, Component, type ReactNode } from 'react'
 
 declare const __BUILD_TIME__: string
 const APP_VERSION = '2.2.0'
@@ -25,7 +25,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
             {this.state.error.message}
           </pre>
           <button
-            onClick={() => { localStorage.clear(); location.reload() }}
+            onClick={() => { localStorage.clear(); indexedDB.deleteDatabase('playbook'); location.reload() }}
             style={{ marginTop: 16, padding: '8px 16px', background: '#4a9eff', color: '#fff', border: 'none', borderRadius: 8 }}
           >
             Reset & Reload
@@ -69,10 +69,12 @@ function AppInner() {
     ].filter(Boolean).join(' ')
   }, [theme, viewMode])
 
-  useSwipe(sheetRef, {
+  const swipeHandlers = useMemo(() => ({
     onSwipeLeft: nextSong,
     onSwipeRight: prevSong,
-  }, !editMode)
+  }), [nextSong, prevSong])
+
+  useSwipe(sheetRef, swipeHandlers, !editMode)
 
   // Show loading briefly while IndexedDB hydrates
   if (!ready) {

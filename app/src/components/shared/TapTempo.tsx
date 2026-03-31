@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { useStore } from '../../store/use-store'
 import { Modal } from './Modal'
 
@@ -8,10 +8,32 @@ interface Props {
 }
 
 export function TapTempo({ open, onClose }: Props) {
-  const currentSong = useStore(s => s.currentSong())
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const setlistData = useStore(s => s.setlistData)
+  const edits = useStore(s => s.edits)
+  const currentIndex = useStore(s => s.currentIndex)
   const saveBpm = useStore(s => s.saveBpm)
+
+  const currentSong = useMemo(() => {
+    const all = [...songs, ...customSongs]
+    const active = setlistData.lists[setlistData.activeId]
+    if (!active) return undefined
+    const setlist = active.songTitles
+      .map(title => all.find(s => s.title === title))
+      .filter(Boolean) as typeof songs
+    return setlist[currentIndex]
+  }, [songs, customSongs, setlistData, currentIndex, edits])
+
   const [bpm, setBpm] = useState(currentSong?.bpm ?? 120)
   const tapsRef = useRef<number[]>([])
+
+  useEffect(() => {
+    if (open) {
+      setBpm(currentSong?.bpm ?? 120)
+      tapsRef.current = []
+    }
+  }, [open, currentSong])
 
   const handleTap = () => {
     const now = Date.now()

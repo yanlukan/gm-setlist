@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../store/use-store'
@@ -11,11 +12,20 @@ interface SetlistSongItemProps {
 
 export function SetlistSongItem({ songTitle, index, setlistId, onSelect }: SetlistSongItemProps) {
   const removeSongFromSetlist = useStore(s => s.removeSongFromSetlist)
-  const allSongs = useStore(s => s.allSongs)
-  const getCurrentKey = useStore(s => s.getCurrentKey)
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const edits = useStore(s => s.edits)
 
-  const song = allSongs().find(s => s.title === songTitle)
-  const key = getCurrentKey(songTitle)
+  const song = useMemo(() => {
+    const all = [...songs, ...customSongs]
+    return all.find(s => s.title === songTitle)
+  }, [songs, customSongs, songTitle])
+
+  const key = useMemo(() => {
+    if (edits[songTitle]?.key !== undefined) return edits[songTitle].key!
+    return song?.key ?? ''
+  }, [edits, songTitle, song])
+
   const bpm = song?.bpm ?? 0
   const timeSig = song?.timeSignature ?? '4/4'
 

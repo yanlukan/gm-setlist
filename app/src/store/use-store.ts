@@ -330,9 +330,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Other actions
   addCustomSong: (song: Song) => {
-    set(state => ({ customSongs: [...state.customSongs, song] }))
     const { customSongs } = get()
-    saveCustomSongs(customSongs)
+    if (customSongs.some(s => s.title === song.title)) return
+    set(state => ({ customSongs: [...state.customSongs, song] }))
+    saveCustomSongs(get().customSongs)
   },
 
   toggleTheme: () => {
