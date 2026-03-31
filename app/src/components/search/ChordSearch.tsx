@@ -18,11 +18,17 @@ async function findServer(): Promise<string | null> {
   return null
 }
 
+interface LyricsLine {
+  c?: string  // chord line
+  l?: string  // lyrics line
+}
+
 interface SearchResult {
   title: string
   artist: string
   sections: { name: string; chords: string }[]
   genre?: string
+  lyrics?: LyricsLine[] | null
 }
 
 interface Props {
@@ -40,6 +46,7 @@ export function ChordSearch({ onClose }: Props) {
   const [error, setError] = useState('')
   const [viewing, setViewing] = useState<SearchResult | null>(null)
   const [added, setAdded] = useState(false)
+  const [showLyrics, setShowLyrics] = useState(false)
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -95,6 +102,8 @@ export function ChordSearch({ onClose }: Props) {
 
   // Quick view mode — show chords for a song
   if (viewing) {
+    const hasLyrics = viewing.lyrics && viewing.lyrics.length > 0
+
     return (
       <div style={{
         position: 'fixed', inset: 0, background: 'var(--bg, #111)', zIndex: 300,
@@ -102,16 +111,30 @@ export function ChordSearch({ onClose }: Props) {
       }}>
         {/* Header */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'flex', alignItems: 'center', gap: 8,
           padding: '12px 16px', borderBottom: '1px solid var(--badge-bg)',
           flexShrink: 0,
         }}>
           <button
-            onClick={() => setViewing(null)}
+            onClick={() => { setViewing(null); setShowLyrics(false) }}
             style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
           >
             Back
           </button>
+          <div style={{ flex: 1 }} />
+          {hasLyrics && (
+            <button
+              onClick={() => setShowLyrics(!showLyrics)}
+              style={{
+                padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                background: showLyrics ? 'var(--accent)' : 'var(--badge-bg)',
+                color: showLyrics ? '#fff' : 'var(--text)',
+                border: 'none',
+              }}
+            >
+              Lyrics
+            </button>
+          )}
           <button
             onClick={() => handleAddToSetlist(viewing)}
             style={{
@@ -120,31 +143,59 @@ export function ChordSearch({ onClose }: Props) {
               color: '#fff', border: 'none',
             }}
           >
-            {added ? 'Added!' : '+ Add to Setlist'}
+            {added ? 'Added!' : '+ Setlist'}
           </button>
         </div>
 
         {/* Song content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px', WebkitOverflowScrolling: 'touch' }}>
           <h1 style={{ fontSize: 22, fontWeight: 'bold', margin: '0 0 4px' }}>{viewing.title}</h1>
           <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 16 }}>{viewing.artist}</div>
 
-          {viewing.sections.map((section, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <div style={{
-                fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-                color: sectionColor(section.name), marginBottom: 2,
-              }}>
-                {section.name}
-              </div>
-              <div style={{
-                fontSize: 20, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-              }}>
-                {section.chords}
-              </div>
+          {showLyrics && hasLyrics ? (
+            // Lyrics view — chords above lyrics
+            <div>
+              {viewing.lyrics!.map((line, i) => {
+                if (line.c) {
+                  return (
+                    <div key={i} style={{
+                      fontSize: 16, fontWeight: 'bold', color: 'var(--accent)',
+                      letterSpacing: 1, wordSpacing: 8,
+                      marginTop: 8,
+                    }}>
+                      {line.c}
+                    </div>
+                  )
+                }
+                if (line.l) {
+                  return (
+                    <div key={i} style={{ fontSize: 15, lineHeight: 1.5 }}>
+                      {line.l}
+                    </div>
+                  )
+                }
+                return null
+              })}
             </div>
-          ))}
+          ) : (
+            // Chords-only view (sections)
+            viewing.sections.map((section, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+                  color: sectionColor(section.name), marginBottom: 2,
+                }}>
+                  {section.name}
+                </div>
+                <div style={{
+                  fontSize: 20, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                }}>
+                  {section.chords}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     )
@@ -217,6 +268,7 @@ export function ChordSearch({ onClose }: Props) {
             <div style={{ fontWeight: 600 }}>{r.title}</div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
               {r.artist} — {r.sections.length} section{r.sections.length !== 1 ? 's' : ''}
+              {r.lyrics && r.lyrics.length > 0 ? ' — has lyrics' : ''}
             </div>
           </div>
         ))}

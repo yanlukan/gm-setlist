@@ -287,6 +287,7 @@ app.post('/api/chords/search', (req, res) => {
         artist: song.a,
         sections: song.s,
         genre: song.g || '',
+        lyrics: song.l || null,
       });
       if (results.length >= 20) break;
     }
