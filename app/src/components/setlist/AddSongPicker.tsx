@@ -11,177 +11,8 @@ interface AddSongPickerProps {
 const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B',
               'Cm', 'C#m', 'Dm', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'Abm', 'Am', 'Bbm', 'Bm']
 
-async function findServer(): Promise<string | null> {
-  // Try multiple server locations — localhost, local network, remote
-  const urls = [
-    'http://localhost:3000',
-    `http://${window.location.hostname}:3000`, // same host different port
-    'https://api.stratlab.uk',
-  ]
+type Tab = 'library' | 'create'
 
-  // Also try common local IPs if we're on a local network
-  if (window.location.hostname !== 'localhost') {
-    // Try the IP from the current page's host with port 3000
-    const parts = window.location.hostname.split('.')
-    if (parts.length === 4) {
-      // We're already on a local IP, try port 3000
-      urls.splice(1, 0, `http://${window.location.hostname}:3000`)
-    }
-  }
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(2000) })
-      if (res.ok) return url
-    } catch { /* try next */ }
-  }
-  return null
-}
-
-interface ChordResult {
-  title: string
-  artist: string
-  spotifyId: string
-  thumbnail?: string
-  sections: { name: string; chords: string }[]
-  genre?: string
-}
-
-type Tab = 'library' | 'search' | 'create'
-
-// ---- Online chord search ----
-function ChordSearch({ setlistId, onDone }: { setlistId: string; onDone: () => void }) {
-  const addCustomSong = useStore(s => s.addCustomSong)
-  const addSongToSetlist = useStore(s => s.addSongToSetlist)
-
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<ChordResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSearch = async () => {
-    if (!query.trim()) return
-    setSearching(true)
-    setError('')
-    setResults([])
-
-    try {
-      const server = await findServer()
-      if (!server) {
-        setError('Server not available. Start the server at home first.')
-        return
-      }
-      const res = await fetch(`${server}/api/chords/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim() }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Search failed')
-        return
-      }
-      setResults(data.results || [])
-      if ((data.results || []).length === 0) {
-        setError('No chord charts found for this song')
-      }
-    } catch (e) {
-      setError('Connection failed')
-    } finally {
-      setSearching(false)
-    }
-  }
-
-  const handleAdd = (result: ChordResult) => {
-    const song: Song = {
-      title: result.title,
-      artist: result.artist || 'Unknown',
-      key: guessKey(result.sections),
-      bpm: 120,
-      timeSignature: '4/4',
-      capo: null,
-      notes: `From Chordonomicon (${result.genre || 'unknown genre'})`,
-      sections: result.sections,
-      imported: true,
-    }
-    addCustomSong(song)
-    addSongToSetlist(setlistId, song.title)
-    onDone()
-  }
-
-  return (
-    <div style={{ padding: '16px 20px' }}>
-      <h3 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--text, #fff)' }}>
-        Search Chord Charts
-      </h3>
-      <p style={{ fontSize: 13, color: 'var(--text-muted, #888)', margin: '0 0 12px' }}>
-        Search 31,000+ songs with chords (requires server running)
-      </p>
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          placeholder="Song name or artist..."
-          style={{
-            flex: 1, padding: '10px 12px', fontSize: 16,
-            background: 'var(--badge-bg, #333)', color: 'var(--text, #fff)',
-            border: '1px solid var(--badge-bg, #444)', borderRadius: 8,
-          }}
-          autoFocus
-        />
-        <button
-          onClick={handleSearch}
-          disabled={searching}
-          style={{
-            padding: '10px 16px', borderRadius: 8, fontSize: 15, fontWeight: 600,
-            background: 'var(--accent, #4a9eff)', color: '#fff', border: 'none',
-            opacity: searching ? 0.5 : 1,
-          }}
-        >
-          {searching ? '...' : 'Search'}
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ color: 'var(--danger, #ef4444)', fontSize: 14, marginBottom: 12 }}>
-          {error}
-        </div>
-      )}
-
-      {results.map(r => (
-        <div
-          key={r.spotifyId}
-          onClick={() => handleAdd(r)}
-          style={{
-            display: 'flex', gap: 12, padding: '12px 0',
-            borderBottom: '1px solid var(--badge-bg, rgba(255,255,255,0.1))',
-            cursor: 'pointer',
-          }}
-        >
-          {r.thumbnail && (
-            <img
-              src={r.thumbnail}
-              alt=""
-              style={{ width: 48, height: 48, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-            />
-          )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 600, color: 'var(--text, #fff)' }}>{r.title}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted, #888)' }}>{r.artist}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted, #666)', marginTop: 2 }}>
-              {r.sections.length} sections — {r.genre || ''}
-            </div>
-          </div>
-          <span style={{ color: 'var(--accent, #4af)', fontSize: 18, fontWeight: 600, alignSelf: 'center' }}>+</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ---- Manual create form ----
 function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () => void }) {
   const addCustomSong = useStore(s => s.addCustomSong)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
@@ -245,7 +76,6 @@ function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () =
   )
 }
 
-// ---- Main picker ----
 export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPickerProps) {
   const allSongs = useStore(s => s.allSongs)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
@@ -267,7 +97,6 @@ export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPick
       position: 'fixed', inset: 0, background: 'var(--bg, #111)', zIndex: 300,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
-      {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '16px 20px', borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
@@ -280,61 +109,51 @@ export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPick
         </button>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))' }}>
         <button style={tabStyle(tab === 'library')} onClick={() => setTab('library')}>Library</button>
-        <button style={tabStyle(tab === 'search')} onClick={() => setTab('search')}>Search Online</button>
         <button style={tabStyle(tab === 'create')} onClick={() => setTab('create')}>Create</button>
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {tab === 'search' && (
-          <ChordSearch setlistId={setlistId} onDone={() => setTab('library')} />
-        )}
-
         {tab === 'create' && (
           <CreateSongForm setlistId={setlistId} onDone={() => setTab('library')} />
         )}
 
-        {tab === 'library' && songs.map(song => {
-          const inSetlist = currentSet.has(song.title)
-          return (
-            <div
-              key={song.title}
-              onClick={() => { if (!inSetlist) addSongToSetlist(setlistId, song.title) }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 20px', cursor: inSetlist ? 'default' : 'pointer',
-                opacity: inSetlist ? 0.3 : 1,
-                borderBottom: '1px solid var(--border, rgba(255,255,255,0.05))',
-              }}
-            >
-              <span style={{
-                color: inSetlist ? 'var(--text-muted, #888)' : 'var(--accent, #4af)',
-                fontSize: 18, width: 24, textAlign: 'center', fontWeight: 600,
-              }}>
-                {inSetlist ? '\u2713' : '+'}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: 'var(--text, #fff)', fontWeight: 500 }}>{song.title}</div>
-                <div style={{ color: 'var(--text-muted, #888)', fontSize: 13, marginTop: 2 }}>
-                  {song.artist} — Key: {song.key} | {song.bpm} BPM
+        {tab === 'library' && (
+          songs.length === 0 ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No songs yet. Use Search to find songs or Create to add manually.
+            </div>
+          ) : songs.map(song => {
+            const inSetlist = currentSet.has(song.title)
+            return (
+              <div
+                key={song.title}
+                onClick={() => { if (!inSetlist) addSongToSetlist(setlistId, song.title) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 20px', cursor: inSetlist ? 'default' : 'pointer',
+                  opacity: inSetlist ? 0.3 : 1,
+                  borderBottom: '1px solid var(--border, rgba(255,255,255,0.05))',
+                }}
+              >
+                <span style={{
+                  color: inSetlist ? 'var(--text-muted, #888)' : 'var(--accent, #4af)',
+                  fontSize: 18, width: 24, textAlign: 'center', fontWeight: 600,
+                }}>
+                  {inSetlist ? '\u2713' : '+'}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: 'var(--text, #fff)', fontWeight: 500 }}>{song.title}</div>
+                  <div style={{ color: 'var(--text-muted, #888)', fontSize: 13, marginTop: 2 }}>
+                    {song.artist} — Key: {song.key} | {song.bpm} BPM
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
     </div>
   )
-}
-
-// Guess key from first chord of first section
-function guessKey(sections: { name: string; chords: string }[]): string {
-  for (const s of sections) {
-    const first = s.chords.trim().split(/\s+/)[0]
-    if (first) return first.replace(/[0-9]/g, '')
-  }
-  return 'C'
 }

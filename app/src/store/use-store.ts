@@ -19,6 +19,11 @@ const defaultSetlistData: SetlistData = {
   lists: {
     default: {
       id: 'default',
+      name: 'My Setlist',
+      songTitles: [],
+    },
+    gm: {
+      id: 'gm',
       name: 'GM Tribute',
       songTitles: DEFAULT_SONGS.map(s => s.title),
     },
