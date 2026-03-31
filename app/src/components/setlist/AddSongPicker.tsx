@@ -11,12 +11,27 @@ interface AddSongPickerProps {
 const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B',
               'Cm', 'C#m', 'Dm', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'Abm', 'Am', 'Bbm', 'Bm']
 
-const SERVER_URLS = ['http://localhost:3000', 'https://api.stratlab.uk']
-
 async function findServer(): Promise<string | null> {
-  for (const url of SERVER_URLS) {
+  // Try multiple server locations — localhost, local network, remote
+  const urls = [
+    'http://localhost:3000',
+    `http://${window.location.hostname}:3000`, // same host different port
+    'https://api.stratlab.uk',
+  ]
+
+  // Also try common local IPs if we're on a local network
+  if (window.location.hostname !== 'localhost') {
+    // Try the IP from the current page's host with port 3000
+    const parts = window.location.hostname.split('.')
+    if (parts.length === 4) {
+      // We're already on a local IP, try port 3000
+      urls.splice(1, 0, `http://${window.location.hostname}:3000`)
+    }
+  }
+
+  for (const url of urls) {
     try {
-      const res = await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(3000) })
+      const res = await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(2000) })
       if (res.ok) return url
     } catch { /* try next */ }
   }
