@@ -62,7 +62,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           fontSize={9}
           dominantBaseline="central"
         >
-          {voicing.s + 1}fr
+          {voicing.s}fr
         </text>
       )}
 
@@ -102,13 +102,12 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           )
         }
 
-        // Fretted note - fret value is relative to startFret
-        const relativeFret = fret - voicing.s
+        // Fretted note — fret values are already relative to the grid position
         return (
           <circle
             key={`f-${i}`}
             cx={cx}
-            cy={padding.top + (relativeFret - 0.5) * fretSpacing}
+            cy={padding.top + (fret - 0.5) * fretSpacing}
             r={circleR}
             fill="#fff"
           />
