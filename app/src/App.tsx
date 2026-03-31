@@ -7,7 +7,6 @@ import { migrateFromLocalStorage } from './store/migrate'
 import { TopBar } from './components/layout/TopBar'
 import { BottomBar } from './components/layout/BottomBar'
 import { SongSheet } from './components/song/SongSheet'
-import { DiagramsBar } from './components/diagrams/DiagramsBar'
 import { useSwipe } from './hooks/use-swipe'
 import { useWakeLock } from './hooks/use-wake-lock'
 
@@ -42,7 +41,6 @@ function AppInner() {
   const theme = useStore(s => s.theme)
   const viewMode = useStore(s => s.viewMode)
   const editMode = useStore(s => s.editMode)
-  const diagramsVisible = useStore(s => s.diagramsVisible)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -92,7 +90,6 @@ function AppInner() {
       <div ref={sheetRef} style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
         <SongSheet />
       </div>
-      {diagramsVisible && <DiagramsBar />}
       {showVersion && (
         <div
           onClick={() => setShowVersion(false)}
