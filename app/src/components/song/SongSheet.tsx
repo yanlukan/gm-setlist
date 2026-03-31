@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
-import { SectionRow } from './SectionRow'
-import { ChordPicker } from '../edit/ChordPicker'
-import { SectionPicker } from '../edit/SectionPicker'
+import { sectionColor } from '../../music/theory'
+import { SongView } from './SongView'
 
 export function SongSheet() {
   const songs = useStore(s => s.songs)
@@ -14,8 +13,7 @@ export function SongSheet() {
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
 
-  const [pickerTarget, setPickerTarget] = useState<HTMLDivElement | null>(null)
-  const [showSectionPicker, setShowSectionPicker] = useState(false)
+  const [showFullView, setShowFullView] = useState(false)
 
   const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
 
@@ -42,174 +40,76 @@ export function SongSheet() {
     return song.notes ?? ''
   }, [song, edits])
 
-  const currentKey = useMemo(() => {
-    if (!song) return ''
-    if (edits[song.title]?.key !== undefined) return edits[song.title].key!
-    return song.key ?? ''
-  }, [song, edits])
-
-  // Simple font size: smaller for songs with many sections
-  const fontSize = sections.length > 10 ? 18 : sections.length > 6 ? 22 : 26
-
   if (!song) {
     return (
-      <div style={{ padding: 24, color: 'var(--text-muted)' }}>
-        No songs in setlist. Tap Setlist to add songs.
+      <div style={{ padding: 24, color: 'var(--text-muted)', textAlign: 'center' }}>
+        No songs in setlist. Use Search to find songs.
       </div>
     )
   }
 
-  const handleSectionChange = (index: number, field: 'name' | 'chords', value: string) => {
-    const updated = sections.map((s, i) =>
-      i === index ? { ...s, [field]: value } : s,
+  // Simple font size based on section count
+  const fontSize = sections.length > 10 ? 18 : sections.length > 6 ? 22 : 26
+
+  // Full-screen song view (same as search view)
+  if (showFullView && !editMode) {
+    return (
+      <SongView
+        title={song.title}
+        artist={song.artist}
+        sections={sections}
+        onClose={() => setShowFullView(false)}
+      />
     )
-    saveSections(song.title, updated)
-  }
-
-  const handleMove = (index: number, direction: -1 | 1) => {
-    const target = index + direction
-    if (target < 0 || target >= sections.length) return
-    const updated = [...sections]
-    const temp = updated[index]
-    updated[index] = updated[target]
-    updated[target] = temp
-    saveSections(song.title, updated)
-  }
-
-  const handleDelete = (index: number) => {
-    if (sections.length <= 1) return
-    const updated = sections.filter((_, i) => i !== index)
-    saveSections(song.title, updated)
-  }
-
-  const handleAddSection = (name: string) => {
-    const updated = [...sections, { name, chords: '' }]
-    saveSections(song.title, updated)
-    setShowSectionPicker(false)
-  }
-
-  const handleChordSelect = (chord: string) => {
-    if (!pickerTarget) return
-    const current = pickerTarget.textContent ?? ''
-    const separator = current.length > 0 ? '  ' : ''
-    pickerTarget.textContent = current + separator + chord
-    pickerTarget.dispatchEvent(new Event('blur', { bubbles: true }))
-  }
-
-  const handleNotesBlur = (text: string) => {
-    saveNotes(song.title, text)
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      width: '100%',
-      maxWidth: 700,
-      margin: '0 auto',
-      padding: '0 12px',
-      overflow: 'auto',
-      height: '100%',
-      WebkitOverflowScrolling: 'touch',
-    }}>
-      {/* Title */}
+    <div
+      onClick={() => { if (!editMode) setShowFullView(true) }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        maxWidth: 700,
+        margin: '0 auto',
+        padding: '0 12px',
+        overflow: 'auto',
+        height: '100%',
+        WebkitOverflowScrolling: 'touch',
+        cursor: editMode ? 'default' : 'pointer',
+      }}
+    >
       <h1 style={{ fontSize: 24, fontWeight: 'bold', margin: '8px 0 4px', flexShrink: 0 }}>
         {song.title}
       </h1>
 
-      {/* Sections — always visible, scrollable */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {sections.map((section, i) => (
-          <SectionRow
-            key={`${song.title}-${i}`}
-            name={section.name}
-            chords={section.chords}
-            fontSize={fontSize}
-            editMode={editMode}
-            index={i}
-            total={sections.length}
-            onChordsChange={value => handleSectionChange(i, 'chords', value)}
-            onLabelChange={value => handleSectionChange(i, 'name', value)}
-            onChordsFocus={el => setPickerTarget(el)}
-            onMoveUp={() => handleMove(i, -1)}
-            onMoveDown={() => handleMove(i, 1)}
-            onDelete={() => handleDelete(i)}
-          />
-        ))}
-        {editMode && (
-          <button
-            onClick={() => setShowSectionPicker(true)}
-            style={{
-              marginTop: 8,
-              padding: '8px 16px',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              background: 'transparent',
-              border: '2px dashed var(--edit-border)',
-              color: 'var(--edit-border)',
+          <div key={`${song.title}-${i}`} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <div style={{
+              minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
+              textTransform: 'uppercase', color: sectionColor(section.name),
               flexShrink: 0,
-            }}
-          >
-            + Add Section
-          </button>
-        )}
+            }}>
+              {section.name}
+            </div>
+            <div style={{
+              fontSize, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 14,
+              whiteSpace: 'pre-wrap',
+            }}>
+              {section.chords}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Notes */}
-      {(notes || editMode) && (
-        editMode ? (
-          <div
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={e => handleNotesBlur(e.currentTarget.textContent ?? '')}
-            style={{
-              fontSize: 14,
-              fontStyle: 'italic',
-              color: 'var(--text-muted)',
-              outline: 'none',
-              background: 'var(--badge-bg)',
-              borderRadius: 6,
-              padding: 8,
-              minHeight: 40,
-              marginTop: 8,
-              flexShrink: 0,
-            }}
-          >
-            {notes}
-          </div>
-        ) : notes ? (
-          <div style={{
-            fontSize: 14,
-            fontStyle: 'italic',
-            color: 'var(--text-muted)',
-            borderTop: '1px solid var(--badge-bg)',
-            paddingTop: 6,
-            marginTop: 6,
-            flexShrink: 0,
-          }}>
-            {notes}
-          </div>
-        ) : null
-      )}
-
-      {/* Pickers */}
-      {editMode && pickerTarget && (
-        <ChordPicker
-          currentKey={currentKey}
-          onSelect={handleChordSelect}
-          onClose={() => setPickerTarget(null)}
-        />
-      )}
-      {editMode && showSectionPicker && (
-        <SectionPicker
-          onSelect={handleAddSection}
-          onClose={() => setShowSectionPicker(false)}
-        />
+      {notes && (
+        <div style={{
+          fontSize: 14, fontStyle: 'italic', color: 'var(--text-muted)',
+          borderTop: '1px solid var(--badge-bg)', paddingTop: 6, marginTop: 6,
+        }}>
+          {notes}
+        </div>
       )}
     </div>
   )
