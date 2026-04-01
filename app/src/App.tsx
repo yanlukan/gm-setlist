@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, Component, type ReactNode } from 'react'
+import { useEffect, useState, useMemo, Component, type ReactNode } from 'react'
 
 declare const __BUILD_TIME__: string
 const APP_VERSION = '2.2.0'
@@ -45,7 +45,6 @@ function AppInner() {
   const diagramsVisible = useStore(s => s.diagramsVisible)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
-  const sheetRef = useRef<HTMLDivElement>(null)
   const [ready, setReady] = useState(false)
   const [showVersion, setShowVersion] = useState(false)
 
@@ -74,7 +73,7 @@ function AppInner() {
     onSwipeRight: prevSong,
   }), [nextSong, prevSong])
 
-  useSwipe(sheetRef, swipeHandlers, !editMode)
+  useSwipe(swipeHandlers, !editMode)
 
   // Show loading briefly while IndexedDB hydrates
   if (!ready) {
@@ -91,7 +90,7 @@ function AppInner() {
   return (
     <>
       <TopBar />
-      <div ref={sheetRef} style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
         <SongSheet />
       </div>
       {diagramsVisible && <DiagramsBar />}
