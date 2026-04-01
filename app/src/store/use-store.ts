@@ -19,11 +19,6 @@ const defaultSetlistData: SetlistData = {
   lists: {
     default: {
       id: 'default',
-      name: 'My Setlist',
-      songTitles: [],
-    },
-    gm: {
-      id: 'gm',
       name: 'GM Tribute',
       songTitles: DEFAULT_SONGS.map(s => s.title),
     },
@@ -379,8 +374,19 @@ export const useStore = create<StoreState>((set, get) => ({
       if (entry) edits[entry[0]] = entry[1]
     }
 
+    // Fix: if saved setlist is the old empty default, use the new default with GM songs
+    let finalSetlistData = setlistDataResult
+    if (finalSetlistData) {
+      const active = finalSetlistData.lists[finalSetlistData.activeId]
+      if (active && active.songTitles.length === 0) {
+        // Empty active setlist — reset to default
+        finalSetlistData = defaultSetlistData
+        saveSetlistData(finalSetlistData)
+      }
+    }
+
     set({
-      ...(setlistDataResult && { setlistData: setlistDataResult }),
+      ...(finalSetlistData && { setlistData: finalSetlistData }),
       ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
       ...(themeResult && { theme: themeResult }),
       ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
