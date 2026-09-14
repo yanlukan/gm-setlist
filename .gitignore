@@ -1,0 +1,9 @@
+# Build output — GitHub Actions rebuilds this from app/ on every deploy.
+dist/
+
+# Local chord-detection data (hundreds of MB) and Python caches.
+server/data/
+server/__pycache__/
+__pycache__/
+.venv/
+node_modules/

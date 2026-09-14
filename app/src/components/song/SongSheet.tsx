@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
-import { sectionColor } from '../../music/theory'
+import { sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
+import { EditableText } from '../shared/EditableText'
 
 export function SongSheet() {
   const songs = useStore(s => s.songs)
@@ -15,6 +16,7 @@ export function SongSheet() {
   const selectVoicing = useStore(s => s.selectVoicing)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
+  const restoreGigOrder = useStore(s => s.restoreGigOrder)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
@@ -33,11 +35,26 @@ export function SongSheet() {
 
   const song = setlistSongs[currentIndex]
 
+  // Stored chords are always at the song's own pitch.
   const sections = useMemo(() => {
     if (!song) return []
     if (edits[song.title]?.sections) return edits[song.title].sections!
     return song.sections ?? []
   }, [song, edits])
+
+  const semitones = song ? (edits[song.title]?.transpose ?? 0) : 0
+  const sourceKey = song ? (edits[song.title]?.key ?? song.key ?? '') : ''
+
+  // What actually goes on the screen. Editing writes back through this, so the
+  // guitarist edits what they see and the stored chart stays at source pitch.
+  const displaySections = useMemo(() => {
+    if (!semitones) return sections
+    const useFlats = shouldUseFlats(sourceKey, semitones)
+    return sections.map(sec => ({ name: sec.name, chords: transposeText(sec.chords, semitones, useFlats) }))
+  }, [sections, semitones, sourceKey])
+
+  const toSourcePitch = (text: string) =>
+    semitones ? transposeText(text, -semitones, shouldUseFlats(sourceKey, 0)) : text
 
   const notes = useMemo(() => {
     if (!song) return ''
@@ -46,14 +63,36 @@ export function SongSheet() {
   }, [song, edits])
 
   if (!song) {
+    // An empty setlist is a normal state, not an error — but don't leave the
+    // player staring at a blank screen with nothing to tap.
+    const listName = setlistData.lists[setlistData.activeId]?.name ?? 'this setlist'
     return (
-      <div style={{ padding: 24, color: 'var(--text-muted)', textAlign: 'center' }}>
-        No songs in setlist. Use Search to find songs.
+      <div style={{
+        padding: 24, color: 'var(--text-muted)', textAlign: 'center',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+        margin: '0 auto', maxWidth: 420,
+      }}>
+        <div style={{ fontSize: 16 }}>&ldquo;{listName}&rdquo; is empty.</div>
+        <div style={{ fontSize: 14 }}>
+          Your other setlists are safe — open <strong>Setlist</strong> above to switch.
+        </div>
+        <button
+          onClick={() => {
+            if (confirm(`Fill "${listName}" with the GM Tribute running order?`)) restoreGigOrder()
+          }}
+          style={{
+            padding: '10px 18px', borderRadius: 8, border: 'none',
+            background: '#4a9eff', color: '#fff', fontSize: 15, fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Load GM Tribute running order
+        </button>
       </div>
     )
   }
 
-  const fontSize = sections.length > 10 ? 18 : sections.length > 6 ? 22 : 26
+  const fontSize = displaySections.length > 10 ? 18 : displaySections.length > 6 ? 22 : 26
 
   // Section editing
   const moveSection = (index: number, dir: -1 | 1) => {
@@ -76,7 +115,8 @@ export function SongSheet() {
   }
 
   const updateChords = (index: number, chords: string) => {
-    saveSections(song.title, sections.map((s, i) => i === index ? { ...s, chords } : s))
+    const atSource = toSourcePitch(chords)
+    saveSections(song.title, sections.map((s, i) => i === index ? { ...s, chords: atSource } : s))
   }
 
   const updateName = (index: number, name: string) => {
@@ -125,9 +165,29 @@ export function SongSheet() {
         {song.title}
       </h1>
 
+      {song.cue && (
+        <div style={{
+          flexShrink: 0, marginBottom: 6, padding: '6px 10px', borderRadius: 6,
+          background: 'rgba(245, 158, 11, 0.16)', borderLeft: '4px solid #f59e0b',
+          fontSize: 14, fontWeight: 600, color: 'var(--text)',
+        }}>
+          {song.cue}
+        </div>
+      )}
+
+      {song.lowerKey && semitones === 0 && (
+        <div style={{
+          flexShrink: 0, marginBottom: 6, padding: '6px 10px', borderRadius: 6,
+          background: 'rgba(229, 62, 62, 0.18)', borderLeft: '4px solid #e53e3e',
+          fontSize: 14, fontWeight: 700, color: 'var(--text)',
+        }}>
+          LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
+        </div>
+      )}
+
       {/* Sections */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: editMode ? 2 : 4 }}>
-        {sections.map((section, i) => (
+        {displaySections.map((section, i) => (
           <div key={`${song.title}-${i}`} style={{
             display: 'flex', alignItems: 'baseline', gap: 8,
             ...(editMode && { padding: '4px 0', borderBottom: '1px solid var(--badge-bg)' }),
@@ -143,16 +203,16 @@ export function SongSheet() {
 
             {/* Label */}
             {editMode ? (
-              <div
-                contentEditable suppressContentEditableWarning
-                onBlur={e => updateName(i, e.currentTarget.textContent ?? section.name)}
+              <EditableText
+                value={section.name}
+                onChange={name => updateName(i, name)}
                 style={{
                   minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
                   textTransform: 'uppercase', color: sectionColor(section.name),
                   borderBottom: '1px dashed var(--edit-border, #f59e0b)',
                   outline: 'none', flexShrink: 0,
                 }}
-              >{section.name}</div>
+              />
             ) : (
               <div style={{
                 minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
@@ -162,15 +222,15 @@ export function SongSheet() {
 
             {/* Chords */}
             {editMode ? (
-              <div
-                contentEditable suppressContentEditableWarning
-                onBlur={e => updateChords(i, e.currentTarget.textContent ?? section.chords)}
+              <EditableText
+                value={section.chords}
+                onChange={chords => updateChords(i, chords)}
                 style={{
                   fontSize: 18, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
                   background: 'var(--badge-bg)', borderRadius: 4, padding: '2px 6px',
                   outline: 'none', whiteSpace: 'pre-wrap', minWidth: 60, flex: 1,
                 }}
-              >{section.chords}</div>
+              />
             ) : (
               <div style={{ letterSpacing: 1, wordSpacing: 14, whiteSpace: 'pre-wrap' }}>
                 {renderChords(section.chords, fontSize)}
@@ -221,14 +281,14 @@ export function SongSheet() {
       {editMode ? (
         <div style={{ marginTop: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>NOTES</div>
-          <div
-            contentEditable suppressContentEditableWarning
-            onBlur={e => saveNotes(song.title, e.currentTarget.textContent ?? '')}
+          <EditableText
+            value={notes}
+            onChange={text => saveNotes(song.title, text)}
             style={{
               fontSize: 14, padding: 8, borderRadius: 6, background: 'var(--badge-bg)',
               outline: 'none', minHeight: 40, fontStyle: 'italic', color: 'var(--text-muted)',
             }}
-          >{notes}</div>
+          />
         </div>
       ) : notes ? (
         <div style={{

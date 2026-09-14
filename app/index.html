@@ -11,16 +11,11 @@
 <body>
   <div id="root"></div>
   <script>
-    // Force SW update + nuke old caches on every page load
+    // Check for a newer deploy in the background. Registration itself happens
+    // in the app so it can use the correct base path.
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        regs.forEach(function(r) { r.update() })
-      })
-      // Clear any stale caches from old app versions
-      if (caches) caches.keys().then(function(keys) {
-        keys.forEach(function(k) {
-          if (k === 'gm-setlist-v1' || k === 'playbook-v1') caches.delete(k)
-        })
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (r) { r.update() })
       })
     }
   </script>

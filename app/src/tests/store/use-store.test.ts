@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../../store/use-store'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
@@ -64,11 +64,13 @@ describe('useStore', () => {
 
   describe('currentSong', () => {
     it('returns the correct song at currentIndex', () => {
+      // The default setlist is the printed running order, which is not the
+      // same as the order songs happen to sit in the data file.
       useStore.setState({ currentIndex: 0 })
-      expect(useStore.getState().currentSong()?.title).toBe(DEFAULT_SONGS[0].title)
+      expect(useStore.getState().currentSong()?.title).toBe(GIG_SETLIST_2026[0])
 
       useStore.setState({ currentIndex: 2 })
-      expect(useStore.getState().currentSong()?.title).toBe(DEFAULT_SONGS[2].title)
+      expect(useStore.getState().currentSong()?.title).toBe(GIG_SETLIST_2026[2])
     })
   })
 
@@ -158,6 +160,88 @@ describe('useStore', () => {
       useStore.getState().addSongToSetlist('default', title)
       const after = useStore.getState().setlistData.lists['default'].songTitles.length
       expect(after).toBe(before)
+    })
+  })
+})
+
+describe('gig-critical behaviour', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  describe('the default setlist', () => {
+    it('is the full 21-song September 2026 running order', () => {
+      const { setlistData } = useStore.getState()
+      const active = setlistData.lists[setlistData.activeId]
+      expect(active.songTitles).toEqual(GIG_SETLIST_2026)
+      expect(active.songTitles).toHaveLength(21)
+    })
+
+    it('resolves every title to a real song', () => {
+      const titles = new Set(DEFAULT_SONGS.map(s => s.title))
+      for (const title of GIG_SETLIST_2026) {
+        expect(titles.has(title)).toBe(true)
+      }
+      expect(useStore.getState().setlistSongs()).toHaveLength(21)
+    })
+  })
+
+  describe('transpose', () => {
+    it('does not rewrite the stored chords', () => {
+      const title = GIG_SETLIST_2026[0]
+      const original = useStore.getState().getEditedSections(title).map(s => s.chords)
+
+      useStore.getState().setTranspose(title, -2)
+
+      expect(useStore.getState().getEditedSections(title).map(s => s.chords)).toEqual(original)
+      expect(useStore.getState().edits[title]?.sections).toBeUndefined()
+    })
+
+    it('transposes what is displayed, and back again', () => {
+      const title = 'Faith' // stored in B
+      useStore.getState().setTranspose(title, -2)
+
+      expect(useStore.getState().getDisplayKey(title)).toBe('A')
+      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('A')
+
+      useStore.getState().setTranspose(title, 0)
+      expect(useStore.getState().getDisplayKey(title)).toBe('B')
+      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('B')
+    })
+
+    it('is clamped to +/- 11 semitones', () => {
+      const title = GIG_SETLIST_2026[0]
+      useStore.getState().setTranspose(title, 99)
+      expect(useStore.getState().getTranspose(title)).toBe(11)
+      useStore.getState().setTranspose(title, -99)
+      expect(useStore.getState().getTranspose(title)).toBe(-11)
+    })
+  })
+
+  describe('setlist position', () => {
+    it('stays in range when the last song is removed', () => {
+      const { setlistData, removeSongFromSetlist } = useStore.getState()
+      const id = setlistData.activeId
+      useStore.setState({ currentIndex: 20 })
+
+      removeSongFromSetlist(id, GIG_SETLIST_2026[20])
+
+      expect(useStore.getState().currentIndex).toBe(19)
+      expect(useStore.getState().currentSong()).toBeDefined()
+    })
+  })
+
+  describe('restoreGigOrder', () => {
+    it('rebuilds the running order after songs are removed', () => {
+      const id = useStore.getState().setlistData.activeId
+      useStore.getState().removeSongFromSetlist(id, 'Faith')
+      useStore.getState().removeSongFromSetlist(id, 'Outside')
+      expect(useStore.getState().setlistSongs()).toHaveLength(19)
+
+      useStore.getState().restoreGigOrder()
+
+      expect(useStore.getState().setlistData.lists[id].songTitles).toEqual(GIG_SETLIST_2026)
+      expect(useStore.getState().currentIndex).toBe(0)
     })
   })
 })

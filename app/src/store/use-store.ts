@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Song, Section, SongEdits, SetlistData, Theme, ViewMode } from '../types'
-import { DEFAULT_SONGS } from '../data/songs'
+import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
+import { transposeText, transposeChord, shouldUseFlats } from '../music/theory'
 import {
   saveSongEdits,
   getSongEdits,
@@ -13,17 +14,57 @@ import {
   getTheme,
   saveSelectedVoicings,
   getSelectedVoicings,
+  takeSnapshot,
 } from './persistence'
 
-const defaultSetlistData: SetlistData = {
+export const defaultSetlistData: SetlistData = {
   lists: {
     default: {
       id: 'default',
-      name: 'GM Tribute',
-      songTitles: DEFAULT_SONGS.map(s => s.title),
+      name: 'GM Tribute — Sept 2026',
+      songTitles: [...GIG_SETLIST_2026],
     },
   },
   activeId: 'default',
+}
+
+/**
+ * Set when loading from IndexedDB failed. While this is true every write is
+ * suppressed: a failed read must never be mistaken for "the user has no data"
+ * and then overwritten with defaults. This is the guard that turns the gig
+ * failure mode from "data destroyed" into "data temporarily not showing".
+ */
+let readOnly = false
+
+export function isReadOnly(): boolean {
+  return readOnly
+}
+
+function persistEdits(title: string, edits: SongEdits): void {
+  if (readOnly) return
+  saveSongEdits(title, edits).catch(e => console.warn('saveSongEdits failed:', e))
+}
+
+/**
+ * Persist setlists, snapshotting first. `reason` shows up in the restore list
+ * so a mistake can be identified and rolled back by name.
+ */
+let writeQueue: Promise<unknown> = Promise.resolve()
+
+function persistSetlist(previous: SetlistData, next: SetlistData, reason: string): void {
+  if (readOnly) return
+  // Queue the writes so two quick changes cannot land out of order, and
+  // snapshot the state as it was BEFORE this change so restoring undoes it.
+  writeQueue = writeQueue
+    .then(() => takeSnapshot(reason, previous))
+    .then(() => saveSetlistData(next))
+    .catch(e => console.warn('saveSetlistData failed:', e))
+}
+
+/** Keep the current position inside the setlist after songs are added/removed. */
+function clampIndex(index: number, length: number): number {
+  if (length <= 0) return 0
+  return Math.max(0, Math.min(index, length - 1))
 }
 
 interface StoreState {
@@ -46,6 +87,9 @@ interface StoreState {
   getEditedSections: (title: string) => Section[]
   getEditedNotes: (title: string) => string
   getCurrentKey: (title: string) => string
+  getTranspose: (title: string) => number
+  getDisplaySections: (title: string) => Section[]
+  getDisplayKey: (title: string) => string
 
   // Navigation
   nextSong: () => void
@@ -58,6 +102,7 @@ interface StoreState {
   saveNotes: (title: string, notes: string) => void
   saveKey: (title: string, key: string) => void
   saveBpm: (title: string, bpm: number) => void
+  setTranspose: (title: string, semitones: number) => void
   resetEdits: (title: string) => void
 
   // Setlist actions
@@ -75,6 +120,8 @@ interface StoreState {
   toggleTheme: () => void
   toggleViewMode: () => void
   toggleDiagrams: () => void
+  restoreGigOrder: () => void
+  loadFailed: boolean
   hydrate: () => Promise<void>
 }
 
@@ -90,6 +137,7 @@ export const useStore = create<StoreState>((set, get) => ({
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
   selectedVoicings: {},
+  loadFailed: false,
 
   // Computed
   allSongs: () => {
@@ -133,6 +181,32 @@ export const useStore = create<StoreState>((set, get) => ({
     return song?.key ?? ''
   },
 
+  getTranspose: (title: string) => get().edits[title]?.transpose ?? 0,
+
+  /**
+   * Chords as they should be READ on stage. Stored chords stay at source
+   * pitch; the transpose is applied here, so it can always be undone.
+   */
+  getDisplaySections: (title: string) => {
+    const { getEditedSections, getCurrentKey, getTranspose } = get()
+    const sections = getEditedSections(title)
+    const semitones = getTranspose(title)
+    if (!semitones) return sections
+    const useFlats = shouldUseFlats(getCurrentKey(title), semitones)
+    return sections.map(section => ({
+      name: section.name,
+      chords: transposeText(section.chords, semitones, useFlats),
+    }))
+  },
+
+  getDisplayKey: (title: string) => {
+    const { getCurrentKey, getTranspose } = get()
+    const key = getCurrentKey(title)
+    const semitones = getTranspose(title)
+    if (!semitones || !key) return key
+    return transposeChord(key, semitones, shouldUseFlats(key, semitones))
+  },
+
   // Navigation
   nextSong: () => {
     const { currentIndex, setlistSongs } = get()
@@ -163,8 +237,7 @@ export const useStore = create<StoreState>((set, get) => ({
         [title]: { ...state.edits[title], sections },
       },
     }))
-    const edits = get().edits[title]
-    saveSongEdits(title, edits)
+    persistEdits(title, get().edits[title])
   },
 
   saveNotes: (title: string, notes: string) => {
@@ -174,8 +247,7 @@ export const useStore = create<StoreState>((set, get) => ({
         [title]: { ...state.edits[title], notes },
       },
     }))
-    const edits = get().edits[title]
-    saveSongEdits(title, edits)
+    persistEdits(title, get().edits[title])
   },
 
   saveKey: (title: string, key: string) => {
@@ -185,8 +257,7 @@ export const useStore = create<StoreState>((set, get) => ({
         [title]: { ...state.edits[title], key },
       },
     }))
-    const edits = get().edits[title]
-    saveSongEdits(title, edits)
+    persistEdits(title, get().edits[title])
   },
 
   saveBpm: (title: string, bpm: number) => {
@@ -196,8 +267,19 @@ export const useStore = create<StoreState>((set, get) => ({
         [title]: { ...state.edits[title], bpm },
       },
     }))
-    const edits = get().edits[title]
-    saveSongEdits(title, edits)
+    persistEdits(title, get().edits[title])
+  },
+
+  /** Non-destructive: only the semitone offset is stored. */
+  setTranspose: (title: string, semitones: number) => {
+    const clamped = Math.max(-11, Math.min(11, semitones))
+    set(state => ({
+      edits: {
+        ...state.edits,
+        [title]: { ...state.edits[title], transpose: clamped },
+      },
+    }))
+    persistEdits(title, get().edits[title])
   },
 
   resetEdits: (title: string) => {
@@ -205,20 +287,21 @@ export const useStore = create<StoreState>((set, get) => ({
       const { [title]: _, ...rest } = state.edits
       return { edits: rest }
     })
-    deleteSongEdits(title)
+    if (!readOnly) deleteSongEdits(title).catch(e => console.warn('deleteSongEdits failed:', e))
   },
 
   // Setlist actions
   setActiveSetlist: (id: string) => {
+    const previous = get().setlistData
     set(state => ({
       setlistData: { ...state.setlistData, activeId: id },
       currentIndex: 0,
     }))
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'switch setlist')
   },
 
   createSetlist: (name: string) => {
+    const previous = get().setlistData
     const id = `sl-${Date.now()}`
     set(state => ({
       setlistData: {
@@ -230,11 +313,11 @@ export const useStore = create<StoreState>((set, get) => ({
       },
       currentIndex: 0,
     }))
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'create setlist')
   },
 
   deleteSetlist: (id: string) => {
+    const previous = get().setlistData
     if (id === 'default') return
     set(state => {
       const { [id]: _, ...rest } = state.setlistData.lists
@@ -246,11 +329,11 @@ export const useStore = create<StoreState>((set, get) => ({
         currentIndex: 0,
       }
     })
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'delete setlist')
   },
 
   renameSetlist: (id: string, name: string) => {
+    const previous = get().setlistData
     set(state => ({
       setlistData: {
         ...state.setlistData,
@@ -260,11 +343,11 @@ export const useStore = create<StoreState>((set, get) => ({
         },
       },
     }))
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'rename setlist')
   },
 
   reorderSetlistSongs: (id: string, songTitles: string[]) => {
+    const previous = get().setlistData
     set(state => ({
       setlistData: {
         ...state.setlistData,
@@ -274,11 +357,11 @@ export const useStore = create<StoreState>((set, get) => ({
         },
       },
     }))
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'reorder songs')
   },
 
   addSongToSetlist: (id: string, songTitle: string) => {
+    const previous = get().setlistData
     set(state => {
       const list = state.setlistData.lists[id]
       if (!list || list.songTitles.includes(songTitle)) return state
@@ -292,11 +375,11 @@ export const useStore = create<StoreState>((set, get) => ({
         },
       }
     })
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'add song')
   },
 
   removeSongFromSetlist: (id: string, songTitle: string) => {
+    const previous = get().setlistData
     set(state => {
       const list = state.setlistData.lists[id]
       if (!list) return state
@@ -308,10 +391,12 @@ export const useStore = create<StoreState>((set, get) => ({
             [id]: { ...list, songTitles: list.songTitles.filter(t => t !== songTitle) },
           },
         },
+        ...(id === state.setlistData.activeId && {
+          currentIndex: clampIndex(state.currentIndex, list.songTitles.length - 1),
+        }),
       }
     })
-    const data = get().setlistData
-    saveSetlistData(data)
+    persistSetlist(previous, get().setlistData, 'remove song')
   },
 
   // Voicing selection
@@ -319,8 +404,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set(state => ({
       selectedVoicings: { ...state.selectedVoicings, [chord]: index },
     }))
-    const { selectedVoicings } = get()
-    saveSelectedVoicings(selectedVoicings)
+    if (!readOnly) saveSelectedVoicings(get().selectedVoicings).catch(e => console.warn('saveSelectedVoicings failed:', e))
   },
 
   // Other actions
@@ -328,15 +412,14 @@ export const useStore = create<StoreState>((set, get) => ({
     const { customSongs } = get()
     if (customSongs.some(s => s.title === song.title)) return
     set(state => ({ customSongs: [...state.customSongs, song] }))
-    saveCustomSongs(get().customSongs)
+    if (!readOnly) saveCustomSongs(get().customSongs).catch(e => console.warn('saveCustomSongs failed:', e))
   },
 
   toggleTheme: () => {
     set(state => ({
       theme: state.theme === 'dark' ? 'light' : 'dark',
     }))
-    const { theme } = get()
-    saveTheme(theme)
+    if (!readOnly) saveTheme(get().theme).catch(e => console.warn('saveTheme failed:', e))
   },
 
   toggleViewMode: () => {
@@ -349,24 +432,60 @@ export const useStore = create<StoreState>((set, get) => ({
     set(state => ({ diagramsVisible: !state.diagramsVisible }))
   },
 
-  hydrate: async () => {
-    const [, setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult] = await Promise.all([
-      Promise.resolve(null), // placeholder — edits are loaded per-song below
-      getSetlistData(),
-      getCustomSongs(),
-      getTheme(),
-      getSelectedVoicings(),
-    ])
+  /** Rebuild the active setlist as the printed Sept 2026 running order. */
+  restoreGigOrder: () => {
+    const previous = get().setlistData
+    set(state => {
+      const id = state.setlistData.activeId
+      const list = state.setlistData.lists[id]
+      if (!list) return state
+      return {
+        setlistData: {
+          ...state.setlistData,
+          lists: { ...state.setlistData.lists, [id]: { ...list, songTitles: [...GIG_SETLIST_2026] } },
+        },
+        currentIndex: 0,
+      }
+    })
+    persistSetlist(previous, get().setlistData, 'restore GM Tribute order')
+  },
 
-    // Load all song edits
+  hydrate: async () => {
+    let setlistDataResult: SetlistData | undefined
+    let customSongsResult: Song[] = []
+    let themeResult: Theme | undefined
+    let selectedVoicingsResult: Record<string, number> | undefined
+
+    try {
+      ;[setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult] =
+        await Promise.all([
+          getSetlistData(),
+          getCustomSongs(),
+          getTheme(),
+          getSelectedVoicings(),
+        ])
+    } catch (e) {
+      // Reading failed. Go read-only rather than showing defaults and then
+      // overwriting the user's real data with them on the next save.
+      readOnly = true
+      set({ loadFailed: true })
+      console.error('Could not read saved data — running read-only:', e)
+      return
+    }
+
+    // Load per-song edits. One bad record must not lose the rest.
     const allSongTitles = [
       ...DEFAULT_SONGS.map(s => s.title),
       ...(customSongsResult ?? []).map((s: Song) => s.title),
     ]
     const editsEntries = await Promise.all(
       allSongTitles.map(async title => {
-        const edits = await getSongEdits(title)
-        return edits ? ([title, edits] as const) : null
+        try {
+          const songEdits = await getSongEdits(title)
+          return songEdits ? ([title, songEdits] as const) : null
+        } catch {
+          return null
+        }
       }),
     )
     const edits: Record<string, SongEdits> = {}
@@ -374,23 +493,23 @@ export const useStore = create<StoreState>((set, get) => ({
       if (entry) edits[entry[0]] = entry[1]
     }
 
-    // Fix: if saved setlist is the old empty default, use the new default with GM songs
-    let finalSetlistData = setlistDataResult
-    if (finalSetlistData) {
-      const active = finalSetlistData.lists[finalSetlistData.activeId]
-      if (active && active.songTitles.length === 0) {
-        // Empty active setlist — reset to default
-        finalSetlistData = defaultSetlistData
-        saveSetlistData(finalSetlistData)
-      }
-    }
-
-    set({
-      ...(finalSetlistData && { setlistData: finalSetlistData }),
+    // Saved data is authoritative. Never replace it with defaults here — an
+    // empty setlist is a legitimate state (the user just made one), and
+    // overwriting it is what destroyed the setlists before the last gig.
+    readOnly = false
+    set(state => ({
+      ...(setlistDataResult && { setlistData: setlistDataResult }),
       ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
       ...(themeResult && { theme: themeResult }),
       ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
       edits,
-    })
+      loadFailed: false,
+      currentIndex: clampIndex(
+        state.currentIndex,
+        setlistDataResult
+          ? (setlistDataResult.lists[setlistDataResult.activeId]?.songTitles.length ?? 0)
+          : state.setlistData.lists[state.setlistData.activeId]?.songTitles.length ?? 0,
+      ),
+    }))
   },
 }))

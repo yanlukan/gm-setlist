@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { lookupChord } from '../../data/chords-db'
+import { shouldUseFlats, transposeText } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
 
@@ -30,7 +31,13 @@ export function DiagramsBar() {
   const uniqueChords = useMemo(() => {
     if (!song) return []
     const songEdits = edits[song.title]
-    const sections = songEdits?.sections ?? song.sections ?? []
+    const stored = songEdits?.sections ?? song.sections ?? []
+    // Show the shapes actually being played, not the ones at source pitch.
+    const semitones = songEdits?.transpose ?? 0
+    const sourceKey = songEdits?.key ?? song.key ?? ''
+    const sections = semitones
+      ? stored.map(sec => ({ ...sec, chords: transposeText(sec.chords, semitones, shouldUseFlats(sourceKey, semitones)) }))
+      : stored
     const seen = new Set<string>()
     const result: string[] = []
     for (const section of sections) {

@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData } from '../../store/persistence'
+import { RestoreModal } from '../shared/RestoreModal'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { ChordSearch } from '../search/ChordSearch'
 import { TapTempo } from '../shared/TapTempo'
@@ -16,9 +17,9 @@ export function TopBar() {
   const toggleViewMode = useStore(s => s.toggleViewMode)
   const toggleTheme = useStore(s => s.toggleTheme)
   const toggleDiagrams = useStore(s => s.toggleDiagrams)
-  const saveSections = useStore(s => s.saveSections)
-  const saveKey = useStore(s => s.saveKey)
   const resetEdits = useStore(s => s.resetEdits)
+  const setTranspose = useStore(s => s.setTranspose)
+  const restoreGigOrder = useStore(s => s.restoreGigOrder)
 
   // Primitive selectors — no method calls in selectors
   const songs = useStore(s => s.songs)
@@ -31,6 +32,7 @@ export function TopBar() {
   const [showSearch, setShowSearch] = useState(false)
   const [showTapTempo, setShowTapTempo] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [showRestore, setShowRestore] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hydrate = useStore(s => s.hydrate)
 
@@ -83,33 +85,26 @@ export function TopBar() {
     return song.key ?? ''
   }, [song, edits])
 
-  const sections = useMemo(() => {
-    if (!song) return []
-    if (edits[song.title]?.sections) return edits[song.title].sections!
-    return song.sections ?? []
-  }, [song, edits])
+  const semitones = song ? (edits[song.title]?.transpose ?? 0) : 0
 
-  const isTransposed = song ? currentKey !== song.key : false
+  // Transposing only changes an offset. The stored chart stays at source
+  // pitch, so any amount of transposing is reversible and nothing is lost.
+  const displayKey = useMemo(() => {
+    if (!semitones || !currentKey) return currentKey
+    return transposeChord(currentKey, semitones, shouldUseFlats(currentKey, semitones))
+  }, [currentKey, semitones])
 
   const transpose = useCallback(
-    (semitones: number) => {
-      if (!song || editMode) return
-      const useFlats = shouldUseFlats(currentKey, semitones)
-      const transposed = sections.map(section => ({
-        name: section.name,
-        chords: section.chords
-          .split(/(\s+)/)
-          .map(token =>
-            token.trim() === '' ? token : transposeChord(token, semitones, useFlats),
-          )
-          .join(''),
-      }))
-      const newKey = transposeChord(currentKey, semitones, useFlats)
-      saveSections(song.title, transposed)
-      saveKey(song.title, newKey)
+    (delta: number) => {
+      if (!song) return
+      setTranspose(song.title, semitones + delta)
     },
-    [song, currentKey, sections, saveSections, saveKey, editMode],
+    [song, semitones, setTranspose],
   )
+
+  const clearTranspose = useCallback(() => {
+    if (song) setTranspose(song.title, 0)
+  }, [song, setTranspose])
 
   const btnStyle: React.CSSProperties = {
     padding: '4px 10px',
@@ -126,14 +121,14 @@ export function TopBar() {
     ...btnStyle,
     background: '#4a9eff',
     color: '#fff',
-    borderColor: '#4a9eff',
+    border: '1px solid #4a9eff',
   }
 
   const dangerBtnStyle: React.CSSProperties = {
     ...btnStyle,
     background: '#e53e3e',
     color: '#fff',
-    borderColor: '#e53e3e',
+    border: '1px solid #e53e3e',
   }
 
   const groupStyle: React.CSSProperties = {
@@ -172,12 +167,22 @@ export function TopBar() {
 
           <div style={{ flex: 1 }} />
 
-          {!editMode && (
-            <div style={groupStyle}>
-              <button style={{ ...btnStyle, fontSize: 15 }} onClick={() => transpose(-1)}>-</button>
-              <button style={{ ...btnStyle, fontSize: 15 }} onClick={() => transpose(1)}>+</button>
-            </div>
-          )}
+          <div style={groupStyle}>
+            <button style={{ ...btnStyle, fontSize: 15, minWidth: 34 }} onClick={() => transpose(-1)}>&minus;</button>
+            <button
+              onClick={clearTranspose}
+              title={semitones ? 'Tap to clear transpose' : 'Transpose'}
+              style={{
+                ...btnStyle,
+                minWidth: 40,
+                fontVariantNumeric: 'tabular-nums',
+                ...(semitones !== 0 && { background: '#f59e0b', color: '#111', border: '1px solid #f59e0b', fontWeight: 700 }),
+              }}
+            >
+              {semitones > 0 ? `+${semitones}` : semitones === 0 ? '0' : semitones}
+            </button>
+            <button style={{ ...btnStyle, fontSize: 15, minWidth: 34 }} onClick={() => transpose(1)}>+</button>
+          </div>
 
           {/* Menu — contains Stage, Theme, Chords, Export/Import */}
           <div style={{ position: 'relative' }}>
@@ -224,6 +229,28 @@ export function TopBar() {
                 }}>
                   Import Backup
                 </button>
+                <button onClick={() => { setShowRestore(true); setShowMenu(false) }} style={{
+                  display: 'block', width: '100%', padding: '12px 14px',
+                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                  background: 'transparent', borderTop: '1px solid var(--badge-bg)',
+                }}>
+                  Restore a Backup&hellip;
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Rebuild this setlist as the printed GM Tribute running order? A restore point is saved first.')) {
+                      restoreGigOrder()
+                    }
+                    setShowMenu(false)
+                  }}
+                  style={{
+                    display: 'block', width: '100%', padding: '12px 14px',
+                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
+                    background: 'transparent', borderTop: '1px solid var(--badge-bg)',
+                  }}
+                >
+                  Restore GM Tribute Order
+                </button>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -246,10 +273,15 @@ export function TopBar() {
               flexWrap: 'wrap',
             }}
           >
-            <Badge>
-              Key: {currentKey}
-              {isTransposed ? ` (orig ${song.key})` : ''}
+            <Badge style={semitones !== 0 ? { background: '#f59e0b', color: '#111', fontWeight: 700 } : undefined}>
+              Key: {displayKey}
+              {semitones !== 0 ? ` (orig ${currentKey})` : ''}
             </Badge>
+            {song.lowerKey && semitones === 0 && (
+              <Badge style={{ background: '#e53e3e', color: '#fff', fontWeight: 700 }}>
+                LOWER KEY — set transpose
+              </Badge>
+            )}
             <Badge style={{ cursor: 'pointer' }} onClick={() => setShowTapTempo(true)}>{song.bpm} BPM</Badge>
             <Badge>{song.timeSignature}</Badge>
             {song.capo != null && <Badge>Capo {song.capo}</Badge>}
@@ -270,6 +302,7 @@ export function TopBar() {
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
       {showSearch && <ChordSearch onClose={() => setShowSearch(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
+      {showRestore && <RestoreModal onClose={() => setShowRestore(false)} />}
     </>
   )
 }

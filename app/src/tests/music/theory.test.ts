@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   transposeChord,
+  transposeText,
   shouldUseFlats,
   getDiatonicChords,
   getDiatonic7ths,
@@ -110,8 +111,11 @@ describe('shouldUseFlats', () => {
     expect(shouldUseFlats('Dm', 0)).toBe(true);
   });
 
-  it('returns false for C', () => {
-    expect(shouldUseFlats('C', 0)).toBe(false);
+  it('returns true for C — borrowed chords in C are written flat', () => {
+    // C has no key signature, but its non-diatonic chords are spelled Bb/Eb/Ab
+    // by convention. Spelling them A#/D#/G# on a chart is wrong and slows
+    // reading on stage.
+    expect(shouldUseFlats('C', 0)).toBe(true);
   });
 
   it('accounts for transposition', () => {
@@ -183,3 +187,21 @@ describe('getAllChordNames', () => {
     expect(chords).not.toContain('Db');
   });
 });
+
+describe('chord spelling when transposing', () => {
+  it('writes the flat seventh of C as Bb, not A#', () => {
+    // I'm Your Man down a tone: D -> C, so the bVII must read Bb.
+    const useFlats = shouldUseFlats('D', -2)
+    expect(transposeText('D  G  C  D  G  C', -2, useFlats)).toBe('C  F  Bb  C  F  Bb')
+  })
+
+  it('keeps sharp keys sharp', () => {
+    const useFlats = shouldUseFlats('C', 2)
+    expect(transposeText('C  F  G', 2, useFlats)).toBe('D  G  A')
+    expect(shouldUseFlats('C', 2)).toBe(false)
+  })
+
+  it('preserves the spacing of the chart', () => {
+    expect(transposeText('A   B     C', 1, false)).toBe('A#   C     C#')
+  })
+})

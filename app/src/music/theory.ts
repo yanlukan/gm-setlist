@@ -1,6 +1,11 @@
 const SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 const FLATS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'] as const;
-const FLAT_KEYS = new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Dm', 'Gm', 'Cm', 'Fm', 'Bbm', 'Ebm']);
+// C major and A minor have no key signature, but their borrowed chords are
+// written flat by convention (Bb, Eb, Ab), so they belong with the flat keys.
+const FLAT_KEYS = new Set([
+  'C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb',
+  'Am', 'Dm', 'Gm', 'Cm', 'Fm', 'Bbm', 'Ebm',
+]);
 const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus4', 'sus2', 'dim', 'aug', '9', 'add9', '6'] as const;
 
 // Major scale intervals and qualities
@@ -54,6 +59,18 @@ export function transposeChord(chord: string, semitones: number, useFlats: boole
   const newIndex = ((rootIndex + semitones) % 12 + 12) % 12;
   const newRoot = indexToNote(newIndex, useFlats);
   return `${newRoot}${quality}`;
+}
+
+/**
+ * Transpose every chord token in a chord line, preserving the exact runs of
+ * whitespace so the visual alignment of the chart is untouched.
+ */
+export function transposeText(text: string, semitones: number, useFlats: boolean): string {
+  if (!semitones) return text;
+  return text
+    .split(/(\s+)/)
+    .map(token => (token.trim() === '' ? token : transposeChord(token, semitones, useFlats)))
+    .join('');
 }
 
 export function shouldUseFlats(key: string, semitones: number): boolean {
