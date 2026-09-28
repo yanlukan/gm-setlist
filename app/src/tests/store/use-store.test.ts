@@ -397,6 +397,12 @@ describe('charts checked against the recordings', () => {
     expect(papa.sections.map(s => s.chords).join(' ')).not.toContain('Db')
   })
 
+  it('has Fastlove on its real groove: Ebm9 to Bbm11, chorus to Gbmaj7', () => {
+    const byName = Object.fromEntries(song('Fastlove').sections.map(s => [s.name, s.chords]))
+    expect(byName.Verse).toBe('Ebm9  Bbm11  Ebm9  Bbm11')
+    expect(byName.Chorus).toContain('Gbmaj7')
+  })
+
   it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {
     expect(song('Roxanne').bpm).toBe(82)
     expect(song('Kissing a Fool').bpm).toBe(78)

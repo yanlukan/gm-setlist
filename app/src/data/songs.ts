@@ -44,13 +44,12 @@ export const DEFAULT_SONGS: Song[] = [
     bpm: 103,
     timeSignature: '4/4',
     capo: null,
-    notes: "Loop-based groove, keep it understated. Based on Patrice Rushen 'Forget Me Nots'.",
+    notes: "Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Verse and pre-chorus sit on Ebm9 to Bbm11, the chorus on Bbm11 to Gbmaj7. The record is tuned a quarter-tone sharp, halfway between Am and Bbm; published analyses write it in Am.",
     sections: [
-      { name: 'Intro/Verse', chords: 'Bbm  Fm  Db  Ab' },
-      { name: 'Pre-Chorus', chords: 'Bbm  Bbm  Fm  Gb  Ab  Gb  Ab' },
-      { name: 'Chorus', chords: 'Ab  Bbm  Fm  Bbm  Fm  Bbm  Fm  Gb  Ab' },
-      { name: 'Bridge', chords: 'Bbm  Fm  Db  Ab' },
-      { name: 'Outro', chords: 'Bbm  Fm  Db  Ab' },
+      { name: 'Verse', chords: 'Ebm9  Bbm11  Ebm9  Bbm11' },
+      { name: 'Chorus', chords: 'Bbm11  Gbmaj7  Bbm11  Gbmaj7' },
+      { name: 'Bridge', chords: 'Ab  Bbm  Ab  Fm' },
+      { name: 'Outro', chords: 'Ab  Fm  Bbm  Bbsus2' },
     ],
   },
   {
