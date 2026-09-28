@@ -397,10 +397,17 @@ describe('charts checked against the recordings', () => {
     expect(papa.sections.map(s => s.chords).join(' ')).not.toContain('Db')
   })
 
-  it('has Fastlove on its real groove: Ebm9 to Bbm11, chorus to Gbmaj7', () => {
+  it('has Fastlove in Am, the band\'s key, on its real groove', () => {
     const byName = Object.fromEntries(song('Fastlove').sections.map(s => [s.name, s.chords]))
-    expect(byName.Verse).toBe('Ebm9  Bbm11  Ebm9  Bbm11')
-    expect(byName.Chorus).toContain('Gbmaj7')
+    expect(song('Fastlove').key).toBe('Am')
+    expect(song('Fastlove').transpose ?? 0).toBe(0) // charted in Am, not Bbm moved down
+    expect(byName.Verse).toBe('Dm9  Am11  Dm9  Am11')
+    expect(byName.Chorus).toBe('Am11  Fmaj7  Am11  Fmaj7')
+  })
+
+  it('has the Everything She Wants chorus as the guitar plays it', () => {
+    const chorus = song('Everything She Wants').sections.find(s => s.name === 'Chorus')!
+    expect(chorus.chords).toBe('F#  Bm7  E')
   })
 
   it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {

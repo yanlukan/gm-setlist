@@ -40,16 +40,16 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Fastlove',
     artist: 'George Michael',
-    key: 'Bbm',
+    key: 'Am',
     bpm: 103,
     timeSignature: '4/4',
     capo: null,
-    notes: "Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Verse and pre-chorus sit on Ebm9 to Bbm11, the chorus on Bbm11 to Gbmaj7. The record is tuned a quarter-tone sharp, halfway between Am and Bbm; published analyses write it in Am.",
+    notes: "Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Verse and pre-chorus sit on Dm9 to Am11, the chorus on Am11 to Fmaj7. Charted in Am, as the band plays it and as published analyses write it; the record itself sits a quarter-tone sharp of Am.",
     sections: [
-      { name: 'Verse', chords: 'Ebm9  Bbm11  Ebm9  Bbm11' },
-      { name: 'Chorus', chords: 'Bbm11  Gbmaj7  Bbm11  Gbmaj7' },
-      { name: 'Bridge', chords: 'Ab  Bbm  Ab  Fm' },
-      { name: 'Outro', chords: 'Ab  Fm  Bbm  Bbsus2' },
+      { name: 'Verse', chords: 'Dm9  Am11  Dm9  Am11' },
+      { name: 'Chorus', chords: 'Am11  Fmaj7  Am11  Fmaj7' },
+      { name: 'Bridge', chords: 'G  Am  G  Em' },
+      { name: 'Outro', chords: 'G  Em  Am  Asus2' },
     ],
   },
   {
@@ -220,7 +220,7 @@ export const DEFAULT_SONGS: Song[] = [
     sections: [
       { name: 'Intro', chords: 'F#sus4  F#  Bm7  E' },
       { name: 'Verse', chords: 'F#sus4  F#  Bm7  E  F#m  Bm7  E' },
-      { name: 'Chorus', chords: 'Bm  C#m  F#m' },
+      { name: 'Chorus', chords: 'F#  Bm7  E' },
       { name: 'Breakdown', chords: 'Bm7  E  F#' },
       { name: 'Outro', chords: 'E  F#' },
     ],
