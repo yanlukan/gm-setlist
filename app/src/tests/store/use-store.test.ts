@@ -314,7 +314,8 @@ describe('band keys that ship with the songs', () => {
   it("has Freedom! '90 in C, with the Cm line cliche", () => {
     const freedom = useStore.getState().allSongs().find(s => s.title === "Freedom! '90")!
     expect(freedom.key).toBe('C')
-    expect(freedom.sections.map(s => s.chords).join(' ')).toContain('Cm  Cm7  Cm6')
+    // The songbook's line cliche (no. 19)
+    expect(freedom.sections.map(s => s.chords).join(' ')).toContain('Cm  Cm(maj7)  Cm7  Cm6')
     expect(freedom.transpose ?? 0).toBe(0)
   })
 })
@@ -405,12 +406,14 @@ describe('charts checked against the recordings', () => {
     expect(song('Fastlove').key).toBe('Am')
     expect(song('Fastlove').transpose ?? 0).toBe(0) // charted in Am, not Bbm moved down
     expect(byName.Verse).toBe('Dm9  Am11  Dm9  Am11')
-    expect(byName.Chorus).toBe('Am11  Fmaj7  Am11  Fmaj7')
+    expect(byName.Chorus).toBe('Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9') // songbook no. 13
   })
 
-  it('has the Everything She Wants chorus as the guitar plays it', () => {
+  it('has the Everything She Wants chorus as the songbook writes it', () => {
+    // Songbook no. 11. It replaced the F# Bm7 E the user once gave for the
+    // chorus; the recording has the C# the book shows.
     const chorus = song('Everything She Wants').sections.find(s => s.name === 'Chorus')!
-    expect(chorus.chords).toBe('F#  Bm7  E')
+    expect(chorus.chords).toBe('F#m  Bm  C#aug  C#  F#m')
   })
 
   it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {

@@ -124,6 +124,8 @@ const SONGBOOK_VOICINGS: Record<string, ChordVoicing[]> = {
   'Bb(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 0, l: 'Open' }],
   'C(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 3, l: '3rd fret' }],
   'C6(b5)': [{ f: [null, null, 2, 2, 1, 2], s: 0, l: 'Open' }],
+  // Everything She Wants: E with both the 2nd and the 4th, no 3rd
+  'Esus24': [{ f: [null, null, 2, 2, 0, 2], s: 0, l: 'Open' }],
 }
 
 const RAW_DB = { ...buildChordDB(), ...SONGBOOK_VOICINGS }

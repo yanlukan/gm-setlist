@@ -74,6 +74,8 @@ describe('chord diagrams', () => {
     ['Bb(b5)', ['A#', 'D', 'E']],
     ['C(b5)', ['C', 'E', 'F#']],
     ['C6(b5)', ['C', 'E', 'F#', 'A']],
+    // Everything She Wants
+    ['Esus24', ['E', 'F#', 'A', 'B']],
   ])("plays %s from the songbook with exactly the chord's notes", (chord, expected) => {
     const voicings = lookupChord(chord as string, { simplify: false })
     expect(voicings).toBeDefined()
