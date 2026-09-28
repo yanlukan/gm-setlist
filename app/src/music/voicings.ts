@@ -333,3 +333,21 @@ export function bandPositions(chords: Array<{ name: string; weight: number }>, s
   })
   return picks
 }
+
+/**
+ * The frets a set of shapes covers, for showing a song's recommended area of
+ * the neck. Open strings mark it as an open-position song.
+ */
+export function fretSpan(shapes: ChordVoicing[]): { min: number; max: number; open: boolean } | null {
+  const fretted: number[] = []
+  let open = false
+  for (const v of shapes) {
+    for (const f of v.f) {
+      if (f === null) continue
+      if (f === 0) open = true
+      else fretted.push(v.s === 0 ? f : v.s + f - 1)
+    }
+  }
+  if (fretted.length === 0) return open ? { min: 0, max: 0, open } : null
+  return { min: Math.min(...fretted), max: Math.max(...fretted), open }
+}

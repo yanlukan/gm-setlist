@@ -108,6 +108,26 @@
   font-weight: 800;
   line-height: 1.15;
 }
+/* The recommended area of the neck, outlined so it never reads as the GX-10 tag */
+.chart-position {
+  font-size: max(13px, 0.36em);
+  font-weight: 700;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  border: 1px solid var(--section-chorus);
+  color: var(--section-chorus);
+  white-space: nowrap;
+}
+.songtile-position { color: var(--section-chorus); font-weight: 700; }
+.diagram-mark {
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.diagram-mark.is-recommended { color: var(--section-chorus); }
+.diagram-mark.is-own { color: var(--accent); }
 /* The GX-10 sound: a tag on the title line, never a line of its own */
 .chart-preset {
   font-size: max(14px, 0.4em);

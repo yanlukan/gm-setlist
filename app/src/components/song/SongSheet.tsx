@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
 import { voicingsFor } from '../../music/voicings'
-import { useBandPositions } from '../../hooks/use-band-positions'
+import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
 import { ChordLineEditor } from '../edit/ChordLineEditor'
@@ -59,7 +59,7 @@ export function SongSheet() {
   }, [songs, customSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
-  const band = useBandPositions(song, song ? edits[song.title] : undefined)
+  const { picks: band, span } = useBandPositions(song, song ? edits[song.title] : undefined)
 
   // Stored chords are always at the song's own pitch.
   const sections = useMemo(() => {
@@ -149,6 +149,14 @@ export function SongSheet() {
         {song.preset && (
           <span className="chart-preset" aria-label={`GX-10 sound: ${song.preset.name}`}>
             {song.preset.name}
+          </span>
+        )}
+        {span && (
+          <span
+            className="chart-position"
+            aria-label={span.open ? 'Recommended position: open position' : `Recommended position: frets ${span.min} to ${span.max}`}
+          >
+            {positionLabel(span)}
           </span>
         )}
       </div>
@@ -392,7 +400,7 @@ export function SongSheet() {
           selectedIndex={selectedVoicings[pickerChord] ?? band[pickerChord] ?? 0}
           recommendedIndex={band[pickerChord]}
           onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}
-          onUseBandPick={selectedVoicings[pickerChord] === undefined ? undefined : () => {
+          onUseRecommended={selectedVoicings[pickerChord] === undefined ? undefined : () => {
             clearVoicing(pickerChord)
             setPickerChord(null)
           }}

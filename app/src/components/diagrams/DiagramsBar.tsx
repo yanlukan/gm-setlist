@@ -35,7 +35,7 @@ export function DiagramsBar() {
   }, [allSongs, setlistData, currentIndex])
 
   // A shape picked by hand wins; otherwise the song's band shape
-  const band = useBandPositions(song, song ? edits[song.title] : undefined)
+  const band = useBandPositions(song, song ? edits[song.title] : undefined).picks
   const shapeFor = (name: string) => selectedVoicings[name] ?? band[name] ?? 0
 
   // The section tapped on the chart, if it belongs to this song
@@ -127,6 +127,11 @@ export function DiagramsBar() {
               <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                 {voicing.l}
               </span>
+              {band[name] !== undefined && shapeFor(name) === band[name] ? (
+                <span className="diagram-mark is-recommended">Recommended</span>
+              ) : selectedVoicings[name] !== undefined ? (
+                <span className="diagram-mark is-own">Your pick</span>
+              ) : null}
             </div>
           )
         })}
@@ -141,7 +146,7 @@ export function DiagramsBar() {
             selectVoicing(pickerChord, index)
             setPickerChord(null)
           }}
-          onUseBandPick={selectedVoicings[pickerChord] === undefined ? undefined : () => {
+          onUseRecommended={selectedVoicings[pickerChord] === undefined ? undefined : () => {
             clearVoicing(pickerChord)
             setPickerChord(null)
           }}

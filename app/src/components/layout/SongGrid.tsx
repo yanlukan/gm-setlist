@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { formatLength, playedKey, setLength } from '../../music/setlist-text'
+import { bandPlanFor, positionLabel } from '../../hooks/use-band-positions'
 import type { Song } from '../../types'
 
 interface SongGridProps {
@@ -17,6 +18,8 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
   const currentIndex = useStore(s => s.currentIndex)
   const goToSong = useStore(s => s.goToSong)
   const edits = useStore(s => s.edits)
+  // Each song's recommended area of the neck, worked out once per open
+  const positions = useMemo(() => songs.map(song => positionLabel(bandPlanFor(song, edits[song.title]).span)), [songs, edits])
   const setlistName = useStore(s => s.setlistData.lists[s.setlistData.activeId]?.name ?? 'Setlist')
   const currentRef = useRef<HTMLButtonElement>(null)
 
@@ -46,6 +49,7 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
         <div className="songgrid">
           {songs.map((song, i) => {
             const { key, semitones } = playedKey(song, edits[song.title])
+            const position = positions[i]
             const isCurrent = i === currentIndex
 
             return (
@@ -69,6 +73,9 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
                       <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
                     )}
                     {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
+                    {position && (
+                      <span className="songtile-position" aria-label={`Recommended position: ${position}`}>{position}</span>
+                    )}
                   </span>
                 </span>
               </button>

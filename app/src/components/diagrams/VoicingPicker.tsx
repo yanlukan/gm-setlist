@@ -6,15 +6,15 @@ import { ChordDiagram } from './ChordDiagram'
 interface VoicingPickerProps {
   chord: string
   selectedIndex: number
-  /** The shape chosen for this song's position on the neck. */
+  /** The recommended shape for this song. */
   recommendedIndex?: number
   onSelect: (index: number) => void
-  /** Present when a shape was picked by hand: go back to the band shapes. */
-  onUseBandPick?: () => void
+  /** Present when a shape was picked by hand: go back to the recommended one. */
+  onUseRecommended?: () => void
   onClose: () => void
 }
 
-export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect, onUseBandPick, onClose }: VoicingPickerProps) {
+export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect, onUseRecommended, onClose }: VoicingPickerProps) {
   const voicings = voicingsFor(chord)
   const selectedRef = useRef<HTMLDivElement>(null)
 
@@ -54,18 +54,18 @@ export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect
         </div>
 
         <p style={{ margin: '0 0 12px', fontSize: 13, color: '#888' }}>
-          The band pick suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in every song.
+          The recommended shape suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in every song.
         </p>
-        {onUseBandPick && (
+        {onUseRecommended && (
           <button
-            onClick={onUseBandPick}
+            onClick={onUseRecommended}
             style={{
               display: 'block', width: '100%', marginBottom: 12, padding: '10px 12px', borderRadius: 8,
               border: '1px solid #3b82f6', background: 'transparent', color: '#3b82f6', fontSize: 14, fontWeight: 600,
               cursor: 'pointer',
             }}
           >
-            Use the band pick again
+            Use the recommended shape
           </button>
         )}
         <div
@@ -81,7 +81,7 @@ export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect
               key={i}
               ref={i === selectedIndex ? selectedRef : undefined}
               role="button"
-              aria-label={`${chord} at ${voicing.l}${i === recommendedIndex ? ', band pick' : ''}${i === selectedIndex ? ', selected' : ''}`}
+              aria-label={`${chord} at ${voicing.l}${i === recommendedIndex ? ', recommended' : ''}${i === selectedIndex ? ', selected' : ''}`}
               onClick={() => onSelect(i)}
               style={{
                 display: 'flex',
@@ -100,7 +100,7 @@ export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect
               </span>
               {i === recommendedIndex && (
                 <span style={{ fontSize: 9, color: '#4ade80', marginTop: 2, fontWeight: 700 }}>
-                  Band pick
+                  Recommended
                 </span>
               )}
               {i === selectedIndex && (
