@@ -73,13 +73,13 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 231, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "Opens with percussive palm-muted 'Jitterbug' vamp. Straight 8th strums throughout.",
+    notes: 'Built from two published charts and Hooktheory, checked against the recording. Opens with a palm-muted vamp; straight eighths throughout. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Bridge, Chorus, Outro.',
     sections: [
       { name: 'Intro', chords: 'C' },
       { name: 'Verse', chords: 'C  Dm  C  Dm  C  Dm' },
-      { name: 'Pre-Chorus', chords: 'Dm  Em  F  Em  Dm  Em  F  G' },
-      { name: 'Chorus', chords: 'C  Dm  C  Dm  C  Dm  G  F  C' },
-      { name: 'Bridge', chords: 'Am  Bm  C  D' },
+      { name: 'Pre-Chorus', chords: 'Em  F  Em  Dm  Em  F  G' },
+      { name: 'Chorus', chords: 'C  Dm  C  Dm  C  Dm  C' },
+      { name: 'Bridge', chords: 'Dm  Em  F  Em  Dm  Em  F  G' },
       { name: 'Outro', chords: 'C  Dm  C' },
     ],
   },
@@ -94,13 +94,13 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Keyboard-driven production, guitar doubles synth lines.',
+    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. Form: Intro, Verse twice, Pre-Chorus, Chorus twice, Verse, Pre-Chorus, then the Chorus repeated to the end. Keyboard-driven production; guitar doubles synth lines.",
     sections: [
-      { name: 'Intro', chords: 'Bbm  Gb  Bbm  Gb  Bbm  Gb' },
-      { name: 'Verse', chords: 'Bbm  Gb  Bbm  Gb  Bbm  Gb' },
-      { name: 'Pre-Chorus', chords: 'Ebm  Bbm  Ab  Ebm  Gb  Ab' },
-      { name: 'Chorus', chords: 'Bbm  Gb  Ab  Gb  Ab  Bbm  Gb  Ab  Gb  Ab  Bbm' },
-      { name: 'Outro', chords: 'Gb  Ab  Gb  Ab  Bbm' },
+      { name: 'Intro', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7' },
+      { name: 'Verse', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7  (x2)' },
+      { name: 'Pre-Chorus', chords: 'Ebm7  Bbm7  Ab  Ebm7  Gb  Ab' },
+      { name: 'Chorus', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x2)' },
+      { name: 'Outro', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x4)' },
     ],
   },
   {
@@ -269,13 +269,15 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Same four-chord loop throughout.',
+    notes: "Built from Hooktheory's analysis and published charts, checked bar by bar against the recording: the chorus is the same pair of chords that one published chart writes as a major seventh and a sixth. Form: Intro, Chorus, Verse, Chorus, Verse 2, Chorus, Instrumental, Verse 2, a two-bar break, Chorus, Outro to fade.",
     sections: [
-      { name: 'Intro', chords: 'E  F#m7  B  D#m7' },
-      { name: 'Verse', chords: 'E  F#m7  B  D#m7' },
-      { name: 'Chorus', chords: 'E  F#m7  B  D#m7' },
-      { name: 'Instrumental', chords: 'E  F#m7  B  D#m7' },
-      { name: 'Outro', chords: 'E  F#m7  B  D#m7' },
+      { name: 'Intro', chords: 'F#  E  B  E  B' },
+      { name: 'Chorus', chords: 'B  D#m7  B  D#m7  B  D#m7  B  D#m7' },
+      { name: 'Verse', chords: 'F#m7  Emaj7  F#m7  Emaj7  F#m7  Emaj7  F#m7  B' },
+      { name: 'Verse 2', chords: 'F#m7  B7  E  F#m7  B7  E  F#m7  B' },
+      { name: 'Instrumental', chords: 'E  B  E  B  E  B  E  B' },
+      { name: 'Break', chords: 'Amaj7' },
+      { name: 'Outro', chords: 'F#m7  E  B  (x4)' },
     ],
   },
   {
@@ -412,13 +414,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 267, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Four chords all the way through: D  Bm  Em  A6. Keep the strumming light and let the sleigh-bell groove carry it.',
+    notes: "Built from Hooktheory's analysis and two published charts, checked against the recording: one progression all the way through, two bars per chord. The record's synths colour it Dadd9, Bm7 and Em7 with an added 4th, and A with an added 6th; plain chords are fine on guitar. Keep the strumming light and let the sleigh-bell groove carry it. The record ends on D.",
     sections: [
-      { name: 'Intro', chords: 'D  Bm  Em  A6' },
-      { name: 'Verse', chords: 'D  Bm  Bm7  Em  A/E  A6' },
-      { name: 'Chorus', chords: 'D  Bm  Em  A6  D  Bm  Em  A6' },
-      { name: 'Bridge', chords: 'D  Bm  Bm7  Em  A/E  D/E  A' },
-      { name: 'Outro', chords: 'D  Bm  Em  A6  Daug' },
+      { name: 'Intro', chords: 'D  Bm7  Em7  A' },
+      { name: 'Verse', chords: 'D  Bm7  Em7  A  (x2)' },
+      { name: 'Chorus', chords: 'D  Bm7  Em7  A  (x2)' },
+      { name: 'Outro', chords: 'D  Bm7  Em7  A  D' },
     ],
   },
 ]

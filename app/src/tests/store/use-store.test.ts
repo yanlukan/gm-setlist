@@ -296,7 +296,7 @@ describe('band keys that ship with the songs', () => {
     const s = useStore.getState()
     expect(s.getTranspose('Amazing')).toBe(-1)
     expect(s.getDisplayKey('Amazing')).toBe('Am')
-    expect(s.getDisplaySections('Amazing')[0].chords.split(/\s+/)[0]).toBe('Am')
+    expect(s.getDisplaySections('Amazing')[0].chords.split(/\s+/)[0]).toBe('Am7')
   })
 
   it("lets the player's own transpose win over the band key", () => {
@@ -356,7 +356,8 @@ describe('Club Tropicana', () => {
   it('is played in A, two semitones under the chart', () => {
     const s = useStore.getState()
     expect(s.getDisplayKey('Club Tropicana')).toBe('A')
-    expect(s.getDisplaySections('Club Tropicana')[0].chords).toBe('D  Em7  A  C#m7')
+    const chorus = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Chorus')!
+    expect(chorus.chords).toBe('A  C#m7  A  C#m7  A  C#m7  A  C#m7')
   })
 })
 
