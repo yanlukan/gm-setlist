@@ -195,12 +195,22 @@
 .songnav-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .songnav-num { flex-shrink: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .songnav-arrow { flex-shrink: 0; font-size: 18px; }
+.songnav-key {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(127, 127, 127, 0.22);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
 
 @media (max-width: 500px) {
   /* Phones: give the song titles the room, drop the numbers. */
   .songnav { gap: 6px; padding-left: 8px; padding-right: 8px; }
   .songnav-btn { padding: 0 10px; font-size: 15px; gap: 6px; }
   .songnav-num { display: none; }
+  .songnav-key { display: none; }
   .songnav-list { padding: 0 12px; }
 }
 

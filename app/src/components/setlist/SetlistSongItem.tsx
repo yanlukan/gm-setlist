@@ -61,7 +61,7 @@ export function SetlistSongItem({ songTitle, index, setlistId, isCurrent, onSele
                 <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
               )}
               {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
-              <span>{song.bpm} BPM</span>
+              <span>{songEdits?.bpm ?? song.bpm} BPM</span>
               <span>{song.timeSignature}</span>
             </>
           ) : (

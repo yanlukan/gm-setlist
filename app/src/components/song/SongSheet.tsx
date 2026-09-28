@@ -24,6 +24,7 @@ export function SongSheet() {
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
   const editMode = useStore(s => s.editMode)
+  const onStage = useStore(s => s.viewMode === 'stage')
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
   const saveSections = useStore(s => s.saveSections)
@@ -151,10 +152,11 @@ export function SongSheet() {
     return renderEditor(song, banners)
   }
 
-  // Tappable chords open the voicing picker
+  // Tappable chords open the voicing picker — except on stage, where a brushed
+  // chord must not throw a pop-up over the chart mid-song.
   const renderChords = (text: string) =>
     text.split(/(\s+)/).map((token, i) => {
-      if (!token.trim()) return <span key={i}>{token}</span>
+      if (!token.trim() || onStage) return <span key={i}>{token}</span>
       const has = lookupChord(token)
       if (!has) return <span key={i}>{token}</span>
       return (
@@ -201,8 +203,8 @@ export function SongSheet() {
     }
 
     const smallBtn: React.CSSProperties = {
-      padding: '4px 8px', fontSize: 14, background: 'transparent',
-      border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+      minWidth: 36, minHeight: 36, fontSize: 16, borderRadius: 8,
+      background: 'var(--badge-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
     }
 
     return (
@@ -219,12 +221,19 @@ export function SongSheet() {
                 padding: '4px 0', borderBottom: '1px solid var(--badge-bg)',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
-                {i > 0 && <button onClick={() => moveSection(i, -1)} style={smallBtn}>{'▲'}</button>}
-                {i < sections.length - 1 && <button onClick={() => moveSection(i, 1)} style={smallBtn}>{'▼'}</button>}
-                {sections.length > 1 && (
-                  <button onClick={() => deleteSection(i)} style={{ ...smallBtn, color: '#ef4444' }}>&times;</button>
-                )}
+              <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignSelf: 'center' }}>
+                <button onClick={() => moveSection(i, -1)} style={smallBtn} disabled={i === 0}
+                  aria-label={`Move ${section.name} up`}>▲</button>
+                <button onClick={() => moveSection(i, 1)} style={smallBtn} disabled={i === sections.length - 1}
+                  aria-label={`Move ${section.name} down`}>▼</button>
+                <button
+                  onClick={() => {
+                    if (sections.length > 1 && confirm(`Delete the ${section.name} section?`)) deleteSection(i)
+                  }}
+                  style={{ ...smallBtn, color: '#ef4444' }}
+                  disabled={sections.length <= 1}
+                  aria-label={`Delete ${section.name}`}
+                >&times;</button>
               </div>
 
               <EditableText

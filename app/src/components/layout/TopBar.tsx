@@ -83,6 +83,8 @@ export function TopBar() {
   }, [song, edits])
 
   const semitones = song ? (edits[song.title]?.transpose ?? 0) : 0
+  // Tap Tempo saves into edits; show that, not the tempo in the song data.
+  const bpm = song ? (edits[song.title]?.bpm ?? song.bpm) : 0
 
   // Transposing only changes an offset. The stored chart stays at source
   // pitch, so any amount of transposing is reversible and nothing is lost.
@@ -154,7 +156,7 @@ export function TopBar() {
               {song.lowerKey && semitones === 0 && (
                 <span className="tb-badge is-danger">LOWER KEY — set transpose</span>
               )}
-              <button className="tb-badge" onClick={() => setShowTapTempo(true)}>{song.bpm} BPM</button>
+              <button className="tb-badge" onClick={() => setShowTapTempo(true)} aria-label="Tap tempo">{bpm} BPM</button>
               <span className="tb-badge">{song.timeSignature}</span>
               {song.capo != null && <span className="tb-badge">Capo {song.capo}</span>}
             </>

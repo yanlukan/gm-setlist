@@ -14,6 +14,7 @@ export function DiagramsBar() {
   const currentIndex = useStore(s => s.currentIndex)
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
+  const onStage = useStore(s => s.viewMode === 'stage')
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
 
@@ -76,16 +77,16 @@ export function DiagramsBar() {
           return (
             <div
               key={name}
-              onClick={() => setPickerChord(name)}
+              onClick={onStage ? undefined : () => setPickerChord(name)}
               style={{
                 flexShrink: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                cursor: 'pointer',
+                cursor: onStage ? 'default' : 'pointer',
                 padding: 4,
                 borderRadius: 6,
-                background: 'rgba(255,255,255,0.05)',
+                background: 'var(--diagram-tile)',
               }}
             >
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>

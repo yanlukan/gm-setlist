@@ -25,12 +25,12 @@ export function TapTempo({ open, onClose }: Props) {
     return setlist[currentIndex]
   }, [songs, customSongs, setlistData, currentIndex, edits])
 
-  const [bpm, setBpm] = useState(currentSong?.bpm ?? 120)
+  const [bpm, setBpm] = useState((currentSong ? (edits[currentSong.title]?.bpm ?? currentSong.bpm) : 120))
   const tapsRef = useRef<number[]>([])
 
   useEffect(() => {
     if (open) {
-      setBpm(currentSong?.bpm ?? 120)
+      setBpm((currentSong ? (edits[currentSong.title]?.bpm ?? currentSong.bpm) : 120))
       tapsRef.current = []
     }
   }, [open, currentSong])

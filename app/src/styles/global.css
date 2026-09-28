@@ -28,6 +28,26 @@ body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
+  /* No iOS "Copy / Look Up" pop-up from a long press on the chart */
+  -webkit-touch-callout: none;
+}
+
+html {
+  /* No double-tap zoom: a stray double tap mid-song must not zoom the page */
+  touch-action: manipulation;
+}
+
+/*
+ * Editable fields must opt back in to text selection. iOS can refuse to
+ * place a caret or show the keyboard in a contenteditable whose ancestors
+ * have user-select: none, which the body sets for the stage view.
+ */
+[contenteditable]:not([contenteditable="false"]),
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 #root {
@@ -52,6 +72,11 @@ button {
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 input, select {

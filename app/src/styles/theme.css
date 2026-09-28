@@ -15,6 +15,8 @@
   --section-intro: #888888;
   --section-default: #888888;
   --border: #333333;
+  --diagram-line: #555555;
+  --diagram-tile: rgba(255, 255, 255, 0.05);
 }
 
 body.light {
@@ -25,6 +27,15 @@ body.light {
   --edit-border: #d97706;
   --picker-bg: #f3f4f6;
   --border: #d1d5db;
+  --diagram-line: #9ca3af;
+  --diagram-tile: #f3f4f6;
+  /* Darker section colours: the dark-theme pastels are unreadable on white */
+  --section-verse: #1d4ed8;
+  --section-chorus: #15803d;
+  --section-bridge: #c2410c;
+  --section-prechorus: #7e22ce;
+  --section-intro: #6b7280;
+  --section-default: #6b7280;
 }
 
 body.stage {
@@ -40,4 +51,6 @@ body.stage {
   --section-intro: #cccccc;
   --section-default: #cccccc;
   --border: #222222;
+  --diagram-line: #444444;
+  --diagram-tile: rgba(255, 255, 255, 0.06);
 }

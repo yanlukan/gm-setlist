@@ -25,7 +25,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           y1={padding.top + i * fretSpacing}
           x2={padding.left + gridW}
           y2={padding.top + i * fretSpacing}
-          stroke="#555"
+          style={{ stroke: 'var(--diagram-line)' }}
           strokeWidth={1}
         />
       ))}
@@ -38,7 +38,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           y1={padding.top}
           x2={padding.left + i * stringSpacing}
           y2={padding.top + gridH}
-          stroke="#555"
+          style={{ stroke: 'var(--diagram-line)' }}
           strokeWidth={1}
         />
       ))}
@@ -50,7 +50,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           y1={padding.top}
           x2={padding.left + gridW}
           y2={padding.top}
-          stroke="#fff"
+          style={{ stroke: 'var(--text)' }}
           strokeWidth={3}
         />
       ) : (
@@ -58,7 +58,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
           x={padding.left - 6}
           y={padding.top + fretSpacing * 0.5}
           textAnchor="end"
-          fill="#aaa"
+          style={{ fill: 'var(--text-muted)' }}
           fontSize={9}
           dominantBaseline="central"
         >
@@ -78,7 +78,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
               x={cx}
               y={padding.top - 7}
               textAnchor="middle"
-              fill="#aaa"
+              style={{ fill: 'var(--text-muted)' }}
               fontSize={10}
               dominantBaseline="auto"
             >
@@ -96,7 +96,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
               cy={padding.top - 7}
               r={circleR * 0.7}
               fill="none"
-              stroke="#fff"
+              style={{ stroke: 'var(--text)' }}
               strokeWidth={1.5}
             />
           )
@@ -109,7 +109,7 @@ export function ChordDiagram({ voicing, size = 120 }: ChordDiagramProps) {
             cx={cx}
             cy={padding.top + (fret - 0.5) * fretSpacing}
             r={circleR}
-            fill="#fff"
+            style={{ fill: 'var(--text)' }}
           />
         )
       })}

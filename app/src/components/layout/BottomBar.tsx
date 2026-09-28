@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store/use-store'
+import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { SongGrid } from './SongGrid'
 import type { Song } from '../../types'
 
@@ -13,6 +14,7 @@ export function BottomBar() {
   const customSongs = useStore(s => s.customSongs)
   const setlistData = useStore(s => s.setlistData)
   const currentIndex = useStore(s => s.currentIndex)
+  const edits = useStore(s => s.edits)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const [gridOpen, setGridOpen] = useState(false)
@@ -29,6 +31,15 @@ export function BottomBar() {
   const total = setlistSongs.length
   const prev = currentIndex > 0 ? setlistSongs[currentIndex - 1] : undefined
   const next = currentIndex < total - 1 ? setlistSongs[currentIndex + 1] : undefined
+
+  // The key the next song will actually be played in, so you can get ready for it.
+  const nextKey = useMemo(() => {
+    if (!next) return ''
+    const baseKey = edits[next.title]?.key ?? next.key
+    const semitones = edits[next.title]?.transpose ?? 0
+    if (!semitones || !baseKey) return baseKey
+    return transposeChord(baseKey, semitones, shouldUseFlats(baseKey, semitones))
+  }, [next, edits])
 
   return (
     <>
@@ -67,6 +78,7 @@ export function BottomBar() {
             <>
               <span className="songnav-num">{currentIndex + 2}.</span>
               <span className="songnav-title">{next.title}</span>
+              {nextKey && <span className="songnav-key">{nextKey}</span>}
             </>
           ) : (
             <span className="songnav-title">End of set</span>
