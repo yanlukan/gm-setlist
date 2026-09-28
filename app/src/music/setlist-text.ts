@@ -38,5 +38,24 @@ export function formatSetlist(name: string, songs: Song[], edits: Record<string,
         : key
     return `${i + 1}. ${song.title} (${detail})`
   })
-  return [name, '', ...lines].join('\n')
+  const length = setLength(songs)
+  const summary = `${songs.length} songs` + (length ? `, about ${length} by the recordings` : '')
+  return [name, summary, '', ...lines].join('\n')
+}
+
+/** 283 -> "4:43" */
+export function formatLength(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`
+}
+
+/**
+ * Total running time of the recordings, e.g. "1 h 39 m". Songs without a
+ * known length are left out and the total gets a "+" so it never looks exact.
+ */
+export function setLength(songs: Song[]): string {
+  const known = songs.filter(s => typeof s.duration === 'number')
+  if (known.length === 0) return ''
+  const total = Math.round(known.reduce((sum, s) => sum + (s.duration ?? 0), 0) / 60)
+  const text = total >= 60 ? `${Math.floor(total / 60)} h ${total % 60} m` : `${total} m`
+  return known.length < songs.length ? text + '+' : text
 }

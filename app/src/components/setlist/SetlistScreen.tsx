@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useStore } from '../../store/use-store'
 import { SetlistSongItem } from './SetlistSongItem'
-import { formatSetlist } from '../../music/setlist-text'
+import { formatSetlist, setLength } from '../../music/setlist-text'
 import { shareText } from '../../utils/share'
 import { AddSongPicker } from './AddSongPicker'
 import type { Song } from '../../types'
@@ -129,7 +129,7 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
 
       <div className="sl-actions">
         <span className="sl-hint">
-          {songTitles.length} songs &middot; hold &#9776; and drag to reorder
+          {songTitles.length} songs{setLength(resolved) ? ` · about ${setLength(resolved)}` : ''} &middot; hold &#9776; and drag to reorder
         </span>
         <button className="tb-btn" onClick={handleShare} disabled={resolved.length === 0}>Share</button>
         <button className="tb-btn" onClick={() => duplicateSetlist(activeId)}>Duplicate</button>

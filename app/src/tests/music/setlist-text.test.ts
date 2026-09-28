@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatSetlist, playedKey } from '../../music/setlist-text'
+import { formatSetlist, playedKey, formatLength, setLength } from '../../music/setlist-text'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
 
 const inGigOrder = GIG_SETLIST_2026.map(t => DEFAULT_SONGS.find(s => s.title === t)!)
@@ -21,9 +21,10 @@ describe('formatSetlist', () => {
     const text = formatSetlist('GM Tribute', inGigOrder, {})
     const lines = text.split('\n')
     expect(lines[0]).toBe('GM Tribute')
-    expect(lines[2]).toBe('1. Faith (B)')
-    expect(lines[19]).toBe('18. Roxanne (Bm)')
-    expect(lines).toHaveLength(2 + 21)
+    expect(lines[1]).toBe('21 songs, about 1 h 39 m by the recordings')
+    expect(lines[3]).toBe('1. Faith (B)')
+    expect(lines[20]).toBe('18. Roxanne (Bm)')
+    expect(lines).toHaveLength(3 + 21)
   })
 
   it('flags a lower-key song whose key is not settled yet', () => {
@@ -52,5 +53,26 @@ describe('band keys in the shared setlist', () => {
     const text = formatSetlist('GM', inGigOrder, {})
     expect(text).toContain('4. Amazing (Am, orig. Bbm)')
     expect(text).not.toContain('4. Amazing (Bbm, lower key TBC)')
+  })
+})
+
+describe('song and set lengths', () => {
+  it('formats a song length as minutes and seconds', () => {
+    expect(formatLength(283)).toBe('4:43')
+    expect(formatLength(147)).toBe('2:27')
+    expect(formatLength(60)).toBe('1:00')
+  })
+
+  it('totals the September set from the recordings', () => {
+    expect(setLength(inGigOrder)).toBe('1 h 39 m')
+  })
+
+  it('marks a total as incomplete when a song has no known length', () => {
+    const withNew = [...inGigOrder, { ...inGigOrder[0], title: 'Encore', duration: undefined }]
+    expect(setLength(withNew)).toBe('1 h 39 m+')
+  })
+
+  it('has a recording length for every song in the set', () => {
+    expect(inGigOrder.filter(s => !s.duration).map(s => s.title)).toEqual([])
   })
 })

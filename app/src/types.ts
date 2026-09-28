@@ -32,6 +32,8 @@ export interface Song {
    * "we play it lower" key ship with the song instead of living on one iPad.
    */
   transpose?: number
+  /** Length of the reference recording in seconds, for planning set length. */
+  duration?: number
 }
 
 export interface SongEdits {

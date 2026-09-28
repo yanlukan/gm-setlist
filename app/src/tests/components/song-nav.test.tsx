@@ -81,3 +81,12 @@ describe('all-songs grid', () => {
     expect(careless()).toHaveTextContent('LOWER KEY')
   })
 })
+
+describe('set timing in the all-songs grid', () => {
+  it('shows the total running time and each song length', () => {
+    render(<BottomBar />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show all songs' }))
+    expect(screen.getByText(/21 songs · about 1 h 39 m/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Waiting \(Reprise\)/ })).toHaveTextContent('2:27')
+  })
+})

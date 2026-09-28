@@ -6,6 +6,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'B',
     bpm: 96,
+    duration: 192, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Iconic fingerpicked intro riff on Telecaster. Recording is slightly sharp (~446Hz).',
@@ -26,6 +27,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'D',
     bpm: 132,
+    duration: 243, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Synth-driven — guitar plays percussive rhythm stabs with fills.',
@@ -42,6 +44,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Am',
     bpm: 103,
+    duration: 327, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: "Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Verse and pre-chorus sit on Dm9 to Am11, the chorus on Am11 to Fmaj7. Charted in Am, as the band plays it and as published analyses write it; the record itself sits a quarter-tone sharp of Am.",
@@ -60,6 +63,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Wham!',
     key: 'C',
     bpm: 82,
+    duration: 231, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: "Opens with percussive palm-muted 'Jitterbug' vamp. Straight 8th strums throughout.",
@@ -79,6 +83,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Bbm',
     bpm: 128,
+    duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Keyboard-driven production, guitar doubles synth lines.',
@@ -95,6 +100,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Gm',
     bpm: 122,
+    duration: 283, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Gm9 to C6 groove throughout: jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm and turns back into the groove on Dsus4. Ends on the groove, fading.',
@@ -112,6 +118,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'The Temptations (cover)',
     key: 'Bbm',
     bpm: 122,
+    duration: 255, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Killer runs about 80 seconds on a Bb to Eb vamp, then the medley drops into Papa in Bbm. Papa grooves between Ebm7 and Bbm, turns around on Fm7 and Eb, vamps on Eb7 to Bbm, and has long stretches on Bbm alone. Ends Gb to Fm. Built from the Five Live recording.',
@@ -128,6 +135,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Bb',
     bpm: 103,
+    duration: 340, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Bb Mixolydian feel \u2014 the Ab (bVII) gives it that soulful quality. Keyboard-driven, play with restraint.',
@@ -145,6 +153,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'C',
     bpm: 92,
+    duration: 389, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Mixolydian groove: C to Bb to F (I, bVII, IV). Verses move to C, G, F; the pre-chorus is a Cm line cliche down to G. Long intro: the first chorus arrives nearly 2 minutes in.',
@@ -163,6 +172,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'C#m',
     bpm: 87,
+    duration: 411, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Lush jazz-influenced harmony with sus and add9 chords.',
@@ -181,6 +191,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Gb',
     bpm: 100,
+    duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Sparse and atmospheric, best fingerpicked.',
@@ -196,6 +207,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Dm',
     bpm: 98,
+    duration: 225, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Tight muted funk comping. Synth/piano-driven \u2014 guitar is supporting role.',
@@ -214,6 +226,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Wham!',
     key: 'F#m',
     bpm: 115,
+    duration: 393, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Synth-driven. F#sus4 voicing essential for intro feel. Verse alternates major/minor F#.',
@@ -232,6 +245,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Wham!',
     key: 'B',
     bpm: 117,
+    duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Same E\u2013F#m7\u2013B\u2013D#m7 loop throughout.',
@@ -250,6 +264,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Queen (cover)',
     key: 'G',
     bpm: 110,
+    duration: 319, // recording length, for set timing
     timeSignature: '6/8',
     capo: null,
     notes: 'Gospel 6/8 shuffle feel, NOT straight 4/4. George Michael sang it in G at the 1992 Freddie Mercury Tribute, a semitone below the Queen original in Ab (checked against the Five Live recording).',
@@ -271,6 +286,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Dm',
     bpm: 77,
+    duration: 300, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Same 4-chord loop throughout entire song. BPM is 77, not 153 (double-time misread). Sax line is essential.',
@@ -289,6 +305,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Bonnie Raitt (cover)',
     key: 'G',
     bpm: 58,
+    duration: 321, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
@@ -307,6 +324,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'The Police (GM version)',
     key: 'Bm',
     bpm: 82,
+    duration: 251, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
@@ -326,6 +344,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'G',
     bpm: 72,
+    duration: 147, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     cue: 'ACOUSTIC GUITAR + VOCAL ONLY — no band.',
@@ -343,6 +362,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'George Michael',
     key: 'Eb',
     bpm: 78,
+    duration: 275, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     cue: 'Jazz ballad — clean tone, comping only. Watch the Edim and Abm6 passing chords.',
@@ -360,6 +380,7 @@ export const DEFAULT_SONGS: Song[] = [
     artist: 'Wham!',
     key: 'D',
     bpm: 108,
+    duration: 267, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
     notes: 'Four chords all the way through: D  Bm  Em  A6. Keep the strumming light and let the sleigh-bell groove carry it.',

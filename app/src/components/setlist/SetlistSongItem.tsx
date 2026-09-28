@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../store/use-store'
-import { playedKey } from '../../music/setlist-text'
+import { formatLength, playedKey } from '../../music/setlist-text'
 
 interface SetlistSongItemProps {
   songTitle: string
@@ -59,6 +59,7 @@ export function SetlistSongItem({ songTitle, index, setlistId, isCurrent, onSele
               {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
               <span>{songEdits?.bpm ?? song.bpm} BPM</span>
               <span>{song.timeSignature}</span>
+              {song.duration && <span>{formatLength(song.duration)}</span>}
             </>
           ) : (
             <span className="chip chip-warn">Song not found — it will be skipped</span>

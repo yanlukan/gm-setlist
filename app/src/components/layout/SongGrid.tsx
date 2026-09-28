@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../../store/use-store'
-import { playedKey } from '../../music/setlist-text'
+import { formatLength, playedKey, setLength } from '../../music/setlist-text'
 import type { Song } from '../../types'
 
 interface SongGridProps {
@@ -36,7 +36,9 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
     <div className="songgrid-screen" role="dialog" aria-modal="true" aria-label="All songs">
       <div className="songgrid-header">
         <div className="songgrid-title">{setlistName}</div>
-        <div className="songgrid-count">{songs.length} songs</div>
+        <div className="songgrid-count">
+          {songs.length} songs{setLength(songs) ? ` · about ${setLength(songs)}` : ''}
+        </div>
         <button className="songgrid-close" onClick={onClose}>Close</button>
       </div>
 
@@ -62,6 +64,7 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
                   <span className="songtile-title">{song.title}</span>
                   <span className="songtile-meta">
                     {key && <span>{key}</span>}
+                    {song.duration && <span>{formatLength(song.duration)}</span>}
                     {semitones !== 0 && (
                       <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
                     )}
