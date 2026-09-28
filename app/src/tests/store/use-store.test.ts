@@ -371,3 +371,34 @@ describe('Outside', () => {
     expect(byName.Bridge).toBeUndefined()         // the chorus was mislabelled Bridge
   })
 })
+
+describe('charts checked against the recordings', () => {
+  const song = (title: string) => useStore.getInitialState().allSongs().find(s => s.title === title)!
+  const first = (title: string) => song(title).sections[0].chords.split(/\s+/)[0]
+
+  it('has Somebody to Love in G, as George Michael sang it with Queen', () => {
+    expect(song('Somebody to Love').key).toBe('G')
+    expect(first('Somebody to Love')).toBe('G')
+  })
+
+  it("has I Can't Make You Love Me in G, George Michael's key, not Bonnie Raitt's Bb", () => {
+    expect(song("I Can't Make You Love Me").key).toBe('G')
+    expect(song("I Can't Make You Love Me").bpm).toBe(58)
+  })
+
+  it('has A Different Corner chords in its own key of Gb', () => {
+    expect(song('A Different Corner').key).toBe('Gb')
+    expect(first('A Different Corner')).toBe('Gb')
+  })
+
+  it('has the Killer / Papa medley, opening with Killer', () => {
+    const papa = song('Papa Was a Rolling Stone')
+    expect(papa.sections[0]).toEqual({ name: 'Killer', chords: 'Bb  Eb  Bb  Eb' })
+    expect(papa.sections.map(s => s.chords).join(' ')).not.toContain('Db')
+  })
+
+  it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {
+    expect(song('Roxanne').bpm).toBe(82)
+    expect(song('Kissing a Fool').bpm).toBe(78)
+  })
+})
