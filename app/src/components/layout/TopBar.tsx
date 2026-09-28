@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
-import { exportAllData, importAllData } from '../../store/persistence'
+import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
 import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
 import { shareFile } from '../../utils/share'
@@ -65,6 +65,8 @@ export function TopBar() {
     if (!file) return
     try {
       const json = await file.text()
+      // Importing replaces everything, so keep a way back first.
+      await takeSnapshot('before import')
       await importAllData(json)
       await hydrate()
       setShowMenu(false)
@@ -203,7 +205,7 @@ export function TopBar() {
                 <button className="menu-item" onClick={handleExport}>Export Backup</button>
                 {viewMode !== 'stage' && (
                   <>
-                    <button className="menu-item" onClick={() => fileInputRef.current?.click()}>Import Backup</button>
+                    <button className="menu-item" onClick={menuAction(() => fileInputRef.current?.click())}>Import Backup</button>
                     <button className="menu-item" onClick={menuAction(() => setShowRestore(true))}>
                       Restore a Backup&hellip;
                     </button>
@@ -222,19 +224,20 @@ export function TopBar() {
                 <div className="menu-foot">
                   PlayBook v{APP_VERSION} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  style={{ display: 'none' }}
-                />
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Lives outside the menu so it still receives the file if the menu closes */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        onChange={handleImport}
+        style={{ display: 'none' }}
+      />
       {showMenu && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={() => setShowMenu(false)} />
       )}

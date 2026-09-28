@@ -61,14 +61,21 @@ function persistEdits(title: string, edits: SongEdits): void {
  */
 let writeQueue: Promise<unknown> = Promise.resolve()
 
-function persistSetlist(previous: SetlistData, next: SetlistData, reason: string): void {
+/**
+ * Take a restore point of the state BEFORE a change, then apply the change's
+ * writes. Queued, so two quick changes cannot land out of order, and so the
+ * restore point is always captured before anything it protects is written.
+ */
+function persistAfterSnapshot(previous: SetlistData, reason: string, writes: () => Promise<unknown>): void {
   if (readOnly) return
-  // Queue the writes so two quick changes cannot land out of order, and
-  // snapshot the state as it was BEFORE this change so restoring undoes it.
   writeQueue = writeQueue
     .then(() => takeSnapshot(reason, previous))
-    .then(() => saveSetlistData(next))
-    .catch(e => console.warn('saveSetlistData failed:', e))
+    .then(writes)
+    .catch(e => console.warn(`${reason} failed:`, e))
+}
+
+function persistSetlist(previous: SetlistData, next: SetlistData, reason: string): void {
+  persistAfterSnapshot(previous, reason, () => saveSetlistData(next))
 }
 
 function persistPosition(setlistId: string, index: number): void {
@@ -132,6 +139,8 @@ interface StoreState {
   addSongToSetlist: (id: string, songTitle: string) => void
   removeSongFromSetlist: (id: string, songTitle: string) => void
   duplicateSetlist: (id: string) => void
+  /** Remove one of the user's own songs from the library and every setlist. */
+  deleteCustomSong: (title: string) => void
 
   // Other actions
   selectVoicing: (chord: string, index: number) => void
@@ -343,13 +352,16 @@ export const useStore = create<StoreState>((set, get) => ({
 
   deleteSetlist: (id: string) => {
     const previous = get().setlistData
-    if (id === 'default') return
+    if (id === 'default' || !previous.lists[id]) return
+    const remaining = Object.keys(previous.lists).filter(k => k !== id)
+    if (remaining.length === 0) return // never leave the app with no setlist at all
     set(state => {
       const { [id]: _, ...rest } = state.setlistData.lists
       return {
         setlistData: {
           lists: rest,
-          activeId: 'default',
+          // 'default' may not exist, e.g. after importing someone else's backup
+          activeId: rest.default ? 'default' : remaining[0],
         },
         currentIndex: 0,
       }
@@ -441,6 +453,32 @@ export const useStore = create<StoreState>((set, get) => ({
       currentIndex: 0,
     }))
     persistSetlist(previous, get().setlistData, 'duplicate setlist')
+  },
+
+  deleteCustomSong: (title: string) => {
+    if (!get().customSongs.some(song => song.title === title)) return // built-in songs stay
+    const previous = get().setlistData
+    set(state => {
+      const lists = Object.fromEntries(
+        Object.entries(state.setlistData.lists).map(([id, list]) => [
+          id,
+          { ...list, songTitles: list.songTitles.filter(t => t !== title) },
+        ]),
+      )
+      const { [title]: _, ...otherEdits } = state.edits
+      return {
+        customSongs: state.customSongs.filter(song => song.title !== title),
+        setlistData: { ...state.setlistData, lists },
+        edits: otherEdits,
+        currentIndex: clampIndex(state.currentIndex, lists[state.setlistData.activeId]?.songTitles.length ?? 0),
+      }
+    })
+    const { setlistData, customSongs } = get()
+    persistAfterSnapshot(previous, `delete song ${title}`, async () => {
+      await saveSetlistData(setlistData)
+      await saveCustomSongs(customSongs)
+      await deleteSongEdits(title)
+    })
   },
 
   // Voicing selection

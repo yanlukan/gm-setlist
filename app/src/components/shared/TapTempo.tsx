@@ -37,8 +37,11 @@ export function TapTempo({ open, onClose }: Props) {
 
   const handleTap = () => {
     const now = Date.now()
-    tapsRef.current.push(now)
-    if (tapsRef.current.length > 8) tapsRef.current.shift()
+    const taps = tapsRef.current
+    // A pause starts a fresh count; averaging the gap in gives a nonsense tempo.
+    if (taps.length > 0 && now - taps[taps.length - 1] > 2000) taps.length = 0
+    taps.push(now)
+    if (taps.length > 8) taps.shift()
     if (tapsRef.current.length >= 2) {
       const taps = tapsRef.current
       const intervals = taps.slice(1).map((t, i) => t - taps[i])
@@ -64,7 +67,13 @@ export function TapTempo({ open, onClose }: Props) {
         maxWidth: 300,
       }}>
         <div style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 16 }}>{bpm}</div>
-        <button onClick={handleTap} style={{
+        <button
+          // On touch-down, not release: a tap tempo is about when the finger lands.
+          onPointerDown={e => { e.preventDefault(); handleTap() }}
+          onKeyDown={e => {
+            if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleTap() }
+          }}
+          style={{
           width: '100%', padding: 20, fontSize: 20, fontWeight: 'bold',
           background: 'var(--accent)', color: '#fff', borderRadius: 8, marginBottom: 16,
         }}>TAP</button>

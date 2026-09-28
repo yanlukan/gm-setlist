@@ -104,6 +104,10 @@ function AppInner() {
     }
     init()
 
+    // Ask the browser to treat PlayBook's storage as permanent, so it is
+    // never cleared to free space. Best effort: some browsers decide alone.
+    navigator.storage?.persist?.().catch(() => {})
+
     // Without this the app cannot open offline at all — it was never
     // registered in the version taken to the last gig.
     if ('serviceWorker' in navigator) {

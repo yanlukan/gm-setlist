@@ -91,7 +91,10 @@ function CreateSongForm({ setlistId, onDone, onCreated }: {
 export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: AddSongPickerProps) {
   const allSongs = useStore(s => s.allSongs)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
+  const customSongs = useStore(s => s.customSongs)
+  const deleteCustomSong = useStore(s => s.deleteCustomSong)
   const [tab, setTab] = useState<Tab>('library')
+  const ownTitles = new Set(customSongs.map(song => song.title))
 
   const songs = allSongs()
   const currentSet = new Set(currentTitles)
@@ -162,6 +165,20 @@ export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: 
                     {song.artist} — Key: {song.key} | {song.bpm} BPM
                   </div>
                 </div>
+                {ownTitles.has(song.title) && (
+                  <button
+                    className="sl-remove"
+                    aria-label={`Delete ${song.title} from your library`}
+                    onClick={e => {
+                      e.stopPropagation()
+                      if (confirm(`Delete "${song.title}" from your library? It will be removed from every setlist. A restore point is saved first.`)) {
+                        deleteCustomSong(song.title)
+                      }
+                    }}
+                  >
+                    &times;
+                  </button>
+                )}
               </div>
             )
           })

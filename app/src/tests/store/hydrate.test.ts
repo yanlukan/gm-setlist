@@ -185,3 +185,80 @@ describe('relaunching mid-set', () => {
     expect(useStore.getState().viewMode).toBe('stage')
   })
 })
+
+describe('deleting your own song', () => {
+  const settle = () => new Promise(resolve => setTimeout(resolve, 30))
+  const encore = {
+    title: 'Encore Jam', artist: 'Band', key: 'E', bpm: 120, timeSignature: '4/4',
+    capo: null, notes: '', sections: [{ name: 'Verse', chords: 'E  A  B' }],
+  }
+
+  it('removes it from the library, every setlist, and its edits', async () => {
+    const id = useStore.getState().setlistData.activeId
+    useStore.getState().addCustomSong(encore)
+    useStore.getState().addSongToSetlist(id, 'Encore Jam')
+    useStore.getState().setTranspose('Encore Jam', 2)
+    await settle()
+
+    useStore.getState().deleteCustomSong('Encore Jam')
+    await settle()
+
+    const state = useStore.getState()
+    expect(state.customSongs).toHaveLength(0)
+    expect(state.setlistData.lists[id].songTitles).not.toContain('Encore Jam')
+    expect(state.edits['Encore Jam']).toBeUndefined()
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().customSongs).toHaveLength(0)
+  })
+
+  it('can be undone from its restore point, song and all', async () => {
+    const id = useStore.getState().setlistData.activeId
+    useStore.getState().addCustomSong(encore)
+    useStore.getState().addSongToSetlist(id, 'Encore Jam')
+    await settle()
+
+    useStore.getState().deleteCustomSong('Encore Jam')
+    await settle()
+
+    const [latest] = await listSnapshots()
+    expect(latest.reason).toBe('delete song Encore Jam')
+    await restoreSnapshot(latest.id)
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+
+    expect(useStore.getState().customSongs.map(s => s.title)).toContain('Encore Jam')
+    expect(useStore.getState().setlistSongs().map(s => s.title)).toContain('Encore Jam')
+  })
+
+  it('never deletes a built-in song', () => {
+    useStore.getState().deleteCustomSong('Faith')
+    expect(useStore.getState().setlistSongs().map(s => s.title)).toContain('Faith')
+  })
+})
+
+describe('deleting a setlist', () => {
+  it('switches to a setlist that exists when there is no "default"', () => {
+    useStore.setState({
+      setlistData: {
+        lists: {
+          a: { id: 'a', name: 'A', songTitles: ['Faith'] },
+          b: { id: 'b', name: 'B', songTitles: ['Outside'] },
+        },
+        activeId: 'a',
+      },
+    })
+    useStore.getState().deleteSetlist('a')
+    expect(useStore.getState().setlistData.activeId).toBe('b')
+    expect(useStore.getState().currentSong()?.title).toBe('Outside')
+  })
+
+  it('refuses to delete the only setlist left', () => {
+    useStore.setState({
+      setlistData: { lists: { a: { id: 'a', name: 'A', songTitles: ['Faith'] } }, activeId: 'a' },
+    })
+    useStore.getState().deleteSetlist('a')
+    expect(useStore.getState().setlistData.lists.a).toBeDefined()
+  })
+})

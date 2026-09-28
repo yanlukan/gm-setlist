@@ -11,6 +11,9 @@ import {
   getCustomSongs,
   saveTheme,
   getTheme,
+  exportAllData,
+  importAllData,
+  validateBackup,
 } from '../../store/persistence'
 
 beforeEach(async () => {
@@ -91,5 +94,38 @@ describe('theme persistence', () => {
   it('saves and retrieves theme', async () => {
     await saveTheme('light')
     expect(await getTheme()).toBe('light')
+  })
+})
+
+describe('importing a backup', () => {
+  it('refuses a file that is not a backup, and leaves the data alone', async () => {
+    await saveSetlistData({ lists: { a: { id: 'a', name: 'Mine', songTitles: ['Faith'] } }, activeId: 'a' })
+    await expect(importAllData('{"hello": "world"}')).rejects.toThrow('not a PlayBook backup')
+    await expect(importAllData('not json at all')).rejects.toThrow('not a PlayBook backup')
+    expect((await getSetlistData())?.lists.a.name).toBe('Mine')
+  })
+
+  it('refuses a damaged backup before writing anything', async () => {
+    await saveSongEdits('Faith', { notes: 'keep me' })
+    const damaged = JSON.stringify({
+      version: 1,
+      songEdits: [],
+      setlists: { lists: { a: { name: 'X', songTitles: ['Faith'] } }, activeId: 'missing' },
+    })
+    await expect(importAllData(damaged)).rejects.toThrow('damaged (setlists)')
+    // The song edits step comes first in the import; it must not have run
+    expect((await getSongEdits('Faith'))?.notes).toBe('keep me')
+  })
+
+  it('round-trips a real export', async () => {
+    await saveSetlistData({ lists: { a: { id: 'a', name: 'Gig', songTitles: ['Faith', 'Roxanne'] } }, activeId: 'a' })
+    await saveSongEdits('Roxanne', { transpose: -2 })
+    const backup = await exportAllData()
+    expect(validateBackup(JSON.parse(backup))).toBeNull()
+
+    await saveSetlistData({ lists: { b: { id: 'b', name: 'Other', songTitles: [] } }, activeId: 'b' })
+    await importAllData(backup)
+    expect((await getSetlistData())?.lists.a.songTitles).toEqual(['Faith', 'Roxanne'])
+    expect((await getSongEdits('Roxanne'))?.transpose).toBe(-2)
   })
 })

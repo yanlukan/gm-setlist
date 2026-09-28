@@ -194,9 +194,54 @@ export async function exportAllData(): Promise<string> {
   return JSON.stringify(backup, null, 2)
 }
 
+/**
+ * Checks a backup's shape before anything is written, so a wrong or damaged
+ * file is refused outright instead of half-replacing the user's data.
+ * Returns a message to show, or null if the file is usable.
+ */
+export function validateBackup(backup: any): string | null {
+  const notABackup = 'This is not a PlayBook backup file.'
+  if (!backup || typeof backup !== 'object' || typeof backup.version !== 'number') return notABackup
+
+  if (backup.songEdits !== undefined) {
+    if (!Array.isArray(backup.songEdits)) return 'The backup file is damaged (song edits).'
+    if (backup.songEdits.some((e: { title?: unknown } | null) => !e || typeof e.title !== 'string')) {
+      return 'The backup file is damaged (song edits).'
+    }
+  }
+
+  if (backup.setlists != null) {
+    const { lists, activeId } = backup.setlists
+    if (!lists || typeof lists !== 'object' || typeof activeId !== 'string' || !(activeId in lists)) {
+      return 'The backup file is damaged (setlists).'
+    }
+    for (const list of Object.values(lists) as { name?: unknown; songTitles?: unknown }[]) {
+      if (!list || typeof list.name !== 'string' || !Array.isArray(list.songTitles)
+        || list.songTitles.some(t => typeof t !== 'string')) {
+        return 'The backup file is damaged (setlists).'
+      }
+    }
+  }
+
+  if (backup.customSongs !== undefined) {
+    if (!Array.isArray(backup.customSongs)) return 'The backup file is damaged (songs).'
+    if (backup.customSongs.some((song: { title?: unknown; sections?: unknown } | null) =>
+      !song || typeof song.title !== 'string' || !Array.isArray(song.sections))) {
+      return 'The backup file is damaged (songs).'
+    }
+  }
+  return null
+}
+
 export async function importAllData(json: string): Promise<void> {
-  const backup = JSON.parse(json)
-  if (!backup.version) throw new Error('Invalid backup file')
+  let backup
+  try {
+    backup = JSON.parse(json)
+  } catch {
+    throw new Error('This is not a PlayBook backup file.')
+  }
+  const problem = validateBackup(backup)
+  if (problem) throw new Error(problem)
 
   const d = await db()
 
