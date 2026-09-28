@@ -410,8 +410,8 @@ describe('charts checked against the recordings', () => {
   })
 
   it('has the Everything She Wants chorus as the songbook writes it', () => {
-    // Songbook no. 11. It replaced the F# Bm7 E the user once gave for the
-    // chorus; the recording has the C# the book shows.
+    // Songbook no. 11, and the band plays it as the book has it (user,
+    // 2026-09-29). It replaced the F# Bm7 E given earlier for the chorus.
     const chorus = song('Everything She Wants').sections.find(s => s.name === 'Chorus')!
     expect(chorus.chords).toBe('F#m  Bm  C#aug  C#  F#m')
   })
