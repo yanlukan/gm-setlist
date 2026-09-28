@@ -96,11 +96,28 @@
 }
 .chart { max-width: 1600px; margin: 0 auto; }
 /* Chart text is sized in em from one font size that is fitted to the screen. */
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.4em;
+  margin-bottom: 0.3em;
+}
 .chart-title {
   font-size: max(20px, 0.6em);
   font-weight: 800;
   line-height: 1.15;
-  margin-bottom: 0.3em;
+}
+/* The GX-10 sound: a tag on the title line, never a line of its own */
+.chart-preset {
+  font-size: max(14px, 0.4em);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  background: var(--badge-bg);
+  color: var(--text);
+  white-space: nowrap;
 }
 .chart-cue,
 .chart-warning {
@@ -201,6 +218,16 @@
 .songnav-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .songnav-num { flex-shrink: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .songnav-arrow { flex-shrink: 0; font-size: 18px; }
+.songnav-preset {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.45);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
 .songnav-key {
   flex-shrink: 0;
   padding: 2px 8px;
@@ -216,7 +243,7 @@
   .songnav { gap: 6px; padding-left: 8px; padding-right: 8px; }
   .songnav-btn { padding: 0 10px; font-size: 15px; gap: 6px; }
   .songnav-num { display: none; }
-  .songnav-key { display: none; }
+  .songnav-key, .songnav-preset { display: none; }
   .songnav-list { padding: 0 12px; }
 }
 

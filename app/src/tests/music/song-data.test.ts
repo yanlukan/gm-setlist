@@ -13,12 +13,20 @@ describe('song notes and cues', () => {
     }
   })
 
-  it('name the GX-10 sound for every song in the gig set, first in the cue', () => {
-    // The six core sounds: two banks of three, in BANK/NUM mode.
-    const sound = /^GX-10: (FUNK \(U01-1\)|80s CLEAN \(U01-2\)|WARM JAZZ \(U01-3\)|CRUNCH \(U02-1\)|LEAD \(U02-2\)|ACOUSTIC \(U02-3\))/
-    for (const title of GIG_SETLIST_2026) {
-      const song = DEFAULT_SONGS.find(s => s.title === title)
-      expect(song?.cue, title).toMatch(sound)
+  it('give every song in the gig set its GX-10 sound, one of the six', () => {
+    // Two banks of three, in BANK/NUM mode
+    const slots: Record<string, string> = {
+      FUNK: 'U01-1', '80s CLEAN': 'U01-2', 'WARM JAZZ': 'U01-3',
+      CRUNCH: 'U02-1', LEAD: 'U02-2', ACOUSTIC: 'U02-3',
     }
+    for (const title of GIG_SETLIST_2026) {
+      const preset = DEFAULT_SONGS.find(s => s.title === title)?.preset
+      expect(preset, title).toBeDefined()
+      expect(slots[preset!.name], title).toBe(preset!.slot)
+    }
+  })
+
+  it('keep the sound out of the cue, which is for stage directions', () => {
+    for (const song of DEFAULT_SONGS) expect(song.cue ?? '', song.title).not.toMatch(/GX-10|U0\d-\d/)
   })
 })

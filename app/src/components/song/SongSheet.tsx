@@ -134,6 +134,17 @@ export function SongSheet() {
       )
     }
 
+    const heading = (
+      <div className="chart-head">
+        <h1 className="chart-title">{song.title}</h1>
+        {song.preset && (
+          <span className="chart-preset" aria-label={`GX-10 sound: ${song.preset.name}`}>
+            {song.preset.name}
+          </span>
+        )}
+      </div>
+    )
+
     const banners = (
       <>
         {song.cue && <div className="chart-cue">{song.cue}</div>}
@@ -148,7 +159,7 @@ export function SongSheet() {
     if (!editMode) {
       return (
         <div ref={fitRef} className="chart">
-          <h1 className="chart-title">{song.title}</h1>
+          {heading}
           {banners}
           <div className="chart-sections">
             {displaySections.map((section, i) => (
@@ -165,7 +176,7 @@ export function SongSheet() {
       )
     }
 
-    return renderEditor(song, banners)
+    return renderEditor(song, heading, banners)
   }
 
   // Tappable chords open the voicing picker — except on stage, where a brushed
@@ -191,7 +202,7 @@ export function SongSheet() {
       )
     })
 
-  const renderEditor = (song: Song, banners: React.ReactNode) => {
+  const renderEditor = (song: Song, heading: React.ReactNode, banners: React.ReactNode) => {
     const moveSection = (index: number, dir: -1 | 1) => {
       const target = index + dir
       if (target < 0 || target >= sections.length) return
@@ -223,7 +234,7 @@ export function SongSheet() {
 
     return (
       <div className="chart" style={{ fontSize: 22 }}>
-        <h1 className="chart-title">{song.title}</h1>
+        {heading}
         {banners}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

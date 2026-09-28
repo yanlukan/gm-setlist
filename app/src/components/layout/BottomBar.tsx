@@ -80,6 +80,8 @@ export function BottomBar() {
               <span className="songnav-num">{currentIndex + 2}.</span>
               <span className="songnav-title">{next.title}</span>
               {nextKey && <span className="songnav-key">{nextKey}</span>}
+              {/* The sound to switch to before the next song */}
+              {next.preset && <span className="songnav-preset">{next.preset.name}</span>}
             </>
           ) : (
             <span className="songnav-title">End of set</span>

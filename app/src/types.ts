@@ -21,6 +21,12 @@ export interface Song {
    */
   cue?: string
   /**
+   * The GX-10 memory for this song: its name ("FUNK") and where it is stored
+   * ("U01-1"). Shown as a small tag beside the title, so the sound never
+   * costs a line of the chart.
+   */
+  preset?: { name: string; slot: string }
+  /**
    * Set when the band plays this lower than the original recording.
    * The exact amount lives in the per-song transpose (SongEdits.transpose);
    * this flag makes an unset transpose visible instead of silently wrong.

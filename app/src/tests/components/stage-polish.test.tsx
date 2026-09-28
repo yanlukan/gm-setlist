@@ -17,6 +17,24 @@ describe('tap tempo', () => {
   })
 })
 
+describe('GX-10 sound', () => {
+  it('sits on the title line as a tag, and a sound alone takes no strip', () => {
+    const { container } = render(<SongSheet />) // Faith: FUNK, no stage directions
+    const tag = screen.getByText('FUNK')
+    expect(tag).toHaveClass('chart-preset')
+    expect(tag.parentElement).toBe(container.querySelector('.chart-title')!.parentElement)
+    expect(container.querySelector('.chart-cue')).toBeNull()
+  })
+
+  it('leaves the stage directions in the strip', () => {
+    const { setlistData } = useStore.getState()
+    useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf('Roxanne'))
+    const { container } = render(<SongSheet />)
+    expect(screen.getByText('WARM JAZZ')).toHaveClass('chart-preset')
+    expect(container.querySelector('.chart-cue')).toHaveTextContent(/^GUITAR TACET/)
+  })
+})
+
 describe('chart marks', () => {
   const open = (title: string) => {
     const { setlistData } = useStore.getState()
@@ -78,16 +96,14 @@ describe('next-song heads-up', () => {
     expect(screen.getByRole('note')).toHaveTextContent(/GUITAR TACET/)
   })
 
-  it('names the GX-10 sound for the next song', () => {
+  it('names the GX-10 sound for the next song on the Next button', () => {
     useStore.setState({ currentIndex: 3 }) // Amazing; next is A Different Corner
     render(<BottomBar />)
-    expect(screen.getByRole('note')).toHaveTextContent('GX-10: WARM JAZZ (U01-3)')
+    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('WARM JAZZ')
   })
 
-  it('stays out of the way when the next song has no cue', () => {
-    // Every gig song carries its GX-10 sound, so take the cue off one.
-    const songs = useStore.getState().songs.map(s => (s.title === "I'm Your Man" ? { ...s, cue: undefined } : s))
-    useStore.setState({ songs, currentIndex: 0 }) // next is I'm Your Man
+  it('stays out of the way when the next song has no cue, only a sound', () => {
+    useStore.setState({ currentIndex: 0 }) // next is I'm Your Man
     render(<BottomBar />)
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
