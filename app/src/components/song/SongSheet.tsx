@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
-import { lookupChord } from '../../data/chords-db'
+import { voicingsFor } from '../../music/voicings'
+import { useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
 import { ChordLineEditor } from '../edit/ChordLineEditor'
@@ -32,6 +33,7 @@ export function SongSheet() {
   const setFocusSection = useStore(s => s.setFocusSection)
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
+  const clearVoicing = useStore(s => s.clearVoicing)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
@@ -57,6 +59,7 @@ export function SongSheet() {
   }, [songs, customSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
+  const band = useBandPositions(song, song ? edits[song.title] : undefined)
 
   // Stored chords are always at the song's own pitch.
   const sections = useMemo(() => {
@@ -208,8 +211,7 @@ export function SongSheet() {
       if (!token.trim()) return <span key={i}>{token}</span>
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
       if (onStage) return <span key={i}>{token}</span>
-      const has = lookupChord(token)
-      if (!has) return <span key={i}>{token}</span>
+      if (voicingsFor(token).length === 0) return <span key={i}>{token}</span>
       return (
         <span
           key={i}
@@ -387,8 +389,13 @@ export function SongSheet() {
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
-          selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          selectedIndex={selectedVoicings[pickerChord] ?? band[pickerChord] ?? 0}
+          recommendedIndex={band[pickerChord]}
           onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}
+          onUseBandPick={selectedVoicings[pickerChord] === undefined ? undefined : () => {
+            clearVoicing(pickerChord)
+            setPickerChord(null)
+          }}
           onClose={() => setPickerChord(null)}
         />
       )}

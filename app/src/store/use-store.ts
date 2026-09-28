@@ -153,6 +153,8 @@ interface StoreState {
 
   // Other actions
   selectVoicing: (chord: string, index: number) => void
+  /** Forget the shape picked for a chord, so each song shows its band shape again. */
+  clearVoicing: (chord: string) => void
   /** False if a song with that title already exists (titles are the song's identity). */
   addCustomSong: (song: Song) => boolean
   toggleTheme: () => void
@@ -505,6 +507,15 @@ export const useStore = create<StoreState>((set, get) => ({
     set(state => ({
       selectedVoicings: { ...state.selectedVoicings, [chord]: index },
     }))
+    if (!readOnly) saveSelectedVoicings(get().selectedVoicings).catch(e => console.warn('saveSelectedVoicings failed:', e))
+  },
+
+  clearVoicing: (chord: string) => {
+    set(state => {
+      const rest = { ...state.selectedVoicings }
+      delete rest[chord]
+      return { selectedVoicings: rest }
+    })
     if (!readOnly) saveSelectedVoicings(get().selectedVoicings).catch(e => console.warn('saveSelectedVoicings failed:', e))
   },
 

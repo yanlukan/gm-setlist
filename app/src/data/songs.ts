@@ -211,7 +211,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "From the songbook (no. 8), which prints it a semitone higher, in G, with open G shapes; this chart is at the recording's pitch. Nearly all of it is Gb and Db/Gb, with Abm7 at the ends of lines. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
+    notes: "From the songbook (no. 8), which prints it a semitone higher, in G, with open G shapes; this chart is at the recording's pitch, which is where the band plays it. Nearly all of it is Gb and Db/Gb, with Abm7 at the ends of lines. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
     sections: [
       { name: 'Verse', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb  Db/Gb  Gb  Db/Gb  Abm7  Gb' },
       { name: 'Chorus', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb' },

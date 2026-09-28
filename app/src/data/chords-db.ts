@@ -153,7 +153,7 @@ const ENHARMONIC: Record<string, string> = {
  * Chord-symbol spellings people actually type, mapped to the database's
  * suffixes: Am(maj7), C-7, Bø, E°7, G+, Cmaj, Dsus ...
  */
-function normalizeQuality(quality: string): string {
+export function normalizeQuality(quality: string): string {
   let q = quality.replace(/[()]/g, '').replace(/\s+/g, '')
   if (q.startsWith('min') && !q.startsWith('minor')) q = 'm' + q.slice(3)
   if (q.startsWith('minor')) q = 'm' + q.slice(5)

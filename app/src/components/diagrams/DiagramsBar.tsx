@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
-import { lookupChord } from '../../data/chords-db'
+import { voicingsFor } from '../../music/voicings'
+import { useBandPositions } from '../../hooks/use-band-positions'
 import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
@@ -15,6 +16,7 @@ export function DiagramsBar() {
   const currentIndex = useStore(s => s.currentIndex)
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
+  const clearVoicing = useStore(s => s.clearVoicing)
   const onStage = useStore(s => s.viewMode === 'stage')
   const focusSection = useStore(s => s.focusSection)
   const setFocusSection = useStore(s => s.setFocusSection)
@@ -31,6 +33,10 @@ export function DiagramsBar() {
       .filter(Boolean)
     return setlistArr[currentIndex]
   }, [allSongs, setlistData, currentIndex])
+
+  // A shape picked by hand wins; otherwise the song's band shape
+  const band = useBandPositions(song, song ? edits[song.title] : undefined)
+  const shapeFor = (name: string) => selectedVoicings[name] ?? band[name] ?? 0
 
   // The section tapped on the chart, if it belongs to this song
   const focus = useMemo(() => {
@@ -55,7 +61,7 @@ export function DiagramsBar() {
     for (const section of focus ? [sections[focus.index]] : sections) {
       const names = section.chords.split(/[\s|,]+/).filter(Boolean)
       for (const name of names) {
-        if (!seen.has(name) && lookupChord(name)) {
+        if (!seen.has(name) && voicingsFor(name).length > 0) {
           seen.add(name)
           result.push(name)
         }
@@ -94,10 +100,9 @@ export function DiagramsBar() {
           </button>
         )}
         {uniqueChords.map(name => {
-          const voicingIndex = selectedVoicings[name] ?? 0
-          const voicings = lookupChord(name)
-          if (!voicings) return null
-          const voicing = voicings[voicingIndex] ?? voicings[0]
+          const voicings = voicingsFor(name)
+          if (voicings.length === 0) return null
+          const voicing = voicings[shapeFor(name)] ?? voicings[0]
           return (
             <div
               key={name}
@@ -130,9 +135,14 @@ export function DiagramsBar() {
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
-          selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          selectedIndex={shapeFor(pickerChord)}
+          recommendedIndex={band[pickerChord]}
           onSelect={(index) => {
             selectVoicing(pickerChord, index)
+            setPickerChord(null)
+          }}
+          onUseBandPick={selectedVoicings[pickerChord] === undefined ? undefined : () => {
+            clearVoicing(pickerChord)
             setPickerChord(null)
           }}
           onClose={() => setPickerChord(null)}

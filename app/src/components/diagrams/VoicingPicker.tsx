@@ -1,16 +1,27 @@
+import { useEffect, useRef } from 'react'
 import { Modal } from '../shared/Modal'
-import { lookupChord } from '../../data/chords-db'
+import { voicingsFor } from '../../music/voicings'
 import { ChordDiagram } from './ChordDiagram'
 
 interface VoicingPickerProps {
   chord: string
   selectedIndex: number
+  /** The shape chosen for this song's position on the neck. */
+  recommendedIndex?: number
   onSelect: (index: number) => void
+  /** Present when a shape was picked by hand: go back to the band shapes. */
+  onUseBandPick?: () => void
   onClose: () => void
 }
 
-export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: VoicingPickerProps) {
-  const voicings = lookupChord(chord) ?? []
+export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect, onUseBandPick, onClose }: VoicingPickerProps) {
+  const voicings = voicingsFor(chord)
+  const selectedRef = useRef<HTMLDivElement>(null)
+
+  // The chosen shape can be far down the list: start there, not at the top
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView?.({ block: 'center' })
+  }, [])
 
   return (
     <Modal open onClose={onClose}>
@@ -42,6 +53,21 @@ export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: Voici
           </button>
         </div>
 
+        <p style={{ margin: '0 0 12px', fontSize: 13, color: '#888' }}>
+          The band pick suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in every song.
+        </p>
+        {onUseBandPick && (
+          <button
+            onClick={onUseBandPick}
+            style={{
+              display: 'block', width: '100%', marginBottom: 12, padding: '10px 12px', borderRadius: 8,
+              border: '1px solid #3b82f6', background: 'transparent', color: '#3b82f6', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Use the band pick again
+          </button>
+        )}
         <div
           style={{
             display: 'flex',
@@ -53,6 +79,9 @@ export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: Voici
           {voicings.map((voicing, i) => (
             <div
               key={i}
+              ref={i === selectedIndex ? selectedRef : undefined}
+              role="button"
+              aria-label={`${chord} at ${voicing.l}${i === recommendedIndex ? ', band pick' : ''}${i === selectedIndex ? ', selected' : ''}`}
               onClick={() => onSelect(i)}
               style={{
                 display: 'flex',
@@ -65,10 +94,15 @@ export function VoicingPicker({ chord, selectedIndex, onSelect, onClose }: Voici
                 background: i === selectedIndex ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)',
               }}
             >
-              <ChordDiagram voicing={voicing} size={110} />
+              <ChordDiagram voicing={voicing} size={96} />
               <span style={{ fontSize: 10, color: '#888', marginTop: 4 }}>
                 {voicing.l}
               </span>
+              {i === recommendedIndex && (
+                <span style={{ fontSize: 9, color: '#4ade80', marginTop: 2, fontWeight: 700 }}>
+                  Band pick
+                </span>
+              )}
               {i === selectedIndex && (
                 <span style={{ fontSize: 9, color: '#3b82f6', marginTop: 2, fontWeight: 600 }}>
                   Selected
