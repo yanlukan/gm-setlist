@@ -120,57 +120,77 @@ const ENHARMONIC: Record<string, string> = {
 }
 
 /**
- * Smart chord lookup — tries exact match first, then progressively
- * simplifies the chord name to find the closest diagram.
+ * Chord-symbol spellings people actually type, mapped to the database's
+ * suffixes: Am(maj7), C-7, Bø, E°7, G+, Cmaj, Dsus ...
+ */
+function normalizeQuality(quality: string): string {
+  let q = quality.replace(/[()]/g, '').replace(/\s+/g, '')
+  if (q.startsWith('min') && !q.startsWith('minor')) q = 'm' + q.slice(3)
+  if (q.startsWith('minor')) q = 'm' + q.slice(5)
+  if (q.startsWith('-')) q = 'm' + q.slice(1)
+  q = q
+    .replace(/^M7|^Δ7?|^ma7/, 'maj7')
+    .replace(/^maj$/, '')
+    .replace(/^ø7?$/, 'm7b5')
+    .replace(/^(°|o)7$/, 'dim7')
+    .replace(/^(°|o)$/, 'dim')
+    .replace(/^\+7$|^7\+5$|^7#5$/, 'aug7')
+    .replace(/^\+$/, 'aug')
+    .replace(/^sus$/, 'sus4')
+    .replace(/^2$/, 'sus2')
+  return q
+}
+
+/**
+ * Simpler chords of the SAME family to fall back on when a voicing isn't in
+ * the database. A minor chord must never fall back to a major diagram: on
+ * stage that is the wrong third, not a simplification.
+ */
+function fallbackQualities(q: string): string[] {
+  if (q === 'm7b5' || q.startsWith('dim')) return ['m7b5', 'dim', 'm']
+  if (/^m(?!aj)/.test(q)) return /\d/.test(q) ? ['m7', 'm'] : ['m']
+  if (q.startsWith('maj') || q === '6' || q === '69' || q.startsWith('add')) return ['maj7', '']
+  if (q.startsWith('aug')) return ['aug', '']
+  if (q.startsWith('sus') || q.startsWith('7sus')) return q.includes('2') ? ['sus2', ''] : ['sus4', '']
+  if (/^(7|9|11|13)/.test(q)) return ['7', '']
+  return ['']
+}
+
+/**
+ * Chord lookup: exact name first, then without a slash bass, then common
+ * spellings and enharmonic roots, then a simpler chord of the same family.
  */
 export function lookupChord(name: string): ChordVoicing[] | undefined {
   if (!name) return undefined
-
-  // Exact match
   if (RAW_DB[name]) return RAW_DB[name]
 
-  // Normalize: strip slash bass note (Am7/G -> Am7)
-  let normalized = name.replace(/\/[A-G][#b]?$/, '')
-  if (RAW_DB[normalized]) return RAW_DB[normalized]
+  // Am7/G -> Am7: the diagram shows the chord; the bass is for the bass player
+  const plain = name.replace(/\/[A-G][#b]?$/, '')
+  if (RAW_DB[plain]) return RAW_DB[plain]
 
-  // Try enharmonic: A# -> Bb
-  const rootMatch = normalized.match(/^([A-G][#b]?)(.*)$/)
-  if (rootMatch) {
-    const [, root, quality] = rootMatch
-    const altRoot = ENHARMONIC[root]
-    if (altRoot && RAW_DB[altRoot + quality]) return RAW_DB[altRoot + quality]
-
-    // Reverse enharmonic: Bb -> A#
-    for (const [from, to] of Object.entries(ENHARMONIC)) {
-      if (to === root && RAW_DB[from + quality]) return RAW_DB[from + quality]
-    }
-
-    // Strip complex extensions: add9 -> add9, add11 -> maj, add13 -> maj
-    let simpleQuality = quality
-      .replace('no3d', '')       // Chordonomicon no-third notation
-      .replace('add11', '')
-      .replace('add13', '')
-      .replace('add9', 'add9')   // keep add9
-      .replace(/^us/, 'sus')     // fix A#us2 -> A#sus2
-
-    if (simpleQuality !== quality && RAW_DB[root + simpleQuality]) {
-      return RAW_DB[root + simpleQuality]
-    }
-    if (altRoot && simpleQuality !== quality && RAW_DB[altRoot + simpleQuality]) {
-      return RAW_DB[altRoot + simpleQuality]
-    }
-
-    // Power chord (5) -> major
-    if (quality === '5' || quality.endsWith('5')) {
-      if (RAW_DB[root]) return RAW_DB[root]
-      if (altRoot && RAW_DB[altRoot]) return RAW_DB[altRoot]
-    }
-
-    // Last resort: just the root (major chord)
-    if (RAW_DB[root]) return RAW_DB[root]
-    if (altRoot && RAW_DB[altRoot]) return RAW_DB[altRoot]
+  const m = plain.match(/^([A-G][#b]?)(.*)$/)
+  if (!m) return undefined
+  const root = m[1]
+  const roots = [root, ENHARMONIC[root], ...Object.entries(ENHARMONIC).filter(([, to]) => to === root).map(([from]) => from)]
+    .filter((r): r is string => !!r)
+  const find = (quality: string) => {
+    for (const r of roots) if (RAW_DB[r + quality]) return RAW_DB[r + quality]
+    return undefined
   }
 
+  const quality = normalizeQuality(
+    m[2].replace('no3d', '').replace('add11', '').replace('add13', '').replace(/^us/, 'sus'),
+  )
+  const exact = find(quality)
+  if (exact) return exact
+
+  // Power chords (C5) have no third; the major shape is the usual stand-in
+  if (/^5$/.test(quality)) return find('')
+
+  for (const simpler of fallbackQualities(quality)) {
+    const found = find(simpler)
+    if (found) return found
+  }
   return undefined
 }
 
