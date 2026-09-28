@@ -360,12 +360,14 @@ describe('Club Tropicana', () => {
 })
 
 describe('Outside', () => {
-  it('has the real chorus, not a vamp labelled chorus and the chorus labelled bridge', () => {
+  it('matches the published charts: Gm9/C6 groove, chorus on Cm7 Cm6 turning round on Dsus4', () => {
     const outside = useStore.getInitialState().allSongs().find(s => s.title === 'Outside')!
     const byName = Object.fromEntries(outside.sections.map(s => [s.name, s.chords]))
     expect(outside.key).toBe('Gm')
-    expect(byName.Chorus).toMatch(/^Cm7  F\/C  Gm/)
-    expect(byName.Verse).toMatch(/^Gm7  C/)
-    expect(byName.Bridge).toBeUndefined()
+    expect(byName.Verse).toBe('Gm9  C6  Gm9  C6')
+    expect(byName.Chorus).toMatch(/^Cm7  Cm6  Gm9  Gm/)
+    expect(byName.Chorus).toMatch(/Dsus4$/)       // the turnaround belongs to the chorus
+    expect(byName.Outro).not.toContain('Dsus4')   // not the outro, as the old chart had it
+    expect(byName.Bridge).toBeUndefined()         // the chorus was mislabelled Bridge
   })
 })

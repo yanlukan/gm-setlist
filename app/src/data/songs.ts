@@ -98,13 +98,12 @@ export const DEFAULT_SONGS: Song[] = [
     bpm: 122,
     timeSignature: '4/4',
     capo: null,
-    notes: 'Gm7 to C groove in G dorian; jazzy voicings suit it. The intro is its own progression before the groove starts. Before the second chorus the verse turns around through Em7b5/D to D.',
+    notes: 'Gm9 to C6 groove throughout: jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm and turns back into the groove on Dsus4. Ends on the groove, fading.',
     sections: [
-      { name: 'Intro', chords: 'Bbmaj7  C7  F6  Gm  Bbmaj7  C6  Dm  Gm7  Dm  Gm7  F6  Gm7' },
-      { name: 'Verse', chords: 'Gm7  C  Gm7  C6  Gm7  C/D  Fmaj7' },
-      { name: 'Chorus', chords: 'Cm7  F/C  Gm  Cm7  F/C  Gm  Cm7  F/C  Gm7  Cm7  F/C  Dm' },
-      { name: 'Post-Chorus', chords: 'Bb  Fmaj7  Bb  Fmaj7  Gm7  Fmaj7  Gm7' },
-      { name: 'Outro', chords: 'Bb  Fmaj7  Bb  Fmaj7  Gm7  C/D  Gm7' },
+      { name: 'Intro', chords: 'Gm9  C6  Gm9  C6' },
+      { name: 'Verse', chords: 'Gm9  C6  Gm9  C6' },
+      { name: 'Chorus', chords: 'Cm7  Cm6  Gm9  Gm  Cm7  Cm6  Gm9  Gm  Cm7  Cm6  Dsus4' },
+      { name: 'Outro', chords: 'C6  Gm9  C6  Gm9' },
     ],
   },
   {
