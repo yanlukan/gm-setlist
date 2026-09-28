@@ -114,20 +114,20 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Papa Was a Rolling Stone',
     shortTitle: 'Papa Rolling Stone',
-    cue: 'Killer / Papa medley, Wembley 1991. Opens with Killer on Bb to Eb, then Papa in Bbm. Wah essential.',
+    cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
     artist: 'The Temptations (cover)',
     key: 'Bbm',
     bpm: 122,
     duration: 255, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Killer runs about 80 seconds on a Bb to Eb vamp, then the medley drops into Papa in Bbm. Papa grooves between Ebm7 and Bbm, turns around on Fm7 and Eb, vamps on Eb7 to Bbm, and has long stretches on Bbm alone. Ends Gb to Fm. Built from the Five Live recording.',
+    notes: 'From the songbook: the intro riff plays 4 times, and the Killer verses sit over the riff with no chords. Killer then settles on Bbm, Gb, Fm; the trumpet solo adds Ab. Papa is a one-chord Bbm7 vamp.',
     sections: [
-      { name: 'Killer', chords: 'Bb  Eb  Bb  Eb' },
-      { name: 'Groove', chords: 'Ebm7  Bbm  Ebm7  Bbm' },
-      { name: 'Turnaround', chords: 'Fm7  Bbm  Fm7  Bbm  Eb  Bbm' },
-      { name: 'Vamp', chords: 'Eb7  Bbm  Eb7  Bbm' },
-      { name: 'Ending', chords: 'Bbm  Gb  Fm' },
+      { name: 'Intro', chords: 'N.C.' },
+      { name: 'Killer verse', chords: 'N.C.' },
+      { name: 'Killer', chords: 'Bbm  Gb  Fm  Bbm  Gb  Fm' },
+      { name: 'Trumpet solo', chords: 'Bbm  Gb  Fm  Ab  Bbm  Gb  Fm  Ab' },
+      { name: 'Papa', chords: 'Bbm7' },
     ],
   },
   {

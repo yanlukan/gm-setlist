@@ -391,10 +391,12 @@ describe('charts checked against the recordings', () => {
     expect(first('A Different Corner')).toBe('Gb')
   })
 
-  it('has the Killer / Papa medley, opening with Killer', () => {
-    const papa = song('Papa Was a Rolling Stone')
-    expect(papa.sections[0]).toEqual({ name: 'Killer', chords: 'Bb  Eb  Bb  Eb' })
-    expect(papa.sections.map(s => s.chords).join(' ')).not.toContain('Db')
+  it('has the Killer / Papa medley as written in the songbook', () => {
+    const byName = Object.fromEntries(song('Papa Was a Rolling Stone').sections.map(s => [s.name, s.chords]))
+    expect(byName['Killer verse']).toBe('N.C.')        // riff only, no chords
+    expect(byName.Killer).toBe('Bbm  Gb  Fm  Bbm  Gb  Fm')
+    expect(byName['Trumpet solo']).toContain('Ab')
+    expect(byName.Papa).toBe('Bbm7')                  // one-chord vamp
   })
 
   it('has Fastlove in Am, the band\'s key, on its real groove', () => {
