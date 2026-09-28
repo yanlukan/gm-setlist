@@ -318,3 +318,31 @@ describe('band keys that ship with the songs', () => {
     expect(freedom.transpose ?? 0).toBe(0)
   })
 })
+
+describe('all five lower-key songs', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  it('open in the band key with no lower-key warning', () => {
+    const s = useStore.getState()
+    const played = Object.fromEntries(
+      ["I'm Your Man", 'Club Tropicana', 'Amazing', 'Wake Me Up Before You Go-Go', 'Careless Whisper']
+        .map(t => [t, s.getDisplayKey(t)]),
+    )
+    expect(played).toEqual({
+      "I'm Your Man": 'C',
+      'Club Tropicana': 'C',
+      Amazing: 'Am',
+      'Wake Me Up Before You Go-Go': 'B',
+      'Careless Whisper': 'Cm',
+    })
+  })
+
+  it('clearing your own transpose returns to the band key', () => {
+    useStore.getState().setTranspose('Careless Whisper', 0)
+    expect(useStore.getState().getDisplayKey('Careless Whisper')).toBe('Dm')
+    useStore.getState().clearTranspose('Careless Whisper')
+    expect(useStore.getState().getDisplayKey('Careless Whisper')).toBe('Cm')
+  })
+})

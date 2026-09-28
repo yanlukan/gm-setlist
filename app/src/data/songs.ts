@@ -22,6 +22,7 @@ export const DEFAULT_SONGS: Song[] = [
     title: "I'm Your Man",
     shortTitle: 'I\'m Your Man',
     lowerKey: true,
+    transpose: -2, // band key C (confirmed 2026-09-28); chart is at the recording's D
     artist: 'George Michael',
     key: 'D',
     bpm: 132,
@@ -56,6 +57,7 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Wake Me Up Before You Go-Go',
     shortTitle: 'Wake Me Up',
     lowerKey: true,
+    transpose: -1, // band key B (confirmed 2026-09-28); chart is at the recording's C
     artist: 'Wham!',
     key: 'C',
     bpm: 82,
@@ -227,6 +229,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Club Tropicana',
     lowerKey: true,
+    transpose: 1, // band key C (confirmed 2026-09-28), a semitone above the chart's B
     artist: 'Wham!',
     key: 'B',
     bpm: 117,
@@ -265,6 +268,7 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Careless Whisper',
     shortTitle: 'Careless W.',
     lowerKey: true,
+    transpose: -2, // band key Cm (confirmed 2026-09-28); chart is at the recording's Dm
     artist: 'George Michael',
     key: 'Dm',
     bpm: 77,

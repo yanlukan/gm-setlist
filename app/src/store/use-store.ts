@@ -129,6 +129,8 @@ interface StoreState {
   saveKey: (title: string, key: string) => void
   saveBpm: (title: string, bpm: number) => void
   setTranspose: (title: string, semitones: number) => void
+  /** Drop the player's own transpose, going back to the band key (or none). */
+  clearTranspose: (title: string) => void
   resetEdits: (title: string) => void
 
   // Setlist actions
@@ -316,6 +318,14 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
     persistEdits(title, get().edits[title])
+  },
+
+  clearTranspose: (title: string) => {
+    const current = get().edits[title]
+    if (!current || current.transpose === undefined) return
+    const { transpose: _, ...rest } = current
+    set(state => ({ edits: { ...state.edits, [title]: rest } }))
+    persistEdits(title, rest)
   },
 
   resetEdits: (title: string) => {

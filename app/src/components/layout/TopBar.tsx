@@ -22,6 +22,7 @@ export function TopBar() {
   const toggleDiagrams = useStore(s => s.toggleDiagrams)
   const resetEdits = useStore(s => s.resetEdits)
   const setTranspose = useStore(s => s.setTranspose)
+  const clearTranspose = useStore(s => s.clearTranspose)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const hydrate = useStore(s => s.hydrate)
   const showToast = useStore(s => s.showToast)
@@ -114,9 +115,22 @@ export function TopBar() {
     [song, semitones, setTranspose],
   )
 
-  const clearTranspose = useCallback(() => {
-    if (song) setTranspose(song.title, 0)
-  }, [song, setTranspose])
+  // The middle button: from your own transpose back to the band key; from the
+  // band key to the original recording key and back again (for playing along).
+  const bandKey = song?.transpose ?? 0
+  const ownTranspose = song ? edits[song.title]?.transpose : undefined
+  const transposeButtonLabel = ownTranspose !== undefined
+    ? (bandKey !== 0 ? 'Back to band key' : 'Clear transpose')
+    : (bandKey !== 0 ? 'Show original key' : 'Transpose')
+
+  const onTransposeButton = useCallback(() => {
+    if (!song) return
+    if (ownTranspose !== undefined && !(ownTranspose === 0 && bandKey === 0)) {
+      clearTranspose(song.title)
+    } else if (bandKey !== 0) {
+      setTranspose(song.title, 0)
+    }
+  }, [song, ownTranspose, bandKey, clearTranspose, setTranspose])
 
   const menuAction = (fn: () => void) => () => {
     fn()
@@ -181,8 +195,8 @@ export function TopBar() {
           <button className="tb-btn" onClick={() => transpose(-1)} aria-label="Transpose down">&minus;</button>
           <button
             className={semitones !== 0 ? 'tb-btn tb-num is-warn' : 'tb-btn tb-num'}
-            onClick={clearTranspose}
-            aria-label={semitones ? 'Clear transpose' : 'Transpose'}
+            onClick={onTransposeButton}
+            aria-label={transposeButtonLabel}
           >
             {semitones > 0 ? `+${semitones}` : semitones}
           </button>

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { TopBar } from '../../components/layout/TopBar'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { SongSheet } from '../../components/song/SongSheet'
@@ -32,17 +32,18 @@ describe('chord taps', () => {
 })
 
 describe('next song', () => {
-  it("shows the key it will be played in", () => {
+  it('shows the key the band plays it in', () => {
     render(<BottomBar />)
-    // Song 2 is I'm Your Man, in D
-    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('D')
-  })
-
-  it('includes the transpose once it is set', () => {
-    useStore.getState().setTranspose("I'm Your Man", -2)
-    render(<BottomBar />)
+    // Song 2 is I'm Your Man: charted in D, played in C
     const next = screen.getByRole('button', { name: /^Next song/ })
     expect(next.querySelector('.songnav-key')).toHaveTextContent(/^C$/)
+  })
+
+  it('follows a transpose set on the device', () => {
+    useStore.getState().setTranspose("I'm Your Man", -3)
+    render(<BottomBar />)
+    const next = screen.getByRole('button', { name: /^Next song/ })
+    expect(next.querySelector('.songnav-key')).toHaveTextContent(/^B$/)
   })
 })
 
@@ -58,5 +59,30 @@ describe('next-song heads-up', () => {
     useStore.setState({ currentIndex: 0 }) // next is I'm Your Man, no cue
     render(<BottomBar />)
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+})
+
+describe('transpose button with a band key', () => {
+  const key = () => screen.getByText(/^Key /).textContent
+
+  it('toggles between the band key and the original recording key', () => {
+    useStore.setState({ currentIndex: 1 }) // I'm Your Man: chart D, band key C
+    render(<TopBar />)
+    expect(key()).toBe('Key C (orig D)')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show original key' }))
+    expect(key()).toBe('Key D')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to band key' }))
+    expect(key()).toBe('Key C (orig D)')
+  })
+
+  it('brings a hand-set transpose back to the band key', () => {
+    useStore.setState({ currentIndex: 1 })
+    render(<TopBar />)
+    fireEvent.click(screen.getByRole('button', { name: 'Transpose up' }))
+    expect(key()).toBe('Key Db (orig D)') // Db (five flats), not C# (seven sharps)
+    fireEvent.click(screen.getByRole('button', { name: 'Back to band key' }))
+    expect(key()).toBe('Key C (orig D)')
   })
 })

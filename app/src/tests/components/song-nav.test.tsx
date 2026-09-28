@@ -67,16 +67,17 @@ describe('all-songs grid', () => {
     expect(screen.getByRole('button', { name: /Club Tropicana/ })).toHaveAttribute('aria-current', 'true')
   })
 
-  it('flags lower-key songs whose transpose is not set yet', () => {
+  it('shows each song in its band key, and flags a lower-key song shown at the original key', () => {
     render(<BottomBar />)
     fireEvent.click(screen.getByRole('button', { name: 'Show all songs' }))
-    expect(screen.getByRole('button', { name: /Careless Whisper/ })).toHaveTextContent('LOWER KEY')
+    const careless = () => screen.getByRole('button', { name: /Careless Whisper/ })
+    expect(careless()).toHaveTextContent('Cm')
+    expect(careless()).toHaveTextContent('-2')
+    expect(careless()).not.toHaveTextContent('LOWER KEY')
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    useStore.getState().setTranspose('Careless Whisper', -2)
+    useStore.getState().setTranspose('Careless Whisper', 0) // back to the recording key
     fireEvent.click(screen.getByRole('button', { name: 'Show all songs' }))
-    const tile = screen.getByRole('button', { name: /Careless Whisper/ })
-    expect(tile).not.toHaveTextContent('LOWER KEY')
-    expect(tile).toHaveTextContent('-2')
+    expect(careless()).toHaveTextContent('LOWER KEY')
   })
 })

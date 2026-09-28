@@ -26,9 +26,19 @@ describe('formatSetlist', () => {
     expect(lines).toHaveLength(2 + 21)
   })
 
-  it('flags lower-key songs until their key is settled', () => {
+  it('flags a lower-key song whose key is not settled yet', () => {
+    const unsettled = inGigOrder.map(song =>
+      song.title === "I'm Your Man" ? { ...song, transpose: undefined } : song)
+    expect(formatSetlist('GM', unsettled, {})).toContain("2. I'm Your Man (D, lower key TBC)")
+  })
+
+  it('has every lower key settled for the September set', () => {
     const text = formatSetlist('GM', inGigOrder, {})
-    expect(text).toContain("2. I'm Your Man (D, lower key TBC)")
+    expect(text).not.toContain('TBC')
+    expect(text).toContain("2. I'm Your Man (C, orig. D)")
+    expect(text).toContain('3. Club Tropicana (C, orig. B)')
+    expect(text).toContain('14. Wake Me Up Before You Go-Go (B, orig. C)')
+    expect(text).toContain('16. Careless Whisper (Cm, orig. Dm)')
   })
 
   it('shows the new key and the original once transposed', () => {
