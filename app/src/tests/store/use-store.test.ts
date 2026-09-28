@@ -358,3 +358,14 @@ describe('Club Tropicana', () => {
     expect(s.getDisplaySections('Club Tropicana')[0].chords).toBe('D  Em7  A  C#m7')
   })
 })
+
+describe('Outside', () => {
+  it('has the real chorus, not a vamp labelled chorus and the chorus labelled bridge', () => {
+    const outside = useStore.getInitialState().allSongs().find(s => s.title === 'Outside')!
+    const byName = Object.fromEntries(outside.sections.map(s => [s.name, s.chords]))
+    expect(outside.key).toBe('Gm')
+    expect(byName.Chorus).toMatch(/^Cm7  F\/C  Gm/)
+    expect(byName.Verse).toMatch(/^Gm7  C/)
+    expect(byName.Bridge).toBeUndefined()
+  })
+})
