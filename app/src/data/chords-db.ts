@@ -126,6 +126,8 @@ const SONGBOOK_VOICINGS: Record<string, ChordVoicing[]> = {
   'C6(b5)': [{ f: [null, null, 2, 2, 1, 2], s: 0, l: 'Open' }],
   // Everything She Wants: E with both the 2nd and the 4th, no 3rd
   'Esus24': [{ f: [null, null, 2, 2, 0, 2], s: 0, l: 'Open' }],
+  // Jesus to a Child: the book's capo-4 shape (x-0-2-4-3-0), at concert pitch
+  'C#sus24': [{ f: [null, 1, 3, 5, 4, 1], s: 4, l: '4th fret' }],
 }
 
 const RAW_DB = { ...buildChordDB(), ...SONGBOOK_VOICINGS }
@@ -163,6 +165,7 @@ function normalizeQuality(quality: string): string {
     .replace(/^\+7$|^7\+5$|^7#5$/, 'aug7')
     .replace(/^\+$/, 'aug')
     .replace(/^sus$/, 'sus4')
+    .replace(/^6\/9$/, '69')
     .replace(/^2$/, 'sus2')
   return q
 }

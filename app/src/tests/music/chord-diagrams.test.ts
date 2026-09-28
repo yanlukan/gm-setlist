@@ -29,6 +29,7 @@ describe('chord diagrams', () => {
     ['G+', 'Gaug'],
     ['Dmin7', 'Dm7'],
     ['Csus', 'Csus4'],
+    ['A6/9', 'A69'],
   ])('reads %s the way it is usually written', (typed, dbName) => {
     expect(lookupChord(typed)).toBe(lookupChord(dbName))
     expect(lookupChord(typed)).toBeDefined()
@@ -76,6 +77,8 @@ describe('chord diagrams', () => {
     ['C6(b5)', ['C', 'E', 'F#', 'A']],
     // Everything She Wants
     ['Esus24', ['E', 'F#', 'A', 'B']],
+    // Jesus to a Child
+    ['C#sus24', ['C#', 'D#', 'F#', 'G#']],
   ])("plays %s from the songbook with exactly the chord's notes", (chord, expected) => {
     const voicings = lookupChord(chord as string, { simplify: false })
     expect(voicings).toBeDefined()
