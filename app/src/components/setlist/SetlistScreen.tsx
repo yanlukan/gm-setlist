@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -15,6 +15,8 @@ import {
 } from '@dnd-kit/sortable'
 import { useStore } from '../../store/use-store'
 import { SetlistSongItem } from './SetlistSongItem'
+import { formatSetlist } from '../../music/setlist-text'
+import { shareText } from '../../utils/share'
 import { AddSongPicker } from './AddSongPicker'
 import type { Song } from '../../types'
 
@@ -33,6 +35,9 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
   const renameSetlist = useStore(s => s.renameSetlist)
   const reorderSetlistSongs = useStore(s => s.reorderSetlistSongs)
   const goToSong = useStore(s => s.goToSong)
+  const duplicateSetlist = useStore(s => s.duplicateSetlist)
+  const edits = useStore(s => s.edits)
+  const showToast = useStore(s => s.showToast)
 
   const [showPicker, setShowPicker] = useState(false)
 
@@ -48,6 +53,11 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
       .filter((s): s is Song => s !== undefined)
   }, [songs, customSongs, songTitles])
   const currentTitle = resolved[currentIndex]?.title
+
+  // Open on the song you're on, not always at the top of the list.
+  useEffect(() => {
+    document.querySelector('.sl-row.is-current')?.scrollIntoView?.({ block: 'center' })
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -84,6 +94,13 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
     if (name?.trim()) renameSetlist(activeId, name.trim())
   }
 
+  async function handleShare() {
+    if (!activeList) return
+    const outcome = await shareText(activeList.name, formatSetlist(activeList.name, resolved, edits))
+    if (outcome === 'copied') showToast('Setlist copied — paste it anywhere')
+    if (outcome === 'failed') showToast('Could not share the setlist')
+  }
+
   function handleDelete() {
     if (activeId === 'default') return
     if (!window.confirm(`Delete "${activeList?.name}"? A restore point is saved first.`)) return
@@ -114,6 +131,8 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
         <span className="sl-hint">
           {songTitles.length} songs &middot; hold &#9776; and drag to reorder
         </span>
+        <button className="tb-btn" onClick={handleShare} disabled={resolved.length === 0}>Share</button>
+        <button className="tb-btn" onClick={() => duplicateSetlist(activeId)}>Duplicate</button>
         <button className="tb-btn" onClick={handleRename}>Rename</button>
         {activeId !== 'default' && (
           <button className="tb-btn sl-danger" onClick={handleDelete}>Delete</button>

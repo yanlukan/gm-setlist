@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../store/use-store'
-import { shouldUseFlats, transposeChord } from '../../music/theory'
+import { playedKey } from '../../music/setlist-text'
 
 interface SetlistSongItemProps {
   songTitle: string
@@ -25,11 +25,7 @@ export function SetlistSongItem({ songTitle, index, setlistId, isCurrent, onSele
 
   // Show the key as it will be played, transpose included.
   const songEdits = edits[songTitle]
-  const semitones = songEdits?.transpose ?? 0
-  const baseKey = songEdits?.key ?? song?.key ?? ''
-  const key = semitones && baseKey
-    ? transposeChord(baseKey, semitones, shouldUseFlats(baseKey, semitones))
-    : baseKey
+  const { key, semitones } = song ? playedKey(song, songEdits) : { key: '', semitones: 0 }
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: songTitle })

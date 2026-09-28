@@ -89,6 +89,7 @@ function AppInner() {
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const loadFailed = useStore(s => s.loadFailed)
+  const toast = useStore(s => s.toast)
   const [ready, setReady] = useState(false)
 
   // Screen stays on whenever PlayBook is open — not only in Stage Mode.
@@ -148,6 +149,7 @@ function AppInner() {
       <SongSheet />
       {diagramsVisible && <DiagramsBar />}
       <BottomBar />
+      {toast && <div className="toast" role="status">{toast}</div>}
     </>
   )
 }

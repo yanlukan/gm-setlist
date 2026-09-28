@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../../store/use-store'
-import { shouldUseFlats, transposeChord } from '../../music/theory'
+import { playedKey } from '../../music/setlist-text'
 import type { Song } from '../../types'
 
 interface SongGridProps {
@@ -43,12 +43,7 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
       <div className="songgrid-body">
         <div className="songgrid">
           {songs.map((song, i) => {
-            const songEdits = edits[song.title]
-            const semitones = songEdits?.transpose ?? 0
-            const baseKey = songEdits?.key ?? song.key
-            const key = semitones && baseKey
-              ? transposeChord(baseKey, semitones, shouldUseFlats(baseKey, semitones))
-              : baseKey
+            const { key, semitones } = playedKey(song, edits[song.title])
             const isCurrent = i === currentIndex
 
             return (

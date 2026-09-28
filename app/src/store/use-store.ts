@@ -77,6 +77,8 @@ function persistPosition(setlistId: string, index: number): void {
   saveSetting('position', position).catch(e => console.warn('save position failed:', e))
 }
 
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+
 /** Keep the current position inside the setlist after songs are added/removed. */
 function clampIndex(index: number, length: number): number {
   if (length <= 0) return 0
@@ -129,6 +131,7 @@ interface StoreState {
   reorderSetlistSongs: (id: string, songTitles: string[]) => void
   addSongToSetlist: (id: string, songTitle: string) => void
   removeSongFromSetlist: (id: string, songTitle: string) => void
+  duplicateSetlist: (id: string) => void
 
   // Other actions
   selectVoicing: (chord: string, index: number) => void
@@ -137,6 +140,9 @@ interface StoreState {
   toggleViewMode: () => void
   toggleDiagrams: () => void
   restoreGigOrder: () => void
+  /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
+  toast: string | null
+  showToast: (message: string) => void
   loadFailed: boolean
   hydrate: () => Promise<void>
 }
@@ -153,6 +159,7 @@ export const useStore = create<StoreState>((set, get) => ({
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
   selectedVoicings: {},
+  toast: null,
   loadFailed: false,
 
   // Computed
@@ -416,6 +423,25 @@ export const useStore = create<StoreState>((set, get) => ({
     persistSetlist(previous, get().setlistData, 'remove song')
   },
 
+  /** Copy a setlist (e.g. to cut it down for another venue) and switch to the copy. */
+  duplicateSetlist: (id: string) => {
+    const previous = get().setlistData
+    const source = previous.lists[id]
+    if (!source) return
+    const newId = `sl-${Date.now()}`
+    set(state => ({
+      setlistData: {
+        lists: {
+          ...state.setlistData.lists,
+          [newId]: { id: newId, name: `${source.name} (copy)`, songTitles: [...source.songTitles] },
+        },
+        activeId: newId,
+      },
+      currentIndex: 0,
+    }))
+    persistSetlist(previous, get().setlistData, 'duplicate setlist')
+  },
+
   // Voicing selection
   selectVoicing: (chord: string, index: number) => {
     set(state => ({
@@ -470,6 +496,12 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     })
     persistSetlist(previous, get().setlistData, 'restore GM Tribute order')
+  },
+
+  showToast: (message: string) => {
+    clearTimeout(toastTimer)
+    set({ toast: message })
+    toastTimer = setTimeout(() => set({ toast: null }), 2500)
   },
 
   hydrate: async () => {

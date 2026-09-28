@@ -259,3 +259,30 @@ describe('navigation on an empty setlist', () => {
     expect(useStore.getState().currentIndex).toBe(0)
   })
 })
+
+describe('duplicateSetlist', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  it('copies the songs into a new setlist and switches to it', () => {
+    const original = useStore.getState().setlistData.activeId
+    useStore.getState().duplicateSetlist(original)
+
+    const { setlistData } = useStore.getState()
+    expect(setlistData.activeId).not.toBe(original)
+    const copy = setlistData.lists[setlistData.activeId]
+    expect(copy.name).toBe('GM Tribute — Sept 2026 (copy)')
+    expect(copy.songTitles).toEqual(GIG_SETLIST_2026)
+  })
+
+  it('leaves the original untouched when the copy is changed', () => {
+    const original = useStore.getState().setlistData.activeId
+    useStore.getState().duplicateSetlist(original)
+    const copyId = useStore.getState().setlistData.activeId
+    useStore.getState().removeSongFromSetlist(copyId, 'Faith')
+
+    expect(useStore.getState().setlistData.lists[original].songTitles).toEqual(GIG_SETLIST_2026)
+    expect(useStore.getState().setlistData.lists[copyId].songTitles).toHaveLength(20)
+  })
+})

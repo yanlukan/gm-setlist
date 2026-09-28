@@ -45,3 +45,18 @@ describe('next song', () => {
     expect(next.querySelector('.songnav-key')).toHaveTextContent(/^C$/)
   })
 })
+
+describe('next-song heads-up', () => {
+  it("warns one song early when the next song has an arrangement cue", () => {
+    // Song 17 is I Can't Make You Love Me; next is Roxanne, guitar tacet
+    useStore.setState({ currentIndex: 16 })
+    render(<BottomBar />)
+    expect(screen.getByRole('note')).toHaveTextContent(/GUITAR TACET/)
+  })
+
+  it('stays out of the way when the next song has no cue', () => {
+    useStore.setState({ currentIndex: 0 }) // next is I'm Your Man, no cue
+    render(<BottomBar />)
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+})

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store/use-store'
-import { shouldUseFlats, transposeChord } from '../../music/theory'
+import { playedKey } from '../../music/setlist-text'
 import { SongGrid } from './SongGrid'
 import type { Song } from '../../types'
 
@@ -33,17 +33,18 @@ export function BottomBar() {
   const next = currentIndex < total - 1 ? setlistSongs[currentIndex + 1] : undefined
 
   // The key the next song will actually be played in, so you can get ready for it.
-  const nextKey = useMemo(() => {
-    if (!next) return ''
-    const baseKey = edits[next.title]?.key ?? next.key
-    const semitones = edits[next.title]?.transpose ?? 0
-    if (!semitones || !baseKey) return baseKey
-    return transposeChord(baseKey, semitones, shouldUseFlats(baseKey, semitones))
-  }, [next, edits])
+  const nextKey = useMemo(() => (next ? playedKey(next, edits[next.title]).key : ''), [next, edits])
 
   return (
     <>
       <nav className="songnav" aria-label="Song navigation">
+        {next?.cue && (
+          // Heads-up one song early: time to grab the acoustic, or put the guitar down.
+          <div className="songnav-headsup" role="note">
+            <span className="songnav-headsup-label">Next up</span>
+            <span className="songnav-headsup-text">{next.cue}</span>
+          </div>
+        )}
         <button
           className="songnav-btn songnav-prev"
           onClick={prevSong}

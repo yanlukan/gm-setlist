@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData } from '../../store/persistence'
 import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
+import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { ChordSearch } from '../search/ChordSearch'
 import { TapTempo } from '../shared/TapTempo'
@@ -22,6 +23,7 @@ export function TopBar() {
   const setTranspose = useStore(s => s.setTranspose)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const hydrate = useStore(s => s.hydrate)
+  const showToast = useStore(s => s.showToast)
 
   // Primitive selectors — no method calls in selectors
   const songs = useStore(s => s.songs)
@@ -37,16 +39,25 @@ export function TopBar() {
   const [showRestore, setShowRestore] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // iOS only opens the share sheet straight from a tap, so the backup is
+  // prepared when the menu opens and is ready the moment Export is tapped.
+  const backupJson = useRef<string | null>(null)
+  useEffect(() => {
+    if (!showMenu) return
+    backupJson.current = null
+    exportAllData().then(json => { backupJson.current = json }).catch(() => {})
+  }, [showMenu])
+
   const handleExport = async () => {
-    const json = await exportAllData()
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `playbook-backup-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
     setShowMenu(false)
+    try {
+      const json = backupJson.current ?? (await exportAllData())
+      const name = `playbook-backup-${new Date().toISOString().slice(0, 10)}.json`
+      const outcome = await shareFile(new File([json], name, { type: 'application/json' }))
+      if (outcome === 'downloaded') showToast('Backup downloaded')
+    } catch {
+      showToast('Could not create the backup')
+    }
   }
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
