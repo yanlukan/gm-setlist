@@ -11,7 +11,8 @@ describe('chord diagrams', () => {
       for (const section of song.sections) {
         const shown = k ? transposeText(section.chords, k, shouldUseFlats(song.key, k)) : section.chords
         for (const chord of shown.split(/\s+/).filter(Boolean)) {
-          if (/^N\.?C\.?$/i.test(chord)) continue // "no chord" is an instruction, not a chord
+          // "no chord" and repeat marks like (x3) are instructions, not chords
+          if (/^N\.?C\.?$/i.test(chord) || /^\(?x\d+\)?$/i.test(chord)) continue
           const plain = chord.replace(/\/[A-G][#b]?$/, '')
           if (!CHORD_DB[chord] && !CHORD_DB[plain]) missing.push(`${chord} in ${song.title}`)
         }

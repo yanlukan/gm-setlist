@@ -103,12 +103,14 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 283, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Gm9 to C6 groove throughout: jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm and turns back into the groove on Dsus4. Ends on the groove, fading.',
+    notes: 'From the songbook: Gm9 to C6 through the verses and the hook; jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm three times, then turns back into the groove on Dsus4. Guitar lays out for the instrumental. Ends on the groove, fading.',
     sections: [
       { name: 'Intro', chords: 'Gm9  C6  Gm9  C6' },
       { name: 'Verse', chords: 'Gm9  C6  Gm9  C6' },
-      { name: 'Chorus', chords: 'Cm7  Cm6  Gm9  Gm  Cm7  Cm6  Gm9  Gm  Cm7  Cm6  Dsus4' },
-      { name: 'Outro', chords: 'C6  Gm9  C6  Gm9' },
+      { name: 'Chorus', chords: 'Cm7  Cm6  Gm9  Gm  (x3)' },
+      { name: 'Chorus end', chords: 'Cm7  Cm6  Dsus4' },
+      { name: 'Instrumental', chords: 'N.C.' },
+      { name: 'Outro', chords: 'Gm9  C6  Gm9  C6' },
     ],
   },
   {
