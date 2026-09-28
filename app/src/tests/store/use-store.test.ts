@@ -332,7 +332,7 @@ describe('all five lower-key songs', () => {
     )
     expect(played).toEqual({
       "I'm Your Man": 'C',
-      'Club Tropicana': 'C',
+      'Club Tropicana': 'A',
       Amazing: 'Am',
       'Wake Me Up Before You Go-Go': 'B',
       'Careless Whisper': 'Cm',
@@ -344,5 +344,17 @@ describe('all five lower-key songs', () => {
     expect(useStore.getState().getDisplayKey('Careless Whisper')).toBe('Dm')
     useStore.getState().clearTranspose('Careless Whisper')
     expect(useStore.getState().getDisplayKey('Careless Whisper')).toBe('Cm')
+  })
+})
+
+describe('Club Tropicana', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  it('is played in A, two semitones under the chart', () => {
+    const s = useStore.getState()
+    expect(s.getDisplayKey('Club Tropicana')).toBe('A')
+    expect(s.getDisplaySections('Club Tropicana')[0].chords).toBe('D  Em7  A  C#m7')
   })
 })

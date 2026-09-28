@@ -229,7 +229,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Club Tropicana',
     lowerKey: true,
-    transpose: 1, // band key C (confirmed 2026-09-28), a semitone above the chart's B
+    transpose: -2, // band key A (confirmed 2026-09-28); chart is at the recording's B
     artist: 'Wham!',
     key: 'B',
     bpm: 117,

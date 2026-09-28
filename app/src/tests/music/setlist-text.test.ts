@@ -36,7 +36,7 @@ describe('formatSetlist', () => {
     const text = formatSetlist('GM', inGigOrder, {})
     expect(text).not.toContain('TBC')
     expect(text).toContain("2. I'm Your Man (C, orig. D)")
-    expect(text).toContain('3. Club Tropicana (C, orig. B)')
+    expect(text).toContain('3. Club Tropicana (A, orig. B)')
     expect(text).toContain('14. Wake Me Up Before You Go-Go (B, orig. C)')
     expect(text).toContain('16. Careless Whisper (Cm, orig. Dm)')
   })
