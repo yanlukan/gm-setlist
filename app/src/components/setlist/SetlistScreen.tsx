@@ -53,7 +53,12 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
   }
 
   function handleSelectSong(index: number) {
-    goToSong(index)
+    // Rows are positions in the saved title list, but the chart indexes the
+    // list of songs that actually resolve. If any title fails to resolve,
+    // the two differ and a raw index opens the wrong song — so go by title.
+    const title = songTitles[index]
+    const position = useStore.getState().setlistSongs().findIndex(s => s.title === title)
+    if (position >= 0) goToSong(position)
     onClose()
   }
 
@@ -90,6 +95,7 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        padding: 'var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)',
       }}
     >
       {/* Header */}

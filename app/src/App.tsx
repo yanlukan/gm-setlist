@@ -1,7 +1,5 @@
-import { useEffect, useState, useMemo, Component, type ReactNode } from 'react'
-
-declare const __BUILD_TIME__: string
-const APP_VERSION = '3.0.0'
+import { useEffect, useState, Component, type ReactNode } from 'react'
+import { APP_VERSION, BUILD_TIME } from './version'
 import { useStore } from './store/use-store'
 import { exportAllData } from './store/persistence'
 import { migrateFromLocalStorage } from './store/migrate'
@@ -9,7 +7,7 @@ import { TopBar } from './components/layout/TopBar'
 import { BottomBar } from './components/layout/BottomBar'
 import { SongSheet } from './components/song/SongSheet'
 import { DiagramsBar } from './components/diagrams/DiagramsBar'
-import { useSwipe } from './hooks/use-swipe'
+import { usePedalKeys } from './hooks/use-pedal-keys'
 import { useWakeLock } from './hooks/use-wake-lock'
 
 // Error boundary. It must never be able to destroy the user's data: a crash on
@@ -92,12 +90,11 @@ function AppInner() {
   const prevSong = useStore(s => s.prevSong)
   const loadFailed = useStore(s => s.loadFailed)
   const [ready, setReady] = useState(false)
-  const [showVersion, setShowVersion] = useState(false)
 
   useWakeLock(viewMode === 'stage')
 
   useEffect(() => {
-    console.log(`PlayBook v${APP_VERSION} built ${__BUILD_TIME__}`)
+    console.log(`PlayBook v${APP_VERSION} built ${BUILD_TIME}`)
     async function init() {
       try { await migrateFromLocalStorage() } catch (e) { console.warn('Migration:', e) }
       try { await hydrate() } catch (e) { console.warn('Hydrate:', e) }
@@ -121,12 +118,8 @@ function AppInner() {
     ].filter(Boolean).join(' ')
   }, [theme, viewMode])
 
-  const swipeHandlers = useMemo(() => ({
-    onSwipeLeft: nextSong,
-    onSwipeRight: prevSong,
-  }), [nextSong, prevSong])
-
-  useSwipe(swipeHandlers, !editMode)
+  // Page-turner pedal / keyboard. Swipe lives on the chart itself (SongSheet).
+  usePedalKeys({ onNext: nextSong, onPrev: prevSong }, !editMode)
 
   // Show loading briefly while IndexedDB hydrates
   if (!ready) {
@@ -142,39 +135,17 @@ function AppInner() {
 
   return (
     <>
+      <TopBar />
       {loadFailed && (
         <div style={{
           padding: '8px 12px', background: '#7f1d1d', color: '#fff',
-          fontSize: 13, fontWeight: 600, textAlign: 'center',
+          fontSize: 14, fontWeight: 600, textAlign: 'center', flexShrink: 0,
         }}>
           Could not read saved data. Running read-only so nothing is overwritten — reload before editing.
         </div>
       )}
-      <TopBar />
-      <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
-        <SongSheet />
-      </div>
+      <SongSheet />
       {diagramsVisible && <DiagramsBar />}
-      {showVersion && (
-        <div
-          onClick={() => setShowVersion(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8,
-          }}
-        >
-          <div style={{ fontSize: 24, fontWeight: 'bold' }}>PlayBook</div>
-          <div style={{ fontSize: 16, color: '#888' }}>v{APP_VERSION}</div>
-          <div style={{ fontSize: 13, color: '#666' }}>Built: {__BUILD_TIME__}</div>
-          <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>Tap to close</div>
-        </div>
-      )}
-      <div
-        onClick={() => setShowVersion(true)}
-        style={{ position: 'fixed', bottom: 2, right: 8, fontSize: 10, color: '#555', zIndex: 50 }}
-      >
-        v{APP_VERSION}
-      </div>
       <BottomBar />
     </>
   )

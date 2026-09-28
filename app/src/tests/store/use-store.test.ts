@@ -245,3 +245,17 @@ describe('gig-critical behaviour', () => {
     })
   })
 })
+
+describe('navigation on an empty setlist', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  it('stays at position 0 instead of going to -1', () => {
+    useStore.getState().createSetlist('Empty')
+    useStore.getState().nextSong()
+    expect(useStore.getState().currentIndex).toBe(0)
+    useStore.getState().prevSong()
+    expect(useStore.getState().currentIndex).toBe(0)
+  })
+})

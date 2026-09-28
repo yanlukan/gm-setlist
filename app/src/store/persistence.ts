@@ -82,6 +82,16 @@ export async function getTheme(): Promise<Theme | undefined> {
   return d.get('settings', 'theme')
 }
 
+export async function saveDiagramsVisible(visible: boolean): Promise<void> {
+  const d = await db()
+  await d.put('settings', visible, 'diagramsVisible')
+}
+
+export async function getDiagramsVisible(): Promise<boolean | undefined> {
+  const d = await db()
+  return d.get('settings', 'diagramsVisible')
+}
+
 export async function saveSelectedVoicings(voicings: Record<string, number>): Promise<void> {
   const d = await db()
   await d.put('settings', voicings, 'selectedVoicings')

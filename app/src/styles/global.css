@@ -1,31 +1,47 @@
 @import './theme.css';
+@import './layout.css';
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html {
-  /* Enable safe area insets on iOS */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+:root {
+  /*
+   * iOS safe areas. Each is applied exactly once: top in the top bar, bottom
+   * in the song nav, sides on the app shell. They used to be applied to <html>
+   * as well, which pushed the song bar off the bottom of the screen in the
+   * home-screen app.
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
+
+html, body { height: 100%; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
-  height: 100dvh;
   -webkit-user-select: none;
   user-select: none;
-  /* Prevent iOS tap highlight flicker */
   -webkit-tap-highlight-color: transparent;
-  /* Prevent layout shift from overscroll */
   overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
-  height: 100dvh;
+  /*
+   * position:fixed + inset:0 fills the screen exactly in iOS standalone mode,
+   * which 100vh/100dvh do not do reliably.
+   */
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
 button {
@@ -35,6 +51,7 @@ button {
   background: none;
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 input, select {
@@ -47,7 +64,6 @@ input, select {
   font-size: 16px;
 }
 
-/* Hide scrollbars in bottom bar and diagrams bar */
 ::-webkit-scrollbar {
   display: none;
 }

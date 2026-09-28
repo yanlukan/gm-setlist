@@ -2,11 +2,12 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData } from '../../store/persistence'
+import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { ChordSearch } from '../search/ChordSearch'
 import { TapTempo } from '../shared/TapTempo'
-import { Badge } from '../shared/Badge'
+import type { Song } from '../../types'
 
 export function TopBar() {
   const editMode = useStore(s => s.editMode)
@@ -20,6 +21,7 @@ export function TopBar() {
   const resetEdits = useStore(s => s.resetEdits)
   const setTranspose = useStore(s => s.setTranspose)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
+  const hydrate = useStore(s => s.hydrate)
 
   // Primitive selectors — no method calls in selectors
   const songs = useStore(s => s.songs)
@@ -34,7 +36,6 @@ export function TopBar() {
   const [showMenu, setShowMenu] = useState(false)
   const [showRestore, setShowRestore] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const hydrate = useStore(s => s.hydrate)
 
   const handleExport = async () => {
     const json = await exportAllData()
@@ -64,20 +65,16 @@ export function TopBar() {
     e.target.value = ''
   }
 
-  // Derive computed values in component
-  const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
-
   const setlistSongs = useMemo(() => {
+    const all = [...songs, ...customSongs]
     const active = setlistData.lists[setlistData.activeId]
-    if (!active) return allSongs
-    const mapped = active.songTitles
-      .map(title => allSongs.find(s => s.title === title))
-      .filter(Boolean) as typeof songs
-    return mapped
-  }, [allSongs, setlistData])
+    if (!active) return []
+    return active.songTitles
+      .map(title => all.find(s => s.title === title))
+      .filter((s): s is Song => s !== undefined)
+  }, [songs, customSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
-  const total = setlistSongs.length
 
   const currentKey = useMemo(() => {
     if (!song) return ''
@@ -96,8 +93,7 @@ export function TopBar() {
 
   const transpose = useCallback(
     (delta: number) => {
-      if (!song) return
-      setTranspose(song.title, semitones + delta)
+      if (song) setTranspose(song.title, semitones + delta)
     },
     [song, semitones, setTranspose],
   )
@@ -106,151 +102,98 @@ export function TopBar() {
     if (song) setTranspose(song.title, 0)
   }, [song, setTranspose])
 
-  const btnStyle: React.CSSProperties = {
-    padding: '4px 10px',
-    borderRadius: 6,
-    border: '1px solid var(--border)',
-    background: 'var(--badge-bg)',
-    color: 'var(--text)',
-    cursor: 'pointer',
-    fontSize: 13,
-    fontWeight: 500,
-  }
-
-  const activeBtnStyle: React.CSSProperties = {
-    ...btnStyle,
-    background: '#4a9eff',
-    color: '#fff',
-    border: '1px solid #4a9eff',
-  }
-
-  const dangerBtnStyle: React.CSSProperties = {
-    ...btnStyle,
-    background: '#e53e3e',
-    color: '#fff',
-    border: '1px solid #e53e3e',
-  }
-
-  const groupStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
+  const menuAction = (fn: () => void) => () => {
+    fn()
+    setShowMenu(false)
   }
 
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          padding: '6px 8px',
-          paddingTop: 'max(6px, env(safe-area-inset-top))',
-          background: 'var(--bg)',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        {/* Action buttons — single row, fits phone screen */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <button style={editMode ? activeBtnStyle : btnStyle} onClick={toggleEditMode}>
+      <div className="topbar">
+        <div className="tb-group">
+          <button className={editMode ? 'tb-btn is-active' : 'tb-btn'} onClick={toggleEditMode}>
             {editMode ? 'Done' : 'Edit'}
           </button>
           {editMode && song && (
-            <button style={dangerBtnStyle} onClick={() => resetEdits(song.title)}>Reset</button>
+            <button
+              className="tb-btn is-danger"
+              onClick={() => {
+                if (confirm(`Reset "${song.title}" to the original chart? Your edits to it will be removed.`)) {
+                  resetEdits(song.title)
+                }
+              }}
+            >
+              Reset
+            </button>
           )}
           {!editMode && (
             <>
-              <button style={btnStyle} onClick={() => setShowSetlist(true)}>Setlist</button>
-              <button style={btnStyle} onClick={() => setShowSearch(true)}>Search</button>
+              <button className="tb-btn" onClick={() => setShowSetlist(true)}>Setlists</button>
+              <button className="tb-btn" onClick={() => setShowSearch(true)}>Search</button>
             </>
           )}
+        </div>
 
-          <div style={{ flex: 1 }} />
+        {/* Song info: sits between the buttons on iPad, drops to its own row on phones */}
+        <div className="tb-meta">
+          {song && (
+            <>
+              <span className={semitones !== 0 ? 'tb-badge is-warn' : 'tb-badge'}>
+                Key {displayKey}
+                {semitones !== 0 ? ` (orig ${currentKey})` : ''}
+              </span>
+              {song.lowerKey && semitones === 0 && (
+                <span className="tb-badge is-danger">LOWER KEY — set transpose</span>
+              )}
+              <button className="tb-badge" onClick={() => setShowTapTempo(true)}>{song.bpm} BPM</button>
+              <span className="tb-badge">{song.timeSignature}</span>
+              {song.capo != null && <span className="tb-badge">Capo {song.capo}</span>}
+            </>
+          )}
+        </div>
 
-          <div style={groupStyle}>
-            <button style={{ ...btnStyle, fontSize: 15, minWidth: 34 }} onClick={() => transpose(-1)}>&minus;</button>
-            <button
-              onClick={clearTranspose}
-              title={semitones ? 'Tap to clear transpose' : 'Transpose'}
-              style={{
-                ...btnStyle,
-                minWidth: 40,
-                fontVariantNumeric: 'tabular-nums',
-                ...(semitones !== 0 && { background: '#f59e0b', color: '#111', border: '1px solid #f59e0b', fontWeight: 700 }),
-              }}
-            >
-              {semitones > 0 ? `+${semitones}` : semitones === 0 ? '0' : semitones}
-            </button>
-            <button style={{ ...btnStyle, fontSize: 15, minWidth: 34 }} onClick={() => transpose(1)}>+</button>
-          </div>
+        <div className="tb-group">
+          <button className="tb-btn" onClick={() => transpose(-1)} aria-label="Transpose down">&minus;</button>
+          <button
+            className={semitones !== 0 ? 'tb-btn tb-num is-warn' : 'tb-btn tb-num'}
+            onClick={clearTranspose}
+            aria-label={semitones ? 'Clear transpose' : 'Transpose'}
+          >
+            {semitones > 0 ? `+${semitones}` : semitones}
+          </button>
+          <button className="tb-btn" onClick={() => transpose(1)} aria-label="Transpose up">+</button>
 
-          {/* Menu — contains Stage, Theme, Chords, Export/Import */}
           <div style={{ position: 'relative' }}>
-            <button style={btnStyle} onClick={() => setShowMenu(!showMenu)}>&#8942;</button>
+            <button className="tb-btn" onClick={() => setShowMenu(!showMenu)} aria-label="Menu">&#8942;</button>
             {showMenu && (
-              <div style={{
-                position: 'absolute', right: 0, top: '100%', marginTop: 4,
-                background: 'var(--picker-bg, #2a2a2a)', borderRadius: 8,
-                border: '1px solid var(--badge-bg)', zIndex: 300,
-                minWidth: 180, overflow: 'hidden',
-              }}>
-                <button onClick={() => { toggleViewMode(); setShowMenu(false) }} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
-                }}>
+              <div className="menu">
+                <button className="menu-item" onClick={menuAction(toggleViewMode)}>
                   {viewMode === 'stage' ? 'Exit Stage Mode' : 'Stage Mode'}
                 </button>
-                <button onClick={() => { toggleDiagrams(); setShowMenu(false) }} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
-                }}>
+                <button className="menu-item" onClick={menuAction(toggleDiagrams)}>
                   {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
                 </button>
-                <button onClick={() => { toggleTheme(); setShowMenu(false) }} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
-                }}>
+                <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                 </button>
-                <button onClick={handleExport} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent', borderBottom: '1px solid var(--badge-bg)',
-                }}>
-                  Export Backup
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent',
-                }}>
-                  Import Backup
-                </button>
-                <button onClick={() => { setShowRestore(true); setShowMenu(false) }} style={{
-                  display: 'block', width: '100%', padding: '12px 14px',
-                  fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                  background: 'transparent', borderTop: '1px solid var(--badge-bg)',
-                }}>
+                <button className="menu-item" onClick={handleExport}>Export Backup</button>
+                <button className="menu-item" onClick={() => fileInputRef.current?.click()}>Import Backup</button>
+                <button className="menu-item" onClick={menuAction(() => setShowRestore(true))}>
                   Restore a Backup&hellip;
                 </button>
                 <button
-                  onClick={() => {
+                  className="menu-item"
+                  onClick={menuAction(() => {
                     if (confirm('Rebuild this setlist as the printed GM Tribute running order? A restore point is saved first.')) {
                       restoreGigOrder()
                     }
-                    setShowMenu(false)
-                  }}
-                  style={{
-                    display: 'block', width: '100%', padding: '12px 14px',
-                    fontSize: 14, textAlign: 'left', color: 'var(--text)',
-                    background: 'transparent', borderTop: '1px solid var(--badge-bg)',
-                  }}
+                  })}
                 >
                   Restore GM Tribute Order
                 </button>
+                <div className="menu-foot">
+                  PlayBook v{APP_VERSION} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -262,42 +205,10 @@ export function TopBar() {
             )}
           </div>
         </div>
-
-        {/* Row 2: Meta badges */}
-        {song && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Badge style={semitones !== 0 ? { background: '#f59e0b', color: '#111', fontWeight: 700 } : undefined}>
-              Key: {displayKey}
-              {semitones !== 0 ? ` (orig ${currentKey})` : ''}
-            </Badge>
-            {song.lowerKey && semitones === 0 && (
-              <Badge style={{ background: '#e53e3e', color: '#fff', fontWeight: 700 }}>
-                LOWER KEY — set transpose
-              </Badge>
-            )}
-            <Badge style={{ cursor: 'pointer' }} onClick={() => setShowTapTempo(true)}>{song.bpm} BPM</Badge>
-            <Badge>{song.timeSignature}</Badge>
-            {song.capo != null && <Badge>Capo {song.capo}</Badge>}
-            <span style={{ flex: 1 }} />
-            <Badge style={{ color: 'var(--text-muted)' }}>
-              {currentIndex + 1} / {total}
-            </Badge>
-          </div>
-        )}
       </div>
 
       {showMenu && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 299 }}
-          onClick={() => setShowMenu(false)}
-        />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={() => setShowMenu(false)} />
       )}
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
       {showSearch && <ChordSearch onClose={() => setShowSearch(false)} />}

@@ -153,6 +153,7 @@ export function SongView({
     <div style={{
       position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 300,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      padding: 'var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)',
     }}>
       {/* Header */}
       <div style={{

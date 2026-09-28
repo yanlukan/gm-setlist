@@ -1,9 +1,21 @@
-import { useState, useMemo } from 'react'
+import { Fragment, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
+import { useFitText } from '../../hooks/use-fit-text'
+import { useSwipe } from '../../hooks/use-swipe'
+import type { Song } from '../../types'
+
+const SECTION_TYPES = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Solo', 'Breakdown', 'Instrumental', 'Outro']
+
+/** Chart text never goes below this — it scrolls instead. */
+const MIN_CHART_PX = 20
+/** Upper bound so a two-chord song does not become a wall of letters. */
+const MAX_CHART_PX = 64
+/** Keep progressions on one line if that still gives at least this size. */
+const NO_WRAP_MIN_PX = 30
 
 export function SongSheet() {
   const songs = useStore(s => s.songs)
@@ -17,21 +29,24 @@ export function SongSheet() {
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
+  const nextSong = useStore(s => s.nextSong)
+  const prevSong = useStore(s => s.prevSong)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
   const [customSectionName, setCustomSectionName] = useState('')
 
-  const allSongs = useMemo(() => [...songs, ...customSongs], [songs, customSongs])
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const fitRef = useRef<HTMLDivElement>(null)
 
   const setlistSongs = useMemo(() => {
+    const all = [...songs, ...customSongs]
     const active = setlistData.lists[setlistData.activeId]
-    if (!active) return allSongs
-    const mapped = active.songTitles
-      .map(title => allSongs.find(s => s.title === title))
-      .filter(Boolean) as typeof songs
-    return mapped
-  }, [allSongs, setlistData])
+    if (!active) return []
+    return active.songTitles
+      .map(title => all.find(s => s.title === title))
+      .filter((s): s is Song => s !== undefined)
+  }, [songs, customSongs, setlistData])
 
   const song = setlistSongs[currentIndex]
 
@@ -53,199 +68,193 @@ export function SongSheet() {
     return sections.map(sec => ({ name: sec.name, chords: transposeText(sec.chords, semitones, useFlats) }))
   }, [sections, semitones, sourceKey])
 
-  const toSourcePitch = (text: string) =>
-    semitones ? transposeText(text, -semitones, shouldUseFlats(sourceKey, 0)) : text
-
   const notes = useMemo(() => {
     if (!song) return ''
     if (edits[song.title]?.notes !== undefined) return edits[song.title].notes!
     return song.notes ?? ''
   }, [song, edits])
 
-  if (!song) {
-    // An empty setlist is a normal state, not an error — but don't leave the
-    // player staring at a blank screen with nothing to tap.
-    const listName = setlistData.lists[setlistData.activeId]?.name ?? 'this setlist'
-    return (
-      <div style={{
-        padding: 24, color: 'var(--text-muted)', textAlign: 'center',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
-        margin: '0 auto', maxWidth: 420,
-      }}>
-        <div style={{ fontSize: 16 }}>&ldquo;{listName}&rdquo; is empty.</div>
-        <div style={{ fontSize: 14 }}>
-          Your other setlists are safe — open <strong>Setlist</strong> above to switch.
+  const showLowerKeyWarning = !!song?.lowerKey && semitones === 0
+
+  // Fit the whole chart to the screen: biggest text that needs no scrolling.
+  const fitKey = song
+    ? JSON.stringify([song.title, displaySections, notes, song.cue ?? '', showLowerKeyWarning])
+    : ''
+  useFitText(scrollRef, fitRef, fitKey, {
+    min: MIN_CHART_PX,
+    max: MAX_CHART_PX,
+    enabled: !!song && !editMode,
+    preferNoWrapMin: NO_WRAP_MIN_PX,
+  })
+
+  // Swipe only on the chart itself, never while editing.
+  useSwipe(scrollRef, { onSwipeLeft: nextSong, onSwipeRight: prevSong }, !editMode)
+
+  const toSourcePitch = (text: string) =>
+    semitones ? transposeText(text, -semitones, shouldUseFlats(sourceKey, 0)) : text
+
+  const renderBody = () => {
+    if (!song) {
+      // An empty setlist is a normal state, not an error — but don't leave the
+      // player staring at a blank screen with nothing to tap.
+      const listName = setlistData.lists[setlistData.activeId]?.name ?? 'this setlist'
+      return (
+        <div className="chart-empty">
+          <div>&ldquo;{listName}&rdquo; is empty.</div>
+          <div style={{ fontSize: 14 }}>
+            Your other setlists are safe — open <strong>Setlists</strong> above to switch.
+          </div>
+          <button
+            onClick={() => {
+              if (confirm(`Fill "${listName}" with the GM Tribute running order?`)) restoreGigOrder()
+            }}
+            className="tb-btn is-active"
+            style={{ minHeight: 48, padding: '0 20px', fontSize: 16 }}
+          >
+            Load GM Tribute running order
+          </button>
         </div>
-        <button
-          onClick={() => {
-            if (confirm(`Fill "${listName}" with the GM Tribute running order?`)) restoreGigOrder()
-          }}
-          style={{
-            padding: '10px 18px', borderRadius: 8, border: 'none',
-            background: '#4a9eff', color: '#fff', fontSize: 15, fontWeight: 600,
-            cursor: 'pointer',
+      )
+    }
+
+    const banners = (
+      <>
+        {song.cue && <div className="chart-cue">{song.cue}</div>}
+        {showLowerKeyWarning && (
+          <div className="chart-warning">
+            LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
+          </div>
+        )}
+      </>
+    )
+
+    if (!editMode) {
+      return (
+        <div ref={fitRef} className="chart">
+          <h1 className="chart-title">{song.title}</h1>
+          {banners}
+          <div className="chart-sections">
+            {displaySections.map((section, i) => (
+              <Fragment key={`${song.title}-${i}`}>
+                <div className="chart-label" style={{ color: sectionColor(section.name) }}>
+                  {section.name}
+                </div>
+                <div className="chart-chords">{renderChords(section.chords)}</div>
+              </Fragment>
+            ))}
+          </div>
+          {notes && <div className="chart-notes">{notes}</div>}
+        </div>
+      )
+    }
+
+    return renderEditor(song, banners)
+  }
+
+  // Tappable chords open the voicing picker
+  const renderChords = (text: string) =>
+    text.split(/(\s+)/).map((token, i) => {
+      if (!token.trim()) return <span key={i}>{token}</span>
+      const has = lookupChord(token)
+      if (!has) return <span key={i}>{token}</span>
+      return (
+        <span
+          key={i}
+          className="chart-chord-tap"
+          onClick={e => {
+            e.stopPropagation()
+            setPickerChord(token)
           }}
         >
-          Load GM Tribute running order
-        </button>
-      </div>
-    )
-  }
+          {token}
+        </span>
+      )
+    })
 
-  const fontSize = displaySections.length > 10 ? 18 : displaySections.length > 6 ? 22 : 26
+  const renderEditor = (song: Song, banners: React.ReactNode) => {
+    const moveSection = (index: number, dir: -1 | 1) => {
+      const target = index + dir
+      if (target < 0 || target >= sections.length) return
+      const updated = [...sections]
+      ;[updated[index], updated[target]] = [updated[target], updated[index]]
+      saveSections(song.title, updated)
+    }
 
-  // Section editing
-  const moveSection = (index: number, dir: -1 | 1) => {
-    const target = index + dir
-    if (target < 0 || target >= sections.length) return
-    const updated = [...sections]
-    ;[updated[index], updated[target]] = [updated[target], updated[index]]
-    saveSections(song.title, updated)
-  }
+    const deleteSection = (index: number) => {
+      if (sections.length <= 1) return
+      saveSections(song.title, sections.filter((_, i) => i !== index))
+    }
 
-  const deleteSection = (index: number) => {
-    if (sections.length <= 1) return
-    saveSections(song.title, sections.filter((_, i) => i !== index))
-  }
+    const addSection = (name: string) => {
+      saveSections(song.title, [...sections, { name, chords: '' }])
+      setShowAddSection(false)
+      setCustomSectionName('')
+    }
 
-  const addSection = (name: string) => {
-    saveSections(song.title, [...sections, { name, chords: '' }])
-    setShowAddSection(false)
-    setCustomSectionName('')
-  }
+    const updateChords = (index: number, chords: string) => {
+      const atSource = toSourcePitch(chords)
+      saveSections(song.title, sections.map((s, i) => (i === index ? { ...s, chords: atSource } : s)))
+    }
 
-  const updateChords = (index: number, chords: string) => {
-    const atSource = toSourcePitch(chords)
-    saveSections(song.title, sections.map((s, i) => i === index ? { ...s, chords: atSource } : s))
-  }
+    const updateName = (index: number, name: string) => {
+      saveSections(song.title, sections.map((s, i) => (i === index ? { ...s, name } : s)))
+    }
 
-  const updateName = (index: number, name: string) => {
-    saveSections(song.title, sections.map((s, i) => i === index ? { ...s, name } : s))
-  }
+    const smallBtn: React.CSSProperties = {
+      padding: '4px 8px', fontSize: 14, background: 'transparent',
+      border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+    }
 
-  // Tappable chords
-  const renderChords = (text: string, size: number) => {
-    if (editMode) return <span style={{ fontSize: size, fontWeight: 'bold' }}>{text}</span>
     return (
-      <span>
-        {text.split(/(\s+)/).map((token, i) => {
-          if (!token.trim()) return <span key={i}>{token}</span>
-          const has = lookupChord(token)
-          return (
-            <span key={i}
-              onClick={has ? (e) => { e.stopPropagation(); setPickerChord(token) } : undefined}
+      <div className="chart" style={{ fontSize: 22 }}>
+        <h1 className="chart-title">{song.title}</h1>
+        {banners}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {displaySections.map((section, i) => (
+            <div
+              key={`${song.title}-${i}`}
               style={{
-                cursor: has ? 'pointer' : 'default',
-                textDecoration: has ? 'underline' : 'none',
-                textDecorationColor: 'var(--badge-bg)',
-                textUnderlineOffset: 3,
-                fontSize: size, fontWeight: 'bold',
+                display: 'flex', alignItems: 'baseline', gap: 8,
+                padding: '4px 0', borderBottom: '1px solid var(--badge-bg)',
               }}
-            >{token}</span>
-          )
-        })}
-      </span>
-    )
-  }
-
-  const SECTION_TYPES = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Solo', 'Breakdown', 'Instrumental', 'Outro']
-
-  const smallBtn: React.CSSProperties = {
-    padding: '2px 6px', fontSize: 12, background: 'transparent',
-    border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
-  }
-
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', width: '100%',
-      maxWidth: 700, margin: '0 auto', padding: '0 12px',
-      overflow: 'auto', height: '100%', WebkitOverflowScrolling: 'touch',
-    }}>
-      <h1 style={{ fontSize: 24, fontWeight: 'bold', margin: '8px 0 4px', flexShrink: 0 }}>
-        {song.title}
-      </h1>
-
-      {song.cue && (
-        <div style={{
-          flexShrink: 0, marginBottom: 6, padding: '6px 10px', borderRadius: 6,
-          background: 'rgba(245, 158, 11, 0.16)', borderLeft: '4px solid #f59e0b',
-          fontSize: 14, fontWeight: 600, color: 'var(--text)',
-        }}>
-          {song.cue}
-        </div>
-      )}
-
-      {song.lowerKey && semitones === 0 && (
-        <div style={{
-          flexShrink: 0, marginBottom: 6, padding: '6px 10px', borderRadius: 6,
-          background: 'rgba(229, 62, 62, 0.18)', borderLeft: '4px solid #e53e3e',
-          fontSize: 14, fontWeight: 700, color: 'var(--text)',
-        }}>
-          LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
-        </div>
-      )}
-
-      {/* Sections */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: editMode ? 2 : 4 }}>
-        {displaySections.map((section, i) => (
-          <div key={`${song.title}-${i}`} style={{
-            display: 'flex', alignItems: 'baseline', gap: 8,
-            ...(editMode && { padding: '4px 0', borderBottom: '1px solid var(--badge-bg)' }),
-          }}>
-            {/* Edit controls */}
-            {editMode && (
+            >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
-                {i > 0 && <button onClick={() => moveSection(i, -1)} style={smallBtn}>{'\u25B2'}</button>}
-                {i < sections.length - 1 && <button onClick={() => moveSection(i, 1)} style={smallBtn}>{'\u25BC'}</button>}
-                {sections.length > 1 && <button onClick={() => deleteSection(i)} style={{ ...smallBtn, color: '#ef4444' }}>&times;</button>}
+                {i > 0 && <button onClick={() => moveSection(i, -1)} style={smallBtn}>{'▲'}</button>}
+                {i < sections.length - 1 && <button onClick={() => moveSection(i, 1)} style={smallBtn}>{'▼'}</button>}
+                {sections.length > 1 && (
+                  <button onClick={() => deleteSection(i)} style={{ ...smallBtn, color: '#ef4444' }}>&times;</button>
+                )}
               </div>
-            )}
 
-            {/* Label */}
-            {editMode ? (
               <EditableText
                 value={section.name}
                 onChange={name => updateName(i, name)}
                 style={{
-                  minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
+                  minWidth: 80, maxWidth: 130, fontSize: 13, fontWeight: 600,
                   textTransform: 'uppercase', color: sectionColor(section.name),
                   borderBottom: '1px dashed var(--edit-border, #f59e0b)',
                   outline: 'none', flexShrink: 0,
                 }}
               />
-            ) : (
-              <div style={{
-                minWidth: 72, maxWidth: 90, fontSize: 11, fontWeight: 600,
-                textTransform: 'uppercase', color: sectionColor(section.name), flexShrink: 0,
-              }}>{section.name}</div>
-            )}
 
-            {/* Chords */}
-            {editMode ? (
               <EditableText
                 value={section.chords}
                 onChange={chords => updateChords(i, chords)}
                 style={{
-                  fontSize: 18, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
-                  background: 'var(--badge-bg)', borderRadius: 4, padding: '2px 6px',
+                  fontSize: 22, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
+                  background: 'var(--badge-bg)', borderRadius: 4, padding: '4px 8px',
                   outline: 'none', whiteSpace: 'pre-wrap', minWidth: 60, flex: 1,
                 }}
               />
-            ) : (
-              <div style={{ letterSpacing: 1, wordSpacing: 14, whiteSpace: 'pre-wrap' }}>
-                {renderChords(section.chords, fontSize)}
-              </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
 
-        {/* Add section */}
-        {editMode && (
-          showAddSection ? (
+          {showAddSection ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '8px 0' }}>
               {SECTION_TYPES.map(name => (
                 <button key={name} onClick={() => addSection(name)} style={{
-                  padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                  padding: '8px 14px', borderRadius: 6, fontSize: 14, fontWeight: 600,
                   background: 'var(--badge-bg)', color: 'var(--text)', border: 'none',
                 }}>{name}</button>
               ))}
@@ -255,53 +264,53 @@ export function SongSheet() {
                   onChange={e => setCustomSectionName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && customSectionName.trim()) addSection(customSectionName.trim()) }}
                   placeholder="Custom name..."
-                  style={{
-                    flex: 1, padding: '6px 10px', fontSize: 14,
-                    background: 'var(--badge-bg)', color: 'var(--text)',
-                    border: '1px solid var(--badge-bg)', borderRadius: 6,
-                  }}
+                  style={{ flex: 1 }}
                 />
                 <button onClick={() => setShowAddSection(false)} style={{
-                  padding: '6px 10px', borderRadius: 6, fontSize: 13,
+                  padding: '6px 12px', borderRadius: 6, fontSize: 14,
                   background: 'var(--badge-bg)', color: 'var(--text-muted)', border: 'none',
                 }}>Cancel</button>
               </div>
             </div>
           ) : (
             <button onClick={() => setShowAddSection(true)} style={{
-              marginTop: 8, padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+              marginTop: 8, padding: '10px 16px', borderRadius: 8, fontSize: 15, fontWeight: 600,
               background: 'transparent', border: '2px dashed var(--edit-border, #f59e0b)',
-              color: 'var(--edit-border, #f59e0b)',
+              color: 'var(--edit-border, #f59e0b)', alignSelf: 'flex-start',
             }}>+ Add Section</button>
-          )
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Notes */}
-      {editMode ? (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>NOTES</div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>NOTES</div>
           <EditableText
             value={notes}
             onChange={text => saveNotes(song.title, text)}
             style={{
-              fontSize: 14, padding: 8, borderRadius: 6, background: 'var(--badge-bg)',
-              outline: 'none', minHeight: 40, fontStyle: 'italic', color: 'var(--text-muted)',
+              fontSize: 15, padding: 8, borderRadius: 6, background: 'var(--badge-bg)',
+              outline: 'none', minHeight: 44, fontStyle: 'italic', color: 'var(--text-muted)',
             }}
           />
         </div>
-      ) : notes ? (
-        <div style={{
-          fontSize: 14, fontStyle: 'italic', color: 'var(--text-muted)',
-          borderTop: '1px solid var(--badge-bg)', paddingTop: 6, marginTop: 6,
-        }}>{notes}</div>
-      ) : null}
+      </div>
+    )
+  }
 
-      {/* Voicing picker */}
+  return (
+    <>
+      <div ref={scrollRef} className="chart-scroll">
+        {renderBody()}
+      </div>
+
+      {/* Outside the chart, so swipes on the picker cannot change song */}
       {pickerChord && (
-        <VoicingPicker chord={pickerChord} selectedIndex={selectedVoicings[pickerChord] ?? 0}
-          onSelect={(i) => { selectVoicing(pickerChord, i); setPickerChord(null) }} onClose={() => setPickerChord(null)} />
+        <VoicingPicker
+          chord={pickerChord}
+          selectedIndex={selectedVoicings[pickerChord] ?? 0}
+          onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}
+          onClose={() => setPickerChord(null)}
+        />
       )}
-    </div>
+    </>
   )
 }

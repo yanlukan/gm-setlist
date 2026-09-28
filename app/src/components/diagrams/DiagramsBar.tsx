@@ -65,6 +65,7 @@ export function DiagramsBar() {
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           borderTop: '1px solid var(--border)',
+          flexShrink: 0,
         }}
       >
         {uniqueChords.map(name => {

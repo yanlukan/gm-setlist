@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 
 interface SwipeHandlers {
   onSwipeLeft: () => void
@@ -6,34 +6,41 @@ interface SwipeHandlers {
 }
 
 /**
- * Global swipe detection — listens on document to work
- * even when content is scrollable.
+ * Horizontal swipe on one element — the chart. This used to listen on the
+ * whole document, so scrolling the song bar or the chord-diagram strip, or
+ * swiping inside an open overlay, could jump to a different song mid-set.
  */
 export function useSwipe(
+  ref: RefObject<HTMLElement | null>,
   handlers: SwipeHandlers,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) {
   const handlersRef = useRef(handlers)
   handlersRef.current = handlers
-  const touchStart = useRef({ x: 0, y: 0, time: 0 })
 
   useEffect(() => {
-    if (!enabled) return
+    const el = ref.current
+    if (!enabled || !el) return
+
+    let start: { x: number; y: number; time: number } | null = null
 
     const onTouchStart = (e: TouchEvent) => {
-      touchStart.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-        time: Date.now(),
+      if (e.touches.length !== 1) {
+        start = null
+        return
       }
+      start = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() }
     }
 
     const onTouchEnd = (e: TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - touchStart.current.x
-      const dy = e.changedTouches[0].clientY - touchStart.current.y
-      const dt = Date.now() - touchStart.current.time
+      if (!start) return
+      const touch = e.changedTouches[0]
+      const dx = touch.clientX - start.x
+      const dy = touch.clientY - start.y
+      const dt = Date.now() - start.time
+      start = null
 
-      // Quick horizontal swipe: >80px, more horizontal than vertical, under 400ms
+      // Quick, clearly horizontal swipe: >80px, mostly sideways, under 400ms
       if (Math.abs(dx) < 80) return
       if (Math.abs(dy) > Math.abs(dx) * 0.6) return
       if (dt > 400) return
@@ -42,11 +49,11 @@ export function useSwipe(
       else handlersRef.current.onSwipeRight()
     }
 
-    document.addEventListener('touchstart', onTouchStart, { passive: true })
-    document.addEventListener('touchend', onTouchEnd, { passive: true })
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
     return () => {
-      document.removeEventListener('touchstart', onTouchStart)
-      document.removeEventListener('touchend', onTouchEnd)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchend', onTouchEnd)
     }
-  }, [enabled])
+  }, [ref, enabled])
 }

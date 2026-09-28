@@ -96,6 +96,7 @@ export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPick
     <div style={{
       position: 'fixed', inset: 0, background: 'var(--bg, #111)', zIndex: 300,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      padding: 'var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)',
     }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

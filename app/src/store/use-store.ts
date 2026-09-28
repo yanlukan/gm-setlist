@@ -14,6 +14,8 @@ import {
   getTheme,
   saveSelectedVoicings,
   getSelectedVoicings,
+  saveDiagramsVisible,
+  getDiagramsVisible,
   takeSnapshot,
 } from './persistence'
 
@@ -210,19 +212,17 @@ export const useStore = create<StoreState>((set, get) => ({
   // Navigation
   nextSong: () => {
     const { currentIndex, setlistSongs } = get()
-    const max = setlistSongs().length - 1
-    set({ currentIndex: Math.min(currentIndex + 1, max) })
+    set({ currentIndex: clampIndex(currentIndex + 1, setlistSongs().length) })
   },
 
   prevSong: () => {
-    const { currentIndex } = get()
-    set({ currentIndex: Math.max(currentIndex - 1, 0) })
+    const { currentIndex, setlistSongs } = get()
+    set({ currentIndex: clampIndex(currentIndex - 1, setlistSongs().length) })
   },
 
   goToSong: (index: number) => {
     const { setlistSongs } = get()
-    const max = setlistSongs().length - 1
-    set({ currentIndex: Math.max(0, Math.min(index, max)), editMode: false })
+    set({ currentIndex: clampIndex(index, setlistSongs().length), editMode: false })
   },
 
   // Edit actions
@@ -430,6 +430,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   toggleDiagrams: () => {
     set(state => ({ diagramsVisible: !state.diagramsVisible }))
+    // Remembered, so hiding them for a bigger chart sticks across launches.
+    if (!readOnly) saveDiagramsVisible(get().diagramsVisible).catch(e => console.warn('saveDiagramsVisible failed:', e))
   },
 
   /** Rebuild the active setlist as the printed Sept 2026 running order. */
@@ -455,14 +457,16 @@ export const useStore = create<StoreState>((set, get) => ({
     let customSongsResult: Song[] = []
     let themeResult: Theme | undefined
     let selectedVoicingsResult: Record<string, number> | undefined
+    let diagramsVisibleResult: boolean | undefined
 
     try {
-      ;[setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult] =
+      ;[setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult, diagramsVisibleResult] =
         await Promise.all([
           getSetlistData(),
           getCustomSongs(),
           getTheme(),
           getSelectedVoicings(),
+          getDiagramsVisible(),
         ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -502,6 +506,7 @@ export const useStore = create<StoreState>((set, get) => ({
       ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
       ...(themeResult && { theme: themeResult }),
       ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
+      ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
       edits,
       loadFailed: false,
       currentIndex: clampIndex(

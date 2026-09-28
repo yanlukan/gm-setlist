@@ -1,0 +1,300 @@
+/* ================================================================
+   Layout for iPad and phone. Sizes are touch-first: nothing the player
+   needs on stage is smaller than a 40px target.
+   ================================================================ */
+
+/* ---------- Top bar ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: calc(6px + var(--safe-top)) 12px 6px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tb-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tb-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.tb-btn {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tb-btn:active { filter: brightness(1.35); }
+.tb-btn.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tb-btn.is-danger { background: #e53e3e; border-color: #e53e3e; color: #fff; }
+.tb-btn.is-warn { background: #f59e0b; border-color: #f59e0b; color: #111; }
+.tb-num { min-width: 44px; font-variant-numeric: tabular-nums; }
+.tb-badge {
+  font-size: 15px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: var(--badge-bg);
+  color: var(--text);
+  white-space: nowrap;
+}
+.tb-badge.is-warn { background: #f59e0b; color: #111; font-weight: 700; }
+.tb-badge.is-danger { background: #e53e3e; color: #fff; font-weight: 700; }
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 300;
+  min-width: 250px;
+  background: var(--picker-bg);
+  border: 1px solid var(--badge-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 16px;
+  color: var(--text);
+  background: transparent;
+  border-bottom: 1px solid var(--badge-bg);
+}
+.menu-item:active { background: var(--badge-bg); }
+.menu-foot { padding: 10px 16px; font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 700px) {
+  /* Phones: song info drops to its own row under the buttons. */
+  .tb-meta { order: 3; flex-basis: 100%; }
+  .tb-btn { padding: 0 10px; font-size: 14px; }
+}
+
+/* ---------- Chord chart ---------- */
+.chart-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px clamp(12px, 3vw, 40px) 16px;
+}
+.chart { max-width: 1600px; margin: 0 auto; }
+/* Chart text is sized in em from one font size that is fitted to the screen. */
+.chart-title {
+  font-size: max(20px, 0.6em);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 0.3em;
+}
+.chart-cue,
+.chart-warning {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.chart-cue { background: rgba(245, 158, 11, 0.16); border-left: 5px solid #f59e0b; }
+.chart-warning { background: rgba(229, 62, 62, 0.18); border-left: 5px solid #e53e3e; }
+.chart-sections {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.5em;
+  row-gap: 0.12em;
+  align-items: baseline;
+}
+.chart-label {
+  font-size: clamp(11px, 0.28em, 18px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.chart-chords {
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-spacing: 0.25em;
+}
+/* Set by the fit: keep each progression on one line when that still reads big. */
+.chart[data-wrap="off"] .chart-chords { white-space: pre; }
+.chart-chord-tap {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--badge-bg);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
+}
+.chart-notes {
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--text-muted);
+  border-top: 1px solid var(--badge-bg);
+  padding-top: 8px;
+  margin-top: 12px;
+}
+.chart-empty {
+  max-width: 440px;
+  margin: 40px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  font-size: 16px;
+}
+
+/* ---------- Song navigation (bottom) ---------- */
+.songnav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 12px calc(8px + var(--safe-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.songnav-btn {
+  min-height: 52px;
+  min-width: 0;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.songnav-btn:active:not(:disabled) { filter: brightness(1.35); }
+.songnav-btn:disabled { opacity: 0.35; cursor: default; }
+.songnav-prev { justify-content: flex-start; }
+.songnav-next { justify-content: flex-end; background: rgba(74, 158, 255, 0.22); }
+.songnav-list { justify-content: center; padding: 0 20px; font-variant-numeric: tabular-nums; }
+.songnav-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.songnav-num { flex-shrink: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.songnav-arrow { flex-shrink: 0; font-size: 18px; }
+
+@media (max-width: 500px) {
+  /* Phones: give the song titles the room, drop the numbers. */
+  .songnav { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  .songnav-btn { padding: 0 10px; font-size: 15px; gap: 6px; }
+  .songnav-num { display: none; }
+  .songnav-list { padding: 0 12px; }
+}
+
+/* ---------- All-songs grid ---------- */
+.songgrid-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
+}
+.songgrid-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.songgrid-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 20px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.songgrid-count { color: var(--text-muted); font-size: 15px; flex-shrink: 0; }
+.songgrid-close {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.songgrid-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px calc(16px + var(--safe-bottom));
+}
+.songgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.songtile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: var(--badge-bg);
+  color: var(--text);
+  text-align: left;
+}
+.songtile:active { filter: brightness(1.35); }
+.songtile.is-current { border-color: var(--accent); background: rgba(74, 158, 255, 0.18); }
+.songtile-num {
+  min-width: 1.6em;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.songtile.is-current .songtile-num { color: var(--accent); }
+.songtile-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.songtile-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.songtile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.chip { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+.chip-warn { background: #e53e3e; color: #fff; }
+.chip-transpose { background: #f59e0b; color: #111; }
