@@ -75,6 +75,15 @@ export function transposeText(text: string, semitones: number, useFlats: boolean
     .join('');
 }
 
+/**
+ * Directions that sit in a chord line but are not chords: "no chord" and
+ * repeat counts like (x3). They are drawn smaller so they never read as
+ * something to play.
+ */
+export function isChartMark(token: string): boolean {
+  return /^(N\.?C\.?|\(?x\d+\)?)$/i.test(token);
+}
+
 export function shouldUseFlats(key: string, semitones: number): boolean {
   // Transpose the key and check if the result is in FLAT_KEYS
   const { root, quality } = parseChord(key);

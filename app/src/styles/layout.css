@@ -136,6 +136,12 @@
 }
 /* Set by the fit: keep each progression on one line when that still reads big. */
 .chart[data-wrap="off"] .chart-chords { white-space: pre; }
+/* N.C. and repeat counts: directions, not chords to play */
+.chart-mark {
+  font-size: 0.6em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
 .chart-chord-tap {
   cursor: pointer;
   text-decoration: underline;

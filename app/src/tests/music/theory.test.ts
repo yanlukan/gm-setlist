@@ -7,6 +7,7 @@ import {
   getDiatonic7ths,
   sectionColor,
   getAllChordNames,
+  isChartMark,
 } from '../../music/theory';
 
 describe('transposeChord', () => {
@@ -57,6 +58,13 @@ describe('transposeChord', () => {
   it('returns original chord for zero semitones', () => {
     expect(transposeChord('C', 0, false)).toBe('C');
     expect(transposeChord('F#m', 0, false)).toBe('F#m');
+  });
+});
+
+describe('isChartMark', () => {
+  it('knows "no chord" and repeat counts are not chords', () => {
+    for (const token of ['N.C.', 'NC', 'n.c.', '(x3)', 'x2', '(x12)']) expect(isChartMark(token), token).toBe(true);
+    for (const token of ['C', 'Cm7', 'Bbm', 'Dsus4', 'G/B', 'x', '(x)']) expect(isChartMark(token), token).toBe(false);
   });
 });
 

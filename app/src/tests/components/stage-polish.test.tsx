@@ -17,6 +17,29 @@ describe('tap tempo', () => {
   })
 })
 
+describe('chart marks', () => {
+  const open = (title: string) => {
+    const { setlistData } = useStore.getState()
+    useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf(title))
+  }
+
+  it('draws "no chord" as a direction, not as a chord to play', () => {
+    open('Papa Was a Rolling Stone')
+    render(<SongSheet />)
+    const marks = screen.getAllByText('N.C.')
+    expect(marks.length).toBeGreaterThan(0)
+    marks.forEach(mark => expect(mark).toHaveClass('chart-mark'))
+    expect(screen.getAllByText('Bbm')[0]).not.toHaveClass('chart-mark')
+  })
+
+  it('draws a repeat count the same way, on stage too', () => {
+    open('Outside')
+    useStore.setState({ viewMode: 'stage' })
+    render(<SongSheet />)
+    expect(screen.getByText('(x3)')).toHaveClass('chart-mark')
+  })
+})
+
 describe('chord taps', () => {
   it('open the voicing picker off stage', () => {
     const { container } = render(<SongSheet />)

@@ -250,7 +250,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'Same E\u2013F#m7\u2013B\u2013D#m7 loop throughout.',
+    notes: 'Same four-chord loop throughout.',
     sections: [
       { name: 'Intro', chords: 'E  F#m7  B  D#m7' },
       { name: 'Verse', chords: 'E  F#m7  B  D#m7' },

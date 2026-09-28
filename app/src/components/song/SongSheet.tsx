@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
-import { sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
+import { isChartMark, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
@@ -172,7 +172,9 @@ export function SongSheet() {
   // chord must not throw a pop-up over the chart mid-song.
   const renderChords = (text: string) =>
     text.split(/(\s+)/).map((token, i) => {
-      if (!token.trim() || onStage) return <span key={i}>{token}</span>
+      if (!token.trim()) return <span key={i}>{token}</span>
+      if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
+      if (onStage) return <span key={i}>{token}</span>
       const has = lookupChord(token)
       if (!has) return <span key={i}>{token}</span>
       return (

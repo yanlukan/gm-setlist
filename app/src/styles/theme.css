@@ -38,6 +38,21 @@ body.light {
   --section-default: #6b7280;
 }
 
+/* The home-screen app draws the clock and battery in white (status bar style
+   black-translucent), which vanishes on a white page. Keep a dark strip behind
+   them. It has no height anywhere else, since there is no inset to fill. */
+body.light::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--safe-top);
+  background: #1a1a1a;
+  z-index: 10000;
+  pointer-events: none;
+}
+
 body.stage {
   --bg: #000000;
   --text: #ffffff;

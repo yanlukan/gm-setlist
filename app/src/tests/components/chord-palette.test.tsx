@@ -41,6 +41,14 @@ describe('chord palette', () => {
     expect(onChange).toHaveBeenLastCalledWith('B  E')
   })
 
+  it('adds "no chord" and repeat marks from the songbook charts', () => {
+    const onChange = renderEditor('Gm9  C6')
+    fireEvent.click(screen.getByRole('button', { name: '(x3)' }))
+    expect(onChange).toHaveBeenLastCalledWith('Gm9  C6  (x3)')
+    fireEvent.click(screen.getByRole('button', { name: 'N.C.' }))
+    expect(onChange).toHaveBeenLastCalledWith('Gm9  C6  N.C.')
+  })
+
   it('builds any chord from a root and a quality', () => {
     const onChange = renderEditor('B')
     fireEvent.click(screen.getByRole('button', { name: 'Chords built on D' }))

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { getDiatonicChords, getDiatonic7ths, getRoots, shouldUseFlats } from '../../music/theory'
 
 const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', '6', '9', 'add9', 'm7b5', 'dim', 'aug']
+/** Not chords, but the songbook charts are full of them. */
+const MARKS = ['N.C.', '(x2)', '(x3)', '(x4)']
 
 interface ChordLineEditorProps {
   sectionName: string
@@ -114,6 +116,9 @@ export function ChordLineEditor({ sectionName, chords, songKey, onChange, onClos
           ))}
         </div>
         {root && <div className="cle-chips">{QUALITIES.map(q => chip(root + q))}</div>}
+
+        <div className="cle-label">No chord &amp; repeats</div>
+        <div className="cle-chips">{MARKS.map(chip)}</div>
       </div>
     </div>
   )
