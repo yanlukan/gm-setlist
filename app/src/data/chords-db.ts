@@ -110,7 +110,27 @@ function buildChordDB(): Record<string, ChordVoicing[]> {
   return db
 }
 
-const RAW_DB = buildChordDB()
+/**
+ * Voicings the database lacks, as printed in the IMP "George Michael
+ * Complete" songbook, moved up a fret: the book plays them with a capo on the
+ * first fret, and the charts here are at concert pitch.
+ */
+const SONGBOOK_VOICINGS: Record<string, ChordVoicing[]> = {
+  // Kissing a Fool. Root on the A string, then flat fifth, root, third.
+  'B(b5)': [{ f: [null, 2, 3, 4, 4, null], s: 0, l: 'Open' }],
+  'C#(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 4, l: '4th fret' }],
+  'C#6(b5)': [{ f: [null, null, 3, 3, 2, 3], s: 0, l: 'Open' }],
+}
+
+const RAW_DB = { ...buildChordDB(), ...SONGBOOK_VOICINGS }
+
+/** Semitone of every root spelling, and the spelling the database uses for each. */
+const NOTE_INDEX: Record<string, number> = {
+  'C': 0, 'B#': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'Fb': 4,
+  'F': 5, 'E#': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9,
+  'A#': 10, 'Bb': 10, 'B': 11, 'Cb': 11,
+}
+const DB_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
 
 // Enharmonic map for normalization
 const ENHARMONIC: Record<string, string> = {
@@ -159,8 +179,9 @@ function fallbackQualities(q: string): string[] {
 /**
  * Chord lookup: exact name first, then without a slash bass, then common
  * spellings and enharmonic roots, then a simpler chord of the same family.
+ * With `simplify: false` it only answers with the chord as written.
  */
-export function lookupChord(name: string): ChordVoicing[] | undefined {
+export function lookupChord(name: string, { simplify = true }: { simplify?: boolean } = {}): ChordVoicing[] | undefined {
   if (!name) return undefined
   if (RAW_DB[name]) return RAW_DB[name]
 
@@ -178,11 +199,39 @@ export function lookupChord(name: string): ChordVoicing[] | undefined {
     return undefined
   }
 
-  const quality = normalizeQuality(
+  // Written exactly as the songbook has it, e.g. Cb(b5)
+  const asWritten = find(m[2])
+  if (asWritten) return asWritten
+
+  let quality = normalizeQuality(
     m[2].replace('no3d', '').replace('add11', '').replace('add13', '').replace(/^us/, 'sus'),
   )
-  const exact = find(quality)
-  if (exact) return exact
+  if (quality === '#5') quality = 'aug'
+
+  // X6(b5) has exactly the notes of the m7b5 chord a tritone away:
+  // E6(b5) is E G# Bb C#, which is Bbm7b5.
+  if (quality === '6b5' && NOTE_INDEX[root] !== undefined) {
+    const tritone = RAW_DB[DB_ROOTS[(NOTE_INDEX[root] + 6) % 12] + 'm7b5']
+    if (tritone) return tritone
+  }
+
+  // A bare alteration, as in A(b9), must never be glued straight onto the
+  // root: A + b9 reads as Ab9, a different chord altogether.
+  const bare = /^[b#]/.test(quality)
+  if (!bare) {
+    const exact = find(quality)
+    if (exact) return exact
+  }
+
+  // Everything below shows a simpler or fuller chord than the one written.
+  if (!simplify) return undefined
+
+  // A bare alteration is shown on the dominant seventh it implies: A(b9) as A7b9.
+  if (bare) {
+    quality = '7' + quality
+    const dominant = find(quality)
+    if (dominant) return dominant
+  }
 
   // Power chords (C5) have no third; the major shape is the usual stand-in
   if (/^5$/.test(quality)) return find('')

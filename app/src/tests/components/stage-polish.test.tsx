@@ -78,8 +78,16 @@ describe('next-song heads-up', () => {
     expect(screen.getByRole('note')).toHaveTextContent(/GUITAR TACET/)
   })
 
+  it('names the GX-10 sound for the next song', () => {
+    useStore.setState({ currentIndex: 3 }) // Amazing; next is A Different Corner
+    render(<BottomBar />)
+    expect(screen.getByRole('note')).toHaveTextContent('GX-10: WARM JAZZ (U01-3)')
+  })
+
   it('stays out of the way when the next song has no cue', () => {
-    useStore.setState({ currentIndex: 0 }) // next is I'm Your Man, no cue
+    // Every gig song carries its GX-10 sound, so take the cue off one.
+    const songs = useStore.getState().songs.map(s => (s.title === "I'm Your Man" ? { ...s, cue: undefined } : s))
+    useStore.setState({ songs, currentIndex: 0 }) // next is I'm Your Man
     render(<BottomBar />)
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })

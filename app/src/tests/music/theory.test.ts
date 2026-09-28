@@ -163,6 +163,11 @@ describe('sectionColor', () => {
     expect(sectionColor('Intro')).toBe('var(--section-intro)');
   });
 
+  it('colours a numbered section like its family', () => {
+    expect(sectionColor('Bridge 2')).toBe('var(--section-bridge)');
+    expect(sectionColor('Verse 3')).toBe('var(--section-verse)');
+  });
+
   it('returns default for unknown sections', () => {
     expect(sectionColor('solo')).toBe('var(--section-default)');
     expect(sectionColor('unknown')).toBe('var(--section-default)');

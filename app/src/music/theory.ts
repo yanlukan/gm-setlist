@@ -130,7 +130,8 @@ export function getDiatonic7ths(key: string): string[] {
 }
 
 export function sectionColor(name: string): string {
-  const lower = name.toLowerCase().replace(/[\s-_]/g, '');
+  // "Bridge 2" is still a bridge
+  const lower = name.toLowerCase().replace(/[\s-_]/g, '').replace(/\d+$/, '');
   if (lower === 'verse') return 'var(--section-verse)';
   if (lower === 'chorus') return 'var(--section-chorus)';
   if (lower === 'bridge') return 'var(--section-bridge)';

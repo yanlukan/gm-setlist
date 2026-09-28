@@ -3,6 +3,7 @@ import type { Song } from '../types'
 export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Faith',
+    cue: 'GX-10: FUNK (U01-1)',
     artist: 'George Michael',
     key: 'B',
     bpm: 96,
@@ -22,6 +23,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: "I'm Your Man",
     shortTitle: 'I\'m Your Man',
+    cue: 'GX-10: FUNK (U01-1)',
     lowerKey: true,
     transpose: -2, // band key C (confirmed 2026-09-28); chart is at the recording's D
     artist: 'George Michael',
@@ -41,6 +43,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Fastlove',
+    cue: 'GX-10: FUNK (U01-1)',
     artist: 'George Michael',
     key: 'Am',
     bpm: 103,
@@ -58,6 +61,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Wake Me Up Before You Go-Go',
     shortTitle: 'Wake Me Up',
+    cue: 'GX-10: FUNK (U01-1)',
     lowerKey: true,
     transpose: -1, // band key B (confirmed 2026-09-28); chart is at the recording's C
     artist: 'Wham!',
@@ -78,6 +82,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Amazing',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     lowerKey: true,
     transpose: -1, // band key Am (confirmed 2026-09-28); chart is at the recording's Bbm
     artist: 'George Michael',
@@ -97,6 +102,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Outside',
+    cue: 'GX-10: FUNK (U01-1)',
     artist: 'George Michael',
     key: 'Gm',
     bpm: 122,
@@ -116,7 +122,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Papa Was a Rolling Stone',
     shortTitle: 'Papa Rolling Stone',
-    cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
+    cue: 'GX-10: FUNK (U01-1), toe switch for the wah. Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
     artist: 'The Temptations (cover)',
     key: 'Bbm',
     bpm: 122,
@@ -134,6 +140,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Father Figure',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     artist: 'George Michael',
     key: 'Bb',
     bpm: 103,
@@ -152,6 +159,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: "Freedom! '90",
     shortTitle: "Freedom '90",
+    cue: 'GX-10: FUNK (U01-1)',
     artist: 'George Michael',
     key: 'C',
     bpm: 92,
@@ -171,6 +179,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Jesus to a Child',
     shortTitle: 'Jesus Child',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     artist: 'George Michael',
     key: 'C#m',
     bpm: 87,
@@ -190,6 +199,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'A Different Corner',
     shortTitle: 'Diff. Corner',
+    cue: 'GX-10: WARM JAZZ (U01-3)',
     artist: 'George Michael',
     key: 'Gb',
     bpm: 100,
@@ -206,6 +216,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Too Funky',
+    cue: 'GX-10: FUNK (U01-1)',
     artist: 'George Michael',
     key: 'Dm',
     bpm: 98,
@@ -225,6 +236,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Everything She Wants',
     shortTitle: 'Everything',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     artist: 'Wham!',
     key: 'F#m',
     bpm: 115,
@@ -242,6 +254,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Club Tropicana',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     lowerKey: true,
     transpose: -2, // band key A (confirmed 2026-09-28); chart is at the recording's B
     artist: 'Wham!',
@@ -262,7 +275,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Somebody to Love',
     shortTitle: 'Somebody',
-    cue: '6/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
+    cue: 'GX-10: CRUNCH (U02-1), LEAD (U02-2) for the solo. 6/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
     artist: 'Queen (cover)',
     key: 'G',
     bpm: 110,
@@ -283,6 +296,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Careless Whisper',
     shortTitle: 'Careless W.',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     lowerKey: true,
     transpose: -2, // band key Cm (confirmed 2026-09-28); chart is at the recording's Dm
     artist: 'George Michael',
@@ -310,7 +324,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 321, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
+    cue: 'GX-10: WARM JAZZ (U01-3). MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
     notes: 'Piano-led ballad in G, a minor third below the Bonnie Raitt original in Bb (checked against George Michael\'s recording). Guitar plays sparse arpeggios, no strumming. The G/B and Am7 movement is the heart of the verse.',
     sections: [
       { name: 'Intro', chords: 'G/B  Am7  Em7  C' },
@@ -329,7 +343,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 251, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
+    cue: 'GX-10: WARM JAZZ (U01-3). GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
     notes: 'George Michael reharmonised this: Bm7 / Gmaj7 / F#m7 / Em7 with 6th chords, closer to a jazz ballad than the reggae original. Guitar sits out or plays long sustained voicings only.',
     sections: [
       { name: 'Intro', chords: 'Bm7  D  Gmaj7  F#m7' },
@@ -349,7 +363,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 147, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    cue: 'ACOUSTIC GUITAR + VOCAL ONLY — no band.',
+    cue: 'GX-10: ACOUSTIC (U02-3). ACOUSTIC GUITAR + VOCAL ONLY — no band.',
     notes: 'Fingerpicked G to G6 vamp throughout; the whole piece hangs on that one move. D and C only appear in the turnaround. Short — roughly 90 seconds.',
     sections: [
       { name: 'Intro', chords: 'G  G6  G  G6' },
@@ -363,22 +377,24 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Kissing a Fool',
     artist: 'George Michael',
     key: 'Eb',
-    bpm: 78,
+    bpm: 78, // measured on the recording; the songbook prints 82
     duration: 275, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    cue: 'Jazz ballad — clean tone, comping only. Watch the Edim and Abm6 passing chords.',
-    notes: 'Swung jazz feel in Eb. The Edim between Ebmaj7 and Fm7 is the signature move — do not simplify it. Bb7 is the turnaround.',
+    cue: 'GX-10: WARM JAZZ (U01-3). Jazz ballad — clean tone, comping only. Last verse: Eb6 Edim7 Fm7 Cb(b5) Bb7 Eb6, then Outro.',
+    notes: 'From the songbook (no. 37). Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, last verse, Outro. Swung eighths, triplet feel. The book suggests capo 1 with D shapes; this chart is at concert pitch.',
     sections: [
-      { name: 'Intro', chords: 'Ebmaj7  Edim  Fm7  Bb7' },
-      { name: 'Verse', chords: 'Ebmaj7  C7  Fm7  Bb7  Ebmaj7  Edim  Fm7  Abm6  Bb7' },
-      { name: 'Chorus', chords: 'Ebmaj7  Gm7b5  C7  Fm7  Eb6  Bb7' },
-      { name: 'Bridge', chords: 'Ebmaj7  Eb/Db  C7  Fm7  Abm6  Bb7' },
-      { name: 'Outro', chords: 'Ebmaj7  Bbm  C7/E  Fm7  Fm7b5/Eb  Bb7  Ebmaj7' },
+      { name: 'Intro', chords: 'Eb  Edim7  Fm  Abm6  Bb' },
+      { name: 'Verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6  C7(b9)  Fm7  Cb(b5)  Bb' },
+      { name: 'Chorus', chords: 'Eb6  Edim7  Fm7  Abm6  Bb7(b9)  Eb6  Db6(b5)  C7  Fm11  Fm7  Bb13  Bb7(b9)  Eb6  Db(b5)  C7(b9)  Fm7  Abm  Bb7  Eb6  Db6(b5)  C7  Fm7  Abm6  Bb7  Eb6  Fdim/Eb' },
+      { name: 'Bridge', chords: 'Eb  Cm7  C7(b9)  Fm7  Bb  Fm7  Bb  Ebm7  Ab7  Db  Db/C  Bb7' },
+      { name: 'Bridge 2', chords: 'Eb  Cm7  Fm7  Cb7  Eb/Bb  Eb  Db6  C7  Fm9  Cb6  Bb7sus4  Cm7  Fm7  Bb  Bb7(b9)' },
+      { name: 'Outro', chords: 'C7(b9)  Cb7  Bb7  Eb6  C9  Cb7  Bb7  Ebmaj9' },
     ],
   },
   {
     title: 'Last Christmas',
+    cue: 'GX-10: 80s CLEAN (U01-2)',
     artist: 'Wham!',
     key: 'D',
     bpm: 108,

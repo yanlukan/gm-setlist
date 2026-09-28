@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CHORD_DB, lookupChord } from '../../data/chords-db'
+import { CHORD_DB, lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { transposeText, shouldUseFlats } from '../../music/theory'
 
@@ -13,8 +13,8 @@ describe('chord diagrams', () => {
         for (const chord of shown.split(/\s+/).filter(Boolean)) {
           // "no chord" and repeat marks like (x3) are instructions, not chords
           if (/^N\.?C\.?$/i.test(chord) || /^\(?x\d+\)?$/i.test(chord)) continue
-          const plain = chord.replace(/\/[A-G][#b]?$/, '')
-          if (!CHORD_DB[chord] && !CHORD_DB[plain]) missing.push(`${chord} in ${song.title}`)
+          // The chord as written, spelled any way (C7(b9), Cb7) — never a simpler stand-in
+          if (!lookupChord(chord, { simplify: false })) missing.push(`${chord} in ${song.title}`)
         }
       }
     }
@@ -60,8 +60,58 @@ describe('chord diagrams', () => {
     expect(lookupChord('Fm7b5/Eb')).toBe(lookupChord('Fm7b5'))
   })
 
+  it('reads the notes of a diagram correctly, at the nut and up the neck', () => {
+    // Checks the helper below against the database itself
+    for (const voicing of CHORD_DB['C']) expect(notesOf(voicing)).toEqual(notes('C', 'E', 'G'))
+    for (const voicing of CHORD_DB['F#m7']) expect(notesOf(voicing)).toEqual(notes('F#', 'A', 'C#', 'E'))
+  })
+
+  it.each([
+    ['Cb(b5)', ['B', 'D#', 'F']],
+    ['Db(b5)', ['C#', 'F', 'G']],
+    ['Db6(b5)', ['C#', 'F', 'G', 'A#']],
+  ])("plays %s from the songbook with exactly the chord's notes", (chord, expected) => {
+    const voicings = lookupChord(chord as string, { simplify: false })
+    expect(voicings).toBeDefined()
+    for (const voicing of voicings!) expect(notesOf(voicing)).toEqual(notes(...(expected as string[])))
+  })
+
+  it('plays any other 6(b5) chord as the m7b5 a tritone away, which has the same notes', () => {
+    // E6(b5) is E G# Bb C#, the same four notes as Bbm7b5
+    const voicings = lookupChord('E6(b5)', { simplify: false })
+    expect(voicings).toBe(CHORD_DB['A#m7b5'] ?? CHORD_DB['Bbm7b5'])
+    for (const voicing of voicings!) expect(notesOf(voicing)).toEqual(notes('E', 'G#', 'A#', 'C#'))
+  })
+
+  it('never lets an alteration in brackets change the root', () => {
+    // Glued straight on, A + b9 reads as Ab9 and C + #9 as C#9
+    expect(lookupChord('A(b9)')).toEqual(CHORD_DB['A7b9'])
+    expect(lookupChord('E(b9)')).toEqual(CHORD_DB['E7b9'])
+    expect(lookupChord('C(#9)')).toEqual(CHORD_DB['C7#9'])
+    expect(lookupChord('G(#5)')).toEqual(CHORD_DB['Gaug'])
+  })
+
+  it('does not count a stand-in as the chord written', () => {
+    expect(lookupChord('A(b9)', { simplify: false })).toBeUndefined() // shown as A7b9
+    expect(lookupChord('Gmaj13#11', { simplify: false })).toBeUndefined()
+  })
+
   it('has no diagram for things that are not chords', () => {
     expect(lookupChord('N.C.')).toBeUndefined()
     expect(lookupChord('')).toBeUndefined()
   })
 })
+
+const PITCH: Record<string, number> = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 }
+const notes = (...names: string[]) => [...new Set(names.map(n => PITCH[n]))].sort((a, b) => a - b)
+
+/** The notes a diagram sounds in standard tuning, as sorted pitch classes. */
+function notesOf(voicing: ChordVoicing) {
+  const open = [4, 9, 2, 7, 11, 4] // E A D G B E
+  const sounding = voicing.f.flatMap((f, string) => {
+    if (f === null) return []
+    const fret = f === 0 ? 0 : voicing.s === 0 ? f : voicing.s + f - 1
+    return [(open[string] + fret) % 12]
+  })
+  return [...new Set(sounding)].sort((a, b) => a - b)
+}
