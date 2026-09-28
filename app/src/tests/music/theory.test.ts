@@ -8,6 +8,7 @@ import {
   sectionColor,
   getAllChordNames,
   isChartMark,
+  transposeInKey,
 } from '../../music/theory';
 
 describe('transposeChord', () => {
@@ -220,3 +221,24 @@ describe('chord spelling when transposing', () => {
     expect(transposeText('A   B     C', 1, false)).toBe('A#   C     C#')
   })
 })
+
+describe('moving a chart to another key keeps its own spelling', () => {
+  const book = 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Cb7  Abm6  Fdim/Eb  Db/C  Ebmaj9';
+
+  it('moves the Cb, Fb, E# and B# that songbooks use', () => {
+    // Cb used to be unreadable, so a Cb7 stayed at its old pitch
+    expect(transposeChord('Cb7', 1, true)).toBe('C7');
+    expect(transposeChord('Fb', 1, false)).toBe('F');
+    expect(transposeChord('E#m', -1, false)).toBe('Em');
+    expect(transposeChord('B#', 1, false)).toBe('C#');
+  });
+
+  it('reads Kissing a Fool in D the way the book reads in Eb', () => {
+    // Bb7, not A#7; the passing chord up to Em7 is D#dim7
+    expect(transposeInKey(book, 'Eb', -1)).toBe('D6  D#dim7  Em7  Bb(b5)  A7  Bb7  Gm6  Edim/D  C/B  Dmaj9');
+  });
+
+  it('comes back to exactly the same spelling, so edits made in D store the book\'s names', () => {
+    expect(transposeInKey(transposeInKey(book, 'Eb', -1), 'D', 1)).toBe(book);
+  });
+});

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
-import { isChartMark, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
+import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
@@ -27,6 +27,9 @@ export function SongSheet() {
   const currentIndex = useStore(s => s.currentIndex)
   const editMode = useStore(s => s.editMode)
   const onStage = useStore(s => s.viewMode === 'stage')
+  const diagramsVisible = useStore(s => s.diagramsVisible)
+  const focusSection = useStore(s => s.focusSection)
+  const setFocusSection = useStore(s => s.setFocusSection)
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
   const saveSections = useStore(s => s.saveSections)
@@ -69,8 +72,7 @@ export function SongSheet() {
   // guitarist edits what they see and the stored chart stays at source pitch.
   const displaySections = useMemo(() => {
     if (!semitones) return sections
-    const useFlats = shouldUseFlats(sourceKey, semitones)
-    return sections.map(sec => ({ name: sec.name, chords: transposeText(sec.chords, semitones, useFlats) }))
+    return sections.map(sec => ({ name: sec.name, chords: transposeInKey(sec.chords, sourceKey, semitones) }))
   }, [sections, semitones, sourceKey])
 
   const notes = useMemo(() => {
@@ -95,8 +97,12 @@ export function SongSheet() {
   // Swipe only on the chart itself, never while editing.
   useSwipe(scrollRef, { onSwipeLeft: nextSong, onSwipeRight: prevSong }, !editMode)
 
-  const toSourcePitch = (text: string) =>
-    semitones ? transposeText(text, -semitones, shouldUseFlats(sourceKey, 0)) : text
+  // The reverse move, so an edit keeps the chart's own spelling (Bb7 in D is Cb7 in Eb)
+  const toSourcePitch = (text: string) => {
+    if (!semitones) return text
+    const { letterShift } = keySpelling(sourceKey, semitones)
+    return transposeText(text, -semitones, shouldUseFlats(sourceKey, 0), letterShift === undefined ? undefined : -letterShift)
+  }
 
   // Chord edits arrive as shown on screen and are stored at the song's own pitch.
   const updateChordsAt = (index: number, chords: string) => {
@@ -162,14 +168,30 @@ export function SongSheet() {
           {heading}
           {banners}
           <div className="chart-sections">
-            {displaySections.map((section, i) => (
-              <Fragment key={`${song.title}-${i}`}>
-                <div className="chart-label" style={{ color: sectionColor(section.name) }}>
-                  {section.name}
-                </div>
-                <div className="chart-chords">{renderChords(section.chords)}</div>
-              </Fragment>
-            ))}
+            {displaySections.map((section, i) => {
+              const focused = focusSection?.title === song.title && focusSection.index === i
+              return (
+                <Fragment key={`${song.title}-${i}`}>
+                  {diagramsVisible ? (
+                    // Tap a section to see just its chord shapes in the diagrams below
+                    <button
+                      type="button"
+                      className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
+                      style={{ color: sectionColor(section.name) }}
+                      aria-pressed={focused}
+                      onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
+                    >
+                      {section.name}
+                    </button>
+                  ) : (
+                    <div className="chart-label" style={{ color: sectionColor(section.name) }}>
+                      {section.name}
+                    </div>
+                  )}
+                  <div className="chart-chords">{renderChords(section.chords)}</div>
+                </Fragment>
+              )
+            })}
           </div>
           {notes && <div className="chart-notes">{notes}</div>}
         </div>

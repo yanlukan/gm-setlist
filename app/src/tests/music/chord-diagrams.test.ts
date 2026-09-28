@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CHORD_DB, lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS } from '../../data/songs'
-import { transposeText, shouldUseFlats } from '../../music/theory'
+import { transposeInKey } from '../../music/theory'
 
 describe('chord diagrams', () => {
   it('has a real diagram for every chord in the set, in the keys the band plays', () => {
@@ -9,7 +9,7 @@ describe('chord diagrams', () => {
     for (const song of DEFAULT_SONGS) {
       const k = song.transpose ?? 0
       for (const section of song.sections) {
-        const shown = k ? transposeText(section.chords, k, shouldUseFlats(song.key, k)) : section.chords
+        const shown = transposeInKey(section.chords, song.key, k)
         for (const chord of shown.split(/\s+/).filter(Boolean)) {
           // "no chord" and repeat marks like (x3) are instructions, not chords
           if (/^N\.?C\.?$/i.test(chord) || /^\(?x\d+\)?$/i.test(chord)) continue
@@ -70,6 +70,10 @@ describe('chord diagrams', () => {
     ['Cb(b5)', ['B', 'D#', 'F']],
     ['Db(b5)', ['C#', 'F', 'G']],
     ['Db6(b5)', ['C#', 'F', 'G', 'A#']],
+    // Down a semitone to D, where the band plays it
+    ['Bb(b5)', ['A#', 'D', 'E']],
+    ['C(b5)', ['C', 'E', 'F#']],
+    ['C6(b5)', ['C', 'E', 'F#', 'A']],
   ])("plays %s from the songbook with exactly the chord's notes", (chord, expected) => {
     const voicings = lookupChord(chord as string, { simplify: false })
     expect(voicings).toBeDefined()

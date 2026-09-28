@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Song, Section, SongEdits, SetlistData, Theme, ViewMode } from '../types'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
-import { transposeText, transposeChord, shouldUseFlats } from '../music/theory'
+import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import {
   saveSongEdits,
@@ -105,6 +105,12 @@ interface StoreState {
   viewMode: ViewMode
   diagramsVisible: boolean
   selectedVoicings: Record<string, number>
+  /**
+   * A section tapped on the chart: the diagrams below then show only its
+   * chords. Tied to the song's title, so it lapses on its own when the song
+   * changes. Not saved.
+   */
+  focusSection: { title: string; index: number } | null
 
   // Computed
   allSongs: () => Song[]
@@ -152,6 +158,7 @@ interface StoreState {
   toggleTheme: () => void
   toggleViewMode: () => void
   toggleDiagrams: () => void
+  setFocusSection: (focus: { title: string; index: number } | null) => void
   restoreGigOrder: () => void
   /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
   toast: string | null
@@ -172,6 +179,7 @@ export const useStore = create<StoreState>((set, get) => ({
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
   selectedVoicings: {},
+  focusSection: null,
   toast: null,
   loadFailed: false,
 
@@ -229,10 +237,9 @@ export const useStore = create<StoreState>((set, get) => ({
     const sections = getEditedSections(title)
     const semitones = getTranspose(title)
     if (!semitones) return sections
-    const useFlats = shouldUseFlats(getCurrentKey(title), semitones)
     return sections.map(section => ({
       name: section.name,
-      chords: transposeText(section.chords, semitones, useFlats),
+      chords: transposeInKey(section.chords, getCurrentKey(title), semitones),
     }))
   },
 
@@ -532,6 +539,8 @@ export const useStore = create<StoreState>((set, get) => ({
     // Remembered, so hiding them for a bigger chart sticks across launches.
     if (!readOnly) saveDiagramsVisible(get().diagramsVisible).catch(e => console.warn('saveDiagramsVisible failed:', e))
   },
+
+  setFocusSection: focus => set({ focusSection: focus }),
 
   /** Rebuild the active setlist as the printed Sept 2026 running order. */
   restoreGigOrder: () => {

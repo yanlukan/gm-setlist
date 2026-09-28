@@ -120,6 +120,10 @@ const SONGBOOK_VOICINGS: Record<string, ChordVoicing[]> = {
   'B(b5)': [{ f: [null, 2, 3, 4, 4, null], s: 0, l: 'Open' }],
   'C#(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 4, l: '4th fret' }],
   'C#6(b5)': [{ f: [null, null, 3, 3, 2, 3], s: 0, l: 'Open' }],
+  // The same chords in D, where the band plays it: the book's boxes without the capo.
+  'Bb(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 0, l: 'Open' }],
+  'C(b5)': [{ f: [null, 1, 2, 3, 3, null], s: 3, l: '3rd fret' }],
+  'C6(b5)': [{ f: [null, null, 2, 2, 1, 2], s: 0, l: 'Open' }],
 }
 
 const RAW_DB = { ...buildChordDB(), ...SONGBOOK_VOICINGS }

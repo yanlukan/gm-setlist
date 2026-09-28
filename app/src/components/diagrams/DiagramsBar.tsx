@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
 import { lookupChord } from '../../data/chords-db'
-import { shouldUseFlats, transposeText } from '../../music/theory'
+import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
 
@@ -16,6 +16,8 @@ export function DiagramsBar() {
   const selectedVoicings = useStore(s => s.selectedVoicings)
   const selectVoicing = useStore(s => s.selectVoicing)
   const onStage = useStore(s => s.viewMode === 'stage')
+  const focusSection = useStore(s => s.focusSection)
+  const setFocusSection = useStore(s => s.setFocusSection)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
 
@@ -30,6 +32,14 @@ export function DiagramsBar() {
     return setlistArr[currentIndex]
   }, [allSongs, setlistData, currentIndex])
 
+  // The section tapped on the chart, if it belongs to this song
+  const focus = useMemo(() => {
+    if (!song || !focusSection || focusSection.title !== song.title) return null
+    const sections = edits[song.title]?.sections ?? song.sections ?? []
+    const section = sections[focusSection.index]
+    return section ? { index: focusSection.index, name: section.name } : null
+  }, [song, edits, focusSection])
+
   const uniqueChords = useMemo(() => {
     if (!song) return []
     const songEdits = edits[song.title]
@@ -38,11 +48,11 @@ export function DiagramsBar() {
     const semitones = transposeFor(song, songEdits)
     const sourceKey = songEdits?.key ?? song.key ?? ''
     const sections = semitones
-      ? stored.map(sec => ({ ...sec, chords: transposeText(sec.chords, semitones, shouldUseFlats(sourceKey, semitones)) }))
+      ? stored.map(sec => ({ ...sec, chords: transposeInKey(sec.chords, sourceKey, semitones) }))
       : stored
     const seen = new Set<string>()
     const result: string[] = []
-    for (const section of sections) {
+    for (const section of focus ? [sections[focus.index]] : sections) {
       const names = section.chords.split(/[\s|,]+/).filter(Boolean)
       for (const name of names) {
         if (!seen.has(name) && lookupChord(name)) {
@@ -52,13 +62,15 @@ export function DiagramsBar() {
       }
     }
     return result
-  }, [song, edits])
+  }, [song, edits, focus])
 
   if (!song || uniqueChords.length === 0) return null
 
   return (
     <>
       <div
+        role="list"
+        aria-label={focus ? `Chord shapes for ${focus.name}` : 'Chord shapes'}
         style={{
           display: 'flex',
           overflowX: 'auto',
@@ -70,6 +82,17 @@ export function DiagramsBar() {
           flexShrink: 0,
         }}
       >
+        {focus && (
+          <button
+            type="button"
+            className="diagrams-focus"
+            onClick={() => setFocusSection(null)}
+            aria-label={`Showing ${focus.name} only. Show the whole song`}
+          >
+            <span>{focus.name}</span>
+            <span className="diagrams-focus-all">All &#10005;</span>
+          </button>
+        )}
         {uniqueChords.map(name => {
           const voicingIndex = selectedVoicings[name] ?? 0
           const voicings = lookupChord(name)
@@ -78,6 +101,8 @@ export function DiagramsBar() {
           return (
             <div
               key={name}
+              role="listitem"
+              aria-label={name}
               onClick={onStage ? undefined : () => setPickerChord(name)}
               style={{
                 flexShrink: 0,

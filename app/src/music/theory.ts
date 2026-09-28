@@ -33,12 +33,28 @@ function parseChord(chord: string): { root: string; quality: string } {
   return { root: chord.slice(0, 1), quality: chord.slice(1) };
 }
 
+const LETTERS = 'CDEFGAB';
+const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+
+/**
+ * Pitch class of a note name in any spelling, including the Cb, Fb, E# and
+ * B# that songbooks use. Cb used to read as unknown, so a chart with Cb7 in
+ * it kept that chord at its old pitch when the song was transposed.
+ */
 function noteToIndex(note: string): number {
-  let idx = SHARPS.indexOf(note as typeof SHARPS[number]);
-  if (idx === -1) {
-    idx = FLATS.indexOf(note as typeof FLATS[number]);
-  }
-  return idx;
+  const m = /^([A-G])(#{0,2}|b{0,2})$/.exec(note);
+  if (!m) return -1;
+  const shift = m[2].startsWith('#') ? m[2].length : -m[2].length;
+  return (((LETTER_PC[LETTERS.indexOf(m[1])] + shift) % 12) + 12) % 12;
+}
+
+/** A pitch spelled on a given letter (B with pitch 10 is Bb), or null if that needs a double accidental. */
+function spellOnLetter(letterIndex: number, pitch: number): string | null {
+  const diff = ((pitch - LETTER_PC[letterIndex] + 18) % 12) - 6;
+  if (diff === 0) return LETTERS[letterIndex];
+  if (diff === 1) return LETTERS[letterIndex] + '#';
+  if (diff === -1) return LETTERS[letterIndex] + 'b';
+  return null;
 }
 
 function indexToNote(index: number, useFlats: boolean): string {
@@ -46,12 +62,18 @@ function indexToNote(index: number, useFlats: boolean): string {
   return useFlats ? FLATS[i] : SHARPS[i];
 }
 
-export function transposeChord(chord: string, semitones: number, useFlats: boolean): string {
+/**
+ * `letterShift` moves every note name by the same number of letters as the
+ * key moves, which keeps the chart's own spelling: down from Eb to D, Cb7
+ * becomes Bb7 (not A#7) and Edim7 becomes D#dim7. Without it, sharps or
+ * flats follow `useFlats`.
+ */
+export function transposeChord(chord: string, semitones: number, useFlats: boolean, letterShift?: number): string {
   // Handle slash chords (e.g., C/E)
   if (chord.includes('/')) {
     const [main, bass] = chord.split('/');
-    const transposedMain = transposeChord(main, semitones, useFlats);
-    const transposedBass = transposeChord(bass, semitones, useFlats);
+    const transposedMain = transposeChord(main, semitones, useFlats, letterShift);
+    const transposedBass = transposeChord(bass, semitones, useFlats, letterShift);
     return `${transposedMain}/${transposedBass}`;
   }
 
@@ -59,20 +81,43 @@ export function transposeChord(chord: string, semitones: number, useFlats: boole
   const rootIndex = noteToIndex(root);
   if (rootIndex === -1) return chord; // Unknown root, return as-is
   const newIndex = ((rootIndex + semitones) % 12 + 12) % 12;
-  const newRoot = indexToNote(newIndex, useFlats);
-  return `${newRoot}${quality}`;
+  const spelled =
+    letterShift === undefined
+      ? null
+      : spellOnLetter((((LETTERS.indexOf(root[0]) + letterShift) % 7) + 7) % 7, newIndex);
+  return `${spelled ?? indexToNote(newIndex, useFlats)}${quality}`;
 }
 
 /**
  * Transpose every chord token in a chord line, preserving the exact runs of
  * whitespace so the visual alignment of the chart is untouched.
  */
-export function transposeText(text: string, semitones: number, useFlats: boolean): string {
+export function transposeText(text: string, semitones: number, useFlats: boolean, letterShift?: number): string {
   if (!semitones) return text;
   return text
     .split(/(\s+)/)
-    .map(token => (token.trim() === '' ? token : transposeChord(token, semitones, useFlats)))
+    .map(token => (token.trim() === '' ? token : transposeChord(token, semitones, useFlats, letterShift)))
     .join('');
+}
+
+/**
+ * How a chart in `key` is spelled once moved by `semitones`: sharps or flats
+ * by the new key, and note letters moved by the same step as the key's.
+ */
+export function keySpelling(key: string, semitones: number): { useFlats: boolean; letterShift?: number } {
+  const useFlats = shouldUseFlats(key, semitones);
+  const { root } = parseChord(key);
+  const from = noteToIndex(root);
+  if (from === -1) return { useFlats };
+  const target = indexToNote(from + semitones, useFlats);
+  return { useFlats, letterShift: (((LETTERS.indexOf(target[0]) - LETTERS.indexOf(root[0])) % 7) + 7) % 7 };
+}
+
+/** A chord line from a chart in `key`, as it reads moved by `semitones`. */
+export function transposeInKey(text: string, key: string, semitones: number): string {
+  if (!semitones) return text;
+  const { useFlats, letterShift } = keySpelling(key, semitones);
+  return transposeText(text, semitones, useFlats, letterShift);
 }
 
 /**

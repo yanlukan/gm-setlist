@@ -380,6 +380,8 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Kissing a Fool',
+    lowerKey: true,
+    transpose: -1, // band key D (user, 2026-09-28); chart is the book's Eb
     artist: 'George Michael',
     key: 'Eb',
     bpm: 78, // measured on the recording; the songbook prints 82
@@ -387,14 +389,15 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
-    cue: 'Jazz ballad — clean tone, comping only. Last verse: Eb6 Edim7 Fm7 Cb(b5) Bb7 Eb6, then Outro.',
-    notes: 'From the songbook (no. 37). Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, last verse, Outro. Swung eighths, triplet feel. The book suggests capo 1 with D shapes; this chart is at concert pitch.',
+    cue: 'Jazz ballad — clean tone, comping only. The last verse is short: straight into the Outro.',
+    notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key. Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, Last verse, Outro. Swung eighths, triplet feel.',
     sections: [
       { name: 'Intro', chords: 'Eb  Edim7  Fm  Abm6  Bb' },
       { name: 'Verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6  C7(b9)  Fm7  Cb(b5)  Bb' },
       { name: 'Chorus', chords: 'Eb6  Edim7  Fm7  Abm6  Bb7(b9)  Eb6  Db6(b5)  C7  Fm11  Fm7  Bb13  Bb7(b9)  Eb6  Db(b5)  C7(b9)  Fm7  Abm  Bb7  Eb6  Db6(b5)  C7  Fm7  Abm6  Bb7  Eb6  Fdim/Eb' },
       { name: 'Bridge', chords: 'Eb  Cm7  C7(b9)  Fm7  Bb  Fm7  Bb  Ebm7  Ab7  Db  Db/C  Bb7' },
       { name: 'Bridge 2', chords: 'Eb  Cm7  Fm7  Cb7  Eb/Bb  Eb  Db6  C7  Fm9  Cb6  Bb7sus4  Cm7  Fm7  Bb  Bb7(b9)' },
+      { name: 'Last verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6' },
       { name: 'Outro', chords: 'C7(b9)  Cb7  Bb7  Eb6  C9  Cb7  Bb7  Ebmaj9' },
     ],
   },

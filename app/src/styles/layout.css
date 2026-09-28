@@ -145,6 +145,40 @@
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
+/* Section names are buttons when the diagrams are showing: tap one to see
+   just that section's chord shapes. Same size pressed or not, so the chart
+   never reflows. */
+.chart-label-btn {
+  font-family: inherit;
+  line-height: 1.2;
+  padding: 0.3em 0.55em;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.chart-label-btn.is-focused {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+.diagrams-focus {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.diagrams-focus-all { font-size: 11px; color: var(--text-muted); }
 .chart-chords {
   font-weight: 700;
   line-height: 1.3;
