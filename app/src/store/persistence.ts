@@ -82,6 +82,17 @@ export async function getTheme(): Promise<Theme | undefined> {
   return d.get('settings', 'theme')
 }
 
+/** Small UI preferences that should survive a relaunch. */
+export async function saveSetting(key: string, value: unknown): Promise<void> {
+  const d = await db()
+  await d.put('settings', value, key)
+}
+
+export async function getSetting<T>(key: string): Promise<T | undefined> {
+  const d = await db()
+  return d.get('settings', key)
+}
+
 export async function saveDiagramsVisible(visible: boolean): Promise<void> {
   const d = await db()
   await d.put('settings', visible, 'diagramsVisible')

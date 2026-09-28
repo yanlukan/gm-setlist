@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -16,6 +16,7 @@ import {
 import { useStore } from '../../store/use-store'
 import { SetlistSongItem } from './SetlistSongItem'
 import { AddSongPicker } from './AddSongPicker'
+import type { Song } from '../../types'
 
 interface SetlistScreenProps {
   onClose: () => void
@@ -23,6 +24,9 @@ interface SetlistScreenProps {
 
 export function SetlistScreen({ onClose }: SetlistScreenProps) {
   const setlistData = useStore(s => s.setlistData)
+  const songs = useStore(s => s.songs)
+  const customSongs = useStore(s => s.customSongs)
+  const currentIndex = useStore(s => s.currentIndex)
   const setActiveSetlist = useStore(s => s.setActiveSetlist)
   const createSetlist = useStore(s => s.createSetlist)
   const deleteSetlist = useStore(s => s.deleteSetlist)
@@ -32,8 +36,18 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
 
   const [showPicker, setShowPicker] = useState(false)
 
-  const activeList = setlistData.lists[setlistData.activeId]
+  const activeId = setlistData.activeId
+  const activeList = setlistData.lists[activeId]
   const songTitles = activeList?.songTitles ?? []
+
+  // The chart indexes only titles that resolve to a song, so map through that.
+  const resolved = useMemo(() => {
+    const all = [...songs, ...customSongs]
+    return songTitles
+      .map(title => all.find(s => s.title === title))
+      .filter((s): s is Song => s !== undefined)
+  }, [songs, customSongs, songTitles])
+  const currentTitle = resolved[currentIndex]?.title
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -43,13 +57,10 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-
     const oldIndex = songTitles.indexOf(active.id as string)
     const newIndex = songTitles.indexOf(over.id as string)
     if (oldIndex === -1 || newIndex === -1) return
-
-    const newOrder = arrayMove(songTitles, oldIndex, newIndex)
-    reorderSetlistSongs(setlistData.activeId, newOrder)
+    reorderSetlistSongs(activeId, arrayMove(songTitles, oldIndex, newIndex))
   }
 
   function handleSelectSong(index: number) {
@@ -57,225 +68,82 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
     // list of songs that actually resolve. If any title fails to resolve,
     // the two differ and a raw index opens the wrong song — so go by title.
     const title = songTitles[index]
-    const position = useStore.getState().setlistSongs().findIndex(s => s.title === title)
+    const position = resolved.findIndex(s => s.title === title)
     if (position >= 0) goToSong(position)
     onClose()
   }
 
   function handleNewSetlist() {
     const name = window.prompt('New setlist name:')
-    if (name?.trim()) {
-      createSetlist(name.trim())
-    }
+    if (name?.trim()) createSetlist(name.trim())
   }
 
   function handleRename() {
     if (!activeList) return
     const name = window.prompt('Rename setlist:', activeList.name)
-    if (name?.trim()) {
-      renameSetlist(setlistData.activeId, name.trim())
-    }
+    if (name?.trim()) renameSetlist(activeId, name.trim())
   }
 
   function handleDelete() {
-    if (setlistData.activeId === 'default') return
-    if (!window.confirm(`Delete "${activeList?.name}"?`)) return
-    deleteSetlist(setlistData.activeId)
+    if (activeId === 'default') return
+    if (!window.confirm(`Delete "${activeList?.name}"? A restore point is saved first.`)) return
+    deleteSetlist(activeId)
   }
 
-  const listIds = Object.keys(setlistData.lists)
-
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--bg, #111)',
-        zIndex: 200,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        padding: 'var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
-        }}
-      >
-        <h2 style={{ margin: 0, color: 'var(--text, #fff)', fontSize: 22 }}>Setlists</h2>
-        <button
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--accent, #4af)',
-            fontSize: 16,
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          Done
-        </button>
+    <div className="sl-screen">
+      <div className="sl-header">
+        <h2 className="sl-title">Setlists</h2>
+        <button className="songgrid-close" onClick={onClose}>Done</button>
       </div>
 
-      {/* Tabs row */}
-      <div
-        style={{
-          display: 'flex',
-          overflowX: 'auto',
-          gap: 0,
-          borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
-          flexShrink: 0,
-        }}
-      >
-        {listIds.map(id => {
-          const list = setlistData.lists[id]
-          const isActive = id === setlistData.activeId
-          return (
-            <button
-              key={id}
-              onClick={() => setActiveSetlist(id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: isActive ? '2px solid var(--accent, #4af)' : '2px solid transparent',
-                color: isActive ? 'var(--accent, #4af)' : 'var(--text-secondary, #888)',
-                padding: '10px 16px',
-                fontSize: 14,
-                fontWeight: isActive ? 600 : 400,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              {list.name}
-            </button>
-          )
-        })}
-        <button
-          onClick={handleNewSetlist}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--accent, #4af)',
-            padding: '10px 16px',
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        >
-          + New
-        </button>
-      </div>
-
-      {/* Actions row */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          padding: '10px 20px',
-          borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={handleRename}
-          style={{
-            background: 'none',
-            border: '1px solid var(--border, rgba(255,255,255,0.2))',
-            color: 'var(--text, #fff)',
-            borderRadius: 6,
-            padding: '6px 14px',
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
-        >
-          Rename
-        </button>
-        {setlistData.activeId !== 'default' && (
+      <div className="sl-tabs">
+        {Object.keys(setlistData.lists).map(id => (
           <button
-            onClick={handleDelete}
-            style={{
-              background: 'none',
-              border: '1px solid #c33',
-              color: '#c33',
-              borderRadius: 6,
-              padding: '6px 14px',
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
+            key={id}
+            className={id === activeId ? 'sl-tab is-active' : 'sl-tab'}
+            onClick={() => setActiveSetlist(id)}
           >
-            Delete Setlist
+            {setlistData.lists[id].name}
           </button>
+        ))}
+        <button className="sl-tab sl-tab-new" onClick={handleNewSetlist}>+ New</button>
+      </div>
+
+      <div className="sl-actions">
+        <span className="sl-hint">
+          {songTitles.length} songs &middot; hold &#9776; and drag to reorder
+        </span>
+        <button className="tb-btn" onClick={handleRename}>Rename</button>
+        {activeId !== 'default' && (
+          <button className="tb-btn sl-danger" onClick={handleDelete}>Delete</button>
         )}
       </div>
 
-      {/* Song list */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+      <div className="sl-list">
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={songTitles} strategy={verticalListSortingStrategy}>
             {songTitles.map((title, i) => (
               <SetlistSongItem
                 key={title}
                 songTitle={title}
                 index={i}
-                setlistId={setlistData.activeId}
+                setlistId={activeId}
+                isCurrent={title === currentTitle}
                 onSelect={handleSelectSong}
               />
             ))}
           </SortableContext>
         </DndContext>
 
-        {songTitles.length === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              color: 'var(--text-secondary, #888)',
-              padding: '40px 20px',
-              fontSize: 15,
-            }}
-          >
-            No songs in this setlist yet.
-          </div>
-        )}
+        {songTitles.length === 0 && <div className="sl-empty">No songs in this setlist yet.</div>}
 
-        {/* Add Song button */}
-        <button
-          onClick={() => setShowPicker(true)}
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '14px 20px',
-            background: 'none',
-            border: 'none',
-            borderTop: '1px solid var(--border, rgba(255,255,255,0.1))',
-            color: 'var(--accent, #4af)',
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: 'pointer',
-            textAlign: 'center',
-          }}
-        >
-          + Add Song
-        </button>
+        <button className="sl-add" onClick={() => setShowPicker(true)}>+ Add Song</button>
       </div>
 
-      {/* Song picker overlay */}
       {showPicker && (
         <AddSongPicker
-          setlistId={setlistData.activeId}
+          setlistId={activeId}
           currentTitles={songTitles}
           onClose={() => setShowPicker(false)}
         />

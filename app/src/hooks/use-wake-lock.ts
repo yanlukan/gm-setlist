@@ -1,29 +1,42 @@
 import { useEffect, useRef } from 'react'
 
+/**
+ * Keeps the screen on. An iPad going dark mid-song is exactly the failure a
+ * stage chart cannot have, so this is on whenever PlayBook is open.
+ *
+ * The lock is dropped by the browser whenever the page is hidden, and some
+ * browsers only grant it after a tap, so it is re-requested on both.
+ */
 export function useWakeLock(enabled: boolean) {
-  const wakeLock = useRef<WakeLockSentinel | null>(null)
+  const sentinel = useRef<WakeLockSentinel | null>(null)
 
   useEffect(() => {
     if (!enabled || !('wakeLock' in navigator)) return
+    let cancelled = false
 
     const request = async () => {
+      if (cancelled || document.visibilityState !== 'visible') return
+      if (sentinel.current && !sentinel.current.released) return
       try {
-        wakeLock.current = await navigator.wakeLock.request('screen')
+        sentinel.current = await navigator.wakeLock.request('screen')
       } catch {
-        // Wake lock request failed — ignore
+        // Not allowed right now (no tap yet, low battery mode). Retried on the next tap.
       }
     }
 
     request()
-
-    const onVisibilityChange = () => {
+    const onVisibility = () => {
       if (document.visibilityState === 'visible') request()
     }
-    document.addEventListener('visibilitychange', onVisibilityChange)
+    document.addEventListener('visibilitychange', onVisibility)
+    document.addEventListener('pointerdown', request, { passive: true })
 
     return () => {
-      wakeLock.current?.release()
-      document.removeEventListener('visibilitychange', onVisibilityChange)
+      cancelled = true
+      document.removeEventListener('visibilitychange', onVisibility)
+      document.removeEventListener('pointerdown', request)
+      sentinel.current?.release().catch(() => {})
+      sentinel.current = null
     }
   }, [enabled])
 }

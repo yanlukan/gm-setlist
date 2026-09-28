@@ -91,7 +91,8 @@ function AppInner() {
   const loadFailed = useStore(s => s.loadFailed)
   const [ready, setReady] = useState(false)
 
-  useWakeLock(viewMode === 'stage')
+  // Screen stays on whenever PlayBook is open — not only in Stage Mode.
+  useWakeLock(true)
 
   useEffect(() => {
     console.log(`PlayBook v${APP_VERSION} built ${BUILD_TIME}`)

@@ -51,7 +51,7 @@ export function ChordSearch({ onClose }: Props) {
     setResults([])
     try {
       const server = await findServer()
-      if (!server) { setError('Server not available'); return }
+      if (!server) { setError("Song search needs the PlayBook server, which isn't reachable right now. Your setlists and charts are on this device and work without it."); return }
       const res = await fetch(`${server}/api/chords/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

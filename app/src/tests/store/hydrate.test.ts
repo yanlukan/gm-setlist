@@ -134,3 +134,54 @@ describe('restoring a snapshot', () => {
     expect(after[0].reason).toBe('before restore')
   })
 })
+
+describe('relaunching mid-set', () => {
+  const settle = () => new Promise(resolve => setTimeout(resolve, 20))
+
+  it('reopens on the song the player was on', async () => {
+    useStore.getState().goToSong(7)
+    await settle()
+
+    useStore.setState(useStore.getInitialState()) // app closed and reopened
+    await useStore.getState().hydrate()
+
+    expect(useStore.getState().currentIndex).toBe(7)
+  })
+
+  it('also remembers moves made with Next and Previous', async () => {
+    useStore.getState().nextSong()
+    useStore.getState().nextSong()
+    useStore.getState().nextSong()
+    useStore.getState().prevSong()
+    await settle()
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+
+    expect(useStore.getState().currentIndex).toBe(2)
+  })
+
+  it('starts at the top when the saved position was in a different setlist', async () => {
+    useStore.getState().goToSong(7)
+    await settle()
+    await saveSetlistData({
+      lists: { other: { id: 'other', name: 'Other', songTitles: ['Faith', 'Outside', 'Roxanne'] } },
+      activeId: 'other',
+    })
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+
+    expect(useStore.getState().currentIndex).toBe(0)
+  })
+
+  it('remembers Stage Mode', async () => {
+    useStore.getState().toggleViewMode()
+    await settle()
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+
+    expect(useStore.getState().viewMode).toBe('stage')
+  })
+})

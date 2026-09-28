@@ -16,8 +16,16 @@ import {
   getSelectedVoicings,
   saveDiagramsVisible,
   getDiagramsVisible,
+  saveSetting,
+  getSetting,
   takeSnapshot,
 } from './persistence'
+
+/** Where the player was, so a relaunch mid-set reopens on the same song. */
+interface SavedPosition {
+  setlistId: string
+  index: number
+}
 
 export const defaultSetlistData: SetlistData = {
   lists: {
@@ -61,6 +69,12 @@ function persistSetlist(previous: SetlistData, next: SetlistData, reason: string
     .then(() => takeSnapshot(reason, previous))
     .then(() => saveSetlistData(next))
     .catch(e => console.warn('saveSetlistData failed:', e))
+}
+
+function persistPosition(setlistId: string, index: number): void {
+  if (readOnly) return
+  const position: SavedPosition = { setlistId, index }
+  saveSetting('position', position).catch(e => console.warn('save position failed:', e))
 }
 
 /** Keep the current position inside the setlist after songs are added/removed. */
@@ -213,16 +227,19 @@ export const useStore = create<StoreState>((set, get) => ({
   nextSong: () => {
     const { currentIndex, setlistSongs } = get()
     set({ currentIndex: clampIndex(currentIndex + 1, setlistSongs().length) })
+    persistPosition(get().setlistData.activeId, get().currentIndex)
   },
 
   prevSong: () => {
     const { currentIndex, setlistSongs } = get()
     set({ currentIndex: clampIndex(currentIndex - 1, setlistSongs().length) })
+    persistPosition(get().setlistData.activeId, get().currentIndex)
   },
 
   goToSong: (index: number) => {
     const { setlistSongs } = get()
     set({ currentIndex: clampIndex(index, setlistSongs().length), editMode: false })
+    persistPosition(get().setlistData.activeId, get().currentIndex)
   },
 
   // Edit actions
@@ -423,9 +440,12 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   toggleViewMode: () => {
-    set(state => ({
-      viewMode: state.viewMode === 'normal' ? 'stage' : 'normal',
-    }))
+    set(state => {
+      const viewMode: ViewMode = state.viewMode === 'normal' ? 'stage' : 'normal'
+      // Stage Mode locks the chart, so it cannot be entered mid-edit.
+      return { viewMode, ...(viewMode === 'stage' && { editMode: false }) }
+    })
+    if (!readOnly) saveSetting('viewMode', get().viewMode).catch(e => console.warn('save viewMode failed:', e))
   },
 
   toggleDiagrams: () => {
@@ -458,16 +478,22 @@ export const useStore = create<StoreState>((set, get) => ({
     let themeResult: Theme | undefined
     let selectedVoicingsResult: Record<string, number> | undefined
     let diagramsVisibleResult: boolean | undefined
+    let viewModeResult: ViewMode | undefined
+    let positionResult: SavedPosition | undefined
 
     try {
-      ;[setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult, diagramsVisibleResult] =
-        await Promise.all([
-          getSetlistData(),
-          getCustomSongs(),
-          getTheme(),
-          getSelectedVoicings(),
-          getDiagramsVisible(),
-        ])
+      ;[
+        setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
+        diagramsVisibleResult, viewModeResult, positionResult,
+      ] = await Promise.all([
+        getSetlistData(),
+        getCustomSongs(),
+        getTheme(),
+        getSelectedVoicings(),
+        getDiagramsVisible(),
+        getSetting<ViewMode>('viewMode'),
+        getSetting<SavedPosition>('position'),
+      ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
       // overwriting the user's real data with them on the next save.
@@ -501,20 +527,25 @@ export const useStore = create<StoreState>((set, get) => ({
     // empty setlist is a legitimate state (the user just made one), and
     // overwriting it is what destroyed the setlists before the last gig.
     readOnly = false
-    set(state => ({
-      ...(setlistDataResult && { setlistData: setlistDataResult }),
-      ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
-      ...(themeResult && { theme: themeResult }),
-      ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
-      ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
-      edits,
-      loadFailed: false,
-      currentIndex: clampIndex(
-        state.currentIndex,
-        setlistDataResult
-          ? (setlistDataResult.lists[setlistDataResult.activeId]?.songTitles.length ?? 0)
-          : state.setlistData.lists[state.setlistData.activeId]?.songTitles.length ?? 0,
-      ),
-    }))
+    set(state => {
+      const setlists = setlistDataResult ?? state.setlistData
+      const listLength = setlists.lists[setlists.activeId]?.songTitles.length ?? 0
+      // Reopen on the song the player was on, if it was in this same setlist.
+      const savedIndex =
+        positionResult && positionResult.setlistId === setlists.activeId && Number.isInteger(positionResult.index)
+          ? positionResult.index
+          : state.currentIndex
+      return {
+        ...(setlistDataResult && { setlistData: setlistDataResult }),
+        ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
+        ...(themeResult && { theme: themeResult }),
+        ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
+        ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
+        ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
+        edits,
+        loadFailed: false,
+        currentIndex: clampIndex(savedIndex, listLength),
+      }
+    })
   },
 }))

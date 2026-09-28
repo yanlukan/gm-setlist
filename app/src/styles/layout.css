@@ -298,3 +298,123 @@
 .chip { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
 .chip-warn { background: #e53e3e; color: #fff; }
 .chip-transpose { background: #f59e0b; color: #111; }
+
+/* ---------- Setlists screen ---------- */
+.sl-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+.sl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sl-title { font-size: 22px; font-weight: 700; }
+.sl-tabs {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sl-tab {
+  min-height: 50px;
+  padding: 0 18px;
+  font-size: 16px;
+  color: var(--text-muted);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sl-tab.is-active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+.sl-tab-new { color: var(--accent); font-weight: 700; }
+.sl-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sl-hint { flex: 1 1 auto; min-width: 0; font-size: 14px; color: var(--text-muted); }
+.sl-danger { color: #ef4444; border-color: rgba(239, 68, 68, 0.5); }
+.sl-list { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.sl-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 66px;
+  padding: 6px 8px 6px 4px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.sl-row.is-current { background: rgba(74, 158, 255, 0.14); box-shadow: inset 4px 0 0 var(--accent); }
+.sl-row.is-dragging {
+  position: relative;
+  z-index: 1;
+  background: var(--badge-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.sl-handle {
+  min-width: 48px;
+  min-height: 52px;
+  font-size: 22px;
+  color: var(--text-muted);
+  touch-action: none;
+  cursor: grab;
+  flex-shrink: 0;
+}
+.sl-song {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  text-align: left;
+}
+.sl-song-title {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sl-song-num { margin-right: 8px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.sl-song-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.sl-remove {
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 10px;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.sl-remove:active { background: rgba(229, 62, 62, 0.2); color: #e53e3e; }
+.sl-empty { padding: 40px 20px; text-align: center; font-size: 15px; color: var(--text-muted); }
+.sl-add {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}

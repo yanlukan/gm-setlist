@@ -111,25 +111,34 @@ export function TopBar() {
     <>
       <div className="topbar">
         <div className="tb-group">
-          <button className={editMode ? 'tb-btn is-active' : 'tb-btn'} onClick={toggleEditMode}>
-            {editMode ? 'Done' : 'Edit'}
-          </button>
-          {editMode && song && (
-            <button
-              className="tb-btn is-danger"
-              onClick={() => {
-                if (confirm(`Reset "${song.title}" to the original chart? Your edits to it will be removed.`)) {
-                  resetEdits(song.title)
-                }
-              }}
-            >
-              Reset
+          {viewMode === 'stage' ? (
+            // Stage Mode: the chart is locked — no Edit, no setlist changes.
+            <button className="tb-btn is-active" onClick={toggleViewMode} aria-label="Exit Stage Mode">
+              &#9679; Stage
             </button>
-          )}
-          {!editMode && (
+          ) : (
             <>
-              <button className="tb-btn" onClick={() => setShowSetlist(true)}>Setlists</button>
-              <button className="tb-btn" onClick={() => setShowSearch(true)}>Search</button>
+              <button className={editMode ? 'tb-btn is-active' : 'tb-btn'} onClick={toggleEditMode}>
+                {editMode ? 'Done' : 'Edit'}
+              </button>
+              {editMode && song && (
+                <button
+                  className="tb-btn is-danger"
+                  onClick={() => {
+                    if (confirm(`Reset "${song.title}" to the original chart? Your edits to it will be removed.`)) {
+                      resetEdits(song.title)
+                    }
+                  }}
+                >
+                  Reset
+                </button>
+              )}
+              {!editMode && (
+                <>
+                  <button className="tb-btn" onClick={() => setShowSetlist(true)}>Setlists</button>
+                  <button className="tb-btn" onClick={toggleViewMode} aria-label="Enter Stage Mode">Stage</button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -167,30 +176,36 @@ export function TopBar() {
             <button className="tb-btn" onClick={() => setShowMenu(!showMenu)} aria-label="Menu">&#8942;</button>
             {showMenu && (
               <div className="menu">
-                <button className="menu-item" onClick={menuAction(toggleViewMode)}>
-                  {viewMode === 'stage' ? 'Exit Stage Mode' : 'Stage Mode'}
-                </button>
                 <button className="menu-item" onClick={menuAction(toggleDiagrams)}>
                   {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
                 </button>
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                 </button>
+                {viewMode !== 'stage' && (
+                  <button className="menu-item" onClick={menuAction(() => setShowSearch(true))}>
+                    Find a Song Online&hellip;
+                  </button>
+                )}
                 <button className="menu-item" onClick={handleExport}>Export Backup</button>
-                <button className="menu-item" onClick={() => fileInputRef.current?.click()}>Import Backup</button>
-                <button className="menu-item" onClick={menuAction(() => setShowRestore(true))}>
-                  Restore a Backup&hellip;
-                </button>
-                <button
-                  className="menu-item"
-                  onClick={menuAction(() => {
-                    if (confirm('Rebuild this setlist as the printed GM Tribute running order? A restore point is saved first.')) {
-                      restoreGigOrder()
-                    }
-                  })}
-                >
-                  Restore GM Tribute Order
-                </button>
+                {viewMode !== 'stage' && (
+                  <>
+                    <button className="menu-item" onClick={() => fileInputRef.current?.click()}>Import Backup</button>
+                    <button className="menu-item" onClick={menuAction(() => setShowRestore(true))}>
+                      Restore a Backup&hellip;
+                    </button>
+                    <button
+                      className="menu-item"
+                      onClick={menuAction(() => {
+                        if (confirm('Rebuild this setlist as the printed GM Tribute running order? A restore point is saved first.')) {
+                          restoreGigOrder()
+                        }
+                      })}
+                    >
+                      Restore GM Tribute Order
+                    </button>
+                  </>
+                )}
                 <div className="menu-foot">
                   PlayBook v{APP_VERSION} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
                 </div>

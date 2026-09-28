@@ -2,100 +2,82 @@ import { useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../store/use-store'
+import { shouldUseFlats, transposeChord } from '../../music/theory'
 
 interface SetlistSongItemProps {
   songTitle: string
   index: number
   setlistId: string
+  isCurrent?: boolean
   onSelect: (index: number) => void
 }
 
-export function SetlistSongItem({ songTitle, index, setlistId, onSelect }: SetlistSongItemProps) {
+export function SetlistSongItem({ songTitle, index, setlistId, isCurrent, onSelect }: SetlistSongItemProps) {
   const removeSongFromSetlist = useStore(s => s.removeSongFromSetlist)
   const songs = useStore(s => s.songs)
   const customSongs = useStore(s => s.customSongs)
   const edits = useStore(s => s.edits)
 
-  const song = useMemo(() => {
-    const all = [...songs, ...customSongs]
-    return all.find(s => s.title === songTitle)
-  }, [songs, customSongs, songTitle])
+  const song = useMemo(
+    () => [...songs, ...customSongs].find(s => s.title === songTitle),
+    [songs, customSongs, songTitle],
+  )
 
-  const key = useMemo(() => {
-    if (edits[songTitle]?.key !== undefined) return edits[songTitle].key!
-    return song?.key ?? ''
-  }, [edits, songTitle, song])
+  // Show the key as it will be played, transpose included.
+  const songEdits = edits[songTitle]
+  const semitones = songEdits?.transpose ?? 0
+  const baseKey = songEdits?.key ?? song?.key ?? ''
+  const key = semitones && baseKey
+    ? transposeChord(baseKey, semitones, shouldUseFlats(baseKey, semitones))
+    : baseKey
 
-  const bpm = song?.bpm ?? 0
-  const timeSig = song?.timeSignature ?? '4/4'
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: songTitle })
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: songTitle })
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '10px 12px',
-    borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
-    background: isDragging ? 'rgba(255,255,255,0.05)' : 'transparent',
-  }
+  const className = ['sl-row', isDragging && 'is-dragging', isCurrent && 'is-current']
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div ref={setNodeRef} style={style}>
-      <button
-        {...attributes}
-        {...listeners}
-        style={{
-          touchAction: 'none',
-          cursor: 'grab',
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-secondary, #888)',
-          fontSize: 20,
-          padding: '4px 8px',
-          lineHeight: 1,
-        }}
-        aria-label="Drag to reorder"
-      >
+    <div
+      ref={setNodeRef}
+      className={className}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      <button className="sl-handle" {...attributes} {...listeners} aria-label="Drag to reorder">
         &#9776;
       </button>
 
-      <div
-        style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}
-        onClick={() => onSelect(index)}
-      >
-        <div style={{ color: 'var(--text, #fff)', fontWeight: 500 }}>
-          {index + 1}. {songTitle}
-        </div>
-        <div style={{ color: 'var(--text-secondary, #888)', fontSize: 13, marginTop: 2 }}>
-          Key: {key || '?'} | {bpm} BPM | {timeSig}
-        </div>
-      </div>
+      <button className="sl-song" onClick={() => onSelect(index)}>
+        <span className="sl-song-title">
+          <span className="sl-song-num">{index + 1}.</span>
+          {songTitle}
+        </span>
+        <span className="sl-song-meta">
+          {song ? (
+            <>
+              <span>Key {key || '?'}</span>
+              {semitones !== 0 && (
+                <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
+              )}
+              {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
+              <span>{song.bpm} BPM</span>
+              <span>{song.timeSignature}</span>
+            </>
+          ) : (
+            <span className="chip chip-warn">Song not found — it will be skipped</span>
+          )}
+        </span>
+      </button>
 
       <button
-        onClick={() => removeSongFromSetlist(setlistId, songTitle)}
-        style={{
-          background: 'none',
-          border: '1px solid #c33',
-          color: '#c33',
-          borderRadius: 6,
-          padding: '4px 10px',
-          fontSize: 13,
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
+        className="sl-remove"
+        aria-label={`Remove ${songTitle} from setlist`}
+        onClick={() => {
+          if (confirm(`Remove "${songTitle}" from this setlist?`)) removeSongFromSetlist(setlistId, songTitle)
         }}
       >
-        Remove
+        &times;
       </button>
     </div>
   )
