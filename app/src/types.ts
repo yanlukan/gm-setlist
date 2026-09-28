@@ -26,6 +26,12 @@ export interface Song {
    * this flag makes an unset transpose visible instead of silently wrong.
    */
   lowerKey?: boolean
+  /**
+   * The band's key, as semitones from the chart. Used until the player sets
+   * their own transpose on the device, which always wins. Lets a settled
+   * "we play it lower" key ship with the song instead of living on one iPad.
+   */
+  transpose?: number
 }
 
 export interface SongEdits {

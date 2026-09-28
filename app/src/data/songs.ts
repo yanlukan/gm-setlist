@@ -74,6 +74,7 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Amazing',
     lowerKey: true,
+    transpose: -1, // band key Am (confirmed 2026-09-28); chart is at the recording's Bbm
     artist: 'George Michael',
     key: 'Bbm',
     bpm: 128,
@@ -139,20 +140,20 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: "Freedom! '90",
-    shortTitle: 'Freedom \'90',
+    shortTitle: "Freedom '90",
     artist: 'George Michael',
-    key: 'G',
+    key: 'C',
     bpm: 92,
     timeSignature: '4/4',
     capo: null,
-    notes: 'Mixolydian feel (I\u2013bVII\u2013IV = G\u2013F\u2013C). First chorus arrives nearly 2 minutes in.',
+    notes: 'Mixolydian groove: C to Bb to F (I, bVII, IV). Verses move to C, G, F; the pre-chorus is a Cm line cliche down to G. Long intro: the first chorus arrives nearly 2 minutes in.',
     sections: [
-      { name: 'Intro', chords: 'G  F  C  G' },
-      { name: 'Verse', chords: 'G  F  C  G' },
-      { name: 'Pre-Chorus', chords: 'Am  Am(maj7)  Am7  Am6' },
-      { name: 'Chorus', chords: 'G  F  C  G' },
-      { name: 'Bridge', chords: 'Am  Am(maj7)  Am7  Am6' },
-      { name: 'Outro', chords: 'G  F  C  G' },
+      { name: 'Intro', chords: 'C  Bb  F  C' },
+      { name: 'Verse', chords: 'C  G  F  C' },
+      { name: 'Pre-Chorus', chords: 'C  Cm  Cm7  Cm6  Cm  Cm7  G' },
+      { name: 'Chorus', chords: 'C  Bb  F  C' },
+      { name: 'Bridge', chords: 'C  Cm  Cm6  Cm  Cm7  Cm6  Cm  Cm7  G' },
+      { name: 'Outro', chords: 'C  Bb  F  C' },
     ],
   },
   {

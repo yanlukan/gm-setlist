@@ -5,7 +5,7 @@ import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
 import { ChordLineEditor } from '../edit/ChordLineEditor'
-import { playedKey } from '../../music/setlist-text'
+import { playedKey, transposeFor } from '../../music/setlist-text'
 import { useFitText } from '../../hooks/use-fit-text'
 import { useSwipe } from '../../hooks/use-swipe'
 import type { Song } from '../../types'
@@ -62,7 +62,7 @@ export function SongSheet() {
     return song.sections ?? []
   }, [song, edits])
 
-  const semitones = song ? (edits[song.title]?.transpose ?? 0) : 0
+  const semitones = song ? transposeFor(song, edits[song.title]) : 0
   const sourceKey = song ? (edits[song.title]?.key ?? song.key ?? '') : ''
 
   // What actually goes on the screen. Editing writes back through this, so the

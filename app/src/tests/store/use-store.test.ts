@@ -286,3 +286,35 @@ describe('duplicateSetlist', () => {
     expect(useStore.getState().setlistData.lists[copyId].songTitles).toHaveLength(20)
   })
 })
+
+describe('band keys that ship with the songs', () => {
+  beforeEach(() => {
+    useStore.setState(useStore.getInitialState())
+  })
+
+  it('plays Amazing in Am, a semitone under the chart, with no setup on the iPad', () => {
+    const s = useStore.getState()
+    expect(s.getTranspose('Amazing')).toBe(-1)
+    expect(s.getDisplayKey('Amazing')).toBe('Am')
+    expect(s.getDisplaySections('Amazing')[0].chords.split(/\s+/)[0]).toBe('Am')
+  })
+
+  it("lets the player's own transpose win over the band key", () => {
+    useStore.getState().setTranspose('Amazing', -2)
+    // G# minor (five sharps) is the conventional name, not Ab minor (seven flats)
+    expect(useStore.getState().getDisplayKey('Amazing')).toBe('G#m')
+  })
+
+  it('goes back to the band key on Reset, not to the recording key', () => {
+    useStore.getState().setTranspose('Amazing', 3)
+    useStore.getState().resetEdits('Amazing')
+    expect(useStore.getState().getDisplayKey('Amazing')).toBe('Am')
+  })
+
+  it("has Freedom! '90 in C, with the Cm line cliche", () => {
+    const freedom = useStore.getState().allSongs().find(s => s.title === "Freedom! '90")!
+    expect(freedom.key).toBe('C')
+    expect(freedom.sections.map(s => s.chords).join(' ')).toContain('Cm  Cm7  Cm6')
+    expect(freedom.transpose ?? 0).toBe(0)
+  })
+})

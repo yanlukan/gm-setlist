@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Song, Section, SongEdits, SetlistData, Theme, ViewMode } from '../types'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
 import { transposeText, transposeChord, shouldUseFlats } from '../music/theory'
+import { transposeFor } from '../music/setlist-text'
 import {
   saveSongEdits,
   getSongEdits,
@@ -214,7 +215,8 @@ export const useStore = create<StoreState>((set, get) => ({
     return song?.key ?? ''
   },
 
-  getTranspose: (title: string) => get().edits[title]?.transpose ?? 0,
+  getTranspose: (title: string) =>
+    transposeFor(get().allSongs().find(song => song.title === title), get().edits[title]),
 
   /**
    * Chords as they should be READ on stage. Stored chords stay at source

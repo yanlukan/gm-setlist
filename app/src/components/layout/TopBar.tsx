@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
+import { transposeFor } from '../../music/setlist-text'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
 import { APP_VERSION, BUILD_TIME } from '../../version'
@@ -95,7 +96,7 @@ export function TopBar() {
     return song.key ?? ''
   }, [song, edits])
 
-  const semitones = song ? (edits[song.title]?.transpose ?? 0) : 0
+  const semitones = song ? transposeFor(song, edits[song.title]) : 0
   // Tap Tempo saves into edits; show that, not the tempo in the song data.
   const bpm = song ? (edits[song.title]?.bpm ?? song.bpm) : 0
 

@@ -9,9 +9,14 @@ export interface PlayedKey {
   semitones: number
 }
 
+/** The player's own transpose if they set one, else the band's key, else none. */
+export function transposeFor(song: Song | undefined, edits?: SongEdits): number {
+  return edits?.transpose ?? song?.transpose ?? 0
+}
+
 export function playedKey(song: Song, edits?: SongEdits): PlayedKey {
   const original = edits?.key ?? song.key
-  const semitones = edits?.transpose ?? 0
+  const semitones = transposeFor(song, edits)
   const key = semitones && original
     ? transposeChord(original, semitones, shouldUseFlats(original, semitones))
     : original

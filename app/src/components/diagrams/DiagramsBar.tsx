@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
+import { transposeFor } from '../../music/setlist-text'
 import { lookupChord } from '../../data/chords-db'
 import { shouldUseFlats, transposeText } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
@@ -34,7 +35,7 @@ export function DiagramsBar() {
     const songEdits = edits[song.title]
     const stored = songEdits?.sections ?? song.sections ?? []
     // Show the shapes actually being played, not the ones at source pitch.
-    const semitones = songEdits?.transpose ?? 0
+    const semitones = transposeFor(song, songEdits)
     const sourceKey = songEdits?.key ?? song.key ?? ''
     const sections = semitones
       ? stored.map(sec => ({ ...sec, chords: transposeText(sec.chords, semitones, shouldUseFlats(sourceKey, semitones)) }))

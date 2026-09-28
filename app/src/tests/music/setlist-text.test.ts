@@ -36,3 +36,11 @@ describe('formatSetlist', () => {
     expect(text).toContain("2. I'm Your Man (C, orig. D)")
   })
 })
+
+describe('band keys in the shared setlist', () => {
+  it('lists Amazing in the key the band plays it', () => {
+    const text = formatSetlist('GM', inGigOrder, {})
+    expect(text).toContain('4. Amazing (Am, orig. Bbm)')
+    expect(text).not.toContain('4. Amazing (Bbm, lower key TBC)')
+  })
+})
