@@ -6,6 +6,8 @@ interface AddSongPickerProps {
   setlistId: string
   currentTitles: string[]
   onClose: () => void
+  /** Called with the new song's title once it has been created and added. */
+  onCreated?: (title: string) => void
 }
 
 const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B',
@@ -13,7 +15,11 @@ const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B',
 
 type Tab = 'library' | 'create'
 
-function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () => void }) {
+function CreateSongForm({ setlistId, onDone, onCreated }: {
+  setlistId: string
+  onDone: () => void
+  onCreated?: (title: string) => void
+}) {
   const addCustomSong = useStore(s => s.addCustomSong)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
 
@@ -22,6 +28,7 @@ function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () =
   const [key, setKey] = useState('C')
   const [bpm, setBpm] = useState('120')
   const [timeSig, setTimeSig] = useState('4/4')
+  const [error, setError] = useState('')
 
   const handleCreate = () => {
     const trimmed = title.trim()
@@ -32,9 +39,13 @@ function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () =
       capo: null, notes: '',
       sections: [{ name: 'Verse', chords: '' }],
     }
-    addCustomSong(song)
+    if (!addCustomSong(song)) {
+      setError(`There is already a song called "${trimmed}". Pick a different title.`)
+      return
+    }
     addSongToSetlist(setlistId, song.title)
-    onDone()
+    if (onCreated) onCreated(song.title)
+    else onDone()
   }
 
   const inputStyle = {
@@ -47,7 +58,8 @@ function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () =
     <div style={{ padding: '16px 20px' }}>
       <h3 style={{ margin: '0 0 16px', fontSize: 18, color: 'var(--text, #fff)' }}>New Song</h3>
       <div style={{ marginBottom: 12 }}>
-        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title *" style={inputStyle} autoFocus />
+        <input value={title} onChange={e => { setTitle(e.target.value); setError('') }} placeholder="Song title *" style={inputStyle} autoFocus />
+        {error && <div role="alert" style={{ color: 'var(--danger)', fontSize: 14, marginTop: 6 }}>{error}</div>}
       </div>
       <div style={{ marginBottom: 12 }}>
         <input value={artist} onChange={e => setArtist(e.target.value)} placeholder="Artist" style={inputStyle} />
@@ -76,7 +88,7 @@ function CreateSongForm({ setlistId, onDone }: { setlistId: string; onDone: () =
   )
 }
 
-export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPickerProps) {
+export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: AddSongPickerProps) {
   const allSongs = useStore(s => s.allSongs)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
   const [tab, setTab] = useState<Tab>('library')
@@ -117,7 +129,7 @@ export function AddSongPicker({ setlistId, currentTitles, onClose }: AddSongPick
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {tab === 'create' && (
-          <CreateSongForm setlistId={setlistId} onDone={() => setTab('library')} />
+          <CreateSongForm setlistId={setlistId} onDone={() => setTab('library')} onCreated={onCreated} />
         )}
 
         {tab === 'library' && (

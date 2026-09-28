@@ -475,3 +475,72 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
+
+/* ---------- Chord palette (editing) ---------- */
+.cle-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: rgba(0, 0, 0, 0.45);
+}
+.cle-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-height: 80%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(10px + var(--safe-top)) calc(16px + var(--safe-right)) 16px calc(16px + var(--safe-left));
+  background: var(--picker-bg);
+  border-bottom: 2px solid var(--edit-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.cle-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.cle-title { font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; }
+.cle-hint { flex: 1; min-width: 0; font-size: 14px; color: var(--text-muted); }
+.cle-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.cle-empty { color: var(--text-muted); font-size: 15px; padding: 0 6px; }
+.cle-token {
+  min-height: 44px;
+  min-width: 48px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  font-size: 20px;
+  font-weight: 800;
+}
+.cle-token.is-selected { background: var(--accent); color: #fff; }
+.cle-delete { color: #ef4444; font-size: 22px; }
+.cle-label {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.cle-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cle-chip {
+  min-height: 44px;
+  min-width: 56px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  font-size: 17px;
+  font-weight: 700;
+}
+.cle-chip:active, .cle-token:active { filter: brightness(1.35); }
+.cle-chip.is-selected { background: var(--accent); color: #fff; }
+.cle-root { background: transparent; border: 2px solid var(--border); }
+.cle-root.is-selected { border-color: var(--accent); }
+.cle-chips + .cle-chips { margin-top: 8px; }

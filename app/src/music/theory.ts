@@ -11,12 +11,14 @@ const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus4', 'sus2', 'dim', 'aug', '9'
 // Major scale intervals and qualities
 const MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
 const MAJOR_QUALITIES = ['', 'm', 'm', '', '', 'm', 'dim'];
-const MAJOR_7TH_QUALITIES = ['maj7', 'm7', 'm7', 'maj7', '7', 'm7', 'm7'];
+// vii is half-diminished (m7b5), not a plain m7 — Bm7b5 in C, not Bm7.
+const MAJOR_7TH_QUALITIES = ['maj7', 'm7', 'm7', 'maj7', '7', 'm7', 'm7b5'];
 
 // Minor scale intervals and qualities
 const MINOR_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
 const MINOR_QUALITIES = ['m', 'dim', '', 'm', 'm', '', ''];
-const MINOR_7TH_QUALITIES = ['m7', 'm7', 'maj7', 'm7', 'm7', 'maj7', '7'];
+// ii is half-diminished in natural minor — Bm7b5 in A minor.
+const MINOR_7TH_QUALITIES = ['m7', 'm7b5', 'maj7', 'm7', 'm7', 'maj7', '7'];
 
 function parseChord(chord: string): { root: string; quality: string } {
   // Handle flat root (e.g., Bb, Eb)
@@ -126,6 +128,11 @@ export function sectionColor(name: string): string {
   if (lower === 'prechorus') return 'var(--section-prechorus)';
   if (lower === 'intro' || lower === 'outro') return 'var(--section-intro)';
   return 'var(--section-default)';
+}
+
+/** The twelve roots, spelled with flats or sharps. */
+export function getRoots(useFlats: boolean): string[] {
+  return useFlats ? [...FLATS] : [...SHARPS];
 }
 
 export function getAllChordNames(useFlats: boolean): string[] {

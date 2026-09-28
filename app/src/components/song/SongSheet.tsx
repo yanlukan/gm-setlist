@@ -1,9 +1,11 @@
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { EditableText } from '../shared/EditableText'
+import { ChordLineEditor } from '../edit/ChordLineEditor'
+import { playedKey } from '../../music/setlist-text'
 import { useFitText } from '../../hooks/use-fit-text'
 import { useSwipe } from '../../hooks/use-swipe'
 import type { Song } from '../../types'
@@ -36,6 +38,8 @@ export function SongSheet() {
   const [pickerChord, setPickerChord] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
   const [customSectionName, setCustomSectionName] = useState('')
+  /** Section whose chords are open in the tap-to-add palette. */
+  const [paletteFor, setPaletteFor] = useState<number | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fitRef = useRef<HTMLDivElement>(null)
@@ -93,6 +97,18 @@ export function SongSheet() {
 
   const toSourcePitch = (text: string) =>
     semitones ? transposeText(text, -semitones, shouldUseFlats(sourceKey, 0)) : text
+
+  // Chord edits arrive as shown on screen and are stored at the song's own pitch.
+  const updateChordsAt = (index: number, chords: string) => {
+    if (!song) return
+    const atSource = toSourcePitch(chords)
+    saveSections(song.title, sections.map((sec, i) => (i === index ? { ...sec, chords: atSource } : sec)))
+  }
+
+  // The palette belongs to one section of one song in edit mode.
+  useEffect(() => {
+    setPaletteFor(null)
+  }, [song?.title, editMode])
 
   const renderBody = () => {
     if (!song) {
@@ -193,10 +209,6 @@ export function SongSheet() {
       setCustomSectionName('')
     }
 
-    const updateChords = (index: number, chords: string) => {
-      const atSource = toSourcePitch(chords)
-      saveSections(song.title, sections.map((s, i) => (i === index ? { ...s, chords: atSource } : s)))
-    }
 
     const updateName = (index: number, name: string) => {
       saveSections(song.title, sections.map((s, i) => (i === index ? { ...s, name } : s)))
@@ -249,13 +261,28 @@ export function SongSheet() {
 
               <EditableText
                 value={section.chords}
-                onChange={chords => updateChords(i, chords)}
+                onChange={chords => updateChordsAt(i, chords)}
                 style={{
                   fontSize: 22, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
                   background: 'var(--badge-bg)', borderRadius: 4, padding: '4px 8px',
                   outline: 'none', whiteSpace: 'pre-wrap', minWidth: 60, flex: 1,
                 }}
               />
+
+              <button
+                onClick={() => {
+                  // Commit and close any field being typed in first (this also
+                  // drops the keyboard), so the field and the palette never
+                  // disagree about the line.
+                  const active = document.activeElement
+                  if (active instanceof HTMLElement) active.blur()
+                  setPaletteFor(i)
+                }}
+                style={{ ...smallBtn, padding: '0 12px', color: 'var(--text)', alignSelf: 'center', fontWeight: 600 }}
+                aria-label={`Pick chords for ${section.name}`}
+              >
+                Chords
+              </button>
             </div>
           ))}
 
@@ -310,6 +337,16 @@ export function SongSheet() {
       <div ref={scrollRef} className="chart-scroll">
         {renderBody()}
       </div>
+
+      {editMode && song && paletteFor !== null && displaySections[paletteFor] && (
+        <ChordLineEditor
+          sectionName={displaySections[paletteFor].name}
+          chords={displaySections[paletteFor].chords}
+          songKey={playedKey(song, edits[song.title]).key}
+          onChange={chords => updateChordsAt(paletteFor, chords)}
+          onClose={() => setPaletteFor(null)}
+        />
+      )}
 
       {/* Outside the chart, so swipes on the picker cannot change song */}
       {pickerChord && (

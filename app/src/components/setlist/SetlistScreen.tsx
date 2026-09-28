@@ -165,6 +165,16 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
           setlistId={activeId}
           currentTitles={songTitles}
           onClose={() => setShowPicker(false)}
+          onCreated={title => {
+            // Straight to the new song, ready to fill in its chords.
+            setShowPicker(false)
+            onClose()
+            const position = useStore.getState().setlistSongs().findIndex(s => s.title === title)
+            if (position >= 0) {
+              goToSong(position)
+              useStore.setState({ editMode: true })
+            }
+          }}
         />
       )}
     </div>

@@ -135,7 +135,8 @@ interface StoreState {
 
   // Other actions
   selectVoicing: (chord: string, index: number) => void
-  addCustomSong: (song: Song) => void
+  /** False if a song with that title already exists (titles are the song's identity). */
+  addCustomSong: (song: Song) => boolean
   toggleTheme: () => void
   toggleViewMode: () => void
   toggleDiagrams: () => void
@@ -452,10 +453,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Other actions
   addCustomSong: (song: Song) => {
-    const { customSongs } = get()
-    if (customSongs.some(s => s.title === song.title)) return
+    // A second song with the same title would be hidden behind the first
+    // everywhere (lookups, edits and setlists all go by title).
+    if (get().allSongs().some(s => s.title.toLowerCase() === song.title.toLowerCase())) return false
     set(state => ({ customSongs: [...state.customSongs, song] }))
     if (!readOnly) saveCustomSongs(get().customSongs).catch(e => console.warn('saveCustomSongs failed:', e))
+    return true
   },
 
   toggleTheme: () => {

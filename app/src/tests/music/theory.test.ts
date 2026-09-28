@@ -90,11 +90,13 @@ describe('getDiatonicChords', () => {
 
 describe('getDiatonic7ths', () => {
   it('returns correct 7th chords for C major', () => {
-    expect(getDiatonic7ths('C')).toEqual(['Cmaj7', 'Dm7', 'Em7', 'Fmaj7', 'G7', 'Am7', 'Bm7']);
+    // The seventh degree is half-diminished: Bm7b5, not Bm7.
+    expect(getDiatonic7ths('C')).toEqual(['Cmaj7', 'Dm7', 'Em7', 'Fmaj7', 'G7', 'Am7', 'Bm7b5']);
   });
 
   it('returns correct 7th chords for A minor', () => {
-    expect(getDiatonic7ths('Am')).toEqual(['Am7', 'Bm7', 'Cmaj7', 'Dm7', 'Em7', 'Fmaj7', 'G7']);
+    // The second degree of natural minor is half-diminished: Bm7b5.
+    expect(getDiatonic7ths('Am')).toEqual(['Am7', 'Bm7b5', 'Cmaj7', 'Dm7', 'Em7', 'Fmaj7', 'G7']);
   });
 });
 
