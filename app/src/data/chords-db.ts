@@ -128,6 +128,8 @@ const SONGBOOK_VOICINGS: Record<string, ChordVoicing[]> = {
   'Esus24': [{ f: [null, null, 2, 2, 0, 2], s: 0, l: 'Open' }],
   // Jesus to a Child: the book's capo-4 shape (x-0-2-4-3-0), at concert pitch
   'C#sus24': [{ f: [null, 1, 3, 5, 4, 1], s: 4, l: '4th fret' }],
+  // Somebody to Love: the book's G5, root and fifth only
+  'G5': [{ f: [1, 3, 3, null, null, null], s: 3, l: '3rd fret' }],
 }
 
 const RAW_DB = { ...buildChordDB(), ...SONGBOOK_VOICINGS }

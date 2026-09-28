@@ -79,6 +79,8 @@ describe('chord diagrams', () => {
     ['Esus24', ['E', 'F#', 'A', 'B']],
     // Jesus to a Child
     ['C#sus24', ['C#', 'D#', 'F#', 'G#']],
+    // Somebody to Love: a power chord has no third, so never a major shape
+    ['G5', ['G', 'D']],
   ])("plays %s from the songbook with exactly the chord's notes", (chord, expected) => {
     const voicings = lookupChord(chord as string, { simplify: false })
     expect(voicings).toBeDefined()
