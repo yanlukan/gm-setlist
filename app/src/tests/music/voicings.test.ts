@@ -210,6 +210,8 @@ describe('the list of shapes', () => {
       F6: { 27: 'x-x-3-2-3-1' }, 'G/B': { 16: 'x-2-0-0-0-x' },
       // 3.30.0; its Db/Gb (and 3.29.0's D/G) went with the chord, which no song has any more
       Abm7: { 24: '4-6-4-4-4-x' },
+      // 3.32.0
+      'Gb/Db': { 16: 'x-4-4-3-2-2' },
     }
     const found: Record<string, Record<number, string>> = {}
     for (const song of DEFAULT_SONGS) {

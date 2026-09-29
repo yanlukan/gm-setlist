@@ -242,14 +242,14 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    shapes: { Gb: '2-4-4-3-2-2', Abm7: '4-6-4-4-4-x' },
+    shapes: { Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2', Abm9: '4-6-4-4-4-6', Abm7: '4-6-4-4-4-x' },
     shapesFrom: 'Songbook',
-    notes: "From the songbook (no. 8), which prints it in G and says the recording sounds a semitone lower; the band plays it at the record's pitch, Gb. The book writes D/G between the G chords, but the record holds Gb all the way (its bass sometimes drops to Db), so the chart is Gb throughout, turning to Abm7 at the ends of lines. The book's open shapes cannot slide down a fret, so the shapes shown are the same notes a semitone lower, fingered as barres: Gb 2-4-4-3-2-2, Abm7 4-6-4-4-4-x. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
+    notes: "From the songbook (no. 8), which prints it in G and says the recording sounds a semitone lower; the band plays it at the record's pitch, Gb. The book writes D/G between the G chords, but on the record the keyboard plays G over D there, so the chart has Gb/Db. The guitar skips those and holds Gb: the Db is only a bass note (A string, 4th fret, inside the Gb barre). At the end of each line the bass holds Ab while the guitar plays two chords over it, a bar each: Abm9, then Abm7 (4-6-4-4-4-6, then lift the little finger: 4-6-4-4-4-x). The book's open shapes cannot slide down a fret, so the shapes shown are the same notes a semitone lower, fingered as barres: Gb 2-4-4-3-2-2, Abm7 4-6-4-4-4-x. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
     sections: [
-      { name: 'Verse', chords: 'Gb  Abm7  Gb  Abm7  Gb' },
-      { name: 'Chorus', chords: 'Gb  Abm7  Gb' },
-      { name: 'Bridge', chords: 'Gb  Abm7  Gb  Abm7  Gb' },
-      { name: 'Outro', chords: 'Gb  Abm7  Gb' },
+      { name: 'Verse', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb  Gb/Db  Gb  Gb/Db  Abm9  Abm7  Gb' },
+      { name: 'Chorus', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb' },
+      { name: 'Bridge', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb' },
+      { name: 'Outro', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb' },
     ],
   },
   {

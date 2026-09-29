@@ -392,15 +392,18 @@ describe('charts checked against the recordings', () => {
     expect(song("I Can't Make You Love Me").bpm).toBe(58)
   })
 
-  it('has A Different Corner as the record plays it, a semitone below the book, Gb all the way', () => {
-    // The user, 2026-09-29: "G semitone lower is Gb like we play", and "There is no D/G in
-    // recording but instead G all the time"
+  it('has A Different Corner as the record plays it, a semitone below the book, the keys\' G over D kept', () => {
+    // The user, 2026-09-29: "G semitone lower is Gb like we play"; "There is no D/G in recording";
+    // the keyboard plays G over D, "we are going to keep as original but when i play i will skip"
     const corner = song('A Different Corner')
     expect(corner.key).toBe('Gb')
     const chords = new Set(corner.sections.flatMap(s => s.chords.split(/\s+/).filter(Boolean)))
-    expect([...chords].sort()).toEqual(['Abm7', 'Gb'])
+    expect([...chords].sort()).toEqual(['Abm7', 'Abm9', 'Gb', 'Gb/Db'])
+    // "bass plays Ab but guitar needs to play 2 chords over Ab": Abm9, then Abm7, at every line end
+    expect(corner.sections[0].chords).toBe('Gb  Gb/Db  Gb  Gb/Db  Gb  Abm9  Abm7  Gb  Gb/Db  Gb  Gb/Db  Abm9  Abm7  Gb')
     // The book's G and Am7 voicings a semitone lower, fingered as barres
-    expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', Abm7: '4-6-4-4-4-x' })
+    // Gb/Db is the same barre with the Db bass on the A string, the note the guitar plays for it
+    expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2', Abm9: '4-6-4-4-4-6', Abm7: '4-6-4-4-4-x' })
     expect(corner.cue).toBeUndefined()
   })
 
