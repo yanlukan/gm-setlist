@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { chordNotes, voicingsFor, bandPositions, shapeText } from '../../music/voicings'
+import { chordNotes, voicingsFor, bandPositions, shapeText, fretSpan, researchedStart } from '../../music/voicings'
 import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
@@ -75,11 +75,37 @@ describe('band shapes', () => {
 
 describe('band positions', () => {
 
-  it("recommend Faith's researched shapes: the riff's B barre at the 7th fret, and E beside it", () => {
+  it("recommend Faith's chords as the songbook prints them: the riff's B barre at the 7th fret, E over the open low E", () => {
     const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
     const { picks } = bandPlanFor(faith, undefined)
-    expect(shapeText(voicingsFor('B')[picks.B])).toBe('7-9-9-8-7-7')
-    expect(shapeText(voicingsFor('E')[picks.E])).toBe('x-7-9-9-9-7')
+    const shown = Object.fromEntries(Object.entries(picks).map(([name, i]) => [name, shapeText(voicingsFor(name)[i])]))
+    expect(shown).toEqual({ B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' })
+  })
+
+  it('recommend every researched shape, each for a chord the song plays in the band\'s key', () => {
+    const wrong: string[] = []
+    for (const song of DEFAULT_SONGS.filter(s => s.shapes)) {
+      const { picks, researched } = bandPlanFor(song, undefined)
+      for (const [name, shape] of Object.entries(song.shapes!)) {
+        if (picks[name] === undefined) wrong.push(`${song.title} ${name}: not a chord of the song as the band plays it`)
+        else if (shapeText(voicingsFor(name)[picks[name]]) !== shape || researched[name] !== picks[name]) wrong.push(`${song.title} ${name}: not recommended`)
+      }
+    }
+    expect(wrong).toEqual([])
+  })
+
+  it('choose shapes afresh when a song is moved to another key', () => {
+    // Down two, Faith's F# is an E: the book's E for the verse is not its shape
+    const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+    const { picks, researched } = bandPlanFor(faith, { transpose: -2 })
+    expect(researched).toEqual({})
+    expect(Object.keys(picks)).toEqual(['A', 'D', 'F#m', 'Bm', 'E'])
+  })
+
+  it('call a song with barres up the neck by its frets, even with an open bass string', () => {
+    const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+    expect(bandPlanFor(faith, undefined).span).toEqual({ min: 2, max: 9, open: false })
+    expect(fretSpan([voicingsFor('E')[0], voicingsFor('B')[2]])).toEqual({ min: 1, max: 9, open: true })
   })
 
   it('have every researched shape in its chord\'s list, playing only that chord', () => {
@@ -157,5 +183,25 @@ describe('the list of shapes', () => {
     expect(shapes('Am7').slice(0, 3)).toEqual(['x-x-x-2-1-3', 'x-3-x-2-5-3', 'x-3-5-2-x-x'])
     // Shapes researched later are added after these, never in between
     expect(shapes('Am7').length).toBeGreaterThanOrEqual(23)
+  })
+
+  it('keeps every researched shape the library lacks where it was first added', () => {
+    // A songbook or lesson shape the library lacks goes at the end of its
+    // chord's list. Once released, someone may have picked it: add new ones
+    // after it, never before. Extend this list when a song adds one.
+    const added: Record<string, Record<number, string>> = {
+      Cadd9: { 25: 'x-3-2-0-3-3' }, Em11: { 24: '0-2-4-2-3-2' }, C: { 26: 'x-3-2-0-1-3' },
+      Em7: { 26: '0-2-2-0-3-3' }, Am7: { 27: 'x-0-2-0-1-3' }, 'G/D': { 14: 'x-x-0-4-3-3' },
+      G: { 27: '3-x-0-0-3-3' }, 'G/C': { 11: 'x-3-0-0-3-3' }, 'D/F#': { 15: '2-x-0-2-3-2' },
+      Fmaj9: { 10: 'x-8-10-9-8-8' }, E: { 26: '0-7-9-9-9-x' },
+    }
+    const found: Record<string, Record<number, string>> = {}
+    for (const song of DEFAULT_SONGS) {
+      for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+        const index = voicingsFor(name).findIndex(v => shapeText(v) === shape)
+        if (index >= researchedStart(name)) found[name] = { ...found[name], [index]: shape }
+      }
+    }
+    expect(found).toEqual(added)
   })
 })

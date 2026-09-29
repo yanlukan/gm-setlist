@@ -10,9 +10,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 192, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    shapes: { B: '7-9-9-8-7-7', E: 'x-7-9-9-9-7' },
-    shapesFrom: 'Lessons',
-    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions); E is the A shape at the same fret. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
+    shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' },
+    shapesFrom: 'Songbook',
+    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
     sections: [
       { name: 'Intro', chords: 'B' },
       { name: 'Verse', chords: 'B  E  B  E  B' },

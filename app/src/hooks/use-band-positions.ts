@@ -9,6 +9,8 @@ export interface BandPlan {
   picks: Record<string, number>
   /** The frets those shapes cover: the song's recommended area of the neck. */
   span: ReturnType<typeof fretSpan>
+  /** The picks that are the song's researched shapes (`Song.shapes`), by chord. */
+  researched: Record<string, number>
 }
 
 /**
@@ -37,7 +39,7 @@ const NO_EDITS = {}
 
 /** The same plan as `useBandPositions`, for any number of songs at once. */
 export function bandPlanFor(song: Song | undefined, edits: SongEdits | undefined): BandPlan {
-  if (!song) return { picks: {}, span: null }
+  if (!song) return { picks: {}, span: null, researched: {} }
   const bySong = plans.get(song) ?? new WeakMap<object, BandPlan>()
   plans.set(song, bySong)
   const known = bySong.get(edits ?? NO_EDITS)
@@ -48,23 +50,26 @@ export function bandPlanFor(song: Song | undefined, edits: SongEdits | undefined
 }
 
 function planSong(song: Song, edits: SongEdits | undefined): BandPlan {
-  {
-    const sections = edits?.sections ?? song.sections ?? []
-    const key = edits?.key ?? song.key ?? ''
-    const semitones = transposeFor(song, edits)
-    const counts = new Map<string, number>()
-    for (const section of sections) {
-      for (const token of transposeInKey(section.chords, key, semitones).split(/[\s|,]+/)) {
-        if (token && !isChartMark(token)) counts.set(token, (counts.get(token) ?? 0) + 1)
-      }
+  const sections = edits?.sections ?? song.sections ?? []
+  const key = edits?.key ?? song.key ?? ''
+  const semitones = transposeFor(song, edits)
+  const counts = new Map<string, number>()
+  for (const section of sections) {
+    for (const token of transposeInKey(section.chords, key, semitones).split(/[\s|,]+/)) {
+      if (token && !isChartMark(token)) counts.set(token, (counts.get(token) ?? 0) + 1)
     }
-    const fixed: Record<string, number> = {}
+  }
+  // Researched shapes are for the key the band plays. In another key a chord
+  // of the same name is a different chord of the song (Faith's F# down two is
+  // E), so the shapes are chosen afresh.
+  const fixed: Record<string, number> = {}
+  if (semitones === (song.transpose ?? 0)) {
     for (const [name, shape] of Object.entries(song.shapes ?? {})) {
       const index = indexOfShape(name, shape)
-      if (index >= 0) fixed[name] = index
+      if (index >= 0 && counts.has(name)) fixed[name] = index
     }
-    const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name, fixed)
-    const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(Boolean)
-    return { picks, span: fretSpan(shapes) }
   }
+  const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name, fixed)
+  const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(Boolean)
+  return { picks, span: fretSpan(shapes), researched: fixed }
 }

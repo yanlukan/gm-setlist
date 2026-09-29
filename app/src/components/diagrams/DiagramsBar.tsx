@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
-import { shapeText, voicingsFor } from '../../music/voicings'
+import { voicingsFor } from '../../music/voicings'
 import { useBandPositions } from '../../hooks/use-band-positions'
 import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
@@ -35,7 +35,7 @@ export function DiagramsBar() {
   }, [allSongs, setlistData, currentIndex])
 
   // A shape picked by hand wins; otherwise the song's band shape
-  const band = useBandPositions(song, song ? edits[song.title] : undefined).picks
+  const { picks: band, researched } = useBandPositions(song, song ? edits[song.title] : undefined)
   const shapeFor = (name: string) => selectedVoicings[name] ?? band[name] ?? 0
 
   // The section tapped on the chart, if it belongs to this song
@@ -127,13 +127,11 @@ export function DiagramsBar() {
               <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                 {voicing.l}
               </span>
-              {band[name] !== undefined && shapeFor(name) === band[name] ? (
-                // A shape a lesson or transcription of the record shows, or the usual one
-                song.shapes?.[name] === shapeText(voicing) ? (
-                  <span className="diagram-mark is-researched">{song.shapesFrom ?? 'Researched'}</span>
-                ) : (
-                  <span className="diagram-mark is-recommended">Recommended</span>
-                )
+              {researched[name] !== undefined && shapeFor(name) === researched[name] ? (
+                // The shape the songbook or a lesson shows for this song
+                <span className="diagram-mark is-researched">{song.shapesFrom ?? 'Researched'}</span>
+              ) : band[name] !== undefined && shapeFor(name) === band[name] ? (
+                <span className="diagram-mark is-recommended">Recommended</span>
               ) : selectedVoicings[name] !== undefined ? (
                 <span className="diagram-mark is-own">Your pick</span>
               ) : null}

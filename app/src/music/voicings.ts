@@ -201,6 +201,8 @@ interface Candidate {
 
 interface Entry {
   list: ChordVoicing[]
+  /** Where the researched shapes the library lacks start in `list`. */
+  added: number
   /** Every shape of the chord, for recommending one. */
   band: Candidate[]
   notes: ChordNotes | null
@@ -302,6 +304,7 @@ function entryFor(name: string): Entry {
       list.push(voicing)
     }
   }
+  const added = list.length
   for (const shape of RESEARCHED.get(name) ?? []) {
     if (list.some(v => shapeText(v) === shape)) continue
     const voicing = fromText(shape)
@@ -311,7 +314,7 @@ function entryFor(name: string): Entry {
     list.push(voicing)
   }
   const quality = normalizeQuality((name.match(/^[A-G][#b]?(.*?)(?:\/[A-G][#b]?)?$/)?.[1] ?? '').replace(/^us/, 'sus'))
-  const entry = { list, band, notes, quality }
+  const entry = { list, added, band, notes, quality }
   cache.set(name, entry)
   return entry
 }
@@ -322,6 +325,11 @@ function entryFor(name: string): Entry {
  */
 export function voicingsFor(name: string): ChordVoicing[] {
   return entryFor(name).list
+}
+
+/** Where the researched shapes the library lacks start in a chord's list. */
+export function researchedStart(name: string): number {
+  return entryFor(name).added
 }
 
 /**
@@ -454,17 +462,17 @@ export function bandPositions(
 
 /**
  * The frets a set of shapes covers, for showing a song's recommended area of
- * the neck. Open strings mark it as an open-position song.
+ * the neck. Open chords mark it as an open-position song; an open bass string
+ * under a shape up the neck does not (Faith's E, 0-7-9-9-9-x, is played at
+ * the 7th fret).
  */
 export function fretSpan(shapes: ChordVoicing[]): { min: number; max: number; open: boolean } | null {
   const fretted: number[] = []
   let open = false
   for (const v of shapes) {
-    for (const f of v.f) {
-      if (f === null) continue
-      if (f === 0) open = true
-      else fretted.push(v.s === 0 ? f : v.s + f - 1)
-    }
+    const own = v.f.filter((f): f is number => f !== null && f > 0).map(f => (v.s === 0 ? f : v.s + f - 1))
+    if (v.f.includes(0) && Math.max(0, ...own) <= 5) open = true
+    fretted.push(...own)
   }
   if (fretted.length === 0) return open ? { min: 0, max: 0, open } : null
   return { min: Math.min(...fretted), max: Math.max(...fretted), open }

@@ -19,13 +19,20 @@ const open = (title: string) => {
 }
 
 describe('chord shapes for electric guitar', () => {
-  it("show Faith's researched shapes by default, marked apart from the usual ones", () => {
+  it("show Faith's shapes from the songbook by default, marked with where they come from", () => {
     render(<DiagramsBar />) // Faith
     expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument() // 7-9-9-8-7-7
-    expect(within(tile('B')).getByText('Lessons')).toBeInTheDocument()
-    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument() // x-7-9-9-9-7
-    expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4: no source, the usual shape
-    expect(within(tile('G#m')).getByText('Recommended')).toBeInTheDocument()
+    expect(within(tile('B')).getByText('Songbook')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument() // 0-7-9-9-9-x
+    expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4
+    expect(within(tile('F#')).getByText('2nd fret')).toBeInTheDocument() // 2-4-4-3-2-2
+  })
+
+  it('drop the songbook marks when the song is moved to another key', () => {
+    useStore.getState().setTranspose('Faith', -2)
+    render(<DiagramsBar />)
+    expect(screen.queryByText('Songbook')).not.toBeInTheDocument()
+    expect(within(tile('A')).getByText('Recommended')).toBeInTheDocument()
   })
 
   it('keep a shape you pick by hand, and can go back to the recommended one', () => {
@@ -39,7 +46,7 @@ describe('chord shapes for electric guitar', () => {
     fireEvent.click(tile('E'))
     fireEvent.click(screen.getByRole('button', { name: 'Use the recommended shape' }))
     expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
-    expect(within(tile('E')).getByText('Lessons')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('Songbook')).toBeInTheDocument()
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
   })
 
@@ -53,7 +60,7 @@ describe('chord shapes for electric guitar', () => {
   it('mark every shape the song recommends', () => {
     render(<DiagramsBar />) // Faith
     for (const name of ['B', 'E', 'G#m', 'C#m', 'F#'])
-      expect(within(tile(name)).getByText(/^(Recommended|Lessons)$/)).toBeInTheDocument()
+      expect(within(tile(name)).getByText('Songbook')).toBeInTheDocument()
   })
 
   it("show the song's recommended area of the neck on its title line", () => {
