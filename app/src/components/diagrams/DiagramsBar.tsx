@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
-import { voicingsFor } from '../../music/voicings'
+import { shapeText, voicingsFor } from '../../music/voicings'
 import { useBandPositions } from '../../hooks/use-band-positions'
 import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
@@ -128,7 +128,12 @@ export function DiagramsBar() {
                 {voicing.l}
               </span>
               {band[name] !== undefined && shapeFor(name) === band[name] ? (
-                <span className="diagram-mark is-recommended">Recommended</span>
+                // A shape a lesson or transcription of the record shows, or the usual one
+                song.shapes?.[name] === shapeText(voicing) ? (
+                  <span className="diagram-mark is-researched">Researched</span>
+                ) : (
+                  <span className="diagram-mark is-recommended">Recommended</span>
+                )
               ) : selectedVoicings[name] !== undefined ? (
                 <span className="diagram-mark is-own">Your pick</span>
               ) : null}

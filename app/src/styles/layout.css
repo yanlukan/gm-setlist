@@ -133,6 +133,7 @@
   letter-spacing: 0.03em;
 }
 .diagram-mark.is-recommended { color: var(--section-chorus); }
+.diagram-mark.is-researched { color: var(--edit-border); }
 .diagram-mark.is-own { color: var(--accent); }
 /* The GX-10 sound: a tag on the title line, never a line of its own */
 .chart-preset {

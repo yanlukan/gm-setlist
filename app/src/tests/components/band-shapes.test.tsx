@@ -19,11 +19,13 @@ const open = (title: string) => {
 }
 
 describe('chord shapes for electric guitar', () => {
-  it("show Faith's researched shapes by default: B and E barred at the 7th fret", () => {
+  it("show Faith's researched shapes by default, marked apart from the usual ones", () => {
     render(<DiagramsBar />) // Faith
     expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument() // 7-9-9-8-7-7
+    expect(within(tile('B')).getByText('Researched')).toBeInTheDocument()
     expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument() // x-7-9-9-9-7
-    expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4
+    expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4: no source, the usual shape
+    expect(within(tile('G#m')).getByText('Recommended')).toBeInTheDocument()
   })
 
   it('keep a shape you pick by hand, and can go back to the recommended one', () => {
@@ -37,7 +39,7 @@ describe('chord shapes for electric guitar', () => {
     fireEvent.click(tile('E'))
     fireEvent.click(screen.getByRole('button', { name: 'Use the recommended shape' }))
     expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
-    expect(within(tile('E')).getByText('Recommended')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('Researched')).toBeInTheDocument()
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
   })
 
@@ -50,7 +52,8 @@ describe('chord shapes for electric guitar', () => {
 
   it('mark every shape the song recommends', () => {
     render(<DiagramsBar />) // Faith
-    for (const name of ['B', 'E', 'G#m', 'C#m', 'F#']) expect(within(tile(name)).getByText('Recommended')).toBeInTheDocument()
+    for (const name of ['B', 'E', 'G#m', 'C#m', 'F#'])
+      expect(within(tile(name)).getByText(/^(Recommended|Researched)$/)).toBeInTheDocument()
   })
 
   it("show the song's recommended area of the neck on its title line", () => {
