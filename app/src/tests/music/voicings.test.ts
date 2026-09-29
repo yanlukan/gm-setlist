@@ -208,8 +208,8 @@ describe('the list of shapes', () => {
       'C/B': { 13: 'x-2-2-0-1-0' }, Dmaj9: { 11: 'x-5-4-6-3-0' }, 'Edim7/D': { 12: 'x-x-0-3-2-3' }, Em: { 25: '0-2-2-0-0-3' },
       // 3.27.0
       F6: { 27: 'x-x-3-2-3-1' }, 'G/B': { 16: 'x-2-0-0-0-x' },
-      // 3.29.0
-      'D/G': { 11: '3-x-0-2-3-2' },
+      // 3.30.0 (3.29.0's D/G, for a chord no song has any more, is gone)
+      'Db/Gb': { 11: '2-x-x-1-2-1' }, Abm7: { 24: '4-6-4-4-4-x' },
     }
     const found: Record<string, Record<number, string>> = {}
     for (const song of DEFAULT_SONGS) {

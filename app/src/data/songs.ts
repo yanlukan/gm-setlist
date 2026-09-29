@@ -237,21 +237,19 @@ export const DEFAULT_SONGS: Song[] = [
     shortTitle: 'Diff. Corner',
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     artist: 'George Michael',
-    key: 'G',
-    soundsLower: 1, // the book's G shapes, a semitone down: the band sounds Gb, like the record
+    key: 'Gb',
     bpm: 100,
     duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    cue: "Guitar ½ step down: the book's G shapes, sounding Gb like the record.",
-    shapes: { G: '3-2-0-0-0-3', 'D/G': '3-x-0-2-3-2', Am7: 'x-0-2-0-1-0' },
+    shapes: { Gb: '2-4-4-3-2-2', 'Db/Gb': '2-x-x-1-2-1', Abm7: '4-6-4-4-4-x' },
     shapesFrom: 'Songbook',
-    notes: "From the songbook (no. 8). The book prints it in G with open G shapes and says the recording sounds a semitone lower. The band plays it that way: the book's shapes, shown here, with the guitar a semitone down, so it sounds Gb like the record. Nearly all of it is G and D/G, with Am7 at the ends of lines. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
+    notes: "From the songbook (no. 8), which prints it in G and says the recording sounds a semitone lower. The band plays it at the record's pitch, so the chart is the book's a semitone lower: nearly all Gb and Db/Gb, with Abm7 at the ends of lines. The book's open shapes cannot slide down a fret, so the shapes shown are the same notes a semitone lower, fingered as barres: Gb 2-4-4-3-2-2, Db/Gb 2-x-x-1-2-1 (the book's D/G, its triad on the top three strings), Abm7 4-6-4-4-4-x. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
     sections: [
-      { name: 'Verse', chords: 'G  D/G  G  D/G  G  Am7  G  D/G  G  D/G  Am7  G' },
-      { name: 'Chorus', chords: 'G  D/G  G  D/G  G  Am7  G' },
-      { name: 'Bridge', chords: 'G  D/G  G  D/G  G  Am7  G  D/G  G  D/G  G  Am7  G' },
-      { name: 'Outro', chords: 'G  D/G  G  D/G  G  Am7  G' },
+      { name: 'Verse', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb  Db/Gb  Gb  Db/Gb  Abm7  Gb' },
+      { name: 'Chorus', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb' },
+      { name: 'Bridge', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb' },
+      { name: 'Outro', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb' },
     ],
   },
   {

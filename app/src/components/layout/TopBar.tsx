@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
-import { soundingKey, transposeFor } from '../../music/setlist-text'
+import { transposeFor } from '../../music/setlist-text'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
 import { APP_VERSION, BUILD_TIME } from '../../version'
@@ -181,7 +181,6 @@ export function TopBar() {
               <span className={semitones !== 0 ? 'tb-badge is-warn' : 'tb-badge'}>
                 Key {displayKey}
                 {semitones !== 0 ? ` (orig ${currentKey})` : ''}
-                {song.soundsLower ? `, sounds ${soundingKey(displayKey, song.soundsLower)}` : ''}
               </span>
               {song.lowerKey && semitones === 0 && (
                 <span className="tb-badge is-danger">LOWER KEY — set transpose</span>

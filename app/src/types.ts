@@ -51,13 +51,6 @@ export interface Song {
    * "we play it lower" key ship with the song instead of living on one iPad.
    */
   transpose?: number
-  /**
-   * The band sounds this many semitones below the chart. The songbook prints
-   * A Different Corner in G and says the recording sounds a semitone lower:
-   * the chart keeps the book's G shapes, the guitar is a semitone down, and
-   * the band's setlist gives the key they hear, Gb.
-   */
-  soundsLower?: number
   /** Length of the reference recording in seconds, for planning set length. */
   duration?: number
 }

@@ -392,12 +392,15 @@ describe('charts checked against the recordings', () => {
     expect(song("I Can't Make You Love Me").bpm).toBe(58)
   })
 
-  it('has A Different Corner as the book prints it, in G, sounding a semitone lower like the record', () => {
-    // The user, 2026-09-29: the book says the record sounds a semitone lower, "so that's how we play"
-    expect(song('A Different Corner').key).toBe('G')
-    expect(first('A Different Corner')).toBe('G')
-    expect(song('A Different Corner').soundsLower).toBe(1)
-    expect(song('A Different Corner').cue).toMatch(/½ step down/)
+  it('has A Different Corner a semitone below the book, in Gb, every chord moved down', () => {
+    // The user, 2026-09-29: "G semitone lower is Gb like we play. but then D/G and Am7 semitone lower?"
+    const corner = song('A Different Corner')
+    expect(corner.key).toBe('Gb')
+    const chords = new Set(corner.sections.flatMap(s => s.chords.split(/\s+/).filter(Boolean)))
+    expect([...chords].sort()).toEqual(['Abm7', 'Db/Gb', 'Gb'])
+    // The book's G, D/G and Am7 voicings a semitone lower, fingered as barres
+    expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', 'Db/Gb': '2-x-x-1-2-1', Abm7: '4-6-4-4-4-x' })
+    expect(corner.cue).toBeUndefined()
   })
 
   it('has the Killer / Papa medley as written in the songbook', () => {

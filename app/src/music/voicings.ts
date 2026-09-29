@@ -256,7 +256,7 @@ export const SHAPES_RELEASED = [
   "Freedom! '90", 'Papa Was a Rolling Stone', 'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove', 'Outside', 'Father Figure', 'Somebody to Love', 'Roxanne', 'Waiting (Reprise)', 'Kissing a Fool', // 3.26.0
   "I'm Your Man", 'Careless Whisper', // 3.27.0
   'Club Tropicana', // 3.28.0
-  'A Different Corner', // 3.29.0
+  'A Different Corner', // 3.30.0 (3.29.0 had the book's G shapes; the band plays Gb)
 ]
 
 /**
