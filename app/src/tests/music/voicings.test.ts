@@ -208,8 +208,7 @@ describe('the list of shapes', () => {
       'C/B': { 13: 'x-2-2-0-1-0' }, Dmaj9: { 11: 'x-5-4-6-3-0' }, 'Edim7/D': { 12: 'x-x-0-3-2-3' }, Em: { 25: '0-2-2-0-0-3' },
       // 3.27.0
       F6: { 27: 'x-x-3-2-3-1' }, 'G/B': { 16: 'x-2-0-0-0-x' },
-      // 3.30.0; its Db/Gb (and 3.29.0's D/G) went with the chord, which no song has any more
-      Abm7: { 24: '4-6-4-4-4-x' },
+      // 3.30.0's Abm7 and Db/Gb (and 3.29.0's D/G) went with their chords, which no song has any more
       // 3.32.0
       'Gb/Db': { 16: 'x-4-4-3-2-2' },
     }
