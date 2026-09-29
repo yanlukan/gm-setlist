@@ -37,6 +37,8 @@ export interface Song {
    * { B: '7-9-9-8-7-7' }. They win over the app's own recommendation.
    */
   shapes?: Record<string, string>
+  /** Where those shapes come from, shown on their diagrams: 'Songbook', 'Lessons'. */
+  shapesFrom?: string
   /**
    * Set when the band plays this lower than the original recording.
    * The exact amount lives in the per-song transpose (SongEdits.transpose);

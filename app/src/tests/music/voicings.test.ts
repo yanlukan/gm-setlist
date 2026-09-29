@@ -40,7 +40,9 @@ describe('band shapes', () => {
     for (const name of allGigChords) {
       const notes = chordNotes(name)!
       const library = (lookupChord(name) ?? []).length
-      for (const v of voicingsFor(name).slice(library)) {
+      // Only the app's own generated shapes: book and lesson shapes are checked below
+      const researched = new Set(DEFAULT_SONGS.flatMap(song => (song.shapes?.[name] ? [song.shapes[name]] : [])))
+      for (const v of voicingsFor(name).slice(library).filter(v => !researched.has(shapeText(v)))) {
         const s = sounding(v)
         const pitches = new Set(s.map(n => n.pitch))
         const frets = s.map(n => n.fret)
@@ -86,10 +88,14 @@ describe('band positions', () => {
       for (const [name, shape] of Object.entries(song.shapes ?? {})) {
         const v = voicingsFor(name).find(x => shapeText(x) === shape)
         if (!v) { wrong.push(`${song.title} ${name} ${shape}: not in the list`); continue }
+        // A book or lesson shape may leave a note out (the songbook's Em11 has
+        // no G), but a misread dot shows up as a wrong note or a wrong bass.
         const notes = chordNotes(name)!
-        const pitches = new Set(sounding(v).map(n => n.pitch))
+        const s = sounding(v)
+        const pitches = new Set(s.map(n => n.pitch))
         if ([...pitches].some(p => !notes.tones.includes(p) && p !== notes.bass)) wrong.push(`${song.title} ${name}: a note outside the chord`)
-        if (notes.essential.some(p => !pitches.has(p))) wrong.push(`${song.title} ${name}: a chord note missing`)
+        if (s[0].pitch !== (notes.bass ?? notes.root)) wrong.push(`${song.title} ${name}: not rooted`)
+        if (pitches.size < 2) wrong.push(`${song.title} ${name}: too few notes`)
       }
     }
     expect(wrong).toEqual([])
@@ -127,6 +133,17 @@ describe('band positions', () => {
   })
 })
 
+describe('the songbook shapes', () => {
+  it("recommend I Can't Make You Love Me exactly as the book prints it, the Em11 included", () => {
+    const song = DEFAULT_SONGS.find(s => s.title === "I Can't Make You Love Me")!
+    const { picks } = bandPlanFor(song, undefined)
+    for (const [name, shape] of Object.entries(song.shapes!)) {
+      expect(shapeText(voicingsFor(name)[picks[name]]), name).toBe(shape)
+    }
+    expect(shapeText(voicingsFor('Em11')[picks.Em11])).toBe('0-2-4-2-3-2')
+  })
+})
+
 describe('the list of shapes', () => {
   const shapes = (name: string) =>
     voicingsFor(name)
@@ -138,6 +155,7 @@ describe('the list of shapes', () => {
     // now point at different shapes. Keep the old order, or move their picks.
     expect(shapes('C/D')).toEqual(['x-5-x-5-5-3', 'x-5-5-5-5-x', '10-x-10-9-8-x', '10-10-10-9-x-x', 'x-x-12-12-13-12'])
     expect(shapes('Am7').slice(0, 3)).toEqual(['x-x-x-2-1-3', 'x-3-x-2-5-3', 'x-3-5-2-x-x'])
-    expect(shapes('Am7')).toHaveLength(23)
+    // Shapes researched later are added after these, never in between
+    expect(shapes('Am7').length).toBeGreaterThanOrEqual(23)
   })
 })

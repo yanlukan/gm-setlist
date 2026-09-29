@@ -11,6 +11,7 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     shapes: { B: '7-9-9-8-7-7', E: 'x-7-9-9-9-7' },
+    shapesFrom: 'Lessons',
     notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions); E is the A shape at the same fret. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
     sections: [
       { name: 'Intro', chords: 'B' },
@@ -334,6 +335,14 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
+    // The songbook's own boxes (no. 25): a D and G drone rings on the top two
+    // strings through almost every chord.
+    shapes: {
+      Cadd9: 'x-3-2-0-3-3', Em11: '0-2-4-2-3-2', C: 'x-3-2-0-1-3', 'G/B': 'x-2-0-0-3-3',
+      Em7: '0-2-2-0-3-3', Am7: 'x-0-2-0-1-3', 'G/D': 'x-x-0-4-3-3', D: 'x-x-0-2-3-2',
+      G: '3-x-0-0-3-3', 'G/C': 'x-3-0-0-3-3', 'D/F#': '2-x-0-2-3-2', Fmaj9: 'x-8-10-9-8-8',
+    },
+    shapesFrom: 'Songbook',
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
     notes: "From the songbook (no. 25), in George Michael's key of G. Piano-led; guitar plays sparse arpeggios, no strumming. Form: Verse, Chorus, Verse, Chorus, Outro, ending on Fmaj9. The first time, the verse has one 2/4 bar before G/D, and the chorus ends on Am7 back to the verse; the second time it goes straight into the Outro. The book marks 60 BPM; the recording measures 58.",
     sections: [

@@ -130,7 +130,7 @@ export function DiagramsBar() {
               {band[name] !== undefined && shapeFor(name) === band[name] ? (
                 // A shape a lesson or transcription of the record shows, or the usual one
                 song.shapes?.[name] === shapeText(voicing) ? (
-                  <span className="diagram-mark is-researched">Researched</span>
+                  <span className="diagram-mark is-researched">{song.shapesFrom ?? 'Researched'}</span>
                 ) : (
                   <span className="diagram-mark is-recommended">Recommended</span>
                 )
