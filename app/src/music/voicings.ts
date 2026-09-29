@@ -55,17 +55,20 @@ export function chordNotes(name: string): ChordNotes | null {
   const intervals = INTERVALS[quality]
   if (!intervals) return null
   const bass = m[3] === undefined ? null : NOTE[m[3]] ?? null
+  const pc = (x: number) => (root + x) % 12
 
-  // Four strings at most: the fifth goes first, then the ninth of an
-  // eleventh or thirteenth chord, then the root.
+  // Four strings at most, and a slash bass that is not in the chord takes
+  // one of them (Edim7/D keeps three of its four notes over the D). The
+  // fifth goes first, then the ninth of an eleventh or thirteenth chord,
+  // then the root.
+  const room = bass !== null && !intervals.some(x => pc(x) === bass) ? 3 : 4
   let keep = [...intervals]
   if (keep.length >= 4 && keep.includes(7)) keep = keep.filter(x => x !== 7)
-  while (keep.length > 4) {
+  while (keep.length > room) {
     if (keep.includes(2) && (keep.includes(5) || keep.includes(9) || keep.includes(6))) keep = keep.filter(x => x !== 2)
     else if (keep.includes(0)) keep = keep.filter(x => x !== 0)
     else break
   }
-  const pc = (x: number) => (root + x) % 12
   return { root, bass, tones: intervals.map(pc), essential: keep.map(pc) }
 }
 
@@ -242,13 +245,26 @@ function describe(v: ChordVoicing, index: number, libraryRank: number | null, no
 const cache = new Map<string, Entry>()
 
 /**
+ * Songs with researched shapes, in the order their shapes were released. A
+ * shape the chord library lacks goes at the end of its chord's list, and a
+ * saved pick is an index into that list, so a song joins at the end of this
+ * list: the shapes of songs released before it then never move.
+ */
+export const SHAPES_RELEASED = [
+  "I Can't Make You Love Me", // 3.24.0
+  'Faith', // 3.25.0
+  "Freedom! '90", 'Papa Was a Rolling Stone', 'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove', 'Outside', 'Father Figure', 'Somebody to Love', 'Roxanne', 'Waiting (Reprise)', 'Kissing a Fool', // 3.26.0
+]
+
+/**
  * Researched shapes from the song data, by chord. Any the chord library does
  * not have are added at the end of that chord's list, so every one can be
  * shown and picked.
  */
 const RESEARCHED = new Map<string, string[]>()
-for (const song of DEFAULT_SONGS) {
-  for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+for (const title of SHAPES_RELEASED) {
+  const song = DEFAULT_SONGS.find(s => s.title === title)
+  for (const [name, shape] of Object.entries(song?.shapes ?? {})) {
     const known = RESEARCHED.get(name) ?? []
     if (!known.includes(shape)) RESEARCHED.set(name, [...known, shape])
   }

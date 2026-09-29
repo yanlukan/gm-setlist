@@ -52,7 +52,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 327, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "From the songbook (no. 13), which is in the band's key. Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Form: Verse, Chorus, Instrumental, Verse, Chorus, Instrumental, Post-Chorus hook twice, drum break, Bridge, Outro. The book marks 100 BPM.",
+    shapes: {
+      Dm9: 'x-5-3-5-5-x', Am11: 'x-0-5-4-3-3', Am7: 'x-0-2-0-1-0', Fmaj7: 'x-x-3-2-1-0',
+      Em7: 'x-x-2-0-3-0', Fmaj9: '1-x-2-0-1-0', G6: '3-2-0-0-0-0',
+    },
+    shapesFrom: 'Songbook',
+    notes: "From the songbook (no. 13), which is in the band's key. Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Form: Verse, Chorus, Instrumental, Verse, Chorus, Instrumental, Post-Chorus hook twice, drum break, Bridge, Outro. The book marks 100 BPM. The verse swaps two shapes at the 3rd to 5th fret: Dm9 x-5-3-5-5-x and Am11 over the open A (x-0-5-4-3-3, no third); the bridge chords are open.",
     sections: [
       { name: 'Verse', chords: 'Dm9  Am11  Dm9  Am11' },
       { name: 'Chorus', chords: 'Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9' },
@@ -114,7 +119,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 283, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 47): Gm9 to C6 through the verses and the hook; jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm three times, then turns back into the groove on Dsus4. Guitar lays out for the instrumental. Ends on the groove, fading.',
+    shapes: { Gm9: '3-5-3-3-3-5', C6: 'x-3-5-5-5-5', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-7-5-4-3', Gm: '3-5-5-3-3-3', Dsus4: 'x-5-7-7-3-3' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 47): Gm9 to C6 through the verses and the hook; jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm three times, then turns back into the groove on Dsus4. Guitar lays out for the instrumental. Ends on the groove, fading. The shapes are the book\'s capo-3 boxes at concert pitch: every dot on the 3rd fret is where the capo sits (Gm9 is an Em9 shape, C6 an A6 shape), so with a capo there they are open shapes.',
     sections: [
       { name: 'Intro', chords: 'Gm9  C6  Gm9  C6' },
       { name: 'Verse', chords: 'Gm9  C6  Gm9  C6' },
@@ -135,7 +142,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 255, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook: the intro riff plays 4 times, and the Killer verses sit over the riff with no chords. Killer then settles on Bbm, Gb, Fm; the trumpet solo adds Ab. Papa is a one-chord Bbm7 vamp.',
+    shapes: { Bbm: 'x-1-3-3-2-1', Gb: '2-4-4-3-2-2', Fm: '1-3-3-1-1-1', Ab: '4-6-6-5-4-4', Bbm7: 'x-1-3-1-2-1' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 36): the intro riff plays 4 times, and the Killer verses sit over the riff with no chords. Killer then settles on Bbm, Gb, Fm; the trumpet solo adds Ab. Papa is a one-chord Bbm7 vamp. The book\'s shapes are the usual barres: Bbm and Bbm7 at the 1st fret (A shape), Fm at the 1st and Gb at the 2nd (E shape), Ab at the 4th.',
     sections: [
       { name: 'Intro', chords: 'N.C.' },
       { name: 'Killer verse', chords: 'N.C.' },
@@ -153,7 +162,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 340, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 15). The book plays it with a capo on the 1st fret; this chart is at concert pitch. Form: Verse twice, Chorus, a bar of Bbsus2 into an instrumental, Verse, Chorus, Bridge twice (the second time ending Fsus4 F), back to the top for Verse and Chorus, then Outro. Keyboard-driven, play with restraint. The book and the recording both give 102 BPM.',
+    shapes: {
+      Bbsus2: 'x-1-3-3-1-1', Absus2: '4-x-1-3-4-x', Gbsus2: '2-4-4-1-x-x', Abadd9: '4-x-1-3-1-x', Bb: 'x-1-3-3-3-1',
+      Fsus4: '1-3-3-3-1-1', F: '1-3-3-2-1-1', Bbadd9: 'x-1-3-5-3-1', Gbadd9: '2-x-4-3-2-4',
+    },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 15). The book plays it with a capo on the 1st fret; this chart is at concert pitch. The shapes are the book\'s capo boxes at concert pitch: every dot on the 1st fret is where the capo sits (Bbsus2 is an Asus2 shape, Absus2 a Gsus2 shape). Form: Verse twice, Chorus, a bar of Bbsus2 into an instrumental, Verse, Chorus, Bridge twice (the second time ending Fsus4 F), back to the top for Verse and Chorus, then Outro. Keyboard-driven, play with restraint. The book and the recording both give 102 BPM.',
     sections: [
       { name: 'Verse', chords: 'Bbsus2  Absus2  Bbsus2  Absus2  Bbsus2  Gbsus2  Abadd9  Bb  Gbsus2  Absus2  Fsus4  F' },
       { name: 'Chorus', chords: 'Bbadd9  Abadd9  Bbadd9  Abadd9' },
@@ -172,7 +186,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 389, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 19). Form: Intro (the chorus hook, sung then instrumental), Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Interlude, Bridge, then back to Pre-Chorus 2 and the Chorus repeated to fade. The pre-chorus and bridge are a Cm line cliche. The book marks 92 BPM.',
+    shapes: {
+      C: 'x-3-2-0-1-0', Bb: 'x-1-3-3-3-1', F: 'x-x-3-2-1-1', G: '3-2-0-0-0-3', 'F/C': 'x-3-3-2-1-1',
+      Cm: 'x-3-5-5-4-3', 'Cm(maj7)': 'x-3-5-4-4-3', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-5-2-4-x',
+    },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 19). Form: Intro (the chorus hook, sung then instrumental), Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Interlude, Bridge, then back to Pre-Chorus 2 and the Chorus repeated to fade. The pre-chorus and bridge are a Cm line cliche: the book holds a Cm barre at the 3rd fret (A shape) and walks the G string down, 5-4-3-2. The rest are open chords, F as the small x-x-3-2-1-1. The book marks 92 BPM.',
     sections: [
       { name: 'Intro', chords: 'C  Bb  F  C  (x2)' },
       { name: 'Verse', chords: 'G  F  F/C  C  F/C  C  (x4)' },
@@ -194,7 +213,15 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 411, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 35). The book plays it with a capo on the 4th fret; this chart is at concert pitch. Form: Verse (twice round), Pre-Chorus, Chorus, instrumental, back to the top for Verse, Pre-Chorus, Chorus, then Bridge and Last Chorus. The book starts at the verse, with no intro. The book marks 86 BPM.',
+    shapes: {
+      'C#madd9': 'x-4-6-8-5-4', 'G#7': '4-6-4-5-4-4', Amaj7: 'x-x-7-6-5-4', 'F#m9': 'x-9-7-9-9-x', B6: '7-x-6-8-7-x',
+      'C#sus24': 'x-4-6-8-7-4', 'C#m': 'x-4-6-6-5-4', 'F#m7': 'x-x-4-6-5-5', B: '7-6-4-4-4-7', Emaj7: 'x-7-6-4-4-4',
+      'G#7sus4': '4-6-4-6-4-4', 'G#': '4-6-6-5-4-4', 'G#m7': '4-6-6-4-7-4', 'G#aug': 'x-x-6-5-5-4', 'C#m7': 'x-4-6-4-5-4',
+      'A#m7b5': '6-x-6-6-5-4', 'A6/9': 'x-x-7-6-7-7', 'C#': 'x-4-6-6-6-x', A6: 'x-x-7-6-7-5', 'F#dim7': 'x-x-4-5-4-5',
+      'C#m11': '9-x-9-9-7-x',
+    },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 35). The book plays it with a capo on the 4th fret; this chart is at concert pitch. The shapes are the book\'s capo boxes moved to concert pitch: every dot on the 4th fret is where the capo sits, so with a capo there they are the book\'s open shapes (C#m is an Am shape, G# an E shape, B a G shape). Without a capo, barre the 4th fret. The C# box is read from a blurred page (x-4-6-6-6-x). Form: Verse (twice round), Pre-Chorus, Chorus, instrumental, back to the top for Verse, Pre-Chorus, Chorus, then Bridge and Last Chorus. The book starts at the verse, with no intro. The book marks 86 BPM.',
     sections: [
       { name: 'Verse', chords: 'C#madd9  G#7  Amaj7  G#7  F#m9  B6  C#sus24  C#m  (x2)' },
       { name: 'Pre-Chorus', chords: 'F#m7  B  F#m7  B  Emaj7  G#7sus4  G#' },
@@ -230,7 +257,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 225, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 61). One groove over a D pedal all the way through, two beats per chord; only the two-bar N.C. break stops it. Tight muted funk comping; synth and piano lead. Form: Verse twice, Pre-Chorus, Chorus, keyboard solo, break, Outro vamp. The book marks 100 BPM.',
+    shapes: { Dm: 'x-x-0-2-3-1', 'G/D': 'x-x-0-4-3-3', 'Am/D': 'x-x-0-5-5-5' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 61). One groove over a D pedal all the way through, two beats per chord; only the two-bar N.C. break stops it. The book keeps the open D ringing under all three shapes: Dm, G/D (x-x-0-4-3-3) and Am/D (x-x-0-5-5-5). Tight muted funk comping; synth and piano lead. Form: Verse twice, Pre-Chorus, Chorus, keyboard solo, break, Outro vamp. The book marks 100 BPM.',
     sections: [
       { name: 'Verse', chords: 'Dm  G/D  Am/D  G/D' },
       { name: 'Pre-Chorus', chords: 'Dm  G/D  Am/D  G/D' },
@@ -250,7 +279,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 393, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 11). Synth-driven. Form: Verse, Post-Verse, Pre-Chorus, Chorus; back to the top with an instrumental verse, then the verses and Chorus again; Bridge; Outro to fade. Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove.',
+    shapes: {
+      'F#sus4': 'x-x-4-4-2-2', 'F#': 'x-x-4-3-2-2', Esus24: 'x-x-2-2-0-2', Eadd9: 'x-x-2-1-0-2',
+      'F#m': '2-4-4-2-2-2', Bm: 'x-2-4-4-3-2', 'C#': 'x-4-6-6-6-4', 'C#aug': 'x-4-x-6-6-5',
+    },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 11). Synth-driven. Form: Verse, Post-Verse, Pre-Chorus, Chorus; back to the top with an instrumental verse, then the verses and Chorus again; Bridge; Outro to fade. Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove. The verse shapes stay on the top four strings (F#sus4 x-x-4-4-2-2, F# x-x-4-3-2-2, Esus24 x-x-2-2-0-2, Eadd9 x-x-2-1-0-2); the chorus uses barres, with C#aug as x-4-x-6-6-5.',
     sections: [
       { name: 'Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x4)' },
       { name: 'Post-Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x2)' },
@@ -295,6 +329,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 319, // recording length, for set timing
     timeSignature: '12/8',
     capo: null,
+    shapes: {
+      G: '3-2-0-0-0-3', 'D/F#': '2-x-0-2-3-2', Em: '0-2-2-0-0-0', C: 'x-3-2-0-1-0', D: 'x-x-0-2-3-2',
+      A: 'x-0-2-2-2-0', A7: 'x-0-2-0-2-0', D7: 'x-x-0-2-1-2', 'A/C#': 'x-4-2-2-2-x', 'C/D': 'x-x-0-0-1-0',
+      'G/F#': '2-x-0-0-0-3', F: '1-3-3-2-1-1', Fm: '1-3-3-1-1-1', 'G/D': 'x-x-0-4-3-3', G5: '3-5-5-x-x-x',
+    },
+    shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 52): gospel 12/8 shuffle, with a few bars of 6/8, NOT straight 4/4. George Michael sang it in G at the 1992 Freddie Mercury Tribute, a semitone below the Queen original in Ab (checked against the Five Live recording). Form: Intro, Verse, Chorus, Verse, Chorus (the second time it ends C/D G, into the Bridge), Bridge, Solo over the verse, then straight to the Outro: a held chord, then the G5 riff four times. 73 is the dotted-quarter beat, four to the bar; the book marks 76.',
     sections: [
       { name: 'Intro', chords: 'G  D/F#  Em  C  D' },
@@ -362,7 +402,14 @@ export const DEFAULT_SONGS: Song[] = [
     capo: null,
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
-    notes: "From the songbook (no. 49): George Michael's reharmonisation, a jazz ballad in 12/8. Form: Verse, Verse 2 into the Chorus, Interlude, Verse, Pre-Chorus, Chorus 2, Outro, then a free, slowing Ending. Guitar sits out or plays long sustained voicings only. The book marks 83 BPM.",
+    shapes: {
+      Bm: 'x-2-4-4-3-2', 'D/A': 'x-0-4-2-3-2', Gmaj7: 'x-x-5-4-3-2', 'F#m7': 'x-x-4-2-2-0', Em7: '0-5-5-4-3-x',
+      'G/A': 'x-0-5-4-3-x', B11: 'x-2-x-2-2-0', 'F#7#5': '2-x-2-3-3-x', E: 'x-x-x-4-5-4', Bm7: 'x-x-x-2-3-2',
+      Em9: 'x-x-2-0-3-2', Dmaj9: 'x-5-4-6-5-x', G13: '3-x-3-4-5-x', C9: 'x-3-2-3-3-x', Cmaj9: 'x-3-2-4-3-x',
+      'C6/9': 'x-3-2-2-3-x', 'A#m11': '6-x-6-6-4-x', Bm11: '7-x-7-7-5-x',
+    },
+    shapesFrom: 'Songbook',
+    notes: "From the songbook (no. 49): George Michael's reharmonisation, a jazz ballad in 12/8. Form: Verse, Verse 2 into the Chorus, Interlude, Verse, Pre-Chorus, Chorus 2, Outro, then a free, slowing Ending. Guitar sits out or plays long sustained voicings only. The book marks 83 BPM. The book's jazz voicings mostly skip a string; the E and Bm7 stabs after each N.C. are three-note shapes on the top strings, with no root (the bass has it).",
     sections: [
       { name: 'Verse', chords: 'Bm  D/A  Gmaj7  F#m7  Em7  G/A  B11  N.C.  F#7#5' },
       { name: 'Verse 2', chords: 'Bm  D/A  Gmaj7  F#m7  Em7  G/A  N.C.  E  Bm7' },
@@ -385,7 +432,9 @@ export const DEFAULT_SONGS: Song[] = [
     capo: null,
     preset: { name: 'ACOUSTIC', slot: 'U02-3' },
     cue: 'ACOUSTIC GUITAR + VOCAL ONLY — no band.',
-    notes: 'From the songbook (no. 63). A G to Cadd9 vamp all the way through; each longer verse ends Cadd9, D, C back to G. Form: Verse, Hook, Verse 2, Hook, Last verse, Ending on G. The book marks 68 BPM.',
+    shapes: { G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 63). A G to Cadd9 vamp all the way through; each longer verse ends Cadd9, D, C back to G. Form: Verse, Hook, Verse 2, Hook, Last verse, Ending on G. The book marks 68 BPM. The book\'s G (3-x-0-0-3-3) and Cadd9 (x-3-2-0-3-3) keep the ring and little fingers on the 3rd fret of the top two strings, so the vamp only moves the bass.',
     sections: [
       { name: 'Verse', chords: 'G  Cadd9  G  Cadd9' },
       { name: 'Hook', chords: 'G  Cadd9  G  Cadd9' },
@@ -406,11 +455,21 @@ export const DEFAULT_SONGS: Song[] = [
     capo: null,
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
-    notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key. Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, Last verse, Outro. Swung eighths, triplet feel.',
+    shapes: {
+      D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
+      D6: 'x-x-0-2-0-2', Em7: '0-2-0-0-0-3', 'Bb(b5)': 'x-1-2-3-3-x', A7: 'x-0-2-0-2-0', 'B7(b9)': 'x-2-1-2-1-x',
+      'A7(b9)': 'x-0-2-3-2-3', 'C6(b5)': 'x-x-2-2-1-2', B7: 'x-2-4-2-4-2', Em11: '0-2-0-2-0-2', A13: 'x-0-2-0-2-2',
+      'C(b5)': 'x-3-4-5-5-x', Gm: '3-5-5-3-3-3', 'Edim7/D': 'x-x-0-3-2-3', Bm7: 'x-2-4-2-3-2', Dm7: 'x-x-0-2-1-1',
+      G7: '3-2-0-0-0-1', C: 'x-3-2-0-1-0', 'C/B': 'x-2-2-0-1-0', Bb7: 'x-1-3-1-3-1', 'D/A': 'x-0-0-2-3-2',
+      C6: 'x-3-2-2-1-0', Em9: '0-2-0-0-3-2', Bb6: 'x-1-3-3-3-3', A7sus4: 'x-0-2-0-3-0', B9: 'x-2-1-2-2-2',
+      Dmaj9: 'x-5-4-6-3-0',
+    },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, Last verse, Outro. Swung eighths, triplet feel. The book names the chorus\'s last chord as a plain diminished chord over the bass, but its box holds the diminished seventh, so the chart shows it as a dim7.',
     sections: [
       { name: 'Intro', chords: 'Eb  Edim7  Fm  Abm6  Bb' },
       { name: 'Verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6  C7(b9)  Fm7  Cb(b5)  Bb' },
-      { name: 'Chorus', chords: 'Eb6  Edim7  Fm7  Abm6  Bb7(b9)  Eb6  Db6(b5)  C7  Fm11  Fm7  Bb13  Bb7(b9)  Eb6  Db(b5)  C7(b9)  Fm7  Abm  Bb7  Eb6  Db6(b5)  C7  Fm7  Abm6  Bb7  Eb6  Fdim/Eb' },
+      { name: 'Chorus', chords: 'Eb6  Edim7  Fm7  Abm6  Bb7(b9)  Eb6  Db6(b5)  C7  Fm11  Fm7  Bb13  Bb7(b9)  Eb6  Db(b5)  C7(b9)  Fm7  Abm  Bb7  Eb6  Db6(b5)  C7  Fm7  Abm6  Bb7  Eb6  Fdim7/Eb' },
       { name: 'Bridge', chords: 'Eb  Cm7  C7(b9)  Fm7  Bb  Fm7  Bb  Ebm7  Ab7  Db  Db/C  Bb7' },
       { name: 'Bridge 2', chords: 'Eb  Cm7  Fm7  Cb7  Eb/Bb  Eb  Db6  C7  Fm9  Cb6  Bb7sus4  Cm7  Fm7  Bb  Bb7(b9)' },
       { name: 'Last verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6' },

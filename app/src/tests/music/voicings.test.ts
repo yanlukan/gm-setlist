@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { chordNotes, voicingsFor, bandPositions, shapeText, fretSpan, researchedStart } from '../../music/voicings'
+import { chordNotes, voicingsFor, bandPositions, shapeText, fretSpan, researchedStart, SHAPES_RELEASED } from '../../music/voicings'
 import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
@@ -116,11 +116,14 @@ describe('band positions', () => {
         if (!v) { wrong.push(`${song.title} ${name} ${shape}: not in the list`); continue }
         // A book or lesson shape may leave a note out (the songbook's Em11 has
         // no G), but a misread dot shows up as a wrong note or a wrong bass.
+        // Only a shape that leaves out both bass strings may leave the root to
+        // the bass player (the book's jazz voicings: Roxanne's E and Bm7,
+        // Kissing a Fool's C6(b5)).
         const notes = chordNotes(name)!
         const s = sounding(v)
         const pitches = new Set(s.map(n => n.pitch))
         if ([...pitches].some(p => !notes.tones.includes(p) && p !== notes.bass)) wrong.push(`${song.title} ${name}: a note outside the chord`)
-        if (s[0].pitch !== (notes.bass ?? notes.root)) wrong.push(`${song.title} ${name}: not rooted`)
+        if (s[0].pitch !== (notes.bass ?? notes.root) && s[0].string < 2) wrong.push(`${song.title} ${name}: not rooted`)
         if (pitches.size < 2) wrong.push(`${song.title} ${name}: too few notes`)
       }
     }
@@ -171,9 +174,10 @@ describe('the songbook shapes', () => {
 })
 
 describe('the list of shapes', () => {
+  // The shapes built here: after the library's, before any added from research
   const shapes = (name: string) =>
     voicingsFor(name)
-      .slice((lookupChord(name) ?? []).length)
+      .slice((lookupChord(name) ?? []).length, researchedStart(name))
       .map(v => v.f.map((x, i) => (x === null ? 'x' : v.s === 0 ? x : v.s + x - 1) + (i < 5 ? '-' : '')).join(''))
 
   it('stays exactly as it is: a saved pick is a position in this list', () => {
@@ -190,10 +194,18 @@ describe('the list of shapes', () => {
     // chord's list. Once released, someone may have picked it: add new ones
     // after it, never before. Extend this list when a song adds one.
     const added: Record<string, Record<number, string>> = {
-      Cadd9: { 25: 'x-3-2-0-3-3' }, Em11: { 24: '0-2-4-2-3-2' }, C: { 26: 'x-3-2-0-1-3' },
-      Em7: { 26: '0-2-2-0-3-3' }, Am7: { 27: 'x-0-2-0-1-3' }, 'G/D': { 14: 'x-x-0-4-3-3' },
+      Cadd9: { 25: 'x-3-2-0-3-3' }, Em11: { 24: '0-2-4-2-3-2', 25: '0-2-0-2-0-2' }, C: { 26: 'x-3-2-0-1-3' },
+      Em7: { 26: '0-2-2-0-3-3', 27: 'x-x-2-0-3-0', 28: '0-5-5-4-3-x', 29: '0-2-0-0-0-3' }, Am7: { 27: 'x-0-2-0-1-3' }, 'G/D': { 14: 'x-x-0-4-3-3' },
       G: { 27: '3-x-0-0-3-3' }, 'G/C': { 11: 'x-3-0-0-3-3' }, 'D/F#': { 15: '2-x-0-2-3-2' },
-      Fmaj9: { 10: 'x-8-10-9-8-8' }, E: { 26: '0-7-9-9-9-x' },
+      Fmaj9: { 10: 'x-8-10-9-8-8', 11: '1-x-2-0-1-0' }, E: { 26: '0-7-9-9-9-x' },
+      // 3.26.0
+      'Am/D': { 9: 'x-x-0-5-5-5' }, 'C#madd9': { 17: 'x-4-6-8-5-4' }, B: { 26: '7-6-4-4-4-7' },
+      'G#m7': { 24: '4-6-6-4-7-4' }, 'A#m7b5': { 20: '6-x-6-6-5-4' }, Eadd9: { 21: 'x-x-2-1-0-2' },
+      Am11: { 21: 'x-0-5-4-3-3' }, Cm6: { 28: 'x-3-7-5-4-3' }, Dsus4: { 27: 'x-5-7-7-3-3' },
+      Abadd9: { 23: '4-x-1-3-1-x' }, Absus2: { 27: '4-x-1-3-4-x' }, Bbadd9: { 21: 'x-1-3-5-3-1' }, Gbadd9: { 25: '2-x-4-3-2-4' },
+      'C/D': { 9: 'x-x-0-0-1-0' }, 'G/F#': { 11: '2-x-0-0-0-3' }, B11: { 22: 'x-2-x-2-2-0' }, Bm7: { 25: 'x-x-x-2-3-2' },
+      'D/A': { 15: 'x-0-4-2-3-2' }, Em9: { 11: 'x-x-2-0-3-2', 12: '0-2-0-0-3-2' }, 'F#m7': { 25: 'x-x-4-2-2-0' }, 'G/A': { 9: 'x-0-5-4-3-x' },
+      'C/B': { 13: 'x-2-2-0-1-0' }, Dmaj9: { 11: 'x-5-4-6-3-0' }, 'Edim7/D': { 12: 'x-x-0-3-2-3' }, Em: { 25: '0-2-2-0-0-3' },
     }
     const found: Record<string, Record<number, string>> = {}
     for (const song of DEFAULT_SONGS) {
@@ -203,5 +215,10 @@ describe('the list of shapes', () => {
       }
     }
     expect(found).toEqual(added)
+  })
+
+  it('registers every song with researched shapes in the order they were released', () => {
+    const withShapes = DEFAULT_SONGS.filter(s => s.shapes).map(s => s.title)
+    expect([...SHAPES_RELEASED].sort()).toEqual([...withShapes].sort())
   })
 })
