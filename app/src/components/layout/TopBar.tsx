@@ -173,6 +173,9 @@ export function TopBar() {
           )}
         </div>
 
+        {/* On phones the bar breaks here: song info starts the second row */}
+        <div className="tb-break" aria-hidden="true" />
+
         {/* Song info: sits between the buttons on iPad, drops to its own row on phones */}
         <div className="tb-meta">
           {song && (
@@ -191,7 +194,7 @@ export function TopBar() {
           )}
         </div>
 
-        <div className="tb-group">
+        <div className="tb-group tb-transpose">
           <button className="tb-btn" onClick={() => transpose(-1)} aria-label="Transpose down">&minus;</button>
           <button
             className={semitones !== 0 ? 'tb-btn tb-num is-warn' : 'tb-btn tb-num'}
@@ -201,7 +204,9 @@ export function TopBar() {
             {semitones > 0 ? `+${semitones}` : semitones}
           </button>
           <button className="tb-btn" onClick={() => transpose(1)} aria-label="Transpose up">+</button>
+        </div>
 
+        <div className="tb-group tb-menu">
           <div style={{ position: 'relative' }}>
             <button className="tb-btn" onClick={() => setShowMenu(!showMenu)} aria-label="Menu">&#8942;</button>
             {showMenu && (

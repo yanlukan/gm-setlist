@@ -15,6 +15,7 @@
   flex-shrink: 0;
 }
 .tb-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tb-break { display: none; }
 .tb-meta {
   display: flex;
   align-items: center;
@@ -80,9 +81,14 @@
 .menu-foot { padding: 10px 16px; font-size: 12px; color: var(--text-muted); }
 
 @media (max-width: 700px) {
-  /* Phones: song info drops to its own row under the buttons. */
-  .tb-meta { order: 3; flex-basis: 100%; }
+  /* Phones, two rows: the buttons and the menu on top, then the song info
+     with the transpose buttons at its end. */
+  .tb-menu { order: 2; margin-left: auto; }
+  .tb-break { display: block; order: 3; flex-basis: 100%; height: 0; }
+  .tb-meta { order: 4; flex: 1 1 0; }
+  .tb-transpose { order: 5; }
   .tb-btn { padding: 0 10px; font-size: 14px; }
+  .tb-badge { padding: 6px 9px; font-size: 14px; }
 }
 
 /* ---------- Chord chart ---------- */
