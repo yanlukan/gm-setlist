@@ -33,7 +33,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 243, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus; the chorus vamp carries on through a post-chorus and an instrumental; Bridge; then the Chorus repeated to fade.',
+    shapes: { Am: 'x-0-2-2-1-0', 'G/B': 'x-2-0-0-0-x', F6: 'x-x-3-2-3-1' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The book is a whole tone above the band. Where one of its shapes moves down two frets note for note, that shape is shown, marked Songbook; its open chords cannot move down, so the rest are the usual shapes. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus; the chorus vamp carries on through a post-chorus and an instrumental; Bridge; then the Chorus repeated to fade.',
     sections: [
       { name: 'Intro', chords: 'D  G  C  D  G  C' },
       { name: 'Verse', chords: 'D  G6  A6  G6  D  G6  A6  G6' },
@@ -240,7 +242,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "From the songbook (no. 8), which prints it a semitone higher, in G, with open G shapes; this chart is at the recording's pitch, which is where the band plays it. Nearly all of it is Gb and Db/Gb, with Abm7 at the ends of lines. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
+    notes: "From the songbook (no. 8), which prints it a semitone higher, in G, with open G shapes; this chart is at the recording's pitch, which is where the band plays it. Nearly all of it is Gb and Db/Gb, with Abm7 at the ends of lines. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked. The book's open shapes cannot move down a fret, so the shapes shown are the usual ones for Gb, not the book's.",
     sections: [
       { name: 'Verse', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb  Db/Gb  Gb  Db/Gb  Abm7  Gb' },
       { name: 'Chorus', chords: 'Gb  Db/Gb  Gb  Db/Gb  Gb  Abm7  Gb' },
@@ -356,7 +358,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 300, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 4). One loop all the way through, with a quick passing chord in the second bar. Form: sax riff twice, Verse, Chorus, sax riff, Verse, Chorus, sax riff, Verse, Chorus, then the sax riff to fade. Sax line is essential.',
+    shapes: { Fm7: '1-3-1-1-1-1' },
+    shapesFrom: 'Songbook',
+    notes: 'From the songbook (no. 4). One loop all the way through, with a quick passing chord in the second bar. The book is a whole tone above the band and mostly in open shapes, which cannot move down; only its barre moves down two frets note for note, and it is marked Songbook. Form: sax riff twice, Verse, Chorus, sax riff, Verse, Chorus, sax riff, Verse, Chorus, then the sax riff to fade. Sax line is essential.',
     sections: [
       { name: 'Intro (sax)', chords: 'Dm  Gm7  Am7  Bbmaj7  Am7  (x2)' },
       { name: 'Verse', chords: 'Dm7  Gm7  Am7  Bbmaj7  Am7  (x2)' },
