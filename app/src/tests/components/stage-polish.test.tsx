@@ -18,6 +18,14 @@ describe('tap tempo', () => {
 })
 
 describe('GX-10 sound', () => {
+  it('shows a solo switch on the tag, not in the cue strip', () => {
+    const { setlistData } = useStore.getState()
+    useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf('Somebody to Love'))
+    const { container } = render(<SongSheet />)
+    expect(container.querySelector('.chart-preset')).toHaveTextContent('CRUNCH → LEAD solo')
+    expect(container.querySelector('.chart-cue')).not.toHaveTextContent('LEAD')
+  })
+
   it('sits on the title line as a tag, and a sound alone takes no strip', () => {
     const { container } = render(<SongSheet />) // Faith: FUNK, no stage directions
     const tag = screen.getByText('FUNK')

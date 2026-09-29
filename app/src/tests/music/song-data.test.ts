@@ -27,6 +27,9 @@ describe('song notes and cues', () => {
   })
 
   it('keep the sound out of the cue, which is for stage directions', () => {
-    for (const song of DEFAULT_SONGS) expect(song.cue ?? '', song.title).not.toMatch(/GX-10|U0\d-\d/)
+    // The user asked for the GX-10 memory's name on the title line and nothing
+    // about it in the strip: no memory names, slots, pedal switches or tone.
+    const gx10 = /GX-10|U0\d-\d|toe switch|\b(FUNK|CRUNCH|LEAD|80s CLEAN|WARM JAZZ)\b|clean tone/
+    for (const song of DEFAULT_SONGS) expect(song.cue ?? '', song.title).not.toMatch(gx10)
   })
 })

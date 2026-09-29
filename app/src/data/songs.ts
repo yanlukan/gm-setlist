@@ -113,7 +113,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 283, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook: Gm9 to C6 through the verses and the hook; jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm three times, then turns back into the groove on Dsus4. Guitar lays out for the instrumental. Ends on the groove, fading.',
+    notes: 'From the songbook (no. 47): Gm9 to C6 through the verses and the hook; jazzy voicings, not plain Gm and C. The chorus cycles Cm7, Cm6, Gm9, Gm three times, then turns back into the groove on Dsus4. Guitar lays out for the instrumental. Ends on the groove, fading.',
     sections: [
       { name: 'Intro', chords: 'Gm9  C6  Gm9  C6' },
       { name: 'Verse', chords: 'Gm9  C6  Gm9  C6' },
@@ -127,7 +127,7 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Papa Was a Rolling Stone',
     shortTitle: 'Papa Rolling Stone',
     preset: { name: 'FUNK', slot: 'U01-1' },
-    cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential (toe switch).',
+    cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
     artist: 'The Temptations (cover)',
     key: 'Bbm',
     bpm: 122,
@@ -249,7 +249,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 393, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 11). Synth-driven. Form: Verse, Post-Verse, into the Chorus; back to the top with an instrumental verse, then the verses and Chorus again; Bridge; Outro to fade. Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove.',
+    notes: 'From the songbook (no. 11). Synth-driven. Form: Verse, Post-Verse, Pre-Chorus, Chorus; back to the top with an instrumental verse, then the verses and Chorus again; Bridge; Outro to fade. Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove.',
     sections: [
       { name: 'Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x4)' },
       { name: 'Post-Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x2)' },
@@ -266,26 +266,28 @@ export const DEFAULT_SONGS: Song[] = [
     transpose: -2, // band key A (confirmed 2026-09-28); chart is at the recording's B
     artist: 'Wham!',
     key: 'B',
-    bpm: 117,
+    bpm: 118,
     duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "Built from Hooktheory's analysis and published charts, checked bar by bar against the recording: the chorus is the same pair of chords that one published chart writes as a major seventh and a sixth. Form: Intro, Chorus, Verse, Chorus, Verse 2, Chorus, Instrumental, Verse 2, a two-bar break, Chorus, Outro to fade.",
+    notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM.',
     sections: [
-      { name: 'Intro', chords: 'F#  E  B  E  B' },
-      { name: 'Chorus', chords: 'B  D#m7  B  D#m7  B  D#m7  B  D#m7' },
-      { name: 'Verse', chords: 'F#m7  Emaj7  F#m7  Emaj7  F#m7  Emaj7  F#m7  B' },
-      { name: 'Verse 2', chords: 'F#m7  B7  E  F#m7  B7  E  F#m7  B' },
-      { name: 'Instrumental', chords: 'E  B  E  B  E  B  E  B' },
-      { name: 'Break', chords: 'Amaj7' },
-      { name: 'Outro', chords: 'F#m7  E  B  (x4)' },
+      { name: 'Intro', chords: 'F#m7  (x8)' },
+      { name: 'Intro 2', chords: 'F#m7  B7  (x2)' },
+      { name: 'Verse', chords: 'F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  B/D#  E' },
+      { name: 'Chorus', chords: 'B  D#m7  B  D#m7  B  D#m7  B  D#m7  Dm7  C#m7' },
+      { name: 'Instrumental', chords: 'F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  B/D#  E' },
+      { name: 'Bass solo', chords: 'F#m7  B7  (x4)' },
+      { name: 'Last verse', chords: 'F#m7  B7  (x7)' },
+      { name: 'Walk-up', chords: 'F#m7  B7  C#m  B/D#  E' },
+      { name: 'Outro', chords: 'F#m7  B7  (x8)' },
     ],
   },
   {
     title: 'Somebody to Love',
     shortTitle: 'Somebody',
-    preset: { name: 'CRUNCH', slot: 'U02-1' },
-    cue: 'LEAD for the solo. 12/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
+    preset: { name: 'CRUNCH', slot: 'U02-1', solo: 'LEAD' },
+    cue: '12/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
     artist: 'Queen (cover)',
     key: 'G',
     bpm: 73,
@@ -313,7 +315,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 300, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 4). One loop all the way through, with a quick passing chord in the second bar. Form: sax riff twice, Verse, Chorus, sax riff, Verse, Chorus, sax riff, Verse, Chorus, then the sax riff to fade. BPM is 77, not 153 (double-time misread). Sax line is essential.',
+    notes: 'From the songbook (no. 4). One loop all the way through, with a quick passing chord in the second bar. Form: sax riff twice, Verse, Chorus, sax riff, Verse, Chorus, sax riff, Verse, Chorus, then the sax riff to fade. Sax line is essential.',
     sections: [
       { name: 'Intro (sax)', chords: 'Dm  Gm7  Am7  Bbmaj7  Am7  (x2)' },
       { name: 'Verse', chords: 'Dm7  Gm7  Am7  Bbmaj7  Am7  (x2)' },
@@ -394,7 +396,7 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
-    cue: 'Jazz ballad — clean tone, comping only. The last verse is short: straight into the Outro.',
+    cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
     notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key. Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, Last verse, Outro. Swung eighths, triplet feel.',
     sections: [
       { name: 'Intro', chords: 'Eb  Edim7  Fm  Abm6  Bb' },

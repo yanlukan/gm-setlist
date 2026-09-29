@@ -7,7 +7,6 @@ import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
 import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
-import { ChordSearch } from '../search/ChordSearch'
 import { TapTempo } from '../shared/TapTempo'
 import type { Song } from '../../types'
 
@@ -35,7 +34,6 @@ export function TopBar() {
   const currentIndex = useStore(s => s.currentIndex)
 
   const [showSetlist, setShowSetlist] = useState(false)
-  const [showSearch, setShowSearch] = useState(false)
   const [showTapTempo, setShowTapTempo] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showRestore, setShowRestore] = useState(false)
@@ -217,11 +215,6 @@ export function TopBar() {
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                 </button>
-                {viewMode !== 'stage' && (
-                  <button className="menu-item" onClick={menuAction(() => setShowSearch(true))}>
-                    Find a Song Online&hellip;
-                  </button>
-                )}
                 <button className="menu-item" onClick={handleExport}>Export Backup</button>
                 {viewMode !== 'stage' && (
                   <>
@@ -262,7 +255,6 @@ export function TopBar() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={() => setShowMenu(false)} />
       )}
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
-      {showSearch && <ChordSearch onClose={() => setShowSearch(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
       {showRestore && <RestoreModal onClose={() => setShowRestore(false)} />}
     </>

@@ -44,10 +44,12 @@ describe('Stage Mode', () => {
 })
 
 describe('online song search', () => {
-  it('lives in the menu, not the top bar', () => {
+  it('is not offered while the server it needs is not running', () => {
+    // It could only ever answer that the server was unreachable. The code is
+    // kept, ready to come back with the server.
     render(<TopBar />)
     expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    expect(screen.getByRole('button', { name: /Find a Song Online/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Find a Song Online/ })).not.toBeInTheDocument()
   })
 })

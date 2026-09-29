@@ -25,7 +25,12 @@ export interface Song {
    * ("U01-1"). Shown as a small tag beside the title, so the sound never
    * costs a line of the chart.
    */
-  preset?: { name: string; slot: string }
+  preset?: {
+    name: string
+    slot: string
+    /** A second memory for the solo, shown on the tag: "CRUNCH → LEAD solo". */
+    solo?: string
+  }
   /**
    * Guitar shapes researched for this song (lessons and transcriptions of the
    * recording), by chord as the chart shows it, low E to high e:

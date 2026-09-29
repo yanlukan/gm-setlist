@@ -147,8 +147,12 @@ export function SongSheet() {
       <div className="chart-head">
         <h1 className="chart-title">{song.title}</h1>
         {song.preset && (
-          <span className="chart-preset" aria-label={`GX-10 sound: ${song.preset.name}`}>
+          <span
+            className="chart-preset"
+            aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
+          >
             {song.preset.name}
+            {song.preset.solo && ` → ${song.preset.solo} solo`}
           </span>
         )}
         {span && (

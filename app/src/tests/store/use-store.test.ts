@@ -356,8 +356,11 @@ describe('Club Tropicana', () => {
   it('is played in A, two semitones under the chart', () => {
     const s = useStore.getState()
     expect(s.getDisplayKey('Club Tropicana')).toBe('A')
+    // The bass transcription and two guitar charts: a chromatic slide into the verse
     const chorus = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Chorus')!
-    expect(chorus.chords).toBe('A  C#m7  A  C#m7  A  C#m7  A  C#m7')
+    expect(chorus.chords).toBe('A  C#m7  A  C#m7  A  C#m7  A  C#m7  Cm7  Bm7')
+    const verse = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Verse')!
+    expect(verse.chords).toBe('Em7  A7  Em7  A7  Em7  A7  Em7  A7  A/C#  D')
   })
 })
 
