@@ -23,13 +23,32 @@ export function useBandPositions(song: Song | undefined, edits: SongEdits | unde
 /** How a song's recommended area of the neck reads on screen. */
 export function positionLabel(span: BandPlan['span']): string {
   if (!span) return ''
-  return span.open ? 'Open position' : `Frets ${span.min}–${span.max}`
+  if (span.open) return span.max <= 3 ? 'Open position' : `Open to fret ${span.max}`
+  return `Frets ${span.min}–${span.max}`
 }
+
+/**
+ * Plans already worked out, per song and per state of its edits. The chart,
+ * the diagrams and the song list all ask for the same plans; an edit makes a
+ * new edits object, so a changed chart is always planned afresh.
+ */
+const plans = new WeakMap<Song, WeakMap<object, BandPlan>>()
+const NO_EDITS = {}
 
 /** The same plan as `useBandPositions`, for any number of songs at once. */
 export function bandPlanFor(song: Song | undefined, edits: SongEdits | undefined): BandPlan {
+  if (!song) return { picks: {}, span: null }
+  const bySong = plans.get(song) ?? new WeakMap<object, BandPlan>()
+  plans.set(song, bySong)
+  const known = bySong.get(edits ?? NO_EDITS)
+  if (known) return known
+  const plan = planSong(song, edits)
+  bySong.set(edits ?? NO_EDITS, plan)
+  return plan
+}
+
+function planSong(song: Song, edits: SongEdits | undefined): BandPlan {
   {
-    if (!song) return { picks: {}, span: null }
     const sections = edits?.sections ?? song.sections ?? []
     const key = edits?.key ?? song.key ?? ''
     const semitones = transposeFor(song, edits)

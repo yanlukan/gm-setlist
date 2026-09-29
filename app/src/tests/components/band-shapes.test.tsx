@@ -19,34 +19,33 @@ const open = (title: string) => {
 }
 
 describe('chord shapes for electric guitar', () => {
-  it('show compact band shapes up the neck by default, not open chords', () => {
-    render(<DiagramsBar />) // Faith: B E G#m C#m F#
-    for (const name of ['B', 'E', 'G#m', 'C#m', 'F#']) {
-      expect(within(tile(name)).queryByText('Open'), name).toBeNull()
-      expect(within(tile(name)).getByText(/^\d+(st|nd|rd|th) fret$/)).toBeInTheDocument()
-    }
+  it("show each chord's usual shape by default", () => {
+    render(<DiagramsBar />) // Faith
+    expect(within(tile('B')).getByText('2nd fret')).toBeInTheDocument() // x-2-4-4-4-2
+    expect(within(tile('E')).getByText('Open')).toBeInTheDocument() // 0-2-2-1-0-0
+    expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4
   })
 
   it('keep a shape you pick by hand, and can go back to the recommended one', () => {
     render(<DiagramsBar />)
     fireEvent.click(tile('E'))
-    expect(screen.getByRole('button', { name: /recommended, selected/ })).toBeInTheDocument()
-    fireEvent.click(screen.getAllByRole('button', { name: /^E at Open/ })[0])
-    expect(within(tile('E')).getByText('Open')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^E at Open, recommended, selected$/ })).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'E at 7th fret' })[0])
+    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Your pick')).toBeInTheDocument()
-    expect(useStore.getState().selectedVoicings.E).toBe(0)
 
     fireEvent.click(tile('E'))
     fireEvent.click(screen.getByRole('button', { name: 'Use the recommended shape' }))
-    expect(within(tile('E')).queryByText('Open')).toBeNull()
+    expect(within(tile('E')).getByText('Open')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Recommended')).toBeInTheDocument()
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
   })
 
-  it('keep a pick saved before band shapes existed on the shape it meant', () => {
-    useStore.setState({ selectedVoicings: { B: 0 } }) // the library's first B
+  it('keep a pick saved before recommendations existed on the shape it meant', () => {
+    useStore.setState({ selectedVoicings: { B: 2 } }) // the library's third B: 7-9-9-8-7-7
     render(<DiagramsBar />)
-    expect(within(tile('B')).queryByText(/^7th fret$/)).toBeNull() // not the band shape
+    expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument()
+    expect(within(tile('B')).getByText('Your pick')).toBeInTheDocument()
   })
 
   it('mark every shape the song recommends', () => {
@@ -56,8 +55,8 @@ describe('chord shapes for electric guitar', () => {
 
   it("show the song's recommended area of the neck on its title line", () => {
     render(<SongSheet />) // Faith
-    const position = screen.getByLabelText(/^Recommended position: frets \d+ to \d+$/)
-    expect(position).toHaveTextContent(/^Frets \d+–\d+$/)
+    const position = screen.getByLabelText('Recommended position: open to fret 6')
+    expect(position).toHaveTextContent('Open to fret 6') // open E, barres up to the 6th fret
     expect(position.parentElement).toBe(screen.getByRole('heading', { name: 'Faith' }).parentElement)
   })
 
@@ -66,8 +65,7 @@ describe('chord shapes for electric guitar', () => {
     render(<SongGrid songs={songs} onClose={() => {}} />)
     const positions = screen.getAllByLabelText(/^Recommended position: /)
     expect(positions).toHaveLength(21)
-    expect(positions.filter(p => p.textContent === 'Open position')).toHaveLength(1) // Waiting
-    for (const p of positions) expect(p.textContent).toMatch(/^(Frets \d+–\d+|Open position)$/)
+    for (const p of positions) expect(p.textContent).toMatch(/^(Frets \d+–\d+|Open position|Open to fret \d+)$/)
   })
 
   it('call the acoustic song open position', () => {

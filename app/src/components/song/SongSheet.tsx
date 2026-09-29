@@ -154,7 +154,7 @@ export function SongSheet() {
         {span && (
           <span
             className="chart-position"
-            aria-label={span.open ? 'Recommended position: open position' : `Recommended position: frets ${span.min} to ${span.max}`}
+            aria-label={`Recommended position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`}
           >
             {positionLabel(span)}
           </span>

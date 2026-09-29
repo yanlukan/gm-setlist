@@ -169,21 +169,34 @@ function absolute(v: ChordVoicing): string {
 interface Candidate {
   /** Index in the chord's list of shapes. */
   index: number
+  /** The string set, as text, for quick comparison. */
+  key: string
   strings: number[]
+  /** Absolute frets, 0 for an open string. */
   frets: number[]
+  /** Lowest and highest fretted notes (0 and 0 for an all-open shape). */
   min: number
   max: number
-  score: number
+  /** From the chord library, where 0 is the chord's usual shape. */
+  libraryRank: number | null
+  /** The root, or a slash chord's bass, is the lowest note. */
+  rootLow: boolean
+  /** Chord notes left out: 1 for each one that matters, a quarter for a fifth. */
+  missing: number
+  /** Notes sounded that are not in the chord at all. */
+  extra: number
+  open: boolean
 }
 
 interface Entry {
   list: ChordVoicing[]
-  /** Every compact shape the band positions can choose from, library ones included. */
+  /** Every shape of the chord, for recommending one. */
   band: Candidate[]
+  notes: ChordNotes | null
+  quality: string
 }
 
-/** A library voicing as strings and absolute frets, if it is a compact band shape. */
-function asCompact(v: ChordVoicing): Omit<Shape, 'score'> | null {
+function describe(v: ChordVoicing, index: number, libraryRank: number | null, notes: ChordNotes): Candidate | null {
   const strings: number[] = []
   const frets: number[] = []
   v.f.forEach((f, string) => {
@@ -191,11 +204,28 @@ function asCompact(v: ChordVoicing): Omit<Shape, 'score'> | null {
     strings.push(string)
     frets.push(f === 0 ? 0 : v.s === 0 ? f : v.s + f - 1)
   })
-  const min = Math.min(...frets)
-  const max = Math.max(...frets)
-  if (min < 1 || strings.length < 2 || strings.length > 4 || max - min > MAX_SPAN) return null
-  return { strings, frets, min, max }
+  if (strings.length < 2) return null
+  const fretted = frets.filter(f => f > 0)
+  const sounding = new Set(frets.map((f, k) => pitchAt(strings[k], f)))
+  const missing = notes.tones
+    .filter(t => !sounding.has(t))
+    .reduce((sum, t) => sum + (notes.essential.includes(t) ? 1 : 0.25), 0)
+  const extra = [...sounding].filter(p => !notes.tones.includes(p) && p !== notes.bass).length
+  return {
+    index,
+    key: strings.join(''),
+    strings,
+    frets,
+    min: fretted.length ? Math.min(...fretted) : 0,
+    max: fretted.length ? Math.max(...fretted) : 0,
+    libraryRank,
+    rootLow: pitchAt(strings[0], frets[0]) === (notes.bass ?? notes.root),
+    missing,
+    extra,
+    open: frets.includes(0),
+  }
 }
+
 const cache = new Map<string, Entry>()
 
 function entryFor(name: string): Entry {
@@ -207,8 +237,8 @@ function entryFor(name: string): Entry {
   const list = [...library]
   if (notes) {
     library.forEach((voicing, index) => {
-      const compact = asCompact(voicing)
-      if (compact) band.push({ index, ...compact, score: scoreShape({ ...compact, score: 0 }, notes) })
+      const shape = describe(voicing, index, index, notes)
+      if (shape) band.push(shape)
     })
     // The two best shapes in each area of the neck on each group of strings.
     // The order is fixed by position, not by score: a saved pick is an index
@@ -226,11 +256,13 @@ function entryFor(name: string): Entry {
       const voicing = toVoicing(shape)
       if (seen.has(absolute(voicing))) continue
       seen.add(absolute(voicing))
-      band.push({ index: list.length, strings: shape.strings, frets: shape.frets, min: shape.min, max: shape.max, score: shape.score })
+      const described = describe(voicing, list.length, null, notes)
+      if (described) band.push(described)
       list.push(voicing)
     }
   }
-  const entry = { list, band }
+  const quality = normalizeQuality((name.match(/^[A-G][#b]?(.*?)(?:\/[A-G][#b]?)?$/)?.[1] ?? '').replace(/^us/, 'sus'))
+  const entry = { list, band, notes, quality }
   cache.set(name, entry)
   return entry
 }
@@ -243,56 +275,81 @@ export function voicingsFor(name: string): ChordVoicing[] {
   return entryFor(name).list
 }
 
-/** How much each group of strings suits each GX-10 sound; lower is better. */
-const SET_PENALTY: Record<string, Record<string, number>> = {
-  // Small shapes on the top strings, up the neck
-  FUNK: { '345': 0, '2345': 0, '234': 0.6, '1345': 0.8, '1234': 1.2, '123': 1.5, '0234': 2, '0123': 2.5, '012': 3 },
-  '80s CLEAN': { '2345': 0, '345': 0.2, '1234': 0.5, '234': 0.5, '1345': 0.8, '123': 1.2, '0234': 1.5, '0123': 2, '012': 3 },
-  // Four-note chords on the middle strings
-  'WARM JAZZ': { '1234': 0, '0234': 0.2, '2345': 0.5, '1345': 0.7, '234': 1, '123': 1, '0123': 1.2, '345': 1.5, '012': 3 },
-  // Fuller shapes with the root underneath
-  CRUNCH: { '0123': 0, '1234': 0.2, '012': 0.3, '0234': 0.4, '123': 0.6, '2345': 1, '234': 1, '1345': 1.2, '345': 1.5 },
+/**
+ * How far a shape is from the chord as a guitarist would normally play it.
+ * The chord comes first: its root (or slash bass) at the bottom, no note
+ * that matters left out, and the library's usual shape before its other
+ * positions. Band shapes built here only fill gaps, like slash chords the
+ * library does not have.
+ */
+function unusual(c: Candidate, notes: ChordNotes, quality: string, acoustic: boolean): number {
+  let cost = 0
+  if (!c.rootLow) cost += 6
+  cost += 3 * c.missing + 3 * c.extra
+  cost += c.libraryRank === null ? 2.5 : 0.15 * c.libraryRank
+  if (!isFamiliar(c, notes, quality)) cost += 0.8
+  cost += 0.2 * Math.max(0, 5 - c.strings.length) // the usual chords are full ones
+  if (acoustic) cost += c.open ? -1 : 0.5
+  return cost
 }
-SET_PENALTY.LEAD = SET_PENALTY.CRUNCH
-SET_PENALTY.default = SET_PENALTY['80s CLEAN']
 
-/** How strongly a song's shapes are pulled into one area of the neck. */
-const STAY_NEAR = 0.35
+/** Roots with open-position chords every guitarist knows. */
+const OPEN_MAJOR = new Set([0, 2, 4, 7, 9]) // C D E G A
+const OPEN_MINOR = new Set([2, 4, 9]) // Dm Em Am
+
+/**
+ * The shapes a guitarist reaches for first: an E- or A-shape barre with the
+ * index finger on the root, or a real open chord (C, A, G, E, D and their
+ * sevenths; Am, Em, Dm).
+ */
+function isFamiliar(c: Candidate, notes: ChordNotes, quality: string): boolean {
+  if (!c.rootLow || notes.bass !== null) return false
+  const rootString = c.strings[0]
+  const barreFromRoot = rootString <= 1 && c.frets[0] > 0 && c.frets[0] === c.min
+  if (barreFromRoot) return true
+  const minor = /^m(?!aj)/.test(quality)
+  const openKey = minor ? OPEN_MINOR.has(notes.root) : OPEN_MAJOR.has(notes.root)
+  return c.open && c.max <= 3 && c.strings.length >= 4 && openKey
+}
+
+/** Keeping a song's shapes near each other only breaks ties. */
+const STAY_NEAR = 0.1
+const MOVE = 0.25
 
 /** The cost of moving the hand from one shape to the next. */
 function move(a: Candidate, b: Candidate): number {
   const center = (c: Candidate) => (c.min + c.max) / 2
-  if (a.strings.join() === b.strings.join()) {
+  const shift = 0.5 + 0.3 * Math.abs(center(a) - center(b))
+  if (a.key === b.key) {
     // Same strings: count the frets the fingers travel. A line cliche that
-    // moves one finger a fret at a time is nearly free.
-    return 0.25 * a.frets.reduce((sum, f, k) => sum + Math.abs(f - b.frets[k]), 0)
+    // moves one finger a fret at a time is nearly free; a jump up the neck
+    // costs no more than it would across strings.
+    return Math.min(shift, 0.25 * a.frets.reduce((sum, f, k) => sum + Math.abs(f - b.frets[k]), 0))
   }
-  return 1 + 0.3 * Math.abs(center(a) - center(b))
+  return shift
 }
 
 /**
- * The shape to show for each chord of a song, as an index into
- * `voicingsFor(name)`. The chords come in the order they first appear. Band
- * shapes are kept in one area of the neck, suit the song's sound, and move
- * as little as possible from one chord to the next. An acoustic song keeps
- * the open chords.
+ * The shape to recommend for each chord of a song, as an index into
+ * `voicingsFor(name)`. The chords come in the order they first appear. Each
+ * chord gets its usual shape; where a chord has more than one good shape,
+ * the one that sits with the song's other chords wins. An acoustic song
+ * leans to open chords.
  */
 export function bandPositions(chords: Array<{ name: string; weight: number }>, style?: string): Record<string, number> {
   const picks: Record<string, number> = {}
   for (const chord of chords) picks[chord.name] = 0
-  if (style === 'ACOUSTIC') return picks
+  const acoustic = style === 'ACOUSTIC'
 
-  const penalty = SET_PENALTY[style ?? ''] ?? SET_PENALTY.default
   const steps = chords
-    .map(chord => ({ ...chord, shapes: entryFor(chord.name).band }))
-    .filter(step => step.shapes.length > 0)
+    .map(chord => ({ ...chord, entry: entryFor(chord.name), shapes: entryFor(chord.name).band }))
+    .filter(step => step.shapes.length > 0 && step.entry.notes !== null)
   if (steps.length === 0) return picks
-  const cost = (shape: Candidate) => shape.score + (penalty[shape.strings.join('')] ?? 2)
 
   let best: { total: number; choice: Candidate[] } | null = null
-  for (let home = 2; home <= 12; home++) {
+  for (let home = 1; home <= 12; home++) {
     const own = (step: (typeof steps)[number], shape: Candidate) =>
-      step.weight * (cost(shape) + STAY_NEAR * Math.abs((shape.min + shape.max) / 2 - home))
+      step.weight * (unusual(shape, step.entry.notes!, step.entry.quality, acoustic) + STAY_NEAR * Math.abs((shape.min + shape.max) / 2 - home))
     // Cheapest way to reach each shape of each chord, walking the song in order
     let totals = steps[0].shapes.map(shape => own(steps[0], shape))
     const back: number[][] = []
@@ -303,7 +360,7 @@ export function bandPositions(chords: Array<{ name: string; weight: number }>, s
         let bestPrev = 0
         let bestCost = Infinity
         prev.forEach((p, k) => {
-          const c = totals[k] + move(p, shape)
+          const c = totals[k] + MOVE * move(p, shape)
           if (c < bestCost) {
             bestCost = c
             bestPrev = k

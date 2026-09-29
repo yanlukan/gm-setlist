@@ -71,36 +71,47 @@ describe('band shapes', () => {
 })
 
 describe('band positions', () => {
-  it('put every song on compact shapes, except the acoustic one on open chords', () => {
+  const shapeOf = (v: ChordVoicing) =>
+    v.f.map((x, i) => (x === null ? 'x' : x === 0 ? 0 : v.s === 0 ? x : v.s + x - 1) + (i < 5 ? '-' : '')).join('')
+
+  it('give Faith the chords as a guitarist plays them, not fragments that sit close together', () => {
+    const { song, chords } = gigChords().find(g => g.song.title === 'Faith')!
+    const picks = bandPositions(chords, song.preset?.name)
+    const shapes = Object.fromEntries(chords.map(({ name }) => [name, shapeOf(voicingsFor(name)[picks[name]])]))
+    expect(shapes).toEqual({
+      B: 'x-2-4-4-4-2', E: '0-2-2-1-0-0', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2',
+    })
+  })
+
+  it('recommend every chord with its root, or slash bass, at the bottom and nothing but a fifth left out', () => {
+    const wrong: string[] = []
     for (const { song, chords } of gigChords()) {
       const picks = bandPositions(chords, song.preset?.name)
       for (const { name } of chords) {
-        const v = voicingsFor(name)[picks[name]]
-        const s = sounding(v)
-        if (song.preset?.name === 'ACOUSTIC') expect(picks[name], `${song.title} ${name}`).toBe(0)
-        else expect(s.length <= 4 && s.every(n => n.fret > 0), `${song.title} ${name}`).toBe(true)
+        const notes = chordNotes(name)!
+        const s = sounding(voicingsFor(name)[picks[name]])
+        const pitches = new Set(s.map(n => n.pitch))
+        if (s[0].pitch !== (notes.bass ?? notes.root)) wrong.push(`${song.title} ${name}: not rooted`)
+        if (notes.essential.some(p => !pitches.has(p))) wrong.push(`${song.title} ${name}: a chord note missing`)
+        if ([...pitches].some(p => !notes.tones.includes(p) && p !== notes.bass)) wrong.push(`${song.title} ${name}: a note not in the chord`)
       }
     }
+    expect(wrong).toEqual([])
   })
 
-  it("keep each song's shapes in one area of the neck", () => {
-    for (const { song, chords } of gigChords()) {
-      if (song.preset?.name === 'ACOUSTIC') continue
-      const picks = bandPositions(chords, song.preset?.name)
-      const frets = chords.flatMap(({ name }) => sounding(voicingsFor(name)[picks[name]]).map(n => n.fret))
-      expect(Math.max(...frets) - Math.min(...frets), song.title).toBeLessThanOrEqual(7)
-    }
-  })
-
-  it("move Freedom's line cliche a finger or two at a time, on the same strings", () => {
+  it("keep Freedom's line cliche on one Cm barre, the root held on the 3rd fret", () => {
     const { song, chords } = gigChords().find(g => g.song.title === "Freedom! '90")!
     const picks = bandPositions(chords, song.preset?.name)
-    const line = ['Cm', 'Cm(maj7)', 'Cm7', 'Cm6'].map(name => sounding(voicingsFor(name)[picks[name]]))
-    for (let i = 1; i < line.length; i++) {
-      expect(line[i].map(n => n.string)).toEqual(line[i - 1].map(n => n.string))
-      const travel = line[i].reduce((sum, n, k) => sum + Math.abs(n.fret - line[i - 1][k].fret), 0)
-      expect(travel).toBeLessThanOrEqual(4)
+    for (const name of ['Cm', 'Cm(maj7)', 'Cm7', 'Cm6']) {
+      const lowest = sounding(voicingsFor(name)[picks[name]])[0]
+      expect({ name, string: lowest.string, fret: lowest.fret }).toEqual({ name, string: 1, fret: 3 })
     }
+  })
+
+  it('keep open chords for the acoustic song', () => {
+    const { song, chords } = gigChords().find(g => g.song.preset?.name === 'ACOUSTIC')!
+    const picks = bandPositions(chords, song.preset?.name)
+    for (const { name } of chords) expect(sounding(voicingsFor(name)[picks[name]]).some(n => n.fret === 0), name).toBe(true)
   })
 })
 

@@ -107,6 +107,12 @@ describe('chord diagrams', () => {
     expect(lookupChord('Gmaj13#11', { simplify: false })).toBeUndefined()
   })
 
+  it('calls a shape open only when it rings an open string', () => {
+    expect(CHORD_DB['E'][0].l).toBe('Open') // 0-2-2-1-0-0
+    const barreF = CHORD_DB['F'].find(v => v.s === 0 && !v.f.includes(0))!
+    expect(barreF.l).toBe('1st fret') // 1-3-3-2-1-1 is a barre, not an open chord
+  })
+
   it('has no diagram for things that are not chords', () => {
     expect(lookupChord('N.C.')).toBeUndefined()
     expect(lookupChord('')).toBeUndefined()

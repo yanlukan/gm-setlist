@@ -58,18 +58,42 @@ const KEY_MAP: Record<string, string> = {
   'Ab': 'Ab', 'A': 'A', 'Bb': 'Bb', 'B': 'B',
 }
 
-function positionLabel(baseFret: number): string {
-  if (baseFret <= 1) return 'Open'
-  const suffixes: Record<number, string> = { 2: 'nd', 3: 'rd' }
-  return `${baseFret}${suffixes[baseFret] || 'th'} fret`
+/**
+ * "Open" only for a shape near the nut that rings an open string: a barre at
+ * the nut, like F, used to be called open as well.
+ */
+function positionLabel(frets: number[], baseFret: number): string {
+  const fretted = frets.filter(f => f > 0)
+  if (baseFret <= 1 && (frets.includes(0) || fretted.length === 0)) return 'Open'
+  const lowest = baseFret <= 1 ? Math.min(...fretted) : baseFret
+  const suffixes: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' }
+  return `${lowest}${suffixes[lowest] || 'th'} fret`
 }
 
 function convertPosition(pos: { frets: number[]; baseFret: number }): ChordVoicing {
   return {
     f: pos.frets.map(f => f === -1 ? null : f),
     s: pos.baseFret <= 1 ? 0 : pos.baseFret,
-    l: positionLabel(pos.baseFret),
+    l: positionLabel(pos.frets, pos.baseFret),
   }
+}
+
+const OPEN_PITCH = [4, 9, 2, 7, 11, 4] // E A D G B E
+const PITCH: Record<string, number> = { C: 0, 'C#': 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, Bb: 10, B: 11 }
+
+/**
+ * The database barres A-shape chords across all six strings, which puts the
+ * fifth under the root: B as 2-2-4-4-4-2 has F# in the bass. Guitarists mute
+ * that string (x-2-4-4-4-2), so the chord sounds with its root at the bottom.
+ */
+function muteFifthUnderRoot(v: ChordVoicing, root: string): ChordVoicing {
+  const [low, next] = v.f
+  if (low === null || next === null || low === 0 || low !== next) return v
+  const fret = v.s === 0 ? low : v.s + low - 1
+  const lowPitch = (OPEN_PITCH[0] + fret) % 12
+  const nextPitch = (OPEN_PITCH[1] + fret) % 12
+  if (nextPitch !== PITCH[root] || lowPitch !== (PITCH[root] + 7) % 12) return v
+  return { ...v, f: [null, ...v.f.slice(1)] }
 }
 
 // Build the complete chord database at import time
@@ -94,7 +118,7 @@ function buildChordDB(): Record<string, ChordVoicing[]> {
       }
 
       const name = rootNote + suffix
-      db[name] = chord.positions.map(convertPosition)
+      db[name] = chord.positions.map(convertPosition).map(v => muteFifthUnderRoot(v, rootNote))
 
       // Add enharmonic equivalents so both C# and Db work
       const enharmonics: Record<string, string> = {
