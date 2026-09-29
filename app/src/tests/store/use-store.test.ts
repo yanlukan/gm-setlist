@@ -392,14 +392,15 @@ describe('charts checked against the recordings', () => {
     expect(song("I Can't Make You Love Me").bpm).toBe(58)
   })
 
-  it('has A Different Corner a semitone below the book, in Gb, every chord moved down', () => {
-    // The user, 2026-09-29: "G semitone lower is Gb like we play. but then D/G and Am7 semitone lower?"
+  it('has A Different Corner as the record plays it, a semitone below the book, Gb all the way', () => {
+    // The user, 2026-09-29: "G semitone lower is Gb like we play", and "There is no D/G in
+    // recording but instead G all the time"
     const corner = song('A Different Corner')
     expect(corner.key).toBe('Gb')
     const chords = new Set(corner.sections.flatMap(s => s.chords.split(/\s+/).filter(Boolean)))
-    expect([...chords].sort()).toEqual(['Abm7', 'Db/Gb', 'Gb'])
-    // The book's G, D/G and Am7 voicings a semitone lower, fingered as barres
-    expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', 'Db/Gb': '2-x-x-1-2-1', Abm7: '4-6-4-4-4-x' })
+    expect([...chords].sort()).toEqual(['Abm7', 'Gb'])
+    // The book's G and Am7 voicings a semitone lower, fingered as barres
+    expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', Abm7: '4-6-4-4-4-x' })
     expect(corner.cue).toBeUndefined()
   })
 
