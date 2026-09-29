@@ -10,7 +10,8 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 192, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
+    shapes: { B: '7-9-9-8-7-7', E: 'x-7-9-9-9-7' },
+    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions); E is the A shape at the same fret. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
     sections: [
       { name: 'Intro', chords: 'B' },
       { name: 'Verse', chords: 'B  E  B  E  B' },

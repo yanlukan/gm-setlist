@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { chordNotes, voicingsFor, bandPositions } from '../../music/voicings'
+import { chordNotes, voicingsFor, bandPositions, shapeText } from '../../music/voicings'
+import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
 import { transposeInKey, isChartMark } from '../../music/theory'
@@ -71,16 +72,27 @@ describe('band shapes', () => {
 })
 
 describe('band positions', () => {
-  const shapeOf = (v: ChordVoicing) =>
-    v.f.map((x, i) => (x === null ? 'x' : x === 0 ? 0 : v.s === 0 ? x : v.s + x - 1) + (i < 5 ? '-' : '')).join('')
 
-  it('give Faith the chords as a guitarist plays them, not fragments that sit close together', () => {
-    const { song, chords } = gigChords().find(g => g.song.title === 'Faith')!
-    const picks = bandPositions(chords, song.preset?.name)
-    const shapes = Object.fromEntries(chords.map(({ name }) => [name, shapeOf(voicingsFor(name)[picks[name]])]))
-    expect(shapes).toEqual({
-      B: 'x-2-4-4-4-2', E: '0-2-2-1-0-0', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2',
-    })
+  it("recommend Faith's researched shapes: the riff's B barre at the 7th fret, and E beside it", () => {
+    const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+    const { picks } = bandPlanFor(faith, undefined)
+    expect(shapeText(voicingsFor('B')[picks.B])).toBe('7-9-9-8-7-7')
+    expect(shapeText(voicingsFor('E')[picks.E])).toBe('x-7-9-9-9-7')
+  })
+
+  it('have every researched shape in its chord\'s list, playing only that chord', () => {
+    const wrong: string[] = []
+    for (const song of DEFAULT_SONGS) {
+      for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+        const v = voicingsFor(name).find(x => shapeText(x) === shape)
+        if (!v) { wrong.push(`${song.title} ${name} ${shape}: not in the list`); continue }
+        const notes = chordNotes(name)!
+        const pitches = new Set(sounding(v).map(n => n.pitch))
+        if ([...pitches].some(p => !notes.tones.includes(p) && p !== notes.bass)) wrong.push(`${song.title} ${name}: a note outside the chord`)
+        if (notes.essential.some(p => !pitches.has(p))) wrong.push(`${song.title} ${name}: a chord note missing`)
+      }
+    }
+    expect(wrong).toEqual([])
   })
 
   it('recommend every chord with its root, or slash bass, at the bottom and nothing but a fifth left out', () => {

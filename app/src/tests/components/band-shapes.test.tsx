@@ -19,32 +19,32 @@ const open = (title: string) => {
 }
 
 describe('chord shapes for electric guitar', () => {
-  it("show each chord's usual shape by default", () => {
+  it("show Faith's researched shapes by default: B and E barred at the 7th fret", () => {
     render(<DiagramsBar />) // Faith
-    expect(within(tile('B')).getByText('2nd fret')).toBeInTheDocument() // x-2-4-4-4-2
-    expect(within(tile('E')).getByText('Open')).toBeInTheDocument() // 0-2-2-1-0-0
+    expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument() // 7-9-9-8-7-7
+    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument() // x-7-9-9-9-7
     expect(within(tile('G#m')).getByText('4th fret')).toBeInTheDocument() // 4-6-6-4-4-4
   })
 
   it('keep a shape you pick by hand, and can go back to the recommended one', () => {
     render(<DiagramsBar />)
     fireEvent.click(tile('E'))
-    expect(screen.getByRole('button', { name: /^E at Open, recommended, selected$/ })).toBeInTheDocument()
-    fireEvent.click(screen.getAllByRole('button', { name: 'E at 7th fret' })[0])
-    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^E at 7th fret, recommended, selected$/ })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'E at Open' }))
+    expect(within(tile('E')).getByText('Open')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Your pick')).toBeInTheDocument()
 
     fireEvent.click(tile('E'))
     fireEvent.click(screen.getByRole('button', { name: 'Use the recommended shape' }))
-    expect(within(tile('E')).getByText('Open')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Recommended')).toBeInTheDocument()
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
   })
 
   it('keep a pick saved before recommendations existed on the shape it meant', () => {
-    useStore.setState({ selectedVoicings: { B: 2 } }) // the library's third B: 7-9-9-8-7-7
+    useStore.setState({ selectedVoicings: { B: 0 } }) // the library's first B: x-2-4-4-4-2
     render(<DiagramsBar />)
-    expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument()
+    expect(within(tile('B')).getByText('2nd fret')).toBeInTheDocument()
     expect(within(tile('B')).getByText('Your pick')).toBeInTheDocument()
   })
 
@@ -55,8 +55,8 @@ describe('chord shapes for electric guitar', () => {
 
   it("show the song's recommended area of the neck on its title line", () => {
     render(<SongSheet />) // Faith
-    const position = screen.getByLabelText('Recommended position: open to fret 6')
-    expect(position).toHaveTextContent('Open to fret 6') // open E, barres up to the 6th fret
+    const position = screen.getByLabelText('Recommended position: frets 2 to 9')
+    expect(position).toHaveTextContent('Frets 2–9') // the riff at the 7th fret, the pre-chorus barres lower
     expect(position.parentElement).toBe(screen.getByRole('heading', { name: 'Faith' }).parentElement)
   })
 

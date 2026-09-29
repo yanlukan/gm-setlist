@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { bandPositions, fretSpan, voicingsFor } from '../music/voicings'
+import { bandPositions, fretSpan, indexOfShape, voicingsFor } from '../music/voicings'
 import { transposeFor } from '../music/setlist-text'
 import { isChartMark, transposeInKey } from '../music/theory'
 import type { Song, SongEdits } from '../types'
@@ -58,7 +58,12 @@ function planSong(song: Song, edits: SongEdits | undefined): BandPlan {
         if (token && !isChartMark(token)) counts.set(token, (counts.get(token) ?? 0) + 1)
       }
     }
-    const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name)
+    const fixed: Record<string, number> = {}
+    for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+      const index = indexOfShape(name, shape)
+      if (index >= 0) fixed[name] = index
+    }
+    const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name, fixed)
     const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(Boolean)
     return { picks, span: fretSpan(shapes) }
   }

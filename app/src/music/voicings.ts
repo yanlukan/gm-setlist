@@ -1,4 +1,5 @@
 import { lookupChord, normalizeQuality, type ChordVoicing } from '../data/chords-db'
+import { DEFAULT_SONGS } from '../data/songs'
 
 /**
  * Band shapes for electric guitar: compact three- and four-string voicings
@@ -166,6 +167,16 @@ function absolute(v: ChordVoicing): string {
   return v.f.map(x => (x === null ? 'x' : x === 0 ? 0 : v.s === 0 ? x : v.s + x - 1)).join(',')
 }
 
+/** A shape as a guitarist writes it, low E to high e: 7-9-9-8-7-7. */
+export function shapeText(v: ChordVoicing): string {
+  return absolute(v).replace(/,/g, '-')
+}
+
+/** Where a written shape sits in a chord's list of shapes, or -1. */
+export function indexOfShape(name: string, shape: string): number {
+  return voicingsFor(name).findIndex(v => shapeText(v) === shape)
+}
+
 interface Candidate {
   /** Index in the chord's list of shapes. */
   index: number
@@ -228,6 +239,36 @@ function describe(v: ChordVoicing, index: number, libraryRank: number | null, no
 
 const cache = new Map<string, Entry>()
 
+/**
+ * Researched shapes from the song data, by chord. Any the chord library does
+ * not have are added at the end of that chord's list, so every one can be
+ * shown and picked.
+ */
+const RESEARCHED = new Map<string, string[]>()
+for (const song of DEFAULT_SONGS) {
+  for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+    const known = RESEARCHED.get(name) ?? []
+    if (!known.includes(shape)) RESEARCHED.set(name, [...known, shape])
+  }
+}
+
+/** A written shape (x-7-9-9-9-7) as a diagram. */
+function fromText(shape: string): ChordVoicing | null {
+  const parts = shape.split('-')
+  if (parts.length !== 6) return null
+  const frets = parts.map(p => (p === 'x' ? null : Number(p)))
+  if (frets.some(f => f !== null && (!Number.isInteger(f) || f < 0 || f > 24))) return null
+  const fretted = frets.filter((f): f is number => f !== null && f > 0)
+  const min = fretted.length ? Math.min(...fretted) : 0
+  const max = fretted.length ? Math.max(...fretted) : 0
+  const atNut = max <= 5
+  return {
+    f: frets.map(f => (f === null ? null : f === 0 || atNut ? f : f - min + 1)),
+    s: atNut ? 0 : min,
+    l: frets.includes(0) && atNut ? 'Open' : `${ordinal(min)} fret`,
+  }
+}
+
 function entryFor(name: string): Entry {
   const hit = cache.get(name)
   if (hit) return hit
@@ -260,6 +301,14 @@ function entryFor(name: string): Entry {
       if (described) band.push(described)
       list.push(voicing)
     }
+  }
+  for (const shape of RESEARCHED.get(name) ?? []) {
+    if (list.some(v => shapeText(v) === shape)) continue
+    const voicing = fromText(shape)
+    if (!voicing) continue
+    const described = notes ? describe(voicing, list.length, null, notes) : null
+    if (described) band.push(described)
+    list.push(voicing)
   }
   const quality = normalizeQuality((name.match(/^[A-G][#b]?(.*?)(?:\/[A-G][#b]?)?$/)?.[1] ?? '').replace(/^us/, 'sus'))
   const entry = { list, band, notes, quality }
@@ -336,13 +385,25 @@ function move(a: Candidate, b: Candidate): number {
  * the one that sits with the song's other chords wins. An acoustic song
  * leans to open chords.
  */
-export function bandPositions(chords: Array<{ name: string; weight: number }>, style?: string): Record<string, number> {
+export function bandPositions(
+  chords: Array<{ name: string; weight: number }>,
+  style?: string,
+  /** Shapes already settled for this song (researched), by chord: index into its list. */
+  fixed: Record<string, number> = {},
+): Record<string, number> {
   const picks: Record<string, number> = {}
-  for (const chord of chords) picks[chord.name] = 0
+  for (const chord of chords) picks[chord.name] = fixed[chord.name] ?? 0
   const acoustic = style === 'ACOUSTIC'
 
   const steps = chords
-    .map(chord => ({ ...chord, entry: entryFor(chord.name), shapes: entryFor(chord.name).band }))
+    .map(chord => {
+      const entry = entryFor(chord.name)
+      const settled = fixed[chord.name]
+      // A researched shape is the only choice for its chord; the others are
+      // then chosen to sit with it.
+      const shapes = settled === undefined ? entry.band : entry.band.filter(c => c.index === settled)
+      return { ...chord, entry, shapes }
+    })
     .filter(step => step.shapes.length > 0 && step.entry.notes !== null)
   if (steps.length === 0) return picks
 
