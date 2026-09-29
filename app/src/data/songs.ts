@@ -307,7 +307,9 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM.',
+    shapes: { Em7: 'x-7-9-7-8-7', A: '5-7-7-6-5-5', 'C#m7': 'x-4-6-4-5-4', 'A/C#': 'x-4-7-6-5-5', D: 'x-5-7-7-7-5' },
+    shapesFrom: 'Songsterr',
+    notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM. The shapes marked Songsterr are the record\'s rhythm guitar as Songsterr\'s transcription plays it, barres between the 6th and 11th frets, moved down two frets to the band\'s key.',
     sections: [
       { name: 'Intro', chords: 'F#m7  (x8)' },
       { name: 'Intro 2', chords: 'F#m7  B7  (x2)' },

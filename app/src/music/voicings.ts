@@ -255,6 +255,7 @@ export const SHAPES_RELEASED = [
   'Faith', // 3.25.0
   "Freedom! '90", 'Papa Was a Rolling Stone', 'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove', 'Outside', 'Father Figure', 'Somebody to Love', 'Roxanne', 'Waiting (Reprise)', 'Kissing a Fool', // 3.26.0
   "I'm Your Man", 'Careless Whisper', // 3.27.0
+  'Club Tropicana', // 3.28.0
 ]
 
 /**
