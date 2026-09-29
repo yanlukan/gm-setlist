@@ -120,6 +120,12 @@ describe('next-song heads-up', () => {
 describe('transpose button with a band key', () => {
   const key = () => screen.getByText(/^Key /).textContent
 
+  it('shows the key the band hears beside the key of the shapes', () => {
+    useStore.setState({ currentIndex: 4 }) // A Different Corner: the book's G shapes, a semitone down
+    render(<TopBar />)
+    expect(key()).toBe('Key G, sounds Gb')
+  })
+
   it('toggles between the band key and the original recording key', () => {
     useStore.setState({ currentIndex: 1 }) // I'm Your Man: chart D, band key C
     render(<TopBar />)

@@ -49,6 +49,11 @@ describe('formatSetlist', () => {
 })
 
 describe('band keys in the shared setlist', () => {
+  it('gives the key the band hears for a song played in the book\'s shapes a semitone down', () => {
+    const text = formatSetlist('GM', inGigOrder, {})
+    expect(text).toContain('5. A Different Corner (Gb)')
+  })
+
   it('lists Amazing in the key the band plays it', () => {
     const text = formatSetlist('GM', inGigOrder, {})
     expect(text).toContain('4. Amazing (Am, orig. Bbm)')

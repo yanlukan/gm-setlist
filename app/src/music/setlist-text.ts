@@ -24,13 +24,23 @@ export function playedKey(song: Song, edits?: SongEdits): PlayedKey {
 }
 
 /**
+ * The key the band hears when the guitar plays a chart in `key` a few
+ * semitones down (Song.soundsLower): A Different Corner's G shapes sound Gb.
+ */
+export function soundingKey(key: string, soundsLower: number | undefined): string {
+  if (!soundsLower || !key) return key
+  return transposeChord(key, -soundsLower, shouldUseFlats(key, -soundsLower))
+}
+
+/**
  * The setlist as plain text for the band: running order and the key each
  * song is played in. Lower-key songs whose transpose isn't set yet are
  * flagged so nobody learns the wrong key.
  */
 export function formatSetlist(name: string, songs: Song[], edits: Record<string, SongEdits>): string {
   const lines = songs.map((song, i) => {
-    const { key, original, semitones } = playedKey(song, edits[song.title])
+    const { key: played, original, semitones } = playedKey(song, edits[song.title])
+    const key = soundingKey(played, song.soundsLower)
     const detail = semitones
       ? `${key}, orig. ${original}`
       : song.lowerKey
