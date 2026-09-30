@@ -278,11 +278,27 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   saveSections: (title: string, sections: Section[]) => {
+    const same = (a: Section[], b: Section[]) =>
+      a.length === b.length && a.every((s, i) => s.name === b[i].name && s.chords === b[i].chords)
     // Nothing changed: do not turn a look at a song into a saved copy of it.
     // A saved copy shadows the built-in chart, so later chart fixes would
     // never reach that song on this device.
-    const shown = get().getEditedSections(title)
-    if (shown.length === sections.length && shown.every((s, i) => s.name === sections[i].name && s.chords === sections[i].chords)) return
+    if (same(get().getEditedSections(title), sections)) return
+    const builtIn = get().allSongs().find(s => s.title === title)?.sections ?? []
+    if (same(builtIn, sections)) {
+      // Back to the built-in chart (Undo all the way, say): that is no longer
+      // an edit, so the song follows later chart fixes again. Anything else
+      // saved for it, like notes or a tempo, stays.
+      const { sections: _dropped, ...rest } = get().edits[title] ?? ({} as SongEdits)
+      const keep = Object.keys(rest).length > 0
+      set(state => {
+        const { [title]: _, ...others } = state.edits
+        return { edits: keep ? { ...others, [title]: rest } : others }
+      })
+      if (keep) persistEdits(title, rest)
+      else if (!readOnly) deleteSongEdits(title).catch(e => console.warn('deleteSongEdits failed:', e))
+      return
+    }
     set(state => ({
       edits: {
         ...state.edits,

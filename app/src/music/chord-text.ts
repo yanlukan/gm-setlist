@@ -64,3 +64,75 @@ export function unknownChords(text: string): string[] {
   }
   return found
 }
+
+// ---------- Editing on the chart ----------
+// The editor keeps a cursor between chords (a caret) or on one chord (a
+// selection). These functions never change what they are given.
+
+/** A cursor between chords: `pos` chords of `line` lie before it. */
+export interface Caret {
+  line: number
+  pos: number
+}
+
+export interface Edited {
+  lines: ChordLines
+  caret: Caret
+}
+
+const copy = (lines: ChordLines): ChordLines => lines.map(line => [...line])
+
+/** A cursor that cannot point outside the lines: past the end means the end. */
+function place(lines: ChordLines, caret: Caret): { lines: ChordLines; line: number; pos: number } {
+  const all = lines.length > 0 ? copy(lines) : [[]]
+  const line = Math.max(0, Math.min(caret.line, all.length - 1))
+  const pos = Math.max(0, Math.min(caret.pos, all[line].length))
+  return { lines: all, line, pos }
+}
+
+/** Put a chord at the cursor. The cursor moves after it, ready for the next. */
+export function insertChord(lines: ChordLines, caret: Caret, chord: string): Edited {
+  const at = place(lines, caret)
+  at.lines[at.line].splice(at.pos, 0, chord)
+  return { lines: at.lines, caret: { line: at.line, pos: at.pos + 1 } }
+}
+
+/** Swap one chord for another; the cursor goes after it. */
+export function replaceChord(lines: ChordLines, at: { line: number; index: number }, chord: string): Edited {
+  const next = copy(lines)
+  if (next[at.line]?.[at.index] === undefined) return { lines: next, caret: { line: at.line, pos: at.index } }
+  next[at.line][at.index] = chord
+  return { lines: next, caret: { line: at.line, pos: at.index + 1 } }
+}
+
+/** Remove one chord; the cursor stays where it was. */
+export function deleteChord(lines: ChordLines, at: { line: number; index: number }): Edited {
+  const next = copy(lines)
+  next[at.line]?.splice(at.index, 1)
+  return { lines: next, caret: { line: at.line, pos: at.index } }
+}
+
+/**
+ * Backspace: the chord before the cursor, or at the start of a line the line
+ * break itself, which joins the line to the one above.
+ */
+export function backspace(lines: ChordLines, caret: Caret): Edited {
+  const at = place(lines, caret)
+  if (at.pos > 0) {
+    at.lines[at.line].splice(at.pos - 1, 1)
+    return { lines: at.lines, caret: { line: at.line, pos: at.pos - 1 } }
+  }
+  if (at.line === 0) return { lines: at.lines, caret: { line: 0, pos: 0 } }
+  const above = at.lines[at.line - 1]
+  const joinedAt = above.length
+  at.lines.splice(at.line - 1, 2, [...above, ...at.lines[at.line]])
+  return { lines: at.lines, caret: { line: at.line - 1, pos: joinedAt } }
+}
+
+/** A line break at the cursor; the cursor starts the new line. */
+export function breakLine(lines: ChordLines, caret: Caret): Edited {
+  const at = place(lines, caret)
+  const line = at.lines[at.line]
+  at.lines.splice(at.line, 1, line.slice(0, at.pos), line.slice(at.pos))
+  return { lines: at.lines, caret: { line: at.line + 1, pos: 0 } }
+}

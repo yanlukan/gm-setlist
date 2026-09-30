@@ -706,3 +706,169 @@
   .edit-chords-wrap { order: 3; flex-basis: 100%; }
   .edit-palette-btn { order: 2; }
 }
+
+/* ---------- Editing on the chart ---------- */
+.ce { font-size: clamp(22px, 6vw, 30px); }
+.ce-section {
+  padding: 6px 0 10px 8px;
+  border-bottom: 1px solid var(--badge-bg);
+  border-left: 3px solid transparent;
+}
+.ce-section.is-active { border-left-color: var(--accent); }
+.ce-head { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.ce-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 2px;
+  border: none;
+  border-bottom: 1px dashed var(--edit-border, #f59e0b);
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px; /* 16px or more: iOS zooms in on anything smaller */
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ce-name:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ce-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.ce-act {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+.ce-act.ce-text { font-size: 14px; font-weight: 700; color: var(--text); }
+.ce-act.ce-drop { color: #ef4444; }
+/* One row per line of the chart; a chord is a target, and so is every gap between chords */
+.ce-line { display: flex; flex-wrap: wrap; align-items: stretch; }
+.ce-chord {
+  min-height: 2.1em;
+  padding: 0 0.28em;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1;
+}
+.ce-chord.is-selected { background: var(--accent); color: #fff; }
+.ce-chord.is-mark { font-size: 0.6em; font-weight: 600; color: var(--text-muted); }
+.ce-chord.is-mark.is-selected { color: #fff; }
+.ce-chord.is-bad { text-decoration: underline dotted #f87171; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.ce-gap {
+  position: relative;
+  flex: 0 0 auto;
+  width: 26px;
+  min-height: 2.1em;
+  padding: 0;
+  background: transparent;
+}
+/* The cursor: a blinking bar in the gap */
+.ce-gap.is-caret::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  bottom: 14%;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: ce-blink 1s steps(2, start) infinite;
+}
+.ce-gap-end { flex: 1 1 30px; min-width: 30px; display: flex; align-items: center; justify-content: flex-end; }
+.ce-gap-end.is-caret::after { left: 13px; }
+@keyframes ce-blink { to { visibility: hidden; } }
+.ce-eol { font-size: 0.55em; color: var(--text-muted); opacity: 0.55; padding-right: 4px; }
+@media (max-width: 600px) {
+  /* The name gets the whole width; the buttons appear under it for the section you are in */
+  .ce-head { flex-wrap: wrap; }
+  .ce-name { flex: 1 1 100%; }
+  .ce-actions { flex: 1 1 100%; justify-content: flex-end; }
+  .ce-section:not(.is-active) .ce-actions { display: none; }
+}
+.ce-add { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; }
+.ce-add-type {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.ce-add-custom { display: flex; gap: 4px; width: 100%; margin-top: 4px; }
+.ce-add-custom input { flex: 1; }
+.ce-add-btn {
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: 2px dashed var(--edit-border, #f59e0b);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--edit-border, #f59e0b);
+  font-size: 15px;
+  font-weight: 600;
+}
+.ce-notes { margin-top: 12px; }
+.ce-notes-label { margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+/* ---------- Chord keyboard: docked under the chart while editing ---------- */
+.ck {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 8px;
+  background: var(--picker-bg);
+  border-top: 2px solid var(--edit-border, #f59e0b);
+}
+.ck-hint {
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ck-tools { display: flex; gap: 6px; }
+.ck-tool {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ck-newline { margin-left: auto; }
+.ck-row { display: flex; align-items: center; gap: 8px; }
+.ck-label {
+  flex: 0 0 50px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ck-chips { display: flex; flex: 1; min-width: 0; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ck-chip {
+  flex: 0 0 auto;
+  min-width: 52px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  font-size: 17px;
+  font-weight: 700;
+}
+.ck-chip:active, .ck-tool:active, .ce-act:active { filter: brightness(1.35); }
+.ck-root { background: transparent; border: 2px solid var(--border); }
+.ck-root.is-selected { border-color: var(--accent); }
+
+/* The chart's chords and the keyboard are buttons to tap: a long press must not select their text or pop a menu (iOS) */
+.ce-line, .ck {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

@@ -151,7 +151,8 @@ function AppInner() {
         </div>
       )}
       <SongSheet />
-      {diagramsVisible && <DiagramsBar />}
+      {/* While editing, the chord keyboard takes the diagrams' place */}
+      {diagramsVisible && !editMode && <DiagramsBar />}
       <BottomBar />
       {toast && <div className="toast" role="status">{toast}</div>}
     </>

@@ -124,6 +124,25 @@ describe('useStore', () => {
       expect(useStore.getState().edits[song.title].notes).toBe('Play it twice')
     })
 
+    it('is not an edit any more once the chords are back to the built-in chart', () => {
+      // Undo all the way must un-freeze the song, so it follows later chart fixes again
+      const song = DEFAULT_SONGS[0]
+      const changed = song.sections.map((s, i) => (i === 0 ? { ...s, chords: 'Am  G' } : s))
+      useStore.getState().saveSections(song.title, changed)
+      expect(useStore.getState().edits[song.title]).toBeDefined()
+      useStore.getState().saveSections(song.title, song.sections.map(s => ({ ...s })))
+      expect(useStore.getState().edits[song.title]).toBeUndefined()
+    })
+
+    it('keeps the notes and tempo you saved when the chords go back to the built-in chart', () => {
+      const song = DEFAULT_SONGS[0]
+      useStore.getState().saveNotes(song.title, 'Play it twice')
+      useStore.getState().saveBpm(song.title, 101)
+      useStore.getState().saveSections(song.title, song.sections.map((s, i) => (i === 0 ? { ...s, chords: 'Am  G' } : s)))
+      useStore.getState().saveSections(song.title, song.sections.map(s => ({ ...s })))
+      expect(useStore.getState().edits[song.title]).toEqual({ notes: 'Play it twice', bpm: 101 })
+    })
+
     it('resetEdits removes edits for a song', () => {
       const title = DEFAULT_SONGS[0].title
       useStore.getState().saveSections(title, [{ name: 'X', chords: 'C' }])

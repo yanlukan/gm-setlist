@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { parseChordText, formatChordText, normalizeChordText, unknownChords, isChordToken } from '../../music/chord-text'
+import {
+  parseChordText, formatChordText, normalizeChordText, unknownChords, isChordToken,
+  insertChord, replaceChord, deleteChord, backspace, breakLine,
+} from '../../music/chord-text'
 
 describe('chord text', () => {
   it('reads lines and chords, however they are spaced', () => {
@@ -70,5 +73,80 @@ describe('checking chords', () => {
       }
     }
     expect(wrong).toEqual([])
+  })
+})
+
+describe('editing lines of chords', () => {
+  const lines = [['Gb', 'Abm'], ['Ebm']]
+
+  it('puts a chord at the cursor and moves the cursor after it', () => {
+    expect(insertChord(lines, { line: 0, pos: 1 }, 'Db')).toEqual({
+      lines: [['Gb', 'Db', 'Abm'], ['Ebm']],
+      caret: { line: 0, pos: 2 },
+    })
+  })
+
+  it('can put a chord at the start or the end of a line', () => {
+    expect(insertChord(lines, { line: 1, pos: 0 }, 'Db').lines).toEqual([['Gb', 'Abm'], ['Db', 'Ebm']])
+    expect(insertChord(lines, { line: 1, pos: 1 }, 'Db').lines).toEqual([['Gb', 'Abm'], ['Ebm', 'Db']])
+  })
+
+  it('starts the first line of an empty section', () => {
+    expect(insertChord([], { line: 0, pos: 0 }, 'Gb')).toEqual({ lines: [['Gb']], caret: { line: 0, pos: 1 } })
+  })
+
+  it('keeps adding after the chord it just added', () => {
+    const first = insertChord([[]], { line: 0, pos: 0 }, 'Gb')
+    const second = insertChord(first.lines, first.caret, 'Abm')
+    expect(second.lines).toEqual([['Gb', 'Abm']])
+  })
+
+  it('replaces a chord and puts the cursor after it', () => {
+    expect(replaceChord(lines, { line: 0, index: 1 }, 'Ebm')).toEqual({
+      lines: [['Gb', 'Ebm'], ['Ebm']],
+      caret: { line: 0, pos: 2 },
+    })
+  })
+
+  it('deletes a chord and leaves the cursor where it was', () => {
+    expect(deleteChord(lines, { line: 0, index: 0 })).toEqual({ lines: [['Abm'], ['Ebm']], caret: { line: 0, pos: 0 } })
+  })
+
+  it('backspace removes the chord before the cursor', () => {
+    expect(backspace(lines, { line: 0, pos: 2 })).toEqual({ lines: [['Gb'], ['Ebm']], caret: { line: 0, pos: 1 } })
+  })
+
+  it('backspace at the start of a line joins it to the line above', () => {
+    expect(backspace(lines, { line: 1, pos: 0 })).toEqual({ lines: [['Gb', 'Abm', 'Ebm']], caret: { line: 0, pos: 2 } })
+  })
+
+  it('backspace at the very start does nothing', () => {
+    expect(backspace(lines, { line: 0, pos: 0 })).toEqual({ lines, caret: { line: 0, pos: 0 } })
+  })
+
+  it('breaks the line at the cursor', () => {
+    expect(breakLine([['Gb', 'Abm', 'Ebm']], { line: 0, pos: 1 })).toEqual({
+      lines: [['Gb'], ['Abm', 'Ebm']],
+      caret: { line: 1, pos: 0 },
+    })
+  })
+
+  it('opens an empty line when it breaks at the end', () => {
+    expect(breakLine([['Gb']], { line: 0, pos: 1 })).toEqual({ lines: [['Gb'], []], caret: { line: 1, pos: 0 } })
+  })
+
+  it('never changes the lines it was given', () => {
+    const before = JSON.stringify(lines)
+    insertChord(lines, { line: 0, pos: 0 }, 'X')
+    replaceChord(lines, { line: 0, index: 0 }, 'X')
+    deleteChord(lines, { line: 0, index: 0 })
+    backspace(lines, { line: 1, pos: 0 })
+    breakLine(lines, { line: 0, pos: 1 })
+    expect(JSON.stringify(lines)).toBe(before)
+  })
+
+  it('takes a cursor that points past the end as the end', () => {
+    expect(insertChord(lines, { line: 0, pos: 99 }, 'Db').lines).toEqual([['Gb', 'Abm', 'Db'], ['Ebm']])
+    expect(insertChord(lines, { line: 9, pos: 0 }, 'Db').lines).toEqual([['Gb', 'Abm'], ['Db', 'Ebm']])
   })
 })

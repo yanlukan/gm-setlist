@@ -1,18 +1,15 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
 import { voicingsFor } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
-import { AutoSaveText } from '../shared/AutoSaveText'
-import { ChordLineEditor } from '../edit/ChordLineEditor'
+import { ChartEditor } from '../edit/ChartEditor'
 import { playedKey, transposeFor } from '../../music/setlist-text'
-import { normalizeChordText, unknownChords } from '../../music/chord-text'
+import { normalizeChordText } from '../../music/chord-text'
 import { useFitText } from '../../hooks/use-fit-text'
 import { useSwipe } from '../../hooks/use-swipe'
 import type { Song } from '../../types'
-
-const SECTION_TYPES = ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Solo', 'Breakdown', 'Instrumental', 'Outro']
 
 /** Chart text never goes below this — it scrolls instead. */
 const MIN_CHART_PX = 20
@@ -42,10 +39,6 @@ export function SongSheet() {
   const prevSong = useStore(s => s.prevSong)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
-  const [showAddSection, setShowAddSection] = useState(false)
-  const [customSectionName, setCustomSectionName] = useState('')
-  /** Section whose chords are open in the tap-to-add palette. */
-  const [paletteFor, setPaletteFor] = useState<number | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fitRef = useRef<HTMLDivElement>(null)
@@ -116,10 +109,40 @@ export function SongSheet() {
     saveSections(song.title, sections.map((sec, i) => (i === index ? { ...sec, chords: atSource } : sec)))
   }
 
-  // The palette belongs to one section of one song in edit mode.
-  useEffect(() => {
-    setPaletteFor(null)
-  }, [song?.title, editMode])
+  // The title line, the same on the stage chart and while editing
+  const renderHeading = (song: Song) => (
+    <div className="chart-head">
+      <h1 className="chart-title">{song.title}</h1>
+      {song.preset && (
+        <span
+          className="chart-preset"
+          aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
+        >
+          {song.preset.name}
+          {song.preset.solo && ` → ${song.preset.solo} solo`}
+        </span>
+      )}
+      {span && (
+        <span
+          className="chart-position"
+          aria-label={`Recommended position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`}
+        >
+          {positionLabel(span)}
+        </span>
+      )}
+    </div>
+  )
+
+  const renderBanners = (song: Song) => (
+    <>
+      {song.cue && <div className="chart-cue">{song.cue}</div>}
+      {showLowerKeyWarning && (
+        <div className="chart-warning">
+          LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
+        </div>
+      )}
+    </>
+  )
 
   const renderBody = () => {
     if (!song) {
@@ -145,77 +168,42 @@ export function SongSheet() {
       )
     }
 
-    const heading = (
-      <div className="chart-head">
-        <h1 className="chart-title">{song.title}</h1>
-        {song.preset && (
-          <span
-            className="chart-preset"
-            aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
-          >
-            {song.preset.name}
-            {song.preset.solo && ` → ${song.preset.solo} solo`}
-          </span>
-        )}
-        {span && (
-          <span
-            className="chart-position"
-            aria-label={`Recommended position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`}
-          >
-            {positionLabel(span)}
-          </span>
-        )}
+    const heading = renderHeading(song)
+    const banners = renderBanners(song)
+
+    return (
+      <div ref={fitRef} className="chart">
+        {heading}
+        {banners}
+        <div className="chart-sections">
+          {displaySections.map((section, i) => {
+            const focused = focusSection?.title === song.title && focusSection.index === i
+            return (
+              <Fragment key={`${song.title}-${i}`}>
+                {diagramsVisible ? (
+                  // Tap a section to see just its chord shapes in the diagrams below
+                  <button
+                    type="button"
+                    className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
+                    style={{ color: sectionColor(section.name) }}
+                    aria-pressed={focused}
+                    onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
+                  >
+                    {section.name}
+                  </button>
+                ) : (
+                  <div className="chart-label" style={{ color: sectionColor(section.name) }}>
+                    {section.name}
+                  </div>
+                )}
+                <div className="chart-chords">{renderChords(section.chords)}</div>
+              </Fragment>
+            )
+          })}
+        </div>
+        {notes && <div className="chart-notes">{notes}</div>}
       </div>
     )
-
-    const banners = (
-      <>
-        {song.cue && <div className="chart-cue">{song.cue}</div>}
-        {showLowerKeyWarning && (
-          <div className="chart-warning">
-            LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
-          </div>
-        )}
-      </>
-    )
-
-    if (!editMode) {
-      return (
-        <div ref={fitRef} className="chart">
-          {heading}
-          {banners}
-          <div className="chart-sections">
-            {displaySections.map((section, i) => {
-              const focused = focusSection?.title === song.title && focusSection.index === i
-              return (
-                <Fragment key={`${song.title}-${i}`}>
-                  {diagramsVisible ? (
-                    // Tap a section to see just its chord shapes in the diagrams below
-                    <button
-                      type="button"
-                      className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
-                      style={{ color: sectionColor(section.name) }}
-                      aria-pressed={focused}
-                      onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
-                    >
-                      {section.name}
-                    </button>
-                  ) : (
-                    <div className="chart-label" style={{ color: sectionColor(section.name) }}>
-                      {section.name}
-                    </div>
-                  )}
-                  <div className="chart-chords">{renderChords(section.chords)}</div>
-                </Fragment>
-              )
-            })}
-          </div>
-          {notes && <div className="chart-notes">{notes}</div>}
-        </div>
-      )
-    }
-
-    return renderEditor(song, heading, banners)
   }
 
   // Tappable chords open the voicing picker — except on stage, where a brushed
@@ -240,162 +228,27 @@ export function SongSheet() {
       )
     })
 
-  const renderEditor = (song: Song, heading: React.ReactNode, banners: React.ReactNode) => {
-    const moveSection = (index: number, dir: -1 | 1) => {
-      const target = index + dir
-      if (target < 0 || target >= sections.length) return
-      const updated = [...sections]
-      ;[updated[index], updated[target]] = [updated[target], updated[index]]
-      saveSections(song.title, updated)
-    }
-
-    const deleteSection = (index: number) => {
-      if (sections.length <= 1) return
-      saveSections(song.title, sections.filter((_, i) => i !== index))
-    }
-
-    const addSection = (name: string) => {
-      saveSections(song.title, [...sections, { name, chords: '' }])
-      setShowAddSection(false)
-      setCustomSectionName('')
-    }
-
-
-    const updateName = (index: number, name: string) => {
-      saveSections(song.title, sections.map((s, i) => (i === index ? { ...s, name } : s)))
-    }
-
-    const smallBtn: React.CSSProperties = {
-      minWidth: 36, minHeight: 36, fontSize: 16, borderRadius: 8,
-      background: 'var(--badge-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
-    }
-    // Anything in a line that is not a chord (two chords fused by a slip, say)
-    const notChords = displaySections.map(section => unknownChords(section.chords))
-
-    return (
-      <div className="chart" style={{ fontSize: 22 }}>
-        {heading}
-        {banners}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {displaySections.map((section, i) => (
-            <div key={`${song.title}-${i}`} className="edit-row">
-              <div className="edit-controls">
-                <button onClick={() => moveSection(i, -1)} style={smallBtn} disabled={i === 0}
-                  aria-label={`Move ${section.name} up`}>▲</button>
-                <button onClick={() => moveSection(i, 1)} style={smallBtn} disabled={i === sections.length - 1}
-                  aria-label={`Move ${section.name} down`}>▼</button>
-                <button
-                  onClick={() => {
-                    if (sections.length > 1 && confirm(`Delete the ${section.name} section?`)) deleteSection(i)
-                  }}
-                  style={{ ...smallBtn, color: '#ef4444' }}
-                  disabled={sections.length <= 1}
-                  aria-label={`Delete ${section.name}`}
-                >&times;</button>
-              </div>
-
-              <AutoSaveText
-                className="edit-name"
-                style={{ color: sectionColor(section.name) }}
-                value={section.name}
-                onChange={name => updateName(i, name)}
-                aria-label={`Name of section ${i + 1}`}
-              />
-
-              <div className="edit-chords-wrap">
-                <AutoSaveText
-                  multiline
-                  className="edit-chords"
-                  value={section.chords}
-                  onChange={chords => updateChordsAt(i, chords)}
-                  aria-label={`Chords for ${section.name}`}
-                  placeholder="Chords. Return starts a new line"
-                />
-                {notChords[i].length > 0 && (
-                  <div className="edit-warning" role="status">
-                    Not a chord: {notChords[i].join(', ')}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  // Commit and close any field being typed in first (this also
-                  // drops the keyboard), so the field and the palette never
-                  // disagree about the line.
-                  const active = document.activeElement
-                  if (active instanceof HTMLElement) active.blur()
-                  setPaletteFor(i)
-                }}
-                className="edit-palette-btn"
-                style={{ ...smallBtn, padding: '0 12px', color: 'var(--text)', fontWeight: 600 }}
-                aria-label={`Pick chords for ${section.name}`}
-              >
-                Chords
-              </button>
-            </div>
-          ))}
-
-          {showAddSection ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '8px 0' }}>
-              {SECTION_TYPES.map(name => (
-                <button key={name} onClick={() => addSection(name)} style={{
-                  padding: '8px 14px', borderRadius: 6, fontSize: 14, fontWeight: 600,
-                  background: 'var(--badge-bg)', color: 'var(--text)', border: 'none',
-                }}>{name}</button>
-              ))}
-              <div style={{ display: 'flex', gap: 4, width: '100%', marginTop: 4 }}>
-                <input
-                  value={customSectionName}
-                  onChange={e => setCustomSectionName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && customSectionName.trim()) addSection(customSectionName.trim()) }}
-                  placeholder="Custom name..."
-                  style={{ flex: 1 }}
-                />
-                <button onClick={() => setShowAddSection(false)} style={{
-                  padding: '6px 12px', borderRadius: 6, fontSize: 14,
-                  background: 'var(--badge-bg)', color: 'var(--text-muted)', border: 'none',
-                }}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <button onClick={() => setShowAddSection(true)} style={{
-              marginTop: 8, padding: '10px 16px', borderRadius: 8, fontSize: 15, fontWeight: 600,
-              background: 'transparent', border: '2px dashed var(--edit-border, #f59e0b)',
-              color: 'var(--edit-border, #f59e0b)', alignSelf: 'flex-start',
-            }}>+ Add Section</button>
-          )}
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>NOTES</div>
-          <AutoSaveText
-            multiline
-            className="edit-notes"
-            value={notes}
-            onChange={text => saveNotes(song.title, text)}
-            aria-label="Notes"
-          />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
-      <div ref={scrollRef} className="chart-scroll">
-        {renderBody()}
-      </div>
-
-      {editMode && song && paletteFor !== null && displaySections[paletteFor] && (
-        <ChordLineEditor
-          sectionName={displaySections[paletteFor].name}
-          chords={displaySections[paletteFor].chords}
+      {editMode && song ? (
+        // The chart itself, editable, with the chord keyboard under it
+        <ChartEditor
+          // Undo, the cursor and the rest belong to one song: a new song starts a new editor
+          key={song.title}
+          heading={renderHeading(song)}
+          banners={renderBanners(song)}
+          sections={sections}
+          displaySections={displaySections}
           songKey={playedKey(song, edits[song.title]).key}
-          onChange={chords => updateChordsAt(paletteFor, chords)}
-          onClose={() => setPaletteFor(null)}
+          notes={notes}
+          onChords={updateChordsAt}
+          onSections={next => saveSections(song.title, next)}
+          onNotes={text => saveNotes(song.title, text)}
         />
+      ) : (
+        <div ref={scrollRef} className="chart-scroll">
+          {renderBody()}
+        </div>
       )}
 
       {/* Outside the chart, so swipes on the picker cannot change song */}
