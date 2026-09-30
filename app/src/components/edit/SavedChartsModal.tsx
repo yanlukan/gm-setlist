@@ -63,11 +63,19 @@ export function SavedChartsModal({ onClose }: Props) {
     setOpen(null)
   }
 
+  // Every song at once: each one's chords are kept as an earlier version first
+  const goBackAll = () => {
+    if (!confirm(`Go back to the built-in chart for all ${rows.length} songs?\n\nYour chords are kept under Earlier versions.`)) return
+    for (const { song } of rows) useBuiltInChart(song.title)
+    showToast(`${rows.length} songs show the built-in chart. Your chords are under Earlier versions.`)
+    setOpen(null)
+  }
+
   return (
     <div className="hist-backdrop" onClick={onClose}>
-      <div className="hist-sheet" role="dialog" aria-label="Your saved charts" onClick={e => e.stopPropagation()}>
+      <div className="hist-sheet" role="dialog" aria-label="Back to the original charts" onClick={e => e.stopPropagation()}>
         <div className="hist-header">
-          <strong>Your saved charts</strong>
+          <strong>Back to the original charts</strong>
           <button className="songgrid-close" onClick={onClose}>Close</button>
         </div>
 
@@ -80,6 +88,12 @@ export function SavedChartsModal({ onClose }: Props) {
               {broken > 0 && ` ${broken} ${broken === 1 ? 'has entries' : 'have entries'} that are not chords.`}
               {' '}A fix to the built-in chart does not reach these songs.
             </div>
+          )}
+
+          {rows.length > 1 && (
+            <button className="hist-restore sc-all" onClick={goBackAll}>
+              Use the built-in chart for all {rows.length} songs
+            </button>
           )}
 
           {rows.map(({ song, saved, notChords, differences }) => {

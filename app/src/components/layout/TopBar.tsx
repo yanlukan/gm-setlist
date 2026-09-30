@@ -241,7 +241,7 @@ export function TopBar() {
                       Restore a Backup&hellip;
                     </button>
                     <button className="menu-item" onClick={menuAction(() => setShowSaved(true))}>
-                      Your saved charts{savedCharts > 0 ? ` (${savedCharts})` : ''}
+                      Back to the original charts{savedCharts > 0 ? ` (${savedCharts})` : ''}
                     </button>
                     <button
                       className="menu-item"

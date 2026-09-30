@@ -1024,3 +1024,16 @@
   font-size: 14px;
   font-weight: 700;
 }
+
+/* A chart with the player's own chords: tap the tag to go back to the original */
+.chart-edited {
+  font-size: max(13px, 0.36em);
+  font-weight: 700;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  border: 1px solid var(--edit-border, #f59e0b);
+  background: transparent;
+  color: var(--edit-border, #f59e0b);
+  white-space: nowrap;
+}
+.sc-all { width: calc(100% - 16px); margin: 4px 8px 12px; }

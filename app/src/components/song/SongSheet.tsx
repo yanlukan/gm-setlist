@@ -7,6 +7,7 @@ import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
 import { formMatches } from '../../music/form'
+import { hasEditedChart } from '../../music/chart-edits'
 import { playedKey, transposeFor } from '../../music/setlist-text'
 import { normalizeChordText } from '../../music/chord-text'
 import { useFitText } from '../../hooks/use-fit-text'
@@ -37,6 +38,8 @@ export function SongSheet() {
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
   const saveForm = useStore(s => s.saveForm)
+  const useBuiltInChart = useStore(s => s.useBuiltInChart)
+  const showToast = useStore(s => s.showToast)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
@@ -89,9 +92,18 @@ export function SongSheet() {
 
   const showLowerKeyWarning = !!song?.lowerKey && semitones === 0
 
+  // A chart with the player's own chords says so, and one tap goes back to the
+  // original. Not on stage, where nothing on the chart should change.
+  const edited = !!song && !editMode && !onStage && hasEditedChart(song, edits[song.title])
+  const goBackToOriginal = (song: Song) => {
+    if (!confirm(`Go back to the original chart for "${song.title}"?\n\nYour chords are kept under Earlier versions (Edit, at the bottom of the chart).`)) return
+    useBuiltInChart(song.title)
+    showToast(`${song.title} shows the original chart`)
+  }
+
   // Fit the whole chart to the screen: biggest text that needs no scrolling.
   const fitKey = song
-    ? JSON.stringify([song.title, displaySections, form, notes, song.cue ?? '', showLowerKeyWarning])
+    ? JSON.stringify([song.title, displaySections, form, notes, song.cue ?? '', showLowerKeyWarning, edited])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,
@@ -138,6 +150,16 @@ export function SongSheet() {
         >
           {positionLabel(span)}
         </span>
+      )}
+      {edited && (
+        <button
+          type="button"
+          className="chart-edited"
+          aria-label="This chart has your own edits. Go back to the original chart"
+          onClick={() => goBackToOriginal(song)}
+        >
+          EDITED &middot; back to original
+        </button>
       )}
     </div>
   )

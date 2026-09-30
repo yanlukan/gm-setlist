@@ -114,13 +114,57 @@ describe('your saved charts', () => {
   })
 })
 
+describe('going back for every song at once', () => {
+  const change = (title: string) => song(title).sections.map((s, i) => (i === 0 ? { ...s, chords: 'Am  Dm' } : s))
+
+  it('puts the built-in chart back on every song that shows chords you saved, keeping each one\'s chords', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    useStore.setState({
+      edits: {
+        Faith: { sections: mine('B  A'), notes: 'Watch the pause' },
+        Fastlove: { sections: change('Fastlove'), bpm: 100 },
+        Roxanne: { sections: change('Roxanne') },
+      },
+    })
+    render(<SavedChartsModal onClose={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Use the built-in chart for all 3 songs' }))
+
+    // Only the chords go: notes and tempo stay
+    expect(useStore.getState().edits).toEqual({ Faith: { notes: 'Watch the pause' }, Fastlove: { bpm: 100 } })
+    expect(useStore.getState().toast).toMatch(/3 songs show the built-in chart/)
+    expect(screen.getByText(/Every song shows its built-in chart/)).toBeInTheDocument()
+
+    await whenHistorySaved()
+    const { getSongHistory } = await import('../../store/persistence')
+    expect((await getSongHistory('Faith'))[0].sections[1].chords).toBe('B  A')
+    expect((await getSongHistory('Fastlove'))[0].sections[0].chords).toBe('Am  Dm')
+    expect((await getSongHistory('Roxanne'))[0].sections[0].chords).toBe('Am  Dm')
+  })
+
+  it('asks first, and changes nothing when you say no', () => {
+    const ask = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    useStore.setState({ edits: { Faith: { sections: mine('B  A') }, Roxanne: { sections: change('Roxanne') } } })
+    render(<SavedChartsModal onClose={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Use the built-in chart for all 2 songs' }))
+    expect(ask).toHaveBeenCalledWith(expect.stringContaining('all 2 songs'))
+    expect(Object.keys(useStore.getState().edits)).toEqual(['Faith', 'Roxanne'])
+    expect(rows()).toHaveLength(2)
+  })
+
+  it('is only offered when there is more than one song to go back', () => {
+    useStore.setState({ edits: { Faith: { sections: mine('B  A') } } })
+    render(<SavedChartsModal onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: /for all/ })).not.toBeInTheDocument()
+  })
+})
+
 describe('the saved charts in the menu', () => {
   it('shows how many songs have chords of their own, and opens the list', () => {
     useStore.setState({ edits: { Faith: { sections: mine('B  A') } } })
     render(<TopBar />)
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    fireEvent.click(screen.getByRole('button', { name: /Your saved charts \(1\)/ }))
-    expect(screen.getByRole('dialog', { name: 'Your saved charts' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Back to the original charts \(1\)/ }))
+    expect(screen.getByRole('dialog', { name: 'Back to the original charts' })).toBeInTheDocument()
     expect(within(screen.getByRole('dialog')).getAllByRole('button', { expanded: false })).toHaveLength(1)
   })
 
@@ -133,6 +177,6 @@ describe('the saved charts in the menu', () => {
   it('has no number when every song shows its built-in chart', () => {
     render(<TopBar />)
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    expect(screen.getByRole('button', { name: 'Your saved charts' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Back to the original charts' })).toBeInTheDocument()
   })
 })
