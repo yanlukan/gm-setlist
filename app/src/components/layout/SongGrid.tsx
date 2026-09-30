@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useStore } from '../../store/use-store'
 import { formatLength, playedKey, setLength } from '../../music/setlist-text'
 import { bandPlanFor, positionLabel } from '../../hooks/use-band-positions'
+import { hasEditedChart } from '../../music/chart-edits'
 import type { Song } from '../../types'
 
 interface SongGridProps {
@@ -73,6 +74,9 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
                       <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
                     )}
                     {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
+                    {hasEditedChart(song, edits[song.title]) && (
+                      <span className="chip chip-edited" title="This song shows your own chords, not the built-in chart">EDITED</span>
+                    )}
                     {position && (
                       <span className="songtile-position" aria-label={`Recommended position: ${position}`}>{position}</span>
                     )}

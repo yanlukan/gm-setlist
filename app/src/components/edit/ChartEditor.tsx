@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AutoSaveText } from '../shared/AutoSaveText'
 import { ChordKeyboard } from './ChordKeyboard'
+import { SongHistoryModal } from './SongHistoryModal'
 import { isChartMark, sectionColor } from '../../music/theory'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
@@ -19,6 +20,7 @@ type Cursor =
   | { kind: 'chord'; section: number; line: number; index: number }
 
 interface Props {
+  title: string
   heading: ReactNode
   banners: ReactNode
   /** The chart as stored, at the song's own pitch. */
@@ -49,7 +51,7 @@ function copyName(name: string): string {
  * the cursor. Every change is saved at once and can be undone.
  */
 export function ChartEditor({
-  heading, banners, sections, displaySections, songKey, notes, onChords, onSections, onNotes,
+  title, heading, banners, sections, displaySections, songKey, notes, onChords, onSections, onNotes,
 }: Props) {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   /** Lines as typed, kept while editing so a new empty line at the end survives. */
@@ -61,6 +63,7 @@ export function ChartEditor({
   const [history, setHistory] = useState<{ past: Section[][]; future: Section[][] }>({ past: [], future: [] })
   const [showAdd, setShowAdd] = useState(false)
   const [customName, setCustomName] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const at = cursor && displaySections[cursor.section] ? cursor : null
@@ -310,8 +313,12 @@ export function ChartEditor({
             <div className="ce-notes-label">NOTES</div>
             <AutoSaveText multiline className="edit-notes" value={notes} onChange={onNotes} aria-label="Notes" />
           </div>
+
+          <button className="ce-history-btn" onClick={() => setShowHistory(true)}>Earlier versions of this song</button>
         </div>
       </div>
+
+      {showHistory && <SongHistoryModal title={title} onClose={() => setShowHistory(false)} />}
 
       {/* Typing brings up the phone's own keyboard, and two keyboards would fill a phone */}
       {typing === null && (

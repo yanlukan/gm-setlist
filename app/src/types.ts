@@ -68,6 +68,19 @@ export interface SongEdits {
   transpose?: number
 }
 
+/**
+ * One earlier state of a song's chart, kept before a change so it can be
+ * brought back. Stored at the song's own pitch, like the chart itself.
+ */
+export interface SongVersion {
+  /** When it was kept: milliseconds since 1970. */
+  at: number
+  /** Why: "Before your changes", "Before you reset it". */
+  reason: string
+  sections: Section[]
+  notes: string
+}
+
 export interface Setlist {
   id: string
   name: string

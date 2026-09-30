@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase } from 'idb'
-import type { Song, SongEdits, SetlistData, Snapshot, Theme } from '../types'
+import type { Song, SongEdits, SongVersion, SetlistData, Snapshot, Theme } from '../types'
 
 const DB_NAME = 'playbook'
 const DB_VERSION = 2
@@ -50,6 +50,24 @@ export async function getSongEdits(title: string): Promise<SongEdits | undefined
 export async function deleteSongEdits(title: string): Promise<void> {
   const d = await db()
   await d.delete('songEdits', title)
+}
+
+// Earlier versions of each song. They live in the settings store under a key
+// of their own, so keeping them needs no change to the database itself.
+const historyKey = (title: string) => `history:${title}`
+
+export async function getSongHistory(title: string): Promise<SongVersion[]> {
+  try {
+    const d = await db()
+    return ((await d.get('settings', historyKey(title))) as SongVersion[] | undefined) ?? []
+  } catch {
+    return []
+  }
+}
+
+export async function saveSongHistory(title: string, versions: SongVersion[]): Promise<void> {
+  const d = await db()
+  await d.put('settings', versions, historyKey(title))
 }
 
 export async function saveSetlistData(data: SetlistData): Promise<void> {

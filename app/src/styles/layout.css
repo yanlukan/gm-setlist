@@ -872,3 +872,74 @@
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* ---------- Saving: the status beside Done, and earlier versions of a song ---------- */
+.tb-save { align-self: center; padding: 0 6px; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--text-muted); }
+.tb-save.is-saved { color: #4ade80; }
+.tb-save.is-failed, .tb-save.is-readonly {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #7f1d1d;
+  color: #fff;
+  font-size: 14px;
+}
+.chip-edited { background: var(--badge-bg); color: var(--text); border: 1px solid var(--edit-border, #f59e0b); }
+.ce-history-btn {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.hist-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.75);
+}
+.hist-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  max-height: 82vh;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--picker-bg, #2a2a2a);
+  color: var(--text);
+}
+.hist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--badge-bg);
+  font-size: 16px;
+}
+.hist-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px; }
+.hist-note { padding: 16px; font-size: 14px; color: var(--text-muted); }
+.hist-item { margin-bottom: 4px; border-radius: 8px; background: var(--badge-bg); }
+.hist-row { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 10px 12px; text-align: left; }
+.hist-when { font-size: 14px; font-weight: 700; }
+.hist-reason { font-size: 13px; color: var(--text-muted); }
+.hist-diff { font-size: 12px; color: var(--text-muted); }
+.hist-preview { padding: 0 12px 12px; }
+.hist-section { display: flex; gap: 10px; padding: 4px 0; font-size: 14px; }
+.hist-section-name { flex: 0 0 84px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.hist-chords { flex: 1; min-width: 0; font-weight: 700; white-space: pre-wrap; word-spacing: 0.2em; }
+.hist-restore {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}

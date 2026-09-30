@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../store/use-store'
 import { formatLength, playedKey } from '../../music/setlist-text'
+import { hasEditedChart } from '../../music/chart-edits'
 
 interface SetlistSongItemProps {
   songTitle: string
@@ -57,6 +58,9 @@ export function SetlistSongItem({ songTitle, index, setlistId, isCurrent, onSele
                 <span className="chip chip-transpose">{semitones > 0 ? `+${semitones}` : semitones}</span>
               )}
               {song.lowerKey && semitones === 0 && <span className="chip chip-warn">LOWER KEY</span>}
+              {hasEditedChart(song, songEdits) && (
+                <span className="chip chip-edited" title="This song shows your own chords, not the built-in chart">EDITED</span>
+              )}
               <span>{songEdits?.bpm ?? song.bpm} BPM</span>
               <span>{song.timeSignature}</span>
               {song.duration && <span>{formatLength(song.duration)}</span>}

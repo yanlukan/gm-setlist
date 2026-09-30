@@ -235,6 +235,7 @@ export function SongSheet() {
         <ChartEditor
           // Undo, the cursor and the rest belong to one song: a new song starts a new editor
           key={song.title}
+          title={song.title}
           heading={renderHeading(song)}
           banners={renderBanners(song)}
           sections={sections}

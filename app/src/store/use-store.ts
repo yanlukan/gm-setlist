@@ -1,8 +1,10 @@
 import { create } from 'zustand'
-import type { Song, Section, SongEdits, SetlistData, Theme, ViewMode } from '../types'
+import type { Song, Section, SongEdits, SongVersion, SetlistData, Theme, ViewMode } from '../types'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
+import { sameSections } from '../music/chart-edits'
+import { keepVersion } from './song-history'
 import {
   saveSongEdits,
   getSongEdits,
@@ -51,9 +53,67 @@ export function isReadOnly(): boolean {
   return readOnly
 }
 
+/** Edits being written right now, and the songs whose last write failed. */
+let pendingSaves = 0
+const failedSaves = new Set<string>()
+
+/**
+ * Follow a write of one song's edits, so the screen can say whether they are
+ * safe: "Saving", "Saved" or "Not saved". A failure stays until that song is
+ * written again; the next song saved does not hide it.
+ */
+function track(title: string, write: Promise<unknown>): void {
+  pendingSaves++
+  useStore.setState({ saveStatus: 'saving' })
+  write
+    .then(() => { failedSaves.delete(title) })
+    .catch(e => {
+      console.warn('saving edits failed:', e)
+      failedSaves.add(title)
+    })
+    .finally(() => {
+      pendingSaves--
+      if (pendingSaves === 0) useStore.setState({ saveStatus: failedSaves.size > 0 ? 'failed' : 'saved' })
+    })
+}
+
 function persistEdits(title: string, edits: SongEdits): void {
+  if (readOnly) {
+    useStore.setState({ saveStatus: 'readonly' })
+    return
+  }
+  track(title, saveSongEdits(title, edits))
+}
+
+function persistDelete(title: string): void {
+  if (readOnly) {
+    useStore.setState({ saveStatus: 'readonly' })
+    return
+  }
+  track(title, deleteSongEdits(title))
+}
+
+/**
+ * Keep the song's chart as it is now, before something changes it, so it can
+ * be brought back. `force` keeps it even right after another (before a reset
+ * or a restore).
+ */
+function keepBefore(title: string, reason: string, force = false): void {
   if (readOnly) return
-  saveSongEdits(title, edits).catch(e => console.warn('saveSongEdits failed:', e))
+  const { getEditedSections, getEditedNotes } = useStore.getState()
+  keepVersion(title, { sections: getEditedSections(title), notes: getEditedNotes(title) }, reason, force)
+}
+
+/** One thing the player changed goes back to the built-in one: it is no longer an edit. */
+function dropEdit(title: string, field: 'sections' | 'notes'): void {
+  const { [field]: _dropped, ...rest } = useStore.getState().edits[title] ?? ({} as SongEdits)
+  const keep = Object.keys(rest).length > 0
+  useStore.setState(state => {
+    const { [title]: _, ...others } = state.edits
+    return { edits: keep ? { ...others, [title]: rest } : others }
+  })
+  if (keep) persistEdits(title, rest)
+  else persistDelete(title)
 }
 
 /**
@@ -138,6 +198,8 @@ interface StoreState {
   /** Drop the player's own transpose, going back to the band key (or none). */
   clearTranspose: (title: string) => void
   resetEdits: (title: string) => void
+  /** Bring back an earlier version of a song. The chart it replaces is kept. */
+  restoreVersion: (title: string, version: SongVersion) => void
 
   // Setlist actions
   setActiveSetlist: (id: string) => void
@@ -166,6 +228,8 @@ interface StoreState {
   toast: string | null
   showToast: (message: string) => void
   loadFailed: boolean
+  /** Whether the player's edits are safely written: shown while editing. */
+  saveStatus: 'saved' | 'saving' | 'failed' | 'readonly'
   hydrate: () => Promise<void>
 }
 
@@ -184,6 +248,7 @@ export const useStore = create<StoreState>((set, get) => ({
   focusSection: null,
   toast: null,
   loadFailed: false,
+  saveStatus: 'saved',
 
   // Computed
   allSongs: () => {
@@ -278,25 +343,17 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   saveSections: (title: string, sections: Section[]) => {
-    const same = (a: Section[], b: Section[]) =>
-      a.length === b.length && a.every((s, i) => s.name === b[i].name && s.chords === b[i].chords)
     // Nothing changed: do not turn a look at a song into a saved copy of it.
     // A saved copy shadows the built-in chart, so later chart fixes would
     // never reach that song on this device.
-    if (same(get().getEditedSections(title), sections)) return
+    if (sameSections(get().getEditedSections(title), sections)) return
+    keepBefore(title, 'Before your changes')
     const builtIn = get().allSongs().find(s => s.title === title)?.sections ?? []
-    if (same(builtIn, sections)) {
+    if (sameSections(builtIn, sections)) {
       // Back to the built-in chart (Undo all the way, say): that is no longer
       // an edit, so the song follows later chart fixes again. Anything else
       // saved for it, like notes or a tempo, stays.
-      const { sections: _dropped, ...rest } = get().edits[title] ?? ({} as SongEdits)
-      const keep = Object.keys(rest).length > 0
-      set(state => {
-        const { [title]: _, ...others } = state.edits
-        return { edits: keep ? { ...others, [title]: rest } : others }
-      })
-      if (keep) persistEdits(title, rest)
-      else if (!readOnly) deleteSongEdits(title).catch(e => console.warn('deleteSongEdits failed:', e))
+      dropEdit(title, 'sections')
       return
     }
     set(state => ({
@@ -310,6 +367,11 @@ export const useStore = create<StoreState>((set, get) => ({
 
   saveNotes: (title: string, notes: string) => {
     if (get().getEditedNotes(title) === notes) return
+    keepBefore(title, 'Before your changes')
+    if (notes === (get().allSongs().find(s => s.title === title)?.notes ?? '')) {
+      dropEdit(title, 'notes')
+      return
+    }
     set(state => ({
       edits: {
         ...state.edits,
@@ -360,11 +422,20 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   resetEdits: (title: string) => {
+    // Reset must never be the end of the player's chords: keep them first
+    const mine = get().edits[title]
+    if (mine?.sections || mine?.notes !== undefined) keepBefore(title, 'Before you reset it', true)
     set(state => {
       const { [title]: _, ...rest } = state.edits
       return { edits: rest }
     })
-    if (!readOnly) deleteSongEdits(title).catch(e => console.warn('deleteSongEdits failed:', e))
+    persistDelete(title)
+  },
+
+  restoreVersion: (title: string, version: SongVersion) => {
+    keepBefore(title, 'Before you went back to an earlier version', true)
+    get().saveSections(title, version.sections)
+    get().saveNotes(title, version.notes)
   },
 
   // Setlist actions

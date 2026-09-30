@@ -5,6 +5,7 @@ import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
 import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
+import { SaveStatus } from '../edit/SaveStatus'
 import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
@@ -153,7 +154,7 @@ export function TopBar() {
                 <button
                   className="tb-btn is-danger"
                   onClick={() => {
-                    if (confirm(`Reset "${song.title}" to the original chart? Your edits to it will be removed.`)) {
+                    if (confirm(`Reset "${song.title}" to the original chart?\n\nYour version is kept under Earlier versions, at the bottom of the chart.`)) {
                       resetEdits(song.title)
                     }
                   }}
@@ -161,6 +162,7 @@ export function TopBar() {
                   Reset
                 </button>
               )}
+              {editMode && <SaveStatus />}
               {!editMode && (
                 <>
                   <button className="tb-btn" onClick={() => setShowSetlist(true)}>Setlists</button>
