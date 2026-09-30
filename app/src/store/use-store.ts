@@ -200,6 +200,8 @@ interface StoreState {
   resetEdits: (title: string) => void
   /** Bring back an earlier version of a song. The chart it replaces is kept. */
   restoreVersion: (title: string, version: SongVersion) => void
+  /** Show the built-in chart again. Only the chords go: notes, tempo and key stay. The saved chords are kept as an earlier version. */
+  useBuiltInChart: (title: string) => void
 
   // Setlist actions
   setActiveSetlist: (id: string) => void
@@ -430,6 +432,12 @@ export const useStore = create<StoreState>((set, get) => ({
       return { edits: rest }
     })
     persistDelete(title)
+  },
+
+  useBuiltInChart: (title: string) => {
+    if (!get().edits[title]?.sections) return
+    keepBefore(title, 'Before you went back to the built-in chart', true)
+    dropEdit(title, 'sections')
   },
 
   restoreVersion: (title: string, version: SongVersion) => {

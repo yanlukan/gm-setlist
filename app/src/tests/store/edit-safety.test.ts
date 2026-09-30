@@ -184,3 +184,31 @@ describe('whether your edits are safe', () => {
     await vi.waitFor(() => expect(useStore.getState().saveStatus).toBe('saved'))
   })
 })
+
+describe('going back to the built-in chart', () => {
+  it('shows the built-in chords again and keeps what else you saved', async () => {
+    useStore.getState().saveNotes('Faith', 'Mine')
+    useStore.getState().saveBpm('Faith', 101)
+    useStore.getState().saveSections('Faith', withVerse('B  DE'))
+    useStore.getState().useBuiltInChart('Faith')
+    expect(useStore.getState().getEditedSections('Faith')).toEqual(faith.sections)
+    expect(useStore.getState().edits['Faith']).toEqual({ notes: 'Mine', bpm: 101 })
+  })
+
+  it('keeps the chords you had as an earlier version first', async () => {
+    useStore.getState().saveSections('Faith', withVerse('B  DE'))
+    vi.setSystemTime(start + 1000)
+    useStore.getState().useBuiltInChart('Faith')
+    await whenHistorySaved()
+    const [newest] = await getSongHistory('Faith')
+    expect(newest.reason).toBe('Before you went back to the built-in chart')
+    expect(newest.sections[1].chords).toBe('B  DE')
+  })
+
+  it('does nothing for a song with no chords of its own saved', async () => {
+    useStore.getState().saveNotes('Faith', 'Mine')
+    useStore.getState().useBuiltInChart('Faith')
+    await whenHistorySaved()
+    expect(useStore.getState().edits['Faith']).toEqual({ notes: 'Mine' })
+  })
+})

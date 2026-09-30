@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sameSections, hasEditedChart } from '../../music/chart-edits'
+import { sameSections, hasEditedChart, differingSections } from '../../music/chart-edits'
 import { DEFAULT_SONGS } from '../../data/songs'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
@@ -35,5 +35,27 @@ describe('a song with its own chart', () => {
 
   it('is edited when the chords are different', () => {
     expect(hasEditedChart(faith, { sections: [{ name: 'Verse', chords: 'B  A' }] })).toBe(true)
+  })
+})
+
+describe('which sections of a saved chart differ', () => {
+  const builtIn = [{ name: 'Verse', chords: 'B  E' }, { name: 'Chorus', chords: 'B' }]
+
+  it('finds none when the charts are the same', () => {
+    expect(differingSections(builtIn.map(s => ({ ...s })), builtIn)).toEqual([])
+  })
+
+  it('names each section whose chords are not the built-in ones, with both versions', () => {
+    const mine = [{ name: 'Verse', chords: 'B  DE' }, builtIn[1]]
+    expect(differingSections(mine, builtIn)).toEqual([{ name: 'Verse', mine: 'B  DE', builtIn: 'B  E', builtInName: 'Verse' }])
+  })
+
+  it('counts a section that is missing from the saved chart, or added to it', () => {
+    expect(differingSections([builtIn[0]], builtIn)).toEqual([{ name: 'Chorus', mine: null, builtIn: 'B', builtInName: 'Chorus' }])
+    expect(differingSections([...builtIn, { name: 'Solo', chords: 'E' }], builtIn)).toEqual([{ name: 'Solo', mine: 'E', builtIn: null, builtInName: null }])
+  })
+
+  it('counts a renamed section', () => {
+    expect(differingSections([{ name: 'Verse 1', chords: 'B  E' }, builtIn[1]], builtIn)).toHaveLength(1)
   })
 })

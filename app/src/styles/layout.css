@@ -943,3 +943,15 @@
   font-size: 15px;
   font-weight: 700;
 }
+
+/* ---------- Your saved charts ---------- */
+.sc-flag { font-size: 13px; font-weight: 700; }
+.sc-flag.is-bad { color: #f87171; }
+.sc-diff { margin-bottom: 10px; }
+.sc-line { display: flex; gap: 10px; padding: 2px 0; font-size: 14px; }
+.sc-label { flex: 0 0 56px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.sc-mine, .sc-builtin { flex: 1; min-width: 0; font-weight: 700; white-space: pre-wrap; word-spacing: 0.2em; }
+.sc-builtin { color: var(--text-muted); }
+.sc-none { flex: 1; font-size: 13px; font-style: italic; color: var(--text-muted); }
+.sc-bad { padding: 0 3px; border-radius: 4px; background: #7f1d1d; color: #fff; }
+.sc-as { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }

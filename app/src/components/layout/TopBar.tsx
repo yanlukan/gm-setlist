@@ -6,10 +6,23 @@ import { exportAllData, importAllData, takeSnapshot } from '../../store/persiste
 import { APP_VERSION, BUILD_TIME } from '../../version'
 import { RestoreModal } from '../shared/RestoreModal'
 import { SaveStatus } from '../edit/SaveStatus'
+import { SavedChartsModal } from '../edit/SavedChartsModal'
+import { hasEditedChart } from '../../music/chart-edits'
 import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
 import type { Song } from '../../types'
+
+/**
+ * On an iPad the home-screen app and Safari are two copies of PlayBook, each
+ * with its own saved charts. Saying which one this is stops them being mixed up.
+ */
+function copyName(): string {
+  const installed =
+    (navigator as Navigator & { standalone?: boolean }).standalone === true ||
+    window.matchMedia?.('(display-mode: standalone)')?.matches === true
+  return installed ? 'home-screen app' : 'browser copy'
+}
 
 export function TopBar() {
   const editMode = useStore(s => s.editMode)
@@ -38,6 +51,9 @@ export function TopBar() {
   const [showTapTempo, setShowTapTempo] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showRestore, setShowRestore] = useState(false)
+  const [showSaved, setShowSaved] = useState(false)
+  // Songs that show chords saved on this device instead of the built-in chart
+  const savedCharts = useStore(s => s.allSongs().filter(song => hasEditedChart(song, s.edits[song.title])).length)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // iOS only opens the share sheet straight from a tap, so the backup is
@@ -224,6 +240,9 @@ export function TopBar() {
                     <button className="menu-item" onClick={menuAction(() => setShowRestore(true))}>
                       Restore a Backup&hellip;
                     </button>
+                    <button className="menu-item" onClick={menuAction(() => setShowSaved(true))}>
+                      Your saved charts{savedCharts > 0 ? ` (${savedCharts})` : ''}
+                    </button>
                     <button
                       className="menu-item"
                       onClick={menuAction(() => {
@@ -237,7 +256,7 @@ export function TopBar() {
                   </>
                 )}
                 <div className="menu-foot">
-                  PlayBook v{APP_VERSION} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
+                  PlayBook v{APP_VERSION} &middot; {copyName()} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
                 </div>
               </div>
             )}
@@ -259,6 +278,7 @@ export function TopBar() {
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
       {showRestore && <RestoreModal onClose={() => setShowRestore(false)} />}
+      {showSaved && <SavedChartsModal onClose={() => setShowSaved(false)} />}
     </>
   )
 }
