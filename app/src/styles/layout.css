@@ -955,3 +955,72 @@
 .sc-none { flex: 1; font-size: 13px; font-style: italic; color: var(--text-muted); }
 .sc-bad { padding: 0 3px; border-radius: 4px; background: #7f1d1d; color: #fff; }
 .sc-as { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+/* ---------- The song's order: a row of tags on the chart, and its editor ---------- */
+.form-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25em 0.3em;
+  margin-bottom: 0.4em;
+}
+.form-chip {
+  padding: 0.05em 0.55em;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: max(14px, 0.38em);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.form-times { margin-left: 0.25em; opacity: 0.8; }
+
+.fe { margin: 4px 0 6px; padding: 6px 0 12px 8px; border-bottom: 1px solid var(--badge-bg); font-size: 16px; }
+.fe-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.fe-head-tools { display: flex; gap: 6px; }
+.fe-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.fe-clear {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.fe-empty { padding: 4px 0; font-size: 14px; color: var(--text-muted); }
+.fe-steps,
+.fe-add { display: flex; flex-wrap: wrap; gap: 6px; }
+.fe-step {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+}
+.fe-step.is-picked { background: color-mix(in srgb, currentColor 28%, transparent); }
+.fe-step.is-bad { text-decoration: underline dotted #f87171; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.fe-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fe-tool {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+.fe-tool.is-danger { color: #ef4444; }
+.fe-add { align-items: center; margin-top: 8px; }
+.fe-add-label { flex: 1 1 100%; font-size: 13px; color: var(--text-muted); }
+.fe-add-btn {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  font-size: 14px;
+  font-weight: 700;
+}

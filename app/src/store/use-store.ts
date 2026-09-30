@@ -4,6 +4,7 @@ import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
+import { sameForm } from '../music/form'
 import { keepVersion } from './song-history'
 import {
   saveSongEdits,
@@ -100,12 +101,12 @@ function persistDelete(title: string): void {
  */
 function keepBefore(title: string, reason: string, force = false): void {
   if (readOnly) return
-  const { getEditedSections, getEditedNotes } = useStore.getState()
-  keepVersion(title, { sections: getEditedSections(title), notes: getEditedNotes(title) }, reason, force)
+  const { getEditedSections, getEditedNotes, getForm } = useStore.getState()
+  keepVersion(title, { sections: getEditedSections(title), notes: getEditedNotes(title), form: getForm(title) }, reason, force)
 }
 
 /** One thing the player changed goes back to the built-in one: it is no longer an edit. */
-function dropEdit(title: string, field: 'sections' | 'notes'): void {
+function dropEdit(title: string, field: 'sections' | 'notes' | 'form'): void {
   const { [field]: _dropped, ...rest } = useStore.getState().edits[title] ?? ({} as SongEdits)
   const keep = Object.keys(rest).length > 0
   useStore.setState(state => {
@@ -178,6 +179,8 @@ interface StoreState {
   currentSong: () => Song | undefined
   getEditedSections: (title: string) => Section[]
   getEditedNotes: (title: string) => string
+  /** The order the sections are played in: the player's own, else the built-in one, else none. */
+  getForm: (title: string) => string[]
   getCurrentKey: (title: string) => string
   getTranspose: (title: string) => number
   getDisplaySections: (title: string) => Section[]
@@ -192,6 +195,7 @@ interface StoreState {
   toggleEditMode: () => void
   saveSections: (title: string, sections: Section[]) => void
   saveNotes: (title: string, notes: string) => void
+  saveForm: (title: string, form: string[]) => void
   saveKey: (title: string, key: string) => void
   saveBpm: (title: string, bpm: number) => void
   setTranspose: (title: string, semitones: number) => void
@@ -278,6 +282,12 @@ export const useStore = create<StoreState>((set, get) => ({
     if (edits[title]?.sections) return edits[title].sections!
     const song = allSongs().find(s => s.title === title)
     return song?.sections ?? []
+  },
+
+  getForm: (title: string) => {
+    const { edits, allSongs } = get()
+    if (edits[title]?.form) return edits[title].form!
+    return allSongs().find(s => s.title === title)?.form ?? []
   },
 
   getEditedNotes: (title: string) => {
@@ -383,6 +393,23 @@ export const useStore = create<StoreState>((set, get) => ({
     persistEdits(title, get().edits[title])
   },
 
+  saveForm: (title: string, form: string[]) => {
+    if (sameForm(get().getForm(title), form)) return
+    keepBefore(title, 'Before your changes')
+    // Back to the built-in order (or none, for a song that never had one): no longer an edit
+    if (sameForm(get().allSongs().find(s => s.title === title)?.form, form)) {
+      dropEdit(title, 'form')
+      return
+    }
+    set(state => ({
+      edits: {
+        ...state.edits,
+        [title]: { ...state.edits[title], form },
+      },
+    }))
+    persistEdits(title, get().edits[title])
+  },
+
   saveKey: (title: string, key: string) => {
     set(state => ({
       edits: {
@@ -426,7 +453,7 @@ export const useStore = create<StoreState>((set, get) => ({
   resetEdits: (title: string) => {
     // Reset must never be the end of the player's chords: keep them first
     const mine = get().edits[title]
-    if (mine?.sections || mine?.notes !== undefined) keepBefore(title, 'Before you reset it', true)
+    if (mine?.sections || mine?.notes !== undefined || mine?.form) keepBefore(title, 'Before you reset it', true)
     set(state => {
       const { [title]: _, ...rest } = state.edits
       return { edits: rest }
@@ -444,6 +471,7 @@ export const useStore = create<StoreState>((set, get) => ({
     keepBefore(title, 'Before you went back to an earlier version', true)
     get().saveSections(title, version.sections)
     get().saveNotes(title, version.notes)
+    if (version.form) get().saveForm(title, version.form)
   },
 
   // Setlist actions

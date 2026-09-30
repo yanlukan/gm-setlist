@@ -37,6 +37,12 @@ export interface Song {
    * { B: '7-9-9-8-7-7' }. They win over the app's own recommendation.
    */
   shapes?: Record<string, string>
+  /**
+   * The order the sections are played in, by name: Verse, Chorus, Verse,
+   * Chorus, Solo... Shown as a row under the title. Left out where the order
+   * is not certain, for the player to fill in.
+   */
+  form?: string[]
   /** Where those shapes come from, shown on their diagrams: 'Songbook', 'Lessons'. */
   shapesFrom?: string
   /**
@@ -58,6 +64,8 @@ export interface Song {
 export interface SongEdits {
   sections?: Section[]
   notes?: string
+  /** The player's own song order (see `Song.form`). */
+  form?: string[]
   key?: string
   bpm?: number
   /**
@@ -79,6 +87,8 @@ export interface SongVersion {
   reason: string
   sections: Section[]
   notes: string
+  /** The song order then. Versions kept before orders existed have none. */
+  form?: string[]
 }
 
 export interface Setlist {

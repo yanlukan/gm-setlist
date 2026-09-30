@@ -1,5 +1,6 @@
 import { getSongHistory, saveSongHistory } from './persistence'
 import { sameSections } from '../music/chart-edits'
+import { sameForm } from '../music/form'
 import type { Section } from '../types'
 
 /** How many earlier versions of a song are kept. */
@@ -25,7 +26,7 @@ export function whenHistorySaved(): Promise<unknown> {
  */
 export function keepVersion(
   title: string,
-  chart: { sections: Section[]; notes: string },
+  chart: { sections: Section[]; notes: string; form?: string[] },
   reason: string,
   force = false,
 ): Promise<unknown> {
@@ -34,9 +35,9 @@ export function keepVersion(
     .then(async () => {
       const versions = await getSongHistory(title)
       const newest = versions[0]
-      if (newest && sameSections(newest.sections, chart.sections) && newest.notes === chart.notes) return
+      if (newest && sameSections(newest.sections, chart.sections) && newest.notes === chart.notes && sameForm(newest.form, chart.form)) return
       if (!force && newest && at - newest.at < VERSION_GAP_MS) return
-      const next = [{ at, reason, sections: chart.sections, notes: chart.notes }, ...versions]
+      const next = [{ at, reason, sections: chart.sections, notes: chart.notes, ...(chart.form ? { form: chart.form } : {}) }, ...versions]
       await saveSongHistory(title, next.slice(0, VERSIONS_KEPT))
     })
     .catch(e => console.warn('keeping an earlier version failed:', e))

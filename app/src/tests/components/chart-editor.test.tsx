@@ -402,7 +402,7 @@ describe('chords the app does not know', () => {
   it('does not mark N.C. or repeat marks', () => {
     useStore.getState().saveSections('Faith', [{ name: 'Verse', chords: 'B  N.C.  (x2)' }])
     render(<SongSheet />)
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Not a chord/)).not.toBeInTheDocument()
   })
 })
 

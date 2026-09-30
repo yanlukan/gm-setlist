@@ -164,7 +164,9 @@ describe('earlier versions from the editor', () => {
     fireEvent.click(within(screen.getByRole('group', { name: 'Chord keyboard' })).getByRole('button', { name: 'E' }))
     await whenHistorySaved()
     fireEvent.click(screen.getByRole('button', { name: 'Earlier versions of this song' }))
-    fireEvent.click(await screen.findByRole('button', { expanded: false }))
+    // The chart behind has expandable buttons of its own: look in the dialog
+    const dialog = await screen.findByRole('dialog', { name: 'Earlier versions of Faith' })
+    fireEvent.click(await within(dialog).findByRole('button', { expanded: false }))
     expect(previewChords()[0]).toBe(faith.sections[0].chords) // the Intro, before the E was added
   })
 })

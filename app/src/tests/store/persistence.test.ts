@@ -120,6 +120,7 @@ describe('importing a backup', () => {
   it('round-trips a real export', async () => {
     await saveSetlistData({ lists: { a: { id: 'a', name: 'Gig', songTitles: ['Faith', 'Roxanne'] } }, activeId: 'a' })
     await saveSongEdits('Roxanne', { transpose: -2 })
+    await saveSongEdits('Faith', { form: ['Intro', 'Verse', 'Chorus'] })
     const backup = await exportAllData()
     expect(validateBackup(JSON.parse(backup))).toBeNull()
 
@@ -127,5 +128,6 @@ describe('importing a backup', () => {
     await importAllData(backup)
     expect((await getSetlistData())?.lists.a.songTitles).toEqual(['Faith', 'Roxanne'])
     expect((await getSongEdits('Roxanne'))?.transpose).toBe(-2)
+    expect((await getSongEdits('Faith'))?.form).toEqual(['Intro', 'Verse', 'Chorus']) // the song order goes in a backup too
   })
 })

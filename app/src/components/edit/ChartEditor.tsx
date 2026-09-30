@@ -2,7 +2,9 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AutoSaveText } from '../shared/AutoSaveText'
 import { ChordKeyboard } from './ChordKeyboard'
 import { SongHistoryModal } from './SongHistoryModal'
+import { FormEditor } from './FormEditor'
 import { isChartMark, sectionColor } from '../../music/theory'
+import { formAfterDelete, formAfterRename } from '../../music/form'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
   normalizeChordText, parseChordText, replaceChord, unknownChords,
@@ -19,6 +21,12 @@ type Cursor =
   | { kind: 'caret'; section: number; line: number; pos: number }
   | { kind: 'chord'; section: number; line: number; index: number }
 
+/** One step of undo: the chart and the song order as they were. */
+interface Snapshot {
+  sections: Section[]
+  form: string[]
+}
+
 interface Props {
   title: string
   heading: ReactNode
@@ -27,6 +35,8 @@ interface Props {
   sections: Section[]
   /** The same chart as shown on screen, in the key the band plays. */
   displaySections: Section[]
+  /** The order the song is played in: section names, as saved. */
+  form: string[]
   /** The key as shown, for the chords that belong to it. */
   songKey: string
   notes: string
@@ -35,6 +45,8 @@ interface Props {
   /** The whole chart at the song's own pitch: moves, renames, copies, adds and deletes. */
   onSections: (next: Section[]) => void
   onNotes: (text: string) => void
+  /** The whole new song order. */
+  onForm: (next: string[]) => void
 }
 
 /** "Verse" is copied as "Verse 2", "Bridge 2" as "Bridge 3". */
@@ -51,7 +63,7 @@ function copyName(name: string): string {
  * the cursor. Every change is saved at once and can be undone.
  */
 export function ChartEditor({
-  title, heading, banners, sections, displaySections, songKey, notes, onChords, onSections, onNotes,
+  title, heading, banners, sections, displaySections, form, songKey, notes, onChords, onSections, onNotes, onForm,
 }: Props) {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   /** Lines as typed, kept while editing so a new empty line at the end survives. */
@@ -60,13 +72,15 @@ export function ChartEditor({
   const [typing, setTyping] = useState<number | null>(null)
   /** The section last touched: on a phone only its buttons (move, copy, delete) are shown. */
   const [touched, setTouched] = useState<number | null>(null)
-  const [history, setHistory] = useState<{ past: Section[][]; future: Section[][] }>({ past: [], future: [] })
+  const [history, setHistory] = useState<{ past: Snapshot[]; future: Snapshot[] }>({ past: [], future: [] })
   const [showAdd, setShowAdd] = useState(false)
   const [customName, setCustomName] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const at = cursor && displaySections[cursor.section] ? cursor : null
+  /** The chart's section names, each once, for the song order to choose from. */
+  const names = Array.from(new Set(sections.map(s => s.name).filter(name => name.trim() !== '')))
 
   /** A section's lines: the draft while it still says what is saved, else what is saved. */
   const linesOf = (i: number): ChordLines => {
@@ -76,9 +90,9 @@ export function ChartEditor({
     return lines.length > 0 ? lines : [[]]
   }
 
-  /** Keep the chart as it is now, so Undo can bring it back. */
+  /** Keep the chart and its order as they are now, so Undo can bring them back. */
   const remember = () =>
-    setHistory(h => ({ past: [...h.past.slice(-(MAX_UNDO - 1)), sections], future: [] }))
+    setHistory(h => ({ past: [...h.past.slice(-(MAX_UNDO - 1)), { sections, form }], future: [] }))
 
   const changeChords = (i: number, produce: (lines: ChordLines) => Edited) => {
     const { lines, caret } = produce(linesOf(i))
@@ -112,13 +126,14 @@ export function ChartEditor({
   const tapGap = (section: number, line: number, pos: number) =>
     setCursor({ kind: 'caret', section, line, pos })
 
-  // Changes to the chart as a whole
-  const restructure = (next: Section[]) => {
+  // Changes to the chart as a whole. The song order follows a rename or a delete.
+  const restructure = (next: Section[], nextForm: string[] = form) => {
     remember()
     setDrafts({})
     setCursor(null)
     setTouched(null)
     onSections(next)
+    onForm(nextForm)
   }
   const move = (i: number, dir: -1 | 1) => {
     const target = i + dir
@@ -131,10 +146,18 @@ export function ChartEditor({
     restructure([...sections.slice(0, i + 1), { ...sections[i], name: copyName(sections[i].name) }, ...sections.slice(i + 1)])
   const drop = (i: number) => {
     if (sections.length <= 1 || !confirm(`Delete the ${sections[i].name} section?`)) return
-    restructure(sections.filter((_, k) => k !== i))
+    const left = sections.filter((_, k) => k !== i)
+    restructure(left, formAfterDelete(form, sections[i].name, left))
   }
   const rename = (i: number, name: string) =>
-    restructure(sections.map((s, k) => (k === i ? { ...s, name } : s)))
+    restructure(
+      sections.map((s, k) => (k === i ? { ...s, name } : s)),
+      formAfterRename(form, sections[i].name, name, sections),
+    )
+  const changeForm = (next: string[]) => {
+    remember()
+    onForm(next)
+  }
   const add = (name: string) => {
     restructure([...sections, { name, chords: '' }])
     setShowAdd(false)
@@ -144,20 +167,22 @@ export function ChartEditor({
   const undo = () => {
     const previous = history.past[history.past.length - 1]
     if (!previous) return
-    setHistory({ past: history.past.slice(0, -1), future: [sections, ...history.future] })
+    setHistory({ past: history.past.slice(0, -1), future: [{ sections, form }, ...history.future] })
     setDrafts({})
     setCursor(null)
     setTouched(null)
-    onSections(previous)
+    onSections(previous.sections)
+    onForm(previous.form)
   }
   const redo = () => {
     const next = history.future[0]
     if (!next) return
-    setHistory({ past: [...history.past, sections], future: history.future.slice(1) })
+    setHistory({ past: [...history.past, { sections, form }], future: history.future.slice(1) })
     setDrafts({})
     setCursor(null)
     setTouched(null)
-    onSections(next)
+    onSections(next.sections)
+    onForm(next.form)
   }
 
   const typeInto = (i: number | null) => {
@@ -226,6 +251,8 @@ export function ChartEditor({
         <div className="chart ce">
           {heading}
           {banners}
+
+          <FormEditor form={form} names={names} onChange={changeForm} />
 
           <div className="ce-sections">
             {displaySections.map((section, si) => {

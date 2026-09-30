@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useStore } from '../../store/use-store'
-import { db, resetDb, saveSetlistData, getSetlistData, listSnapshots, restoreSnapshot } from '../../store/persistence'
+import {
+  db, resetDb, saveSetlistData, getSetlistData, listSnapshots, restoreSnapshot,
+  getCustomSongs, getSongEdits, getSetting,
+} from '../../store/persistence'
 import type { SetlistData } from '../../types'
 
 beforeEach(async () => {
@@ -18,6 +21,12 @@ beforeEach(async () => {
   await tx.done
   useStore.setState(useStore.getInitialState())
 })
+
+/**
+ * Saves happen in the background, so a test waits until what it needs is on
+ * disk instead of sleeping for a guessed time: a busy machine takes longer.
+ */
+const toLand = (check: () => Promise<void>) => vi.waitFor(check, { timeout: 5000, interval: 5 })
 
 /**
  * Regression tests for the failure that made the app unusable at the gig:
@@ -94,7 +103,7 @@ describe('setlist changes are recoverable', () => {
     expect(await listSnapshots()).toHaveLength(0)
 
     useStore.getState().removeSongFromSetlist(id, 'Faith')
-    await new Promise(resolve => setTimeout(resolve, 20))
+    await toLand(async () => expect(await listSnapshots()).not.toHaveLength(0))
 
     const snaps = await listSnapshots()
     expect(snaps.length).toBeGreaterThan(0)
@@ -109,7 +118,10 @@ describe('restoring a snapshot', () => {
 
     useStore.getState().removeSongFromSetlist(id, 'Faith')
     useStore.getState().removeSongFromSetlist(id, 'Roxanne')
-    await new Promise(resolve => setTimeout(resolve, 20))
+    // Both removals must be on disk, or a late write would undo the restore
+    await toLand(async () => {
+      expect((await getSetlistData())?.lists[id]?.songTitles).toHaveLength(before.length - 2)
+    })
     expect(useStore.getState().setlistData.lists[id].songTitles).toHaveLength(before.length - 2)
 
     // The oldest snapshot is the state before the first removal.
@@ -124,7 +136,9 @@ describe('restoring a snapshot', () => {
   it('snapshots the current state before restoring, so a restore is undoable', async () => {
     const id = useStore.getState().setlistData.activeId
     useStore.getState().removeSongFromSetlist(id, 'Faith')
-    await new Promise(resolve => setTimeout(resolve, 20))
+    await toLand(async () => {
+      expect((await getSetlistData())?.lists[id]?.songTitles).not.toContain('Faith')
+    })
 
     const first = await listSnapshots()
     await restoreSnapshot(first[first.length - 1].id)
@@ -136,11 +150,12 @@ describe('restoring a snapshot', () => {
 })
 
 describe('relaunching mid-set', () => {
-  const settle = () => new Promise(resolve => setTimeout(resolve, 20))
+  const positionSaved = (index: number) =>
+    toLand(async () => expect((await getSetting<{ index: number }>('position'))?.index).toBe(index))
 
   it('reopens on the song the player was on', async () => {
     useStore.getState().goToSong(7)
-    await settle()
+    await positionSaved(7)
 
     useStore.setState(useStore.getInitialState()) // app closed and reopened
     await useStore.getState().hydrate()
@@ -153,7 +168,7 @@ describe('relaunching mid-set', () => {
     useStore.getState().nextSong()
     useStore.getState().nextSong()
     useStore.getState().prevSong()
-    await settle()
+    await positionSaved(2)
 
     useStore.setState(useStore.getInitialState())
     await useStore.getState().hydrate()
@@ -163,7 +178,7 @@ describe('relaunching mid-set', () => {
 
   it('starts at the top when the saved position was in a different setlist', async () => {
     useStore.getState().goToSong(7)
-    await settle()
+    await positionSaved(7)
     await saveSetlistData({
       lists: { other: { id: 'other', name: 'Other', songTitles: ['Faith', 'Outside', 'Roxanne'] } },
       activeId: 'other',
@@ -177,7 +192,7 @@ describe('relaunching mid-set', () => {
 
   it('remembers Stage Mode', async () => {
     useStore.getState().toggleViewMode()
-    await settle()
+    await toLand(async () => expect(await getSetting('viewMode')).toBe('stage'))
 
     useStore.setState(useStore.getInitialState())
     await useStore.getState().hydrate()
@@ -187,7 +202,6 @@ describe('relaunching mid-set', () => {
 })
 
 describe('deleting your own song', () => {
-  const settle = () => new Promise(resolve => setTimeout(resolve, 30))
   const encore = {
     title: 'Encore Jam', artist: 'Band', key: 'E', bpm: 120, timeSignature: '4/4',
     capo: null, notes: '', sections: [{ name: 'Verse', chords: 'E  A  B' }],
@@ -198,10 +212,18 @@ describe('deleting your own song', () => {
     useStore.getState().addCustomSong(encore)
     useStore.getState().addSongToSetlist(id, 'Encore Jam')
     useStore.getState().setTranspose('Encore Jam', 2)
-    await settle()
+    await toLand(async () => {
+      expect(await getCustomSongs()).toHaveLength(1)
+      expect((await getSetlistData())?.lists[id]?.songTitles).toContain('Encore Jam')
+      expect((await getSongEdits('Encore Jam'))?.transpose).toBe(2)
+    })
 
     useStore.getState().deleteCustomSong('Encore Jam')
-    await settle()
+    await toLand(async () => {
+      expect(await getCustomSongs()).toHaveLength(0)
+      expect((await getSetlistData())?.lists[id]?.songTitles).not.toContain('Encore Jam')
+      expect(await getSongEdits('Encore Jam')).toBeUndefined()
+    })
 
     const state = useStore.getState()
     expect(state.customSongs).toHaveLength(0)
@@ -217,10 +239,16 @@ describe('deleting your own song', () => {
     const id = useStore.getState().setlistData.activeId
     useStore.getState().addCustomSong(encore)
     useStore.getState().addSongToSetlist(id, 'Encore Jam')
-    await settle()
+    await toLand(async () => {
+      expect(await getCustomSongs()).toHaveLength(1)
+      expect((await getSetlistData())?.lists[id]?.songTitles).toContain('Encore Jam')
+    })
 
     useStore.getState().deleteCustomSong('Encore Jam')
-    await settle()
+    await toLand(async () => {
+      expect(await getCustomSongs()).toHaveLength(0)
+      expect((await getSetlistData())?.lists[id]?.songTitles).not.toContain('Encore Jam')
+    })
 
     const [latest] = await listSnapshots()
     expect(latest.reason).toBe('delete song Encore Jam')

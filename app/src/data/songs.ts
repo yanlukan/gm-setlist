@@ -13,6 +13,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' },
     shapesFrom: 'Songbook',
     notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Chorus'],
     sections: [
       { name: 'Intro', chords: 'B' },
       { name: 'Verse', chords: 'B  E  B  E  B' },
@@ -83,6 +84,7 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     notes: 'Built from two published charts and Hooktheory, checked against the recording. Opens with a palm-muted vamp; straight eighths throughout. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Bridge, Chorus, Outro.',
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Chorus', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'C' },
       { name: 'Verse', chords: 'C  Dm  C  Dm  C  Dm' },
@@ -365,6 +367,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { Fm7: '1-3-1-1-1-1' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 4). One loop all the way through, with a quick passing chord in the second bar. The book is a whole tone above the band and mostly in open shapes, which cannot move down; only its barre moves down two frets note for note, and it is marked Songbook. Form: sax riff twice, Verse, Chorus, sax riff, Verse, Chorus, sax riff, Verse, Chorus, then the sax riff to fade. Sax line is essential.',
+    form: ['Intro (sax)', 'Verse', 'Chorus', 'Sax riff', 'Verse', 'Chorus', 'Sax riff', 'Verse', 'Chorus', 'Outro (sax)'],
     sections: [
       { name: 'Intro (sax)', chords: 'Dm  Gm7  Am7  Bbmaj7  Am7  (x2)' },
       { name: 'Verse', chords: 'Dm7  Gm7  Am7  Bbmaj7  Am7  (x2)' },
@@ -393,6 +396,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapesFrom: 'Songbook',
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
     notes: "From the songbook (no. 25), in George Michael's key of G. Piano-led; guitar plays sparse arpeggios, no strumming. Form: Verse, Chorus, Verse, Chorus, Outro, ending on Fmaj9. The first time, the verse has one 2/4 bar before G/D, and the chorus ends on Am7 back to the verse; the second time it goes straight into the Outro. The book marks 60 BPM; the recording measures 58.",
+    form: ['Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B' },
       { name: 'Chorus', chords: 'Cadd9  G  Cadd9  G  G/B  C  D  Em7  G/C  D/F#  Em7  G/C  D/F#  Em7  Am7  G/D  D  G/B' },
@@ -418,6 +422,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 49): George Michael's reharmonisation, a jazz ballad in 12/8. Form: Verse, Verse 2 into the Chorus, Interlude, Verse, Pre-Chorus, Chorus 2, Outro, then a free, slowing Ending. Guitar sits out or plays long sustained voicings only. The book marks 83 BPM. The book's jazz voicings mostly skip a string; the E and Bm7 stabs after each N.C. are three-note shapes on the top strings, with no root (the bass has it).",
+    form: ['Verse', 'Verse 2', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus 2', 'Outro', 'Ending'],
     sections: [
       { name: 'Verse', chords: 'Bm  D/A  Gmaj7  F#m7  Em7  G/A  B11  N.C.  F#7#5' },
       { name: 'Verse 2', chords: 'Bm  D/A  Gmaj7  F#m7  Em7  G/A  N.C.  E  Bm7' },
@@ -443,6 +448,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 63). A G to Cadd9 vamp all the way through; each longer verse ends Cadd9, D, C back to G. Form: Verse, Hook, Verse 2, Hook, Last verse, Ending on G. The book marks 68 BPM. The book\'s G (3-x-0-0-3-3) and Cadd9 (x-3-2-0-3-3) keep the ring and little fingers on the 3rd fret of the top two strings, so the vamp only moves the bass.',
+    form: ['Verse', 'Hook', 'Verse 2', 'Hook', 'Last verse', 'Ending'],
     sections: [
       { name: 'Verse', chords: 'G  Cadd9  G  Cadd9' },
       { name: 'Hook', chords: 'G  Cadd9  G  Cadd9' },
@@ -474,6 +480,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. Form: Intro, Verse, Chorus, Bridge, Verse, Chorus, Bridge 2, Last verse, Outro. Swung eighths, triplet feel. The book names the chorus\'s last chord as a plain diminished chord over the bass, but its box holds the diminished seventh, so the chart shows it as a dim7.',
+    form: ['Intro', 'Verse', 'Chorus', 'Bridge', 'Verse', 'Chorus', 'Bridge 2', 'Last verse', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'Eb  Edim7  Fm  Abm6  Bb' },
       { name: 'Verse', chords: 'Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6  C7(b9)  Fm7  Cb(b5)  Bb' },

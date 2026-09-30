@@ -5,6 +5,8 @@ import { voicingsFor } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { ChartEditor } from '../edit/ChartEditor'
+import { FormStrip } from './FormStrip'
+import { formMatches } from '../../music/form'
 import { playedKey, transposeFor } from '../../music/setlist-text'
 import { normalizeChordText } from '../../music/chord-text'
 import { useFitText } from '../../hooks/use-fit-text'
@@ -34,6 +36,7 @@ export function SongSheet() {
   const clearVoicing = useStore(s => s.clearVoicing)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
+  const saveForm = useStore(s => s.saveForm)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
@@ -78,11 +81,17 @@ export function SongSheet() {
     return song.notes ?? ''
   }, [song, edits])
 
+  // The order the song is played in: the player's own, else the built-in one
+  const form = useMemo(() => {
+    if (!song) return []
+    return edits[song.title]?.form ?? song.form ?? []
+  }, [song, edits])
+
   const showLowerKeyWarning = !!song?.lowerKey && semitones === 0
 
   // Fit the whole chart to the screen: biggest text that needs no scrolling.
   const fitKey = song
-    ? JSON.stringify([song.title, displaySections, notes, song.cue ?? '', showLowerKeyWarning])
+    ? JSON.stringify([song.title, displaySections, form, notes, song.cue ?? '', showLowerKeyWarning])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,
@@ -175,6 +184,7 @@ export function SongSheet() {
       <div ref={fitRef} className="chart">
         {heading}
         {banners}
+        {formMatches(form, displaySections) && <FormStrip form={form} />}
         <div className="chart-sections">
           {displaySections.map((section, i) => {
             const focused = focusSection?.title === song.title && focusSection.index === i
@@ -240,11 +250,13 @@ export function SongSheet() {
           banners={renderBanners(song)}
           sections={sections}
           displaySections={displaySections}
+          form={form}
           songKey={playedKey(song, edits[song.title]).key}
           notes={notes}
           onChords={updateChordsAt}
           onSections={next => saveSections(song.title, next)}
           onNotes={text => saveNotes(song.title, text)}
+          onForm={next => saveForm(song.title, next)}
         />
       ) : (
         <div ref={scrollRef} className="chart-scroll">

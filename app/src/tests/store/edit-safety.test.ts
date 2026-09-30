@@ -212,3 +212,84 @@ describe('going back to the built-in chart', () => {
     expect(useStore.getState().edits['Faith']).toEqual({ notes: 'Mine' })
   })
 })
+
+describe('the song order', () => {
+  const builtIn = faith.form!
+
+  it('is the built-in order until you change it', () => {
+    expect(useStore.getState().getForm('Faith')).toEqual(builtIn)
+    expect(useStore.getState().getForm('Amazing')).toEqual([]) // a song with no order
+  })
+
+  it('keeps your own order, without touching the chords', () => {
+    const mine = ['Intro', 'Verse', 'Chorus']
+    useStore.getState().saveForm('Faith', mine)
+    expect(useStore.getState().getForm('Faith')).toEqual(mine)
+    expect(useStore.getState().edits['Faith']).toEqual({ form: mine })
+    expect(useStore.getState().getEditedSections('Faith')).toEqual(faith.sections)
+  })
+
+  it('does nothing when the order did not change', () => {
+    useStore.getState().saveForm('Faith', [...builtIn])
+    expect(useStore.getState().edits['Faith']).toBeUndefined()
+  })
+
+  it('is not an edit any more once it is the built-in order again', () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    useStore.getState().saveForm('Faith', [...builtIn])
+    expect(useStore.getState().edits['Faith']).toBeUndefined()
+  })
+
+  it('lets you clear the order of a song that has one built in', () => {
+    useStore.getState().saveForm('Faith', [])
+    expect(useStore.getState().getForm('Faith')).toEqual([])
+  })
+
+  it('needs no saved edit for a song that never had an order and still has none', () => {
+    useStore.getState().saveForm('Amazing', [])
+    expect(useStore.getState().edits['Amazing']).toBeUndefined()
+  })
+
+  it('is written to the database with the song', async () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    await vi.waitFor(async () => expect((await getSongEdits('Faith'))?.form).toEqual(['Intro', 'Verse']))
+  })
+
+  it('is still there when the app is closed and opened again', async () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    await vi.waitFor(async () => expect((await getSongEdits('Faith'))?.form).toEqual(['Intro', 'Verse']))
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().getForm('Faith')).toEqual(['Intro', 'Verse'])
+  })
+
+  it('is kept with the earlier version of the song, and comes back with it', async () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    await whenHistorySaved()
+    const [before] = await getSongHistory('Faith')
+    expect(before.form).toEqual(builtIn)
+
+    vi.setSystemTime(start + 1000)
+    useStore.getState().restoreVersion('Faith', before)
+    await whenHistorySaved()
+    expect(useStore.getState().getForm('Faith')).toEqual(builtIn)
+    expect(useStore.getState().edits['Faith']).toBeUndefined()
+  })
+
+  it('is left as it is by a version kept before orders existed', async () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    useStore.getState().restoreVersion('Faith', { at: start, reason: 'old', sections: faith.sections, notes: faith.notes })
+    expect(useStore.getState().getForm('Faith')).toEqual(['Intro', 'Verse'])
+  })
+
+  it('goes with Reset, and Reset keeps it first', async () => {
+    useStore.getState().saveForm('Faith', ['Intro', 'Verse'])
+    vi.setSystemTime(start + 1000)
+    useStore.getState().resetEdits('Faith')
+    await whenHistorySaved()
+    expect(useStore.getState().getForm('Faith')).toEqual(builtIn)
+    const [newest] = await getSongHistory('Faith')
+    expect(newest.reason).toBe('Before you reset it')
+    expect(newest.form).toEqual(['Intro', 'Verse'])
+  })
+})

@@ -63,6 +63,8 @@ describe('tapping a section on the chart', () => {
     useStore.setState({ diagramsVisible: false })
     render(<SongSheet />)
     expect(screen.queryByRole('button', { name: 'Intro' })).toBeNull()
-    expect(screen.getByText('Intro')).toBeInTheDocument()
+    // The song order under the title also says Intro: look at the chart's own labels
+    const labels = document.querySelector('.chart-sections') as HTMLElement
+    expect(within(labels).getByText('Intro')).toBeInTheDocument()
   })
 })
