@@ -278,6 +278,11 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   saveSections: (title: string, sections: Section[]) => {
+    // Nothing changed: do not turn a look at a song into a saved copy of it.
+    // A saved copy shadows the built-in chart, so later chart fixes would
+    // never reach that song on this device.
+    const shown = get().getEditedSections(title)
+    if (shown.length === sections.length && shown.every((s, i) => s.name === sections[i].name && s.chords === sections[i].chords)) return
     set(state => ({
       edits: {
         ...state.edits,
@@ -288,6 +293,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   saveNotes: (title: string, notes: string) => {
+    if (get().getEditedNotes(title) === notes) return
     set(state => ({
       edits: {
         ...state.edits,

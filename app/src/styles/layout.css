@@ -643,3 +643,66 @@
 .cle-root { background: transparent; border: 2px solid var(--border); }
 .cle-root.is-selected { border-color: var(--accent); }
 .cle-chips + .cle-chips { margin-top: 8px; }
+
+/* ---------- Editing a chart: one row per section ---------- */
+.edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--badge-bg);
+}
+.edit-controls { display: flex; gap: 4px; flex-shrink: 0; }
+/* 16px or more: iOS zooms the page in on any smaller field it focuses */
+.edit-name {
+  width: 130px;
+  flex-shrink: 0;
+  padding: 6px 2px;
+  border: none;
+  border-bottom: 1px dashed var(--edit-border, #f59e0b);
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.edit-chords-wrap { flex: 1 1 280px; min-width: 0; }
+.edit-chords,
+.edit-notes {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-family: inherit;
+}
+.edit-chords {
+  padding: 6px 10px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-spacing: 0.2em;
+}
+.edit-notes {
+  padding: 8px;
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.edit-name:focus,
+.edit-chords:focus,
+.edit-notes:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.edit-warning { margin-top: 4px; font-size: 14px; font-weight: 600; color: #f87171; }
+@media (max-width: 600px) {
+  /* Buttons and name on one line, the chords underneath at full width */
+  .edit-name { flex: 1; width: auto; min-width: 0; }
+  .edit-chords-wrap { order: 3; flex-basis: 100%; }
+  .edit-palette-btn { order: 2; }
+}

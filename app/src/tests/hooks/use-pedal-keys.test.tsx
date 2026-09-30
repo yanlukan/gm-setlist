@@ -23,7 +23,7 @@ describe('page-turner pedal keys', () => {
   it('does nothing while typing in a chord field', () => {
     const onNext = vi.fn()
     renderHook(() => usePedalKeys({ onNext, onPrev: vi.fn() }, true))
-    // Rendered the way React renders EditableText: as an attribute.
+    // A contentEditable is marked with an attribute.
     const field = document.createElement('div')
     field.setAttribute('contenteditable', 'true')
     const chord = document.createElement('span')

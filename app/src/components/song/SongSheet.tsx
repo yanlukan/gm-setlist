@@ -4,9 +4,10 @@ import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey,
 import { voicingsFor } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
-import { EditableText } from '../shared/EditableText'
+import { AutoSaveText } from '../shared/AutoSaveText'
 import { ChordLineEditor } from '../edit/ChordLineEditor'
 import { playedKey, transposeFor } from '../../music/setlist-text'
+import { normalizeChordText, unknownChords } from '../../music/chord-text'
 import { useFitText } from '../../hooks/use-fit-text'
 import { useSwipe } from '../../hooks/use-swipe'
 import type { Song } from '../../types'
@@ -110,7 +111,8 @@ export function SongSheet() {
   // Chord edits arrive as shown on screen and are stored at the song's own pitch.
   const updateChordsAt = (index: number, chords: string) => {
     if (!song) return
-    const atSource = toSourcePitch(chords)
+    // Tidy first: Return is a line break, never a join, and stray spaces go
+    const atSource = toSourcePitch(normalizeChordText(chords))
     saveSections(song.title, sections.map((sec, i) => (i === index ? { ...sec, chords: atSource } : sec)))
   }
 
@@ -267,6 +269,8 @@ export function SongSheet() {
       minWidth: 36, minHeight: 36, fontSize: 16, borderRadius: 8,
       background: 'var(--badge-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
     }
+    // Anything in a line that is not a chord (two chords fused by a slip, say)
+    const notChords = displaySections.map(section => unknownChords(section.chords))
 
     return (
       <div className="chart" style={{ fontSize: 22 }}>
@@ -275,14 +279,8 @@ export function SongSheet() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {displaySections.map((section, i) => (
-            <div
-              key={`${song.title}-${i}`}
-              style={{
-                display: 'flex', alignItems: 'baseline', gap: 8,
-                padding: '4px 0', borderBottom: '1px solid var(--badge-bg)',
-              }}
-            >
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignSelf: 'center' }}>
+            <div key={`${song.title}-${i}`} className="edit-row">
+              <div className="edit-controls">
                 <button onClick={() => moveSection(i, -1)} style={smallBtn} disabled={i === 0}
                   aria-label={`Move ${section.name} up`}>▲</button>
                 <button onClick={() => moveSection(i, 1)} style={smallBtn} disabled={i === sections.length - 1}
@@ -297,26 +295,29 @@ export function SongSheet() {
                 >&times;</button>
               </div>
 
-              <EditableText
+              <AutoSaveText
+                className="edit-name"
+                style={{ color: sectionColor(section.name) }}
                 value={section.name}
                 onChange={name => updateName(i, name)}
-                style={{
-                  minWidth: 80, maxWidth: 130, fontSize: 13, fontWeight: 600,
-                  textTransform: 'uppercase', color: sectionColor(section.name),
-                  borderBottom: '1px dashed var(--edit-border, #f59e0b)',
-                  outline: 'none', flexShrink: 0,
-                }}
+                aria-label={`Name of section ${i + 1}`}
               />
 
-              <EditableText
-                value={section.chords}
-                onChange={chords => updateChordsAt(i, chords)}
-                style={{
-                  fontSize: 22, fontWeight: 'bold', letterSpacing: 1, wordSpacing: 10,
-                  background: 'var(--badge-bg)', borderRadius: 4, padding: '4px 8px',
-                  outline: 'none', whiteSpace: 'pre-wrap', minWidth: 60, flex: 1,
-                }}
-              />
+              <div className="edit-chords-wrap">
+                <AutoSaveText
+                  multiline
+                  className="edit-chords"
+                  value={section.chords}
+                  onChange={chords => updateChordsAt(i, chords)}
+                  aria-label={`Chords for ${section.name}`}
+                  placeholder="Chords. Return starts a new line"
+                />
+                {notChords[i].length > 0 && (
+                  <div className="edit-warning" role="status">
+                    Not a chord: {notChords[i].join(', ')}
+                  </div>
+                )}
+              </div>
 
               <button
                 onClick={() => {
@@ -327,7 +328,8 @@ export function SongSheet() {
                   if (active instanceof HTMLElement) active.blur()
                   setPaletteFor(i)
                 }}
-                style={{ ...smallBtn, padding: '0 12px', color: 'var(--text)', alignSelf: 'center', fontWeight: 600 }}
+                className="edit-palette-btn"
+                style={{ ...smallBtn, padding: '0 12px', color: 'var(--text)', fontWeight: 600 }}
                 aria-label={`Pick chords for ${section.name}`}
               >
                 Chords
@@ -368,13 +370,12 @@ export function SongSheet() {
 
         <div style={{ marginTop: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>NOTES</div>
-          <EditableText
+          <AutoSaveText
+            multiline
+            className="edit-notes"
             value={notes}
             onChange={text => saveNotes(song.title, text)}
-            style={{
-              fontSize: 15, padding: 8, borderRadius: 6, background: 'var(--badge-bg)',
-              outline: 'none', minHeight: 44, fontStyle: 'italic', color: 'var(--text-muted)',
-            }}
+            aria-label="Notes"
           />
         </div>
       </div>

@@ -107,6 +107,23 @@ describe('useStore', () => {
       expect(useStore.getState().getCurrentKey(song.title)).toBe(song.key)
     })
 
+    it('does not turn looking at a song into a saved copy of it', () => {
+      // A saved copy shadows the built-in chart, so later chart fixes would never reach it
+      const song = DEFAULT_SONGS[0]
+      useStore.getState().saveSections(song.title, song.sections.map(s => ({ ...s })))
+      useStore.getState().saveNotes(song.title, song.notes)
+      expect(useStore.getState().edits[song.title]).toBeUndefined()
+    })
+
+    it('keeps what you changed, and only once it really is different', () => {
+      const song = DEFAULT_SONGS[0]
+      const changed = song.sections.map((s, i) => (i === 0 ? { ...s, chords: 'Am  G' } : s))
+      useStore.getState().saveSections(song.title, changed)
+      expect(useStore.getState().edits[song.title].sections).toEqual(changed)
+      useStore.getState().saveNotes(song.title, 'Play it twice')
+      expect(useStore.getState().edits[song.title].notes).toBe('Play it twice')
+    })
+
     it('resetEdits removes edits for a song', () => {
       const title = DEFAULT_SONGS[0].title
       useStore.getState().saveSections(title, [{ name: 'X', chords: 'C' }])
