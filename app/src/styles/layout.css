@@ -834,6 +834,13 @@
   text-overflow: ellipsis;
 }
 .ck-tools { display: flex; gap: 6px; }
+/* On a wide screen the hint sits beside the buttons, leaving the chart a line more */
+@media (min-width: 701px) {
+  .ck { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .ck > :not(.ck-hint, .ck-tools) { grid-column: 1 / -1; }
+  .ck-hint { grid-row: 1; grid-column: 1; }
+  .ck-tools { grid-row: 1; grid-column: 2; }
+}
 .ck-tool {
   min-width: 48px;
   min-height: 44px;

@@ -49,6 +49,7 @@ export function SongSheet() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fitRef = useRef<HTMLDivElement>(null)
+  const sectionsRef = useRef<HTMLDivElement>(null)
 
   const setlistSongs = useMemo(() => {
     const all = [...songs, ...customSongs]
@@ -122,6 +123,8 @@ export function SongSheet() {
     max: MAX_CHART_PX,
     enabled: !!song && !editMode,
     preferNoWrapMin: NO_WRAP_MIN_PX,
+    // A long chart keeps its chords on screen; the notes under them can scroll
+    essentialRef: sectionsRef,
   })
 
   // Swipe only on the chart itself, never while editing.
@@ -224,7 +227,7 @@ export function SongSheet() {
         {heading}
         {banners}
         {formMatches(form, readSections) && <FormStrip form={form} />}
-        <div className="chart-sections">
+        <div ref={sectionsRef} className="chart-sections">
           {readSections.map((section, i) => {
             const focused = focusSection?.title === song.title && focusSection.index === i
             return (

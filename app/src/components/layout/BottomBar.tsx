@@ -17,6 +17,7 @@ export function BottomBar() {
   const edits = useStore(s => s.edits)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
+  const editMode = useStore(s => s.editMode)
   const [gridOpen, setGridOpen] = useState(false)
 
   const setlistSongs = useMemo(() => {
@@ -38,8 +39,9 @@ export function BottomBar() {
   return (
     <>
       <nav className="songnav" aria-label="Song navigation">
-        {next?.cue && (
+        {next?.cue && !editMode && (
           // Heads-up one song early: time to grab the acoustic, or put the guitar down.
+          // Not while editing, where the chart needs the room above the chord keyboard.
           <div className="songnav-headsup" role="note">
             <span className="songnav-headsup-label">Next up</span>
             <span className="songnav-headsup-text">{next.cue}</span>
