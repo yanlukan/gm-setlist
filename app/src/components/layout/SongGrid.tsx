@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useStore } from '../../store/use-store'
+import { useChartView, useStore } from '../../store/use-store'
 import { formatLength, playedKey, setLength } from '../../music/setlist-text'
 import { bandPlanFor, positionLabel } from '../../hooks/use-band-positions'
 import { hasEditedChart } from '../../music/chart-edits'
@@ -20,7 +20,8 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
   const goToSong = useStore(s => s.goToSong)
   const edits = useStore(s => s.edits)
   // Each song's recommended area of the neck, worked out once per open
-  const positions = useMemo(() => songs.map(song => positionLabel(bandPlanFor(song, edits[song.title]).span)), [songs, edits])
+  const view = useChartView()
+  const positions = useMemo(() => songs.map(song => positionLabel(bandPlanFor(song, edits[song.title], view).span)), [songs, edits, view])
   const setlistName = useStore(s => s.setlistData.lists[s.setlistData.activeId]?.name ?? 'Setlist')
   const currentRef = useRef<HTMLButtonElement>(null)
 

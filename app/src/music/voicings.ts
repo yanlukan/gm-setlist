@@ -439,6 +439,8 @@ function move(a: Candidate, b: Candidate): number {
   return shift
 }
 
+export type ShapeStyle = 'full' | 'band'
+
 /**
  * The shape to recommend for each chord of a song, as an index into
  * `voicingsFor(name)`. The chords come in the order they first appear. Each
@@ -451,10 +453,25 @@ export function bandPositions(
   style?: string,
   /** Shapes already settled for this song (researched), by chord: index into its list. */
   fixed: Record<string, number> = {},
+  /**
+   * 'full': whole chords as a guitarist learns them, open where there is an
+   * open chord and a barre where not, never a three-string fragment while a
+   * fuller shape exists. 'band': compact shapes up the neck that sit with
+   * bass and keys.
+   */
+  shapes: ShapeStyle = 'band',
 ): Record<string, number> {
+  const full = shapes === 'full'
+  if (full) {
+    // A researched shape of two or three strings is a band part, not a chord to learn
+    fixed = Object.fromEntries(Object.entries(fixed).filter(([name, i]) => {
+      const v = voicingsFor(name)[i]
+      return v && v.f.filter(f => f !== null).length >= 4
+    }))
+  }
   const picks: Record<string, number> = {}
   for (const chord of chords) picks[chord.name] = fixed[chord.name] ?? 0
-  const acoustic = style === 'ACOUSTIC'
+  const acoustic = style === 'ACOUSTIC' || full
 
   const steps = chords
     .map(chord => {
@@ -462,8 +479,12 @@ export function bandPositions(
       const settled = fixed[chord.name]
       // A researched shape is the only choice for its chord; the others are
       // then chosen to sit with it.
-      const shapes = settled === undefined ? entry.band : entry.band.filter(c => c.index === settled)
-      return { ...chord, entry, shapes }
+      let options = settled === undefined ? entry.band : entry.band.filter(c => c.index === settled)
+      if (full && settled === undefined) {
+        const whole = options.filter(c => c.strings.length >= 4)
+        if (whole.length > 0) options = whole
+      }
+      return { ...chord, entry, shapes: options }
     })
     .filter(step => step.shapes.length > 0 && step.entry.notes !== null)
   if (steps.length === 0) return picks

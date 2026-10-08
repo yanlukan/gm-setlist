@@ -74,6 +74,8 @@ export interface SongEdits {
    * never destroys the source chart.
    */
   transpose?: number
+  /** The capo the player puts on for this song: the chart then shows the shapes to play. */
+  capo?: number
 }
 
 /**

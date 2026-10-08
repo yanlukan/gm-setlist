@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useRef, useState } from 'react'
-import { useStore } from '../../store/use-store'
-import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
+import { useChartView, useStore } from '../../store/use-store'
+import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
+import { capoFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
 import { hasShapes, shapeToShow } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
@@ -68,15 +69,25 @@ export function SongSheet() {
     return song.sections ?? []
   }, [song, edits])
 
+  const view = useChartView()
   const semitones = song ? transposeFor(song, edits[song.title]) : 0
+  const capo = song ? capoFor(song, edits[song.title]) : 0
+  // From the stored chart to the shapes played: the band's key, less the capo
+  const shift = song ? shapeShift(song, edits[song.title]) : 0
   const sourceKey = song ? (edits[song.title]?.key ?? song.key ?? '') : ''
 
-  // What actually goes on the screen. Editing writes back through this, so the
+  // The chart at the shapes' pitch. Editing writes back through this, so the
   // guitarist edits what they see and the stored chart stays at source pitch.
-  const displaySections = useMemo(() => {
-    if (!semitones) return sections
-    return sections.map(sec => ({ name: sec.name, chords: transposeInKey(sec.chords, sourceKey, semitones) }))
-  }, [sections, semitones, sourceKey])
+  const displaySections = useMemo(
+    () => (song ? shapeSections(song, edits[song.title]) : []),
+    [song, edits],
+  )
+  // What is read: the same, made plain if the player asked for plain chords.
+  // Never edited, so a plain chart can never overwrite the real chords.
+  const readSections = useMemo(
+    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords) })) : displaySections),
+    [displaySections, view.simple],
+  )
 
   const notes = useMemo(() => {
     if (!song) return ''
@@ -103,7 +114,7 @@ export function SongSheet() {
 
   // Fit the whole chart to the screen: biggest text that needs no scrolling.
   const fitKey = song
-    ? JSON.stringify([song.title, displaySections, form, notes, song.cue ?? '', showLowerKeyWarning, edited])
+    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,
@@ -117,9 +128,9 @@ export function SongSheet() {
 
   // The reverse move, so an edit keeps the chart's own spelling (Bb7 in D is Cb7 in Eb)
   const toSourcePitch = (text: string) => {
-    if (!semitones) return text
-    const { letterShift } = keySpelling(sourceKey, semitones)
-    return transposeText(text, -semitones, shouldUseFlats(sourceKey, 0), letterShift === undefined ? undefined : -letterShift)
+    if (!shift) return text
+    const { letterShift } = keySpelling(sourceKey, shift)
+    return transposeText(text, -shift, shouldUseFlats(sourceKey, 0), letterShift === undefined ? undefined : -letterShift)
   }
 
   // Chord edits arrive as shown on screen and are stored at the song's own pitch.
@@ -167,6 +178,11 @@ export function SongSheet() {
   const renderBanners = (song: Song) => (
     <>
       {song.cue && <div className="chart-cue">{song.cue}</div>}
+      {capo > 0 && (
+        <div className="chart-capo">
+          Capo {capo}: play {shapeKey(playedKey(song, edits[song.title]).key, -capo)} shapes, sounds in {playedKey(song, edits[song.title]).key}
+        </div>
+      )}
       {showLowerKeyWarning && (
         <div className="chart-warning">
           LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
@@ -206,9 +222,9 @@ export function SongSheet() {
       <div ref={fitRef} className="chart">
         {heading}
         {banners}
-        {formMatches(form, displaySections) && <FormStrip form={form} />}
+        {formMatches(form, readSections) && <FormStrip form={form} />}
         <div className="chart-sections">
-          {displaySections.map((section, i) => {
+          {readSections.map((section, i) => {
             const focused = focusSection?.title === song.title && focusSection.index === i
             return (
               <Fragment key={`${song.title}-${i}`}>
@@ -273,7 +289,7 @@ export function SongSheet() {
           sections={sections}
           displaySections={displaySections}
           form={form}
-          songKey={playedKey(song, edits[song.title]).key}
+          songKey={shapeKey(playedKey(song, edits[song.title]).key, -capo)}
           notes={notes}
           onChords={updateChordsAt}
           onSections={next => saveSections(song.title, next)}

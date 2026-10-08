@@ -11,6 +11,8 @@ import { hasEditedChart } from '../../music/chart-edits'
 import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
+import { CapoPicker } from '../song/CapoPicker'
+import { capoFor } from '../../music/chart-view'
 import type { Song } from '../../types'
 
 /**
@@ -33,8 +35,13 @@ export function TopBar() {
   const toggleViewMode = useStore(s => s.toggleViewMode)
   const toggleTheme = useStore(s => s.toggleTheme)
   const toggleDiagrams = useStore(s => s.toggleDiagrams)
+  const simpleChords = useStore(s => s.simpleChords)
+  const toggleSimpleChords = useStore(s => s.toggleSimpleChords)
+  const shapeStyle = useStore(s => s.shapeStyle)
+  const setShapeStyle = useStore(s => s.setShapeStyle)
   const resetEdits = useStore(s => s.resetEdits)
   const setTranspose = useStore(s => s.setTranspose)
+  const setCapo = useStore(s => s.setCapo)
   const clearTranspose = useStore(s => s.clearTranspose)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const hydrate = useStore(s => s.hydrate)
@@ -49,6 +56,7 @@ export function TopBar() {
 
   const [showSetlist, setShowSetlist] = useState(false)
   const [showTapTempo, setShowTapTempo] = useState(false)
+  const [showCapo, setShowCapo] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showRestore, setShowRestore] = useState(false)
   const [showSaved, setShowSaved] = useState(false)
@@ -205,7 +213,17 @@ export function TopBar() {
               )}
               <button className="tb-badge" onClick={() => setShowTapTempo(true)} aria-label="Tap tempo">{bpm} BPM</button>
               <span className="tb-badge">{song.timeSignature}</span>
-              {song.capo != null && <span className="tb-badge">Capo {song.capo}</span>}
+              {viewMode === 'stage' ? (
+                capoFor(song, edits[song.title]) > 0 && <span className="tb-badge is-warn">Capo {capoFor(song, edits[song.title])}</span>
+              ) : (
+                <button
+                  className={capoFor(song, edits[song.title]) > 0 ? 'tb-badge is-warn' : 'tb-badge'}
+                  onClick={() => setShowCapo(true)}
+                  aria-label={capoFor(song, edits[song.title]) > 0 ? `Capo on fret ${capoFor(song, edits[song.title])}. Change capo` : 'Add a capo'}
+                >
+                  {capoFor(song, edits[song.title]) > 0 ? `Capo ${capoFor(song, edits[song.title])}` : 'Capo'}
+                </button>
+              )}
             </>
           )}
         </div>
@@ -229,6 +247,15 @@ export function TopBar() {
               <div className="menu">
                 <button className="menu-item" onClick={menuAction(toggleDiagrams)}>
                   {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
+                </button>
+                <button className="menu-item" onClick={menuAction(toggleSimpleChords)} aria-pressed={simpleChords}>
+                  {simpleChords ? 'Show Full Chord Names' : 'Simplify Chords (Cmaj7 → C)'}
+                </button>
+                <button
+                  className="menu-item"
+                  onClick={menuAction(() => setShapeStyle(shapeStyle === 'full' ? 'band' : 'full'))}
+                >
+                  {shapeStyle === 'full' ? 'Diagrams: Band Shapes Up the Neck' : 'Diagrams: Whole Chords'}
                 </button>
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
@@ -277,6 +304,15 @@ export function TopBar() {
       )}
       {showSetlist && <SetlistScreen onClose={() => setShowSetlist(false)} />}
       <TapTempo open={showTapTempo} onClose={() => setShowTapTempo(false)} />
+      {showCapo && song && (
+        <CapoPicker
+          song={song}
+          edits={edits[song.title]}
+          capo={capoFor(song, edits[song.title])}
+          onPick={fret => { setCapo(song.title, fret); setShowCapo(false) }}
+          onClose={() => setShowCapo(false)}
+        />
+      )}
       {showRestore && <RestoreModal onClose={() => setShowRestore(false)} />}
       {showSaved && <SavedChartsModal onClose={() => setShowSaved(false)} />}
     </>

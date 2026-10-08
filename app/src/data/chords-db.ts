@@ -4,6 +4,10 @@ export interface ChordVoicing {
   f: (number | null)[] // 6 fret values: null=muted, 0=open, N=fret
   s: number            // start fret (0=nut position)
   l: string            // position label
+  /** Which finger plays each string (1 index to 4 little, 0 none), from the chord library. */
+  fg?: number[]
+  /** The fret (as drawn, like `f`) the index finger barres across, from the chord library. */
+  b?: number
   /** A library shape that sounds a note the chord does not have: kept so saved picks keep their place, never shown. */
   wrong?: boolean
 }
@@ -72,11 +76,13 @@ function positionLabel(frets: number[], baseFret: number): string {
   return `${lowest}${suffixes[lowest] || 'th'} fret`
 }
 
-function convertPosition(pos: { frets: number[]; baseFret: number }): ChordVoicing {
+function convertPosition(pos: { frets: number[]; baseFret: number; fingers?: number[]; barres?: number[] }): ChordVoicing {
   return {
     f: pos.frets.map(f => f === -1 ? null : f),
     s: pos.baseFret <= 1 ? 0 : pos.baseFret,
     l: positionLabel(pos.frets, pos.baseFret),
+    ...(pos.fingers && { fg: pos.fingers }),
+    ...(pos.barres?.length ? { b: pos.barres[0] } : {}),
   }
 }
 
@@ -95,7 +101,7 @@ function muteFifthUnderRoot(v: ChordVoicing, root: string): ChordVoicing {
   const lowPitch = (OPEN_PITCH[0] + fret) % 12
   const nextPitch = (OPEN_PITCH[1] + fret) % 12
   if (nextPitch !== PITCH[root] || lowPitch !== (PITCH[root] + 7) % 12) return v
-  return { ...v, f: [null, ...v.f.slice(1)] }
+  return { ...v, f: [null, ...v.f.slice(1)], ...(v.fg && { fg: [0, ...v.fg.slice(1)] }) }
 }
 
 // Build the complete chord database at import time
@@ -103,7 +109,7 @@ function buildChordDB(): Record<string, ChordVoicing[]> {
   const db: Record<string, ChordVoicing[]> = {}
   const chords = guitarData.chords as Record<string, Array<{
     key: string; suffix: string;
-    positions: Array<{ frets: number[]; baseFret: number }>
+    positions: Array<{ frets: number[]; baseFret: number; fingers?: number[]; barres?: number[] }>
   }>>
 
   for (const [dbKey, chordList] of Object.entries(chords)) {

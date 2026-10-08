@@ -87,13 +87,32 @@ describe('band positions', () => {
   it('recommend every researched shape, each for a chord the song plays in the band\'s key', () => {
     const wrong: string[] = []
     for (const song of DEFAULT_SONGS.filter(s => s.shapes)) {
-      const { picks, researched } = bandPlanFor(song, undefined)
+      const { picks, researched } = bandPlanFor(song, undefined, { simple: false, shapes: 'band' })
       for (const [name, shape] of Object.entries(song.shapes!)) {
         if (picks[name] === undefined) wrong.push(`${song.title} ${name}: not a chord of the song as the band plays it`)
         else if (shapeText(voicingsFor(name)[picks[name]]) !== shape || researched[name] !== picks[name]) wrong.push(`${song.title} ${name}: not recommended`)
       }
     }
     expect(wrong).toEqual([])
+  })
+
+  it('in full chords, recommend whole chords: no two- or three-string fragment where a fuller shape exists', () => {
+    const thin: string[] = []
+    for (const song of DEFAULT_SONGS) {
+      const { picks } = bandPlanFor(song, undefined, { simple: false, shapes: 'full' })
+      for (const [name, i] of Object.entries(picks)) {
+        const strings = voicingsFor(name)[i].f.filter(f => f !== null).length
+        const fuller = voicingsFor(name).some(v => !v.wrong && v.f.filter(f => f !== null).length >= 4)
+        if (strings < 4 && fuller) thin.push(`${song.title} ${name}: ${shapeText(voicingsFor(name)[i])}`)
+      }
+    }
+    expect(thin).toEqual([])
+  })
+
+  it('in full chords, keep a full researched shape from the songbook', () => {
+    const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+    const { picks } = bandPlanFor(faith, undefined, { simple: false, shapes: 'full' })
+    expect(shapeText(voicingsFor('B')[picks.B])).toBe('7-9-9-8-7-7')
   })
 
   it('choose shapes afresh when a song is moved to another key', () => {

@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react'
-import { useStore } from '../../store/use-store'
-import { transposeFor } from '../../music/setlist-text'
+import { useChartView, useStore } from '../../store/use-store'
+import { shownSections } from '../../music/chart-view'
 import { hasShapes, shapeToShow, voicingsFor } from '../../music/voicings'
 import { useBandPositions } from '../../hooks/use-band-positions'
-import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
 
@@ -46,16 +45,11 @@ export function DiagramsBar() {
     return section ? { index: focusSection.index, name: section.name } : null
   }, [song, edits, focusSection])
 
+  const view = useChartView()
   const uniqueChords = useMemo(() => {
     if (!song) return []
-    const songEdits = edits[song.title]
-    const stored = songEdits?.sections ?? song.sections ?? []
-    // Show the shapes actually being played, not the ones at source pitch.
-    const semitones = transposeFor(song, songEdits)
-    const sourceKey = songEdits?.key ?? song.key ?? ''
-    const sections = semitones
-      ? stored.map(sec => ({ ...sec, chords: transposeInKey(sec.chords, sourceKey, semitones) }))
-      : stored
+    // The shapes actually played: band key, less any capo, plain if asked for
+    const sections = shownSections(song, edits[song.title], view)
     const seen = new Set<string>()
     const result: string[] = []
     for (const section of focus ? [sections[focus.index]] : sections) {
@@ -68,7 +62,7 @@ export function DiagramsBar() {
       }
     }
     return result
-  }, [song, edits, focus])
+  }, [song, edits, focus, view])
 
   if (!song || uniqueChords.length === 0) return null
 
@@ -123,7 +117,7 @@ export function DiagramsBar() {
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>
                 {name}
               </span>
-              <ChordDiagram voicing={voicing} size={80} />
+              <ChordDiagram voicing={voicing} size={112} />
               <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                 {voicing.l}
               </span>

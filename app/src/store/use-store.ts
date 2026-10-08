@@ -1,10 +1,13 @@
 import { create } from 'zustand'
+import { useMemo } from 'react'
 import type { Song, Section, SongEdits, SongVersion, SetlistData, Theme, ViewMode } from '../types'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
 import { sameForm } from '../music/form'
+import { MAX_CAPO, type ChartView } from '../music/chart-view'
+import type { ShapeStyle } from '../music/voicings'
 import { keepVersion } from './song-history'
 import {
   saveSongEdits,
@@ -165,6 +168,10 @@ interface StoreState {
   theme: Theme
   viewMode: ViewMode
   diagramsVisible: boolean
+  /** Plain chords on the chart and diagrams: Cmaj7 as C. Saved. */
+  simpleChords: boolean
+  /** Whole chords or compact band shapes for the diagrams. Saved. */
+  shapeStyle: ShapeStyle
   selectedVoicings: Record<string, number>
   /**
    * A section tapped on the chart: the diagrams below then show only its
@@ -199,6 +206,8 @@ interface StoreState {
   saveKey: (title: string, key: string) => void
   saveBpm: (title: string, bpm: number) => void
   setTranspose: (title: string, semitones: number) => void
+  /** The capo for a song, 0 for none: the chart then shows the shapes to play. */
+  setCapo: (title: string, capo: number) => void
   /** Drop the player's own transpose, going back to the band key (or none). */
   clearTranspose: (title: string) => void
   resetEdits: (title: string) => void
@@ -228,6 +237,8 @@ interface StoreState {
   toggleTheme: () => void
   toggleViewMode: () => void
   toggleDiagrams: () => void
+  toggleSimpleChords: () => void
+  setShapeStyle: (style: ShapeStyle) => void
   setFocusSection: (focus: { title: string; index: number } | null) => void
   restoreGigOrder: () => void
   /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
@@ -250,6 +261,8 @@ export const useStore = create<StoreState>((set, get) => ({
   theme: 'dark' as Theme,
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
+  simpleChords: false,
+  shapeStyle: 'full',
   selectedVoicings: {},
   focusSection: null,
   toast: null,
@@ -437,6 +450,17 @@ export const useStore = create<StoreState>((set, get) => ({
       edits: {
         ...state.edits,
         [title]: { ...state.edits[title], transpose: clamped },
+      },
+    }))
+    persistEdits(title, get().edits[title])
+  },
+
+  setCapo: (title: string, capo: number) => {
+    const clamped = Math.max(0, Math.min(MAX_CAPO, Math.round(capo)))
+    set(state => ({
+      edits: {
+        ...state.edits,
+        [title]: { ...state.edits[title], capo: clamped },
       },
     }))
     persistEdits(title, get().edits[title])
@@ -680,6 +704,16 @@ export const useStore = create<StoreState>((set, get) => ({
     if (!readOnly) saveDiagramsVisible(get().diagramsVisible).catch(e => console.warn('saveDiagramsVisible failed:', e))
   },
 
+  toggleSimpleChords: () => {
+    set(state => ({ simpleChords: !state.simpleChords }))
+    if (!readOnly) saveSetting('simpleChords', get().simpleChords).catch(e => console.warn('save simpleChords failed:', e))
+  },
+
+  setShapeStyle: style => {
+    set({ shapeStyle: style })
+    if (!readOnly) saveSetting('shapeStyle', style).catch(e => console.warn('save shapeStyle failed:', e))
+  },
+
   setFocusSection: focus => set({ focusSection: focus }),
 
   /** Rebuild the active setlist as the printed Sept 2026 running order. */
@@ -714,11 +748,13 @@ export const useStore = create<StoreState>((set, get) => ({
     let diagramsVisibleResult: boolean | undefined
     let viewModeResult: ViewMode | undefined
     let positionResult: SavedPosition | undefined
+    let simpleResult: boolean | undefined
+    let shapeStyleResult: ShapeStyle | undefined
 
     try {
       ;[
         setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
-        diagramsVisibleResult, viewModeResult, positionResult,
+        diagramsVisibleResult, viewModeResult, positionResult, simpleResult, shapeStyleResult,
       ] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
@@ -727,6 +763,8 @@ export const useStore = create<StoreState>((set, get) => ({
         getDiagramsVisible(),
         getSetting<ViewMode>('viewMode'),
         getSetting<SavedPosition>('position'),
+        getSetting<boolean>('simpleChords'),
+        getSetting<ShapeStyle>('shapeStyle'),
       ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -776,6 +814,8 @@ export const useStore = create<StoreState>((set, get) => ({
         ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
         ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
         ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
+        ...(typeof simpleResult === 'boolean' && { simpleChords: simpleResult }),
+        ...((shapeStyleResult === 'full' || shapeStyleResult === 'band') && { shapeStyle: shapeStyleResult }),
         edits,
         loadFailed: false,
         currentIndex: clampIndex(savedIndex, listLength),
@@ -783,3 +823,10 @@ export const useStore = create<StoreState>((set, get) => ({
     })
   },
 }))
+
+/** The player's chord view settings, as one value for working out what to show. */
+export function useChartView(): ChartView {
+  const simple = useStore(s => s.simpleChords)
+  const shapes = useStore(s => s.shapeStyle)
+  return useMemo(() => ({ simple, shapes }), [simple, shapes])
+}
