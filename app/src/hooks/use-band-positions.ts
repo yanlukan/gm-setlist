@@ -70,6 +70,6 @@ function planSong(song: Song, edits: SongEdits | undefined): BandPlan {
     }
   }
   const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name, fixed)
-  const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(Boolean)
+  const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(v => v && !v.wrong)
   return { picks, span: fretSpan(shapes), researched: fixed }
 }

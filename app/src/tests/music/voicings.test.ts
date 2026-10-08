@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { chordNotes, voicingsFor, bandPositions, shapeText, fretSpan, researchedStart, SHAPES_RELEASED } from '../../music/voicings'
+import { chordNotes, voicingsFor, bandPositions, hasShapes, shapeToShow, shapeText, fretSpan, researchedStart, SHAPES_RELEASED } from '../../music/voicings'
 import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
@@ -63,7 +63,9 @@ describe('band shapes', () => {
   it('come after the chord library, so a position you picked before keeps its meaning', () => {
     for (const name of allGigChords) {
       const library = lookupChord(name) ?? []
-      expect(voicingsFor(name).slice(0, library.length), name).toEqual(library)
+      // A shape marked wrong keeps its place too
+      const kept = voicingsFor(name).slice(0, library.length).map(({ wrong: _wrong, ...v }) => v)
+      expect(kept, name).toEqual(library)
     }
   })
 
@@ -225,5 +227,33 @@ describe('the list of shapes', () => {
   it('registers every song with researched shapes in the order they were released', () => {
     const withShapes = DEFAULT_SONGS.filter(s => s.shapes).map(s => s.title)
     expect([...SHAPES_RELEASED].sort()).toEqual([...withShapes].sort())
+  })
+})
+
+describe('shapes with wrong notes', () => {
+  const pitches = (v: ChordVoicing) => sounding(v).map(n => n.pitch)
+
+  it("are never shown: the library's C#aug is an F#sus4, its Dmaj9 has D# for E", () => {
+    // C#aug is C# F A
+    for (const v of voicingsFor('C#aug').filter(v => !v.wrong)) {
+      expect(pitches(v).every(p => [1, 5, 9].includes(p)), shapeText(v)).toBe(true)
+    }
+    expect(voicingsFor('C#aug').some(v => v.wrong)).toBe(true)
+    // Dmaj9 is D F# A C# E
+    for (const v of voicingsFor('Dmaj9').filter(v => !v.wrong)) {
+      expect(pitches(v).every(p => [2, 6, 9, 1, 4].includes(p)), shapeText(v)).toBe(true)
+    }
+  })
+
+  it('keep their place, so a saved pick still means the same shape', () => {
+    const list = voicingsFor('Dmaj9')
+    expect(list.findIndex(v => v.wrong)).toBe(1)
+    expect(shapeToShow('Dmaj9', 1, 0)).toBe(0)
+    expect(shapeToShow('Dmaj9', 2, 0)).toBe(2)
+  })
+
+  it('leave the 3rd of an 11th chord alone', () => {
+    expect(voicingsFor('C11').filter(v => !v.wrong).length).toBeGreaterThan(0)
+    expect(hasShapes('C11')).toBe(true)
   })
 })

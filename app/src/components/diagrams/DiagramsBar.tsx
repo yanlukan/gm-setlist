@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
-import { voicingsFor } from '../../music/voicings'
+import { hasShapes, shapeToShow, voicingsFor } from '../../music/voicings'
 import { useBandPositions } from '../../hooks/use-band-positions'
 import { transposeInKey } from '../../music/theory'
 import { ChordDiagram } from './ChordDiagram'
@@ -36,7 +36,7 @@ export function DiagramsBar() {
 
   // A shape picked by hand wins; otherwise the song's band shape
   const { picks: band, researched } = useBandPositions(song, song ? edits[song.title] : undefined)
-  const shapeFor = (name: string) => selectedVoicings[name] ?? band[name] ?? 0
+  const shapeFor = (name: string) => shapeToShow(name, selectedVoicings[name], band[name])
 
   // The section tapped on the chart, if it belongs to this song
   const focus = useMemo(() => {
@@ -61,7 +61,7 @@ export function DiagramsBar() {
     for (const section of focus ? [sections[focus.index]] : sections) {
       const names = section.chords.split(/[\s|,]+/).filter(Boolean)
       for (const name of names) {
-        if (!seen.has(name) && voicingsFor(name).length > 0) {
+        if (!seen.has(name) && hasShapes(name)) {
           seen.add(name)
           result.push(name)
         }
@@ -101,8 +101,8 @@ export function DiagramsBar() {
         )}
         {uniqueChords.map(name => {
           const voicings = voicingsFor(name)
-          if (voicings.length === 0) return null
-          const voicing = voicings[shapeFor(name)] ?? voicings[0]
+          const voicing = voicings[shapeFor(name)]
+          if (!voicing) return null
           return (
             <div
               key={name}

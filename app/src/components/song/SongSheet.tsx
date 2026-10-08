@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeInKey, transposeText } from '../../music/theory'
-import { voicingsFor } from '../../music/voicings'
+import { hasShapes, shapeToShow } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { ChartEditor } from '../edit/ChartEditor'
@@ -245,7 +245,7 @@ export function SongSheet() {
       if (!token.trim()) return <span key={i}>{token}</span>
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
       if (onStage) return <span key={i}>{token}</span>
-      if (voicingsFor(token).length === 0) return <span key={i}>{token}</span>
+      if (!hasShapes(token)) return <span key={i}>{token}</span>
       return (
         <span
           key={i}
@@ -290,7 +290,7 @@ export function SongSheet() {
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
-          selectedIndex={selectedVoicings[pickerChord] ?? band[pickerChord] ?? 0}
+          selectedIndex={shapeToShow(pickerChord, selectedVoicings[pickerChord], band[pickerChord])}
           recommendedIndex={band[pickerChord]}
           onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}
           onUseRecommended={selectedVoicings[pickerChord] === undefined ? undefined : () => {

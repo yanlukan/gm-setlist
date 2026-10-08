@@ -76,7 +76,7 @@ export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect
             justifyContent: 'center',
           }}
         >
-          {voicings.map((voicing, i) => (
+          {voicings.map((voicing, i) => voicing.wrong ? null : (
             <div
               key={i}
               ref={i === selectedIndex ? selectedRef : undefined}

@@ -4,6 +4,8 @@ export interface ChordVoicing {
   f: (number | null)[] // 6 fret values: null=muted, 0=open, N=fret
   s: number            // start fret (0=nut position)
   l: string            // position label
+  /** A library shape that sounds a note the chord does not have: kept so saved picks keep their place, never shown. */
+  wrong?: boolean
 }
 
 // Map suffix names from the DB to common chord notation

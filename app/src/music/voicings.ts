@@ -242,6 +242,36 @@ function describe(v: ChordVoicing, index: number, libraryRank: number | null, no
   }
 }
 
+/**
+ * A shape that plays a note the chord does not have. An 11th or 13th chord
+ * may keep its 3rd, and a 13th its 11th, as guitarists often play them.
+ */
+function soundsWrongNote(v: ChordVoicing, name: string, notes: ChordNotes): boolean {
+  const quality = name.replace(/^[A-G][#b]?/, '').replace(/\/.*$/, '')
+  const allowed = new Set(notes.tones)
+  if (notes.bass !== null) allowed.add(notes.bass)
+  if (/11|13/.test(quality)) {
+    allowed.add((notes.root + (/^m(?!aj)/.test(quality) ? 3 : 4)) % 12)
+    allowed.add((notes.root + 5) % 12)
+  }
+  return v.f.some((f, string) => f !== null && !allowed.has(pitchAt(string, f === 0 ? 0 : v.s === 0 ? f : v.s + f - 1)))
+}
+
+/**
+ * The first of the given picks (a saved one, then the recommended one) that
+ * can be shown, else the chord's first good shape.
+ */
+export function shapeToShow(name: string, ...picks: Array<number | undefined>): number {
+  const list = voicingsFor(name)
+  const good = (i: number | undefined): i is number => i !== undefined && list[i] !== undefined && !list[i].wrong
+  return picks.find(good) ?? Math.max(0, list.findIndex(v => !v.wrong))
+}
+
+/** Whether a chord has a diagram worth showing. */
+export function hasShapes(name: string): boolean {
+  return voicingsFor(name).some(v => !v.wrong)
+}
+
 const cache = new Map<string, Entry>()
 
 /**
@@ -293,12 +323,16 @@ function fromText(shape: string): ChordVoicing | null {
 function entryFor(name: string): Entry {
   const hit = cache.get(name)
   if (hit) return hit
-  const library = lookupChord(name) ?? []
   const notes = chordNotes(name)
+  // The chord library has a few shapes with wrong notes (its C#aug is an
+  // F#sus4, its Dmaj9 has D# for E). They keep their place in the list, as a
+  // saved pick is an index into it, but are never shown or recommended.
+  const library = (lookupChord(name) ?? []).map(v => (notes && soundsWrongNote(v, name, notes) ? { ...v, wrong: true } : v))
   const band: Entry['band'] = []
   const list = [...library]
   if (notes) {
     library.forEach((voicing, index) => {
+      if (voicing.wrong) return
       const shape = describe(voicing, index, index, notes)
       if (shape) band.push(shape)
     })
