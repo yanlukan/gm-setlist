@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { capoFor, guitarFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
@@ -126,6 +126,12 @@ export function SongSheet() {
     // A long chart keeps its chords on screen; the notes under them can scroll
     essentialRef: sectionsRef,
   })
+
+  // Every song opens at its top, not as far down as the last one was scrolled
+  const songTitle = song?.title
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [songTitle])
 
   // Swipe only on the chart itself, never while editing.
   useSwipe(scrollRef, { onSwipeLeft: nextSong, onSwipeRight: prevSong }, !editMode)

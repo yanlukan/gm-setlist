@@ -8,6 +8,7 @@ import { BottomBar } from './components/layout/BottomBar'
 import { SongSheet } from './components/song/SongSheet'
 import { DiagramsBar } from './components/diagrams/DiagramsBar'
 import { usePedalKeys } from './hooks/use-pedal-keys'
+import { pageChart } from './hooks/page-chart'
 import { useWakeLock } from './hooks/use-wake-lock'
 
 // Error boundary. It must never be able to destroy the user's data: a crash on
@@ -125,7 +126,11 @@ function AppInner() {
   }, [theme, viewMode])
 
   // Page-turner pedal / keyboard. Swipe lives on the chart itself (SongSheet).
-  usePedalKeys({ onNext: nextSong, onPrev: prevSong }, !editMode)
+  // On a chart too long for the screen, the pedal pages through it before turning the song
+  usePedalKeys({
+    onNext: () => { if (!pageChart(1)) nextSong() },
+    onPrev: () => { if (!pageChart(-1)) prevSong() },
+  }, !editMode)
 
   // Show loading briefly while IndexedDB hydrates
   if (!ready) {
