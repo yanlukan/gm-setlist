@@ -87,7 +87,7 @@ describe('band positions', () => {
   it('recommend every researched shape, each for a chord the song plays in the band\'s key', () => {
     const wrong: string[] = []
     for (const song of DEFAULT_SONGS.filter(s => s.shapes)) {
-      const { picks, researched } = bandPlanFor(song, undefined, { simple: false, shapes: 'band' })
+      const { picks, researched } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric' })
       for (const [name, shape] of Object.entries(song.shapes!)) {
         if (picks[name] === undefined) wrong.push(`${song.title} ${name}: not a chord of the song as the band plays it`)
         else if (shapeText(voicingsFor(name)[picks[name]]) !== shape || researched[name] !== picks[name]) wrong.push(`${song.title} ${name}: not recommended`)
@@ -99,7 +99,7 @@ describe('band positions', () => {
   it('in full chords, recommend whole chords: no two- or three-string fragment where a fuller shape exists', () => {
     const thin: string[] = []
     for (const song of DEFAULT_SONGS) {
-      const { picks } = bandPlanFor(song, undefined, { simple: false, shapes: 'full' })
+      const { picks } = bandPlanFor(song, undefined, { simple: false, guitar: 'acoustic' })
       for (const [name, i] of Object.entries(picks)) {
         const strings = voicingsFor(name)[i].f.filter(f => f !== null).length
         const fuller = voicingsFor(name).some(v => !v.wrong && v.f.filter(f => f !== null).length >= 4)
@@ -111,7 +111,7 @@ describe('band positions', () => {
 
   it('in full chords, keep a full researched shape from the songbook', () => {
     const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
-    const { picks } = bandPlanFor(faith, undefined, { simple: false, shapes: 'full' })
+    const { picks } = bandPlanFor(faith, undefined, { simple: false, guitar: 'acoustic' })
     expect(shapeText(voicingsFor('B')[picks.B])).toBe('7-9-9-8-7-7')
   })
 
@@ -151,10 +151,10 @@ describe('band positions', () => {
     expect(wrong).toEqual([])
   })
 
-  it('recommend every chord with its root, or slash bass, at the bottom and nothing but a fifth left out', () => {
+  it('on acoustic, recommend every chord with its root, or slash bass, at the bottom and nothing but a fifth left out', () => {
     const wrong: string[] = []
     for (const { song, chords } of gigChords()) {
-      const picks = bandPositions(chords, song.preset?.name)
+      const picks = bandPositions(chords, 'acoustic')
       for (const { name } of chords) {
         const notes = chordNotes(name)!
         const s = sounding(voicingsFor(name)[picks[name]])
@@ -167,9 +167,39 @@ describe('band positions', () => {
     expect(wrong).toEqual([])
   })
 
+  it('on electric, leave room for the band: no open-position strumming chords, three or four strings, every chord note there', () => {
+    const wrong: string[] = []
+    for (const song of DEFAULT_SONGS) {
+      const { picks, researched } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric' })
+      for (const [name, i] of Object.entries(picks)) {
+        if (researched[name] === i) continue // the songbook's own shape stays
+        const notes = chordNotes(name)
+        if (!notes) continue
+        const s = sounding(voicingsFor(name)[i])
+        const pitches = new Set(s.map(n => n.pitch))
+        if (s.length > 4) wrong.push(`${song.title} ${name}: ${s.length} strings`)
+        if (s.some(n => n.fret === 0)) wrong.push(`${song.title} ${name}: an open string ringing`)
+        if (notes.essential.some(p => !pitches.has(p))) wrong.push(`${song.title} ${name}: a chord note missing`)
+        if ([...pitches].some(p => !notes.tones.includes(p) && p !== notes.bass)) wrong.push(`${song.title} ${name}: a note not in the chord`)
+        if (Math.max(...s.map(n => n.fret)) > 12) wrong.push(`${song.title} ${name}: past the 12th fret`)
+      }
+    }
+    expect(wrong).toEqual([])
+  })
+
+  it('on electric, still use the songbook shapes, two- and three-string ones included', () => {
+    const roxanne = DEFAULT_SONGS.find(s => s.title === 'Roxanne')!
+    const { picks } = bandPlanFor(roxanne, undefined, { simple: false, guitar: 'electric' })
+    expect(shapeText(voicingsFor('E')[picks.E])).toBe('x-x-x-4-5-4')
+    // On acoustic the same E is the open chord
+    const acoustic = bandPlanFor(roxanne, undefined, { simple: false, guitar: 'acoustic' })
+    expect(shapeText(voicingsFor('E')[acoustic.picks.E])).toBe('0-2-2-1-0-0')
+  })
+
   it("keep Freedom's line cliche on one Cm barre, the root held on the 3rd fret", () => {
-    const { song, chords } = gigChords().find(g => g.song.title === "Freedom! '90")!
-    const picks = bandPositions(chords, song.preset?.name)
+    // As the app plans it, on electric, with the songbook's shapes
+    const song = DEFAULT_SONGS.find(s => s.title === "Freedom! '90")!
+    const { picks } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric' })
     for (const name of ['Cm', 'Cm(maj7)', 'Cm7', 'Cm6']) {
       const lowest = sounding(voicingsFor(name)[picks[name]])[0]
       expect({ name, string: lowest.string, fret: lowest.fret }).toEqual({ name, string: 1, fret: 3 })
@@ -178,7 +208,7 @@ describe('band positions', () => {
 
   it('keep open chords for the acoustic song', () => {
     const { song, chords } = gigChords().find(g => g.song.preset?.name === 'ACOUSTIC')!
-    const picks = bandPositions(chords, song.preset?.name)
+    const picks = bandPositions(chords, song.preset?.name === 'ACOUSTIC' ? 'acoustic' : 'electric')
     for (const { name } of chords) expect(sounding(voicingsFor(name)[picks[name]]).some(n => n.fret === 0), name).toBe(true)
   })
 })

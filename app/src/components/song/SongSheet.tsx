@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
-import { capoFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
+import { capoFor, guitarFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
 import { hasShapes, shapeToShow } from '../../music/voicings'
 import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
@@ -84,9 +84,10 @@ export function SongSheet() {
   )
   // What is read: the same, made plain if the player asked for plain chords.
   // Never edited, so a plain chart can never overwrite the real chords.
+  const guitar = song ? guitarFor(song, edits[song.title], view) : 'acoustic'
   const readSections = useMemo(
-    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords) })) : displaySections),
-    [displaySections, view.simple],
+    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords, guitar) })) : displaySections),
+    [displaySections, view.simple, guitar],
   )
 
   const notes = useMemo(() => {

@@ -76,6 +76,8 @@ export interface SongEdits {
   transpose?: number
   /** The capo the player puts on for this song: the chart then shows the shapes to play. */
   capo?: number
+  /** The guitar the player plays this song on, which decides the shapes recommended. */
+  guitar?: 'acoustic' | 'electric'
 }
 
 /**

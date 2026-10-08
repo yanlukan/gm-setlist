@@ -32,7 +32,7 @@ describe('chord shapes for electric guitar', () => {
     useStore.getState().setTranspose('Faith', -2)
     render(<DiagramsBar />)
     expect(screen.queryByText('Songbook')).not.toBeInTheDocument()
-    expect(within(tile('A')).getByText('Recommended')).toBeInTheDocument()
+    expect(within(tile('A')).getByText('Electric')).toBeInTheDocument()
   })
 
   it('keep a shape you pick by hand, and can go back to the recommended one', () => {

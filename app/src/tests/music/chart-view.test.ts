@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  capoFor, easiestCapo, shapeKey, shapeSections, shapeShift, shownSections, simplifyChord, simplifyText,
+  guitarFor, capoFor, easiestCapo, shapeKey, shapeSections, shapeShift, shownSections, simplifyChord, simplifyText,
 } from '../../music/chart-view'
 import type { Song } from '../../types'
 
@@ -38,6 +38,26 @@ describe('simplifyChord', () => {
     expect(simplifyChord('G5')).toBe('G5')
   })
 
+  it('on electric, keeps the 7ths and 9ths and cuts back only what is past a 9th', () => {
+    const electric = (c: string) => simplifyChord(c, 'electric')
+    expect(electric('Cmaj7')).toBe('Cmaj7')
+    expect(electric('Am7')).toBe('Am7')
+    expect(electric('G9')).toBe('G9')
+    expect(electric('Dm9')).toBe('Dm9')
+    expect(electric('A13')).toBe('A9')
+    expect(electric('Am11')).toBe('Am9')
+    expect(electric('Cmaj13')).toBe('Cmaj9')
+    expect(electric('E7#9')).toBe('E7')
+    expect(electric('A7(b9)')).toBe('A7')
+    expect(electric('Am7/G')).toBe('Am7')
+    expect(electric('D7sus4')).toBe('D7sus4')
+    expect(electric('Bm7b5')).toBe('Bm7b5')
+    expect(electric('C6')).toBe('C6')
+    expect(electric('Eadd9')).toBe('Eadd9')
+    expect(electric('G/B')).toBe('G')
+    expect(electric('Dsus4')).toBe('Dsus4')
+  })
+
   it('leaves "no chord" and repeat marks alone', () => {
     expect(simplifyChord('N.C.')).toBe('N.C.')
     expect(simplifyChord('(x3)')).toBe('(x3)')
@@ -67,8 +87,8 @@ describe('capo', () => {
   })
 
   it('shows plain chords only when asked', () => {
-    expect(shownSections(song(), { capo: 2 }, { simple: true, shapes: 'full' })[0].chords).toBe('C  Am  F  Gsus4')
-    expect(shownSections(song(), undefined, { simple: false, shapes: 'full' })[0].chords).toBe('D  Bm7  Gmaj7  A7sus4')
+    expect(shownSections(song(), { capo: 2 }, { simple: true, guitar: 'acoustic' })[0].chords).toBe('C  Am  F  Gsus4')
+    expect(shownSections(song(), undefined, { simple: false, guitar: 'acoustic' })[0].chords).toBe('D  Bm7  Gmaj7  A7sus4')
   })
 
   it('suggests the capo that leaves the most open chords', () => {
@@ -76,5 +96,20 @@ describe('capo', () => {
     expect(easiestCapo(['Eb', 'Cm', 'Ab', 'Bb'])).toEqual({ capo: 1, open: 3 })
     // Already open: no capo
     expect(easiestCapo(['G', 'C', 'D', 'Em'])).toEqual({ capo: 0, open: 4 })
+  })
+})
+
+describe('guitarFor', () => {
+  const auto = { simple: false, guitar: 'auto' as const }
+  it("follows the song's sound: the acoustic preset is acoustic, any other preset electric, none acoustic", () => {
+    expect(guitarFor(song({ preset: { name: 'ACOUSTIC', slot: 'U02-3' } }), undefined, auto)).toBe('acoustic')
+    expect(guitarFor(song({ preset: { name: 'FUNK', slot: 'U01-1' } }), undefined, auto)).toBe('electric')
+    expect(guitarFor(song(), undefined, auto)).toBe('acoustic')
+  })
+
+  it('takes the choice for every song over the sound, and the choice for the song over both', () => {
+    const funk = song({ preset: { name: 'FUNK', slot: 'U01-1' } })
+    expect(guitarFor(funk, undefined, { simple: false, guitar: 'acoustic' })).toBe('acoustic')
+    expect(guitarFor(funk, { guitar: 'electric' }, { simple: false, guitar: 'acoustic' })).toBe('electric')
   })
 })

@@ -1,17 +1,34 @@
 import type { Section, Song, SongEdits } from '../types'
 import { isChartMark, keySpelling, shouldUseFlats, transposeChord, transposeInKey } from './theory'
 import { transposeFor } from './setlist-text'
-import type { ShapeStyle } from './voicings'
+import type { Guitar } from './voicings'
 
 /** How the player wants chords shown: the same for every song. */
 export interface ChartView {
-  /** Plain chords only: Cmaj7 as C, Am7 as Am, G/B as G. */
+  /** Plain chords only: Cmaj7 as C on acoustic, as Cmaj7 still on electric. */
   simple: boolean
-  /** Whole open and barre chords, or compact shapes up the neck. */
-  shapes: ShapeStyle
+  /**
+   * The guitar for every song, or 'auto' for each song's own: acoustic for a
+   * song played on the acoustic sound, electric for the rest. A guitar set
+   * on the song itself wins over both.
+   */
+  guitar: Guitar | 'auto'
 }
 
-export const DEFAULT_VIEW: ChartView = { simple: false, shapes: 'full' }
+export const DEFAULT_VIEW: ChartView = { simple: false, guitar: 'auto' }
+
+/**
+ * The guitar a song is played on: the player's choice for the song, else
+ * their choice for every song, else the song's sound. The GX-10 is an
+ * electric multi-effects unit, so a song with a preset is electric unless
+ * that preset is the acoustic one; a song with none is acoustic.
+ */
+export function guitarFor(song: Song | undefined, edits: SongEdits | undefined, view: ChartView): Guitar {
+  if (edits?.guitar) return edits.guitar
+  if (view.guitar !== 'auto') return view.guitar
+  if (!song?.preset) return 'acoustic'
+  return song.preset.name === 'ACOUSTIC' ? 'acoustic' : 'electric'
+}
 
 /** The highest capo offered: past the 7th fret the neck runs out of chords. */
 export const MAX_CAPO = 7
@@ -37,16 +54,26 @@ export function shapeKey(key: string, shift: number): string {
 }
 
 /**
- * A chord as a beginner would play it: the plain major, minor, diminished,
- * augmented or suspended chord, without sevenths, extensions or a slash
- * bass. Cmaj7 is C, Am9 is Am, Bm7b5 is Bdim, D7sus4 is Dsus4, G/B is G.
+ * A chord made simpler for the guitar it is played on, without a slash bass
+ * (the bass player has it).
+ *
+ * Acoustic: the plain major, minor, diminished, augmented or suspended
+ * chord. Cmaj7 is C, Am9 is Am, Bm7b5 is Bdim, D7sus4 is Dsus4, G/B is G.
+ *
+ * Electric: the 7ths and 9ths stay, as they are the sound of the part; only
+ * what is past a 9th goes. A13 is A9, Am11 is Am9, Cmaj13 is Cmaj9,
+ * E7#9 is E7, Am7/G is Am7.
  */
-export function simplifyChord(chord: string): string {
+export function simplifyChord(chord: string, guitar: Guitar = 'acoustic'): string {
   if (isChartMark(chord)) return chord
   const m = chord.match(/^([A-G][#b]?)([^/]*)(?:\/.*)?$/)
   if (!m) return chord
   const [, root, rawQuality] = m
   const quality = rawQuality.replace(/[()]/g, '')
+  if (guitar === 'electric') {
+    const kept = electricQuality(quality)
+    if (kept !== null) return root + kept
+  }
   if (/^(m7b5|ø|dim|°|o7?$)/.test(quality)) return `${root}dim`
   if (/^(aug|\+)/.test(quality) || /#5/.test(quality)) return `${root}aug`
   if (/^(m|min|-)(?!aj)/.test(quality)) return `${root}m`
@@ -56,11 +83,31 @@ export function simplifyChord(chord: string): string {
   return root
 }
 
-/** Every chord in a chord line made plain, spacing kept. */
-export function simplifyText(text: string): string {
+/**
+ * A chord's quality cut back to a 9th at most, or null where nothing past a
+ * triad is kept (the acoustic rule then decides).
+ */
+function electricQuality(q: string): string | null {
+  const minor = /^(m|min|-)(?!aj)/.test(q)
+  const major7 = /maj|M7|Δ/.test(q)
+  const natural9 = /(^|[^b#])(9|11|13)/.test(q) // a 9th, or past it: not the altered b9 or #9
+  if (/^(m7b5|ø)/.test(q)) return 'm7b5'
+  if (/^(dim7|°7|o7)$/.test(q)) return 'dim7'
+  if (/add(9|2)/.test(q)) return minor ? 'madd9' : 'add9'
+  if (/sus/.test(q) && /7|9|11|13/.test(q)) return '7sus4'
+  if (/^(aug|\+)/.test(q)) return /7/.test(q) ? 'aug7' : null
+  if (major7) return (minor ? 'mmaj' : 'maj') + (natural9 ? '9' : '7')
+  if (natural9 && !/^6/.test(q) && !/69|6\/9/.test(q)) return minor ? 'm9' : '9'
+  if (/7/.test(q)) return minor ? 'm7' : '7'
+  if (/6/.test(q)) return minor ? 'm6' : '6'
+  return null
+}
+
+/** Every chord in a chord line made simpler for its guitar, spacing kept. */
+export function simplifyText(text: string, guitar: Guitar = 'acoustic'): string {
   return text
     .split(/(\s+)/)
-    .map(token => (token.trim() === '' ? token : simplifyChord(token)))
+    .map(token => (token.trim() === '' ? token : simplifyChord(token, guitar)))
     .join('')
 }
 
@@ -76,10 +123,12 @@ export function shapeSections(song: Song, edits: SongEdits | undefined): Section
   return sections.map(section => ({ name: section.name, chords: transposeInKey(section.chords, key, shift) }))
 }
 
-/** The chart as it is read: at the shapes' pitch, and plain if the player asked for that. */
+/** The chart as it is read: at the shapes' pitch, and simpler if the player asked for that. */
 export function shownSections(song: Song, edits: SongEdits | undefined, view: ChartView): Section[] {
   const sections = shapeSections(song, edits)
-  return view.simple ? sections.map(section => ({ ...section, chords: simplifyText(section.chords) })) : sections
+  if (!view.simple) return sections
+  const guitar = guitarFor(song, edits, view)
+  return sections.map(section => ({ ...section, chords: simplifyText(section.chords, guitar) }))
 }
 
 /** Root pitch classes of the open chords every guitarist knows. */

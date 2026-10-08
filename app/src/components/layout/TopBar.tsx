@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useStore } from '../../store/use-store'
+import { useChartView, useStore } from '../../store/use-store'
 import { transposeFor } from '../../music/setlist-text'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
@@ -12,7 +12,7 @@ import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
 import { CapoPicker } from '../song/CapoPicker'
-import { capoFor } from '../../music/chart-view'
+import { capoFor, guitarFor } from '../../music/chart-view'
 import type { Song } from '../../types'
 
 /**
@@ -37,8 +37,10 @@ export function TopBar() {
   const toggleDiagrams = useStore(s => s.toggleDiagrams)
   const simpleChords = useStore(s => s.simpleChords)
   const toggleSimpleChords = useStore(s => s.toggleSimpleChords)
-  const shapeStyle = useStore(s => s.shapeStyle)
-  const setShapeStyle = useStore(s => s.setShapeStyle)
+  const guitar = useStore(s => s.guitar)
+  const setGuitar = useStore(s => s.setGuitar)
+  const setSongGuitar = useStore(s => s.setSongGuitar)
+  const view = useChartView()
   const resetEdits = useStore(s => s.resetEdits)
   const setTranspose = useStore(s => s.setTranspose)
   const setCapo = useStore(s => s.setCapo)
@@ -213,6 +215,22 @@ export function TopBar() {
               )}
               <button className="tb-badge" onClick={() => setShowTapTempo(true)} aria-label="Tap tempo">{bpm} BPM</button>
               <span className="tb-badge">{song.timeSignature}</span>
+              {(() => {
+                // The guitar this song is played on: tap to switch, just for this song
+                const played = guitarFor(song, edits[song.title], view)
+                const label = played === 'electric' ? 'Electric' : 'Acoustic'
+                return viewMode === 'stage' ? (
+                  <span className="tb-badge">{label}</span>
+                ) : (
+                  <button
+                    className="tb-badge"
+                    onClick={() => setSongGuitar(song.title, played === 'electric' ? 'acoustic' : 'electric')}
+                    aria-label={`Played on ${label.toLowerCase()} guitar. Switch to ${played === 'electric' ? 'acoustic' : 'electric'} for this song`}
+                  >
+                    {played === 'electric' ? '\u26A1 ' : ''}{label}
+                  </button>
+                )
+              })()}
               {viewMode === 'stage' ? (
                 capoFor(song, edits[song.title]) > 0 && <span className="tb-badge is-warn">Capo {capoFor(song, edits[song.title])}</span>
               ) : (
@@ -251,11 +269,14 @@ export function TopBar() {
                 <button className="menu-item" onClick={menuAction(toggleSimpleChords)} aria-pressed={simpleChords}>
                   {simpleChords ? 'Show Full Chord Names' : 'Simplify Chords (Cmaj7 → C)'}
                 </button>
+                {/* Each song's own guitar, then electric for all, then acoustic for all */}
                 <button
                   className="menu-item"
-                  onClick={menuAction(() => setShapeStyle(shapeStyle === 'full' ? 'band' : 'full'))}
+                  onClick={menuAction(() => setGuitar(guitar === 'auto' ? 'electric' : guitar === 'electric' ? 'acoustic' : 'auto'))}
                 >
-                  {shapeStyle === 'full' ? 'Diagrams: Band Shapes Up the Neck' : 'Diagrams: Whole Chords'}
+                  {guitar === 'auto'
+                    ? 'Guitar: each song its own'
+                    : guitar === 'electric' ? 'Guitar: electric for all songs' : 'Guitar: acoustic for all songs'}
                 </button>
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}

@@ -403,6 +403,31 @@ function unusual(c: Candidate, notes: ChordNotes, quality: string, acoustic: boo
   return cost
 }
 
+/**
+ * How far a shape is from what an electric guitarist plays with a band. The
+ * bass has the low end and keys the middle, so the guitar sits above them on
+ * three or four strings, as funk players like Nile Rodgers do, with no open
+ * strings ringing under it. Every note that matters is still there, 7ths and
+ * 9ths included; the root on the bottom matters less, as the bass plays it.
+ */
+function electricCost(c: Candidate, notes: ChordNotes): number {
+  let cost = 3 * c.missing + 3 * c.extra
+  if (!c.rootLow) cost += 0.8
+  if (c.strings.length >= 5) cost += 1.5 // a full chord fills the bass's and keys' room
+  if (c.strings.length <= 4) cost -= 0.3
+  if (c.open && c.max <= 4) cost += 2.5 // an open-position chord rings into everything
+  if (c.strings[0] === 0 && notes.bass === null) cost += 0.6 // the low E string is the bass's register
+  if (c.min > 0 && c.min < 3) cost += 0.4 // first position, where open chords live
+  if (c.libraryRank !== null) cost += 0.05 * c.libraryRank
+  // Around the 7th fret, where funk parts sit; past the 12th thins out
+  const center = (c.min + c.max) / 2
+  cost += 0.12 * Math.abs(center - 7)
+  if (c.max > 12) cost += 1
+  // A string skipped in the middle has to be muted while strumming
+  if (c.strings.some((string, k) => k > 0 && string - c.strings[k - 1] > 1)) cost += 0.6
+  return cost
+}
+
 /** Roots with open-position chords every guitarist knows. */
 const OPEN_MAJOR = new Set([0, 2, 4, 7, 9]) // C D E G A
 const OPEN_MINOR = new Set([2, 4, 9]) // Dm Em Am
@@ -439,29 +464,31 @@ function move(a: Candidate, b: Candidate): number {
   return shift
 }
 
-export type ShapeStyle = 'full' | 'band'
+/**
+ * The guitar a song is played on, which decides the shapes recommended.
+ * Acoustic: whole open and barre chords that ring. Electric: compact shapes
+ * that leave room for the band.
+ */
+export type Guitar = 'acoustic' | 'electric'
 
 /**
  * The shape to recommend for each chord of a song, as an index into
- * `voicingsFor(name)`. The chords come in the order they first appear. Each
- * chord gets its usual shape; where a chord has more than one good shape,
- * the one that sits with the song's other chords wins. An acoustic song
- * leans to open chords.
+ * `voicingsFor(name)`. The chords come in the order they first appear. Where
+ * a chord has more than one good shape, the one that sits with the song's
+ * other chords wins, so the hand stays in one area of the neck.
+ *
+ * Acoustic: whole chords as a guitarist learns them, open where there is an
+ * open chord and a barre where not, never a three-string fragment while a
+ * fuller shape exists. Electric: three- and four-string shapes above the
+ * bass, nothing open ringing, and every researched shape from the songbook.
  */
 export function bandPositions(
   chords: Array<{ name: string; weight: number }>,
-  style?: string,
+  guitar: Guitar = 'acoustic',
   /** Shapes already settled for this song (researched), by chord: index into its list. */
   fixed: Record<string, number> = {},
-  /**
-   * 'full': whole chords as a guitarist learns them, open where there is an
-   * open chord and a barre where not, never a three-string fragment while a
-   * fuller shape exists. 'band': compact shapes up the neck that sit with
-   * bass and keys.
-   */
-  shapes: ShapeStyle = 'band',
 ): Record<string, number> {
-  const full = shapes === 'full'
+  const full = guitar === 'acoustic'
   if (full) {
     // A researched shape of two or three strings is a band part, not a chord to learn
     fixed = Object.fromEntries(Object.entries(fixed).filter(([name, i]) => {
@@ -471,7 +498,6 @@ export function bandPositions(
   }
   const picks: Record<string, number> = {}
   for (const chord of chords) picks[chord.name] = fixed[chord.name] ?? 0
-  const acoustic = style === 'ACOUSTIC' || full
 
   const steps = chords
     .map(chord => {
@@ -492,7 +518,7 @@ export function bandPositions(
   let best: { total: number; choice: Candidate[] } | null = null
   for (let home = 1; home <= 12; home++) {
     const own = (step: (typeof steps)[number], shape: Candidate) =>
-      step.weight * (unusual(shape, step.entry.notes!, step.entry.quality, acoustic) + STAY_NEAR * Math.abs((shape.min + shape.max) / 2 - home))
+      step.weight * ((full ? unusual(shape, step.entry.notes!, step.entry.quality, true) : electricCost(shape, step.entry.notes!)) + STAY_NEAR * Math.abs((shape.min + shape.max) / 2 - home))
     // Cheapest way to reach each shape of each chord, walking the song in order
     let totals = steps[0].shapes.map(shape => own(steps[0], shape))
     const back: number[][] = []

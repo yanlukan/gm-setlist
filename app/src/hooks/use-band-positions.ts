@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { bandPositions, fretSpan, indexOfShape, voicingsFor } from '../music/voicings'
 import { transposeFor } from '../music/setlist-text'
 import { isChartMark } from '../music/theory'
-import { capoFor, DEFAULT_VIEW, shownSections, type ChartView } from '../music/chart-view'
+import { capoFor, DEFAULT_VIEW, guitarFor, shownSections, type ChartView } from '../music/chart-view'
 import { useChartView } from '../store/use-store'
 import type { Song, SongEdits } from '../types'
 
@@ -48,7 +48,7 @@ export function bandPlanFor(song: Song | undefined, edits: SongEdits | undefined
   plans.set(song, bySong)
   const byEdits = bySong.get(edits ?? NO_EDITS) ?? new Map<string, BandPlan>()
   bySong.set(edits ?? NO_EDITS, byEdits)
-  const viewKey = `${view.simple}:${view.shapes}`
+  const viewKey = `${view.simple}:${guitarFor(song, edits, view)}`
   const known = byEdits.get(viewKey)
   if (known) return known
   const plan = planSong(song, edits, view)
@@ -73,9 +73,9 @@ function planSong(song: Song, edits: SongEdits | undefined, view: ChartView): Ba
       if (index >= 0 && counts.has(name)) fixed[name] = index
     }
   }
-  const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), song.preset?.name, fixed, view.shapes)
+  const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), guitarFor(song, edits, view), fixed)
   const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(v => v && !v.wrong)
-  // Only the researched shapes the plan kept (full chords leave out the two- and three-string ones)
+  // Only the researched shapes the plan kept (acoustic leaves out the two- and three-string ones)
   const researched = Object.fromEntries(Object.entries(fixed).filter(([name, i]) => picks[name] === i))
   return { picks, span: fretSpan(shapes), researched }
 }

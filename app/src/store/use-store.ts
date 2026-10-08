@@ -7,7 +7,7 @@ import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
 import { sameForm } from '../music/form'
 import { MAX_CAPO, type ChartView } from '../music/chart-view'
-import type { ShapeStyle } from '../music/voicings'
+import type { Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
 import {
   saveSongEdits,
@@ -170,8 +170,8 @@ interface StoreState {
   diagramsVisible: boolean
   /** Plain chords on the chart and diagrams: Cmaj7 as C. Saved. */
   simpleChords: boolean
-  /** Whole chords or compact band shapes for the diagrams. Saved. */
-  shapeStyle: ShapeStyle
+  /** The guitar for every song, or 'auto' for each song's own (from its sound). Saved. */
+  guitar: Guitar | 'auto'
   selectedVoicings: Record<string, number>
   /**
    * A section tapped on the chart: the diagrams below then show only its
@@ -208,6 +208,8 @@ interface StoreState {
   setTranspose: (title: string, semitones: number) => void
   /** The capo for a song, 0 for none: the chart then shows the shapes to play. */
   setCapo: (title: string, capo: number) => void
+  /** The guitar a song is played on, or null to follow the default again. */
+  setSongGuitar: (title: string, guitar: Guitar | null) => void
   /** Drop the player's own transpose, going back to the band key (or none). */
   clearTranspose: (title: string) => void
   resetEdits: (title: string) => void
@@ -238,7 +240,7 @@ interface StoreState {
   toggleViewMode: () => void
   toggleDiagrams: () => void
   toggleSimpleChords: () => void
-  setShapeStyle: (style: ShapeStyle) => void
+  setGuitar: (guitar: Guitar | 'auto') => void
   setFocusSection: (focus: { title: string; index: number } | null) => void
   restoreGigOrder: () => void
   /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
@@ -262,7 +264,7 @@ export const useStore = create<StoreState>((set, get) => ({
   viewMode: 'normal' as ViewMode,
   diagramsVisible: true,
   simpleChords: false,
-  shapeStyle: 'full',
+  guitar: 'auto',
   selectedVoicings: {},
   focusSection: null,
   toast: null,
@@ -464,6 +466,13 @@ export const useStore = create<StoreState>((set, get) => ({
       },
     }))
     persistEdits(title, get().edits[title])
+  },
+
+  setSongGuitar: (title: string, guitar: Guitar | null) => {
+    const { guitar: _old, ...rest } = get().edits[title] ?? ({} as SongEdits)
+    const next: SongEdits = guitar ? { ...rest, guitar } : rest
+    set(state => ({ edits: { ...state.edits, [title]: next } }))
+    persistEdits(title, next)
   },
 
   clearTranspose: (title: string) => {
@@ -709,9 +718,9 @@ export const useStore = create<StoreState>((set, get) => ({
     if (!readOnly) saveSetting('simpleChords', get().simpleChords).catch(e => console.warn('save simpleChords failed:', e))
   },
 
-  setShapeStyle: style => {
-    set({ shapeStyle: style })
-    if (!readOnly) saveSetting('shapeStyle', style).catch(e => console.warn('save shapeStyle failed:', e))
+  setGuitar: guitar => {
+    set({ guitar })
+    if (!readOnly) saveSetting('guitar', guitar).catch(e => console.warn('save guitar failed:', e))
   },
 
   setFocusSection: focus => set({ focusSection: focus }),
@@ -749,12 +758,12 @@ export const useStore = create<StoreState>((set, get) => ({
     let viewModeResult: ViewMode | undefined
     let positionResult: SavedPosition | undefined
     let simpleResult: boolean | undefined
-    let shapeStyleResult: ShapeStyle | undefined
+    let guitarResult: Guitar | 'auto' | undefined
 
     try {
       ;[
         setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
-        diagramsVisibleResult, viewModeResult, positionResult, simpleResult, shapeStyleResult,
+        diagramsVisibleResult, viewModeResult, positionResult, simpleResult, guitarResult,
       ] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
@@ -764,7 +773,7 @@ export const useStore = create<StoreState>((set, get) => ({
         getSetting<ViewMode>('viewMode'),
         getSetting<SavedPosition>('position'),
         getSetting<boolean>('simpleChords'),
-        getSetting<ShapeStyle>('shapeStyle'),
+        getSetting<Guitar | 'auto'>('guitar'),
       ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -815,7 +824,7 @@ export const useStore = create<StoreState>((set, get) => ({
         ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
         ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
         ...(typeof simpleResult === 'boolean' && { simpleChords: simpleResult }),
-        ...((shapeStyleResult === 'full' || shapeStyleResult === 'band') && { shapeStyle: shapeStyleResult }),
+        ...((guitarResult === 'auto' || guitarResult === 'acoustic' || guitarResult === 'electric') && { guitar: guitarResult }),
         edits,
         loadFailed: false,
         currentIndex: clampIndex(savedIndex, listLength),
@@ -827,6 +836,6 @@ export const useStore = create<StoreState>((set, get) => ({
 /** The player's chord view settings, as one value for working out what to show. */
 export function useChartView(): ChartView {
   const simple = useStore(s => s.simpleChords)
-  const shapes = useStore(s => s.shapeStyle)
-  return useMemo(() => ({ simple, shapes }), [simple, shapes])
+  const guitar = useStore(s => s.guitar)
+  return useMemo(() => ({ simple, guitar }), [simple, guitar])
 }

@@ -40,15 +40,40 @@ describe('capo', () => {
   })
 })
 
+describe('acoustic or electric', () => {
+  it("follows the song's sound, and switches for one song from the top bar", () => {
+    render(<TopBar />)
+    // Faith's sound is FUNK on the GX-10: electric
+    const button = screen.getByRole('button', { name: /^Played on electric guitar/ })
+    fireEvent.click(button)
+    expect(useStore.getState().edits['Faith'].guitar).toBe('acoustic')
+    expect(screen.getByRole('button', { name: /^Played on acoustic guitar/ })).toBeInTheDocument()
+  })
+
+  it('can be set for every song from the menu', () => {
+    render(<TopBar />)
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guitar: each song its own' }))
+    expect(useStore.getState().guitar).toBe('electric')
+  })
+})
+
 describe('simplified chords', () => {
   it('shows plain chords on the chart, and the real ones while editing', () => {
     useStore.setState({
       simpleChords: true,
       edits: { Faith: { sections: [{ name: 'Intro', chords: 'B' }, { name: 'Verse', chords: 'Bmaj7  E7/G#  C#m9' }] } },
     })
+    // Faith is played on electric (its sound is FUNK): the 7ths and 9ths stay, the slash bass goes
     const { unmount } = render(<SongSheet />)
-    expect(verse().textContent).toBe('B  E  C#m')
+    expect(verse().textContent).toBe('Bmaj7  E7  C#m9')
     unmount()
+
+    // On acoustic, the plain chords
+    useStore.getState().setSongGuitar('Faith', 'acoustic')
+    const second = render(<SongSheet />)
+    expect(verse().textContent).toBe('B  E  C#m')
+    second.unmount()
 
     useStore.setState({ editMode: true })
     render(<SongSheet />)
