@@ -80,7 +80,6 @@ export function ChartEditor({
   const [showHistory, setShowHistory] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const at = cursor && displaySections[cursor.section] ? cursor : null
   /** The chart's section names, each once, for the song order to choose from. */
   const names = Array.from(new Set(sections.map(s => s.name).filter(name => name.trim() !== '')))
 
@@ -96,6 +95,17 @@ export function ChartEditor({
     const lines = draft && formatChordText(draft) === normalizeChordText(text) ? draft : parseChordText(text)
     return lines.length > 0 ? lines : [[]]
   }
+
+  /** The end of a section's last line. */
+  const endOf = (i: number): Cursor | null => {
+    if (!displaySections[i]) return null
+    const lines = linesOf(i)
+    return { kind: 'caret', section: i, line: lines.length - 1, pos: lines[lines.length - 1].length }
+  }
+  // Nothing tapped yet (or the cursor was cleared by an undo or a move):
+  // chords go at the end of the section last touched, so the keyboard is
+  // never dead
+  const at = cursor && displaySections[cursor.section] ? cursor : endOf(touched ?? 0)
 
   /** Keep the chart and its order as they are now, so Undo can bring them back. */
   const remember = () =>
@@ -209,7 +219,9 @@ export function ChartEditor({
     ? 'Tap a chord to change it, or between chords to add'
     : at.kind === 'chord'
       ? `Changing ${selectedChord}: tap the chord to put there`
-      : `Adding to ${displaySections[at.section].name}, line ${at.line + 1}`
+      : cursor === null
+        ? `Adding to the end of ${displaySections[at.section].name} · tap the chart to move`
+        : `Adding to ${displaySections[at.section].name}, line ${at.line + 1}`
 
   const renderLine = (si: number, li: number, tokens: string[], lineCount: number) => {
     const caretAt = at?.kind === 'caret' && at.section === si && at.line === li ? at.pos : -1

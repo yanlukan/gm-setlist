@@ -27,11 +27,14 @@ export interface ChordKeyboardProps {
   onRedo: () => void
 }
 
+type Tab = 'song' | 'key' | 'sevenths' | 'any' | 'marks'
+
 /**
  * Chords to tap, docked at the bottom of the screen while a chart is edited.
  * Nothing here needs the phone's own keyboard, so nothing covers the chart.
  * Each tap puts its chord where the cursor is, or in place of the chord that
- * is selected.
+ * is selected. One set of chords shows at a time, picked by the tabs, so the
+ * keyboard leaves most of a phone screen to the chart.
  */
 export function ChordKeyboard({
   songKey, songChords = [], capo = 0, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
@@ -42,11 +45,22 @@ export function ChordKeyboard({
 
   // In a minor key the major V sits beside the scale's own chords: E and E7 in A minor
   const dominants = songKey ? getMinorDominants(songKey) : []
-  // A chord the song already has is in its own row: it is not offered twice
+  // A chord the song already has is in its own set: it is not offered twice
   const notInSong = (chord: string) => !songChords.includes(chord)
   const inKey = songKey ? [...getDiatonicChords(songKey), ...dominants.slice(0, 1)].filter(notInSong) : []
   const sevenths = songKey ? [...getDiatonic7ths(songKey), ...dominants.slice(1)].filter(notInSong) : []
   const roots = getRoots(songKey ? keyUsesFlats(songKey) : false)
+
+  const tabs: Array<{ id: Tab; label: string }> = [
+    ...(songChords.length > 0 ? [{ id: 'song' as const, label: 'Song' }] : []),
+    ...(inKey.length > 0 ? [{ id: 'key' as const, label: `In ${songKey}` }] : []),
+    ...(sevenths.length > 0 ? [{ id: 'sevenths' as const, label: '7ths' }] : []),
+    { id: 'any', label: 'Any' },
+    { id: 'marks', label: 'Marks' },
+  ]
+  const [chosen, setChosen] = useState<Tab>(tabs[0].id)
+  // A set can empty out (the song's chords all moved into Song): fall back to the first
+  const tab = tabs.some(t => t.id === chosen) ? chosen : tabs[0].id
 
   const put = (chord: string) => {
     onChord(chord)
@@ -65,8 +79,8 @@ export function ChordKeyboard({
     <div className="ck" role="group" aria-label="Chord keyboard">
       <div className="ck-hint">{hint}</div>
       <div className="ck-tools">
-        <button className="ck-tool" onClick={onUndo} disabled={!canUndo} aria-label="Undo">&#8630; Undo</button>
-        <button className="ck-tool" onClick={onRedo} disabled={!canRedo} aria-label="Redo">&#8631; Redo</button>
+        <button className="ck-tool" onClick={onUndo} disabled={!canUndo} aria-label="Undo">&#8630;</button>
+        <button className="ck-tool" onClick={onRedo} disabled={!canRedo} aria-label="Redo">&#8631;</button>
         <button className="ck-tool" onClick={onBackspace} disabled={!ready} aria-label="Delete">&#9003;</button>
         <button
           className={sound ? 'ck-tool is-on' : 'ck-tool'}
@@ -74,59 +88,51 @@ export function ChordKeyboard({
           aria-pressed={sound}
           aria-label="Hear chords as you tap them"
         >
-          {sound ? '\u{1F50A}' : '\u{1F508}'} Sound
+          {sound ? '\u{1F50A}' : '\u{1F508}'}
         </button>
-        <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; New line</button>
+        <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; Line</button>
       </div>
 
-      {songChords.length > 0 && (
-        <div className="ck-row">
-          <span className="ck-label">Song</span>
-          <div className="ck-chips">{songChords.map(chip)}</div>
-        </div>
-      )}
+      <div className="ck-tabs" role="tablist" aria-label="Chord sets">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={t.id === tab}
+            className={t.id === tab ? 'ck-tab is-selected' : 'ck-tab'}
+            onClick={() => { setChosen(t.id); setRoot(null) }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {inKey.length > 0 && (
-        <div className="ck-row">
-          <span className="ck-label">In {songKey}</span>
-          <div className="ck-chips">{inKey.map(chip)}</div>
-        </div>
-      )}
-      {sevenths.length > 0 && (
-        <div className="ck-row">
-          <span className="ck-label">7ths</span>
-          <div className="ck-chips">{sevenths.map(chip)}</div>
-        </div>
-      )}
-
-      <div className="ck-row">
-        <span className="ck-label">Any</span>
-        <div className="ck-chips">
-          {roots.map(r => (
+      <div className="ck-chips" role="tabpanel" aria-label={tabs.find(t => t.id === tab)?.label}>
+        {tab === 'song' && songChords.map(chip)}
+        {tab === 'key' && inKey.map(chip)}
+        {tab === 'sevenths' && sevenths.map(chip)}
+        {tab === 'marks' && MARKS.map(chip)}
+        {tab === 'any' && (root
+          ? (
+            <>
+              <button className="ck-chip ck-root is-selected" onClick={() => setRoot(null)} aria-label="Back to all roots">
+                &#8592; {root}
+              </button>
+              {QUALITIES.map(q => chip(root + q))}
+            </>
+          )
+          : roots.map(r => (
             <button
               key={r}
-              // Outlined, so a root is never mistaken for the same-named chord above it
-              className={r === root ? 'ck-chip ck-root is-selected' : 'ck-chip ck-root'}
+              // Outlined, so a root is never mistaken for a chord to put in
+              className="ck-chip ck-root"
               disabled={!ready}
-              aria-pressed={r === root}
               aria-label={`Chords built on ${r}`}
-              onClick={() => setRoot(r === root ? null : r)}
+              onClick={() => setRoot(r)}
             >
               {r}
             </button>
-          ))}
-        </div>
-      </div>
-      {root && (
-        <div className="ck-row">
-          <span className="ck-label">on {root}</span>
-          <div className="ck-chips">{QUALITIES.map(q => chip(root + q))}</div>
-        </div>
-      )}
-
-      <div className="ck-row">
-        <span className="ck-label">Marks</span>
-        <div className="ck-chips">{MARKS.map(chip)}</div>
+          )))}
       </div>
     </div>
   )

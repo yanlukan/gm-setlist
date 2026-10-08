@@ -835,29 +835,37 @@
 }
 .ck-tools { display: flex; gap: 6px; }
 .ck-tool {
-  min-height: 40px;
+  min-width: 48px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 8px;
   background: var(--badge-bg);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   white-space: nowrap;
 }
-.ck-newline { margin-left: auto; }
-.ck-row { display: flex; align-items: center; gap: 8px; }
-.ck-label {
-  flex: 0 0 50px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.ck-newline { margin-left: auto; font-size: 15px; }
+.ck-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.ck-tab {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border);
   color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
-.ck-chips { display: flex; flex: 1; min-width: 0; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ck-tab.is-selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* One set at a time, wrapped so every chord in it is in sight without scrolling */
+.ck-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 96px; overflow-y: auto; }
 .ck-chip {
   flex: 0 0 auto;
   min-width: 52px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 10px;
   border-radius: 8px;
   background: var(--badge-bg);
@@ -866,7 +874,7 @@
 }
 .ck-chip:active, .ck-tool:active, .ce-act:active { filter: brightness(1.35); }
 .ck-root { background: transparent; border: 2px solid var(--border); }
-.ck-root.is-selected { border-color: var(--accent); }
+.ck-root.is-selected { border-color: var(--accent); color: var(--accent); }
 
 /* The chart's chords and the keyboard are buttons to tap: a long press must not select their text or pop a menu (iOS) */
 .ce-line, .ck {

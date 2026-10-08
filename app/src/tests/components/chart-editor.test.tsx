@@ -17,7 +17,17 @@ afterEach(() => {
 
 const section = (name: string, nth = 0) => screen.getAllByRole('group', { name })[nth]
 const keyboard = () => screen.getByRole('group', { name: 'Chord keyboard' })
-const key = (name: string) => within(keyboard()).getByRole('button', { name })
+/** A key on the keyboard, switching to the set of chords it is in. */
+function key(name: string) {
+  const here = within(keyboard()).queryByRole('button', { name })
+  if (here) return here
+  for (const tab of within(keyboard()).getAllByRole('tab')) {
+    fireEvent.click(tab)
+    const found = within(keyboard()).queryByRole('button', { name })
+    if (found) return found
+  }
+  return within(keyboard()).getByRole('button', { name })
+}
 const tap = (name: string) => fireEvent.click(key(name))
 
 /** The chords of a section, line by line, as they sit on the chart. */
@@ -106,11 +116,18 @@ describe('putting chords in', () => {
     expect(saved(0)).toBe('B  N.C.  (x2)')
   })
 
-  it('cannot put a chord anywhere until the cursor is placed', () => {
+  it('is ready from the start: until you tap the chart, chords go at the end of the first section', () => {
     render(<SongSheet />)
-    expect(key('F#')).toBeDisabled()
-    expect(screen.getByText('Tap a chord to change it, or between chords to add')).toBeInTheDocument()
+    expect(screen.getByText('Adding to the end of Intro · tap the chart to move')).toBeInTheDocument()
     expect(useStore.getState().edits['Faith']).toBeUndefined()
+    tap('E')
+    expect(saved(0)).toBe('B  E')
+  })
+
+  it('opens on the chords the song already has', () => {
+    render(<SongSheet />)
+    expect(within(keyboard()).getByRole('tab', { name: 'Song' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(keyboard()).getByRole('tabpanel', { name: 'Song' })).toHaveTextContent('BEG#mC#mF#')
   })
 
   it('says where the next chord will go', () => {
@@ -248,7 +265,8 @@ describe('moving to another song while editing', () => {
     act(() => { useStore.getState().nextSong() }) // I'm Your Man
     expect(screen.getByRole('heading', { name: "I'm Your Man" })).toBeInTheDocument()
     expect(key('Undo')).toBeDisabled()
-    expect(screen.getByText('Tap a chord to change it, or between chords to add')).toBeInTheDocument()
+    // A fresh cursor: at the end of the new song's first section
+    expect(screen.getByText(/^Adding to the end of /)).toBeInTheDocument()
     expect(useStore.getState().edits["I'm Your Man"]).toBeUndefined()
     expect(useStore.getState().edits['Faith'].sections![0].chords).toBe('B  E') // and Faith keeps its edit
   })

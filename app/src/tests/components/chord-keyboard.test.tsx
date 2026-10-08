@@ -16,7 +16,17 @@ function setup(over: Partial<ChordKeyboardProps> = {}) {
 }
 
 const keyboard = () => screen.getByRole('group', { name: 'Chord keyboard' })
-const key = (name: string) => within(keyboard()).getByRole('button', { name })
+/** A key on the keyboard, switching to the set of chords it is in. */
+function key(name: string) {
+  const here = within(keyboard()).queryByRole('button', { name })
+  if (here) return here
+  for (const tab of within(keyboard()).getAllByRole('tab')) {
+    fireEvent.click(tab)
+    const found = within(keyboard()).queryByRole('button', { name })
+    if (found) return found
+  }
+  return within(keyboard()).getByRole('button', { name })
+}
 
 describe('chord keyboard', () => {
   it("offers the song's own chords", () => {
@@ -90,8 +100,8 @@ describe('chord keyboard', () => {
 
   it("puts the chart's own chords first", () => {
     const { onChord } = setup({ songKey: 'D', songChords: ['Bm7', 'G/B'] })
-    const songRow = screen.getByText('Song').parentElement!
-    fireEvent.click(within(songRow).getByRole('button', { name: 'G/B' }))
+    expect(within(keyboard()).getByRole('tab', { name: 'Song' })).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(within(screen.getByRole('tabpanel', { name: 'Song' })).getByRole('button', { name: 'G/B' }))
     expect(onChord).toHaveBeenCalledWith('G/B')
   })
 
