@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { useMemo } from 'react'
-import type { Song, Section, SongEdits, SongVersion, SetlistData, Theme, ViewMode } from '../types'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../data/songs'
+import type { Song, Section, SongEdits, SongVersion, Setlist, SetlistData, Theme, ViewMode } from '../types'
+import { DEFAULT_SONGS, GIG_SETLIST_2026, REHEARSAL_SETLIST } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
@@ -141,6 +141,35 @@ function persistAfterSnapshot(previous: SetlistData, reason: string, writes: () 
 
 function persistSetlist(previous: SetlistData, next: SetlistData, reason: string): void {
   persistAfterSnapshot(previous, reason, () => saveSetlistData(next))
+}
+
+/**
+ * Add a setlist that ships with the app, once per device. It goes in beside
+ * the player's own setlists, never over them, and a restore point is taken
+ * first. Once added it is the player's: changed or deleted, it stays that way.
+ */
+async function seedSetlist(list: Setlist): Promise<void> {
+  if (readOnly) return
+  const flag = `seeded:${list.id}`
+  try {
+    if (await getSetting<boolean>(flag)) return
+  } catch {
+    return // unreadable: try again next launch rather than risk a second copy
+  }
+  const previous = useStore.getState().setlistData
+  if (previous.lists[list.id]) {
+    saveSetting(flag, true).catch(() => {})
+    return
+  }
+  const next: SetlistData = {
+    ...previous,
+    lists: { ...previous.lists, [list.id]: { ...list, songTitles: [...list.songTitles] } },
+  }
+  useStore.setState({ setlistData: next })
+  persistAfterSnapshot(previous, `add ${list.name}`, async () => {
+    await saveSetlistData(next)
+    await saveSetting(flag, true)
+  })
 }
 
 function persistPosition(setlistId: string, index: number): void {
@@ -830,6 +859,9 @@ export const useStore = create<StoreState>((set, get) => ({
         currentIndex: clampIndex(savedIndex, listLength),
       }
     })
+
+    // The next rehearsal's running order, added to the setlists once
+    await seedSetlist(REHEARSAL_SETLIST)
   },
 }))
 

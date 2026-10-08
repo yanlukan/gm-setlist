@@ -157,7 +157,7 @@ export function SetlistScreen({ onClose }: SetlistScreenProps) {
 
         {songTitles.length === 0 && <div className="sl-empty">No songs in this setlist yet.</div>}
 
-        <button className="sl-add" onClick={() => setShowPicker(true)}>+ Add Song</button>
+        <button className="sl-add" onClick={() => setShowPicker(true)}>+ Add or remove songs</button>
       </div>
 
       {showPicker && (

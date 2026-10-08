@@ -538,3 +538,24 @@ export const GIG_SETLIST_2026: string[] = [
   'Kissing a Fool',
   'Last Christmas',
 ]
+
+/**
+ * The next rehearsal, in the order the band will play it. Added once to the
+ * setlists on every device (see `seedRehearsal`); after that it is the
+ * player's own to change or delete.
+ */
+export const REHEARSAL_SETLIST = {
+  id: 'rehearsal-2026-10',
+  name: 'Next rehearsal',
+  songTitles: [
+    "I Can't Make You Love Me",
+    'Roxanne',
+    'Kissing a Fool',
+    'Last Christmas',
+    'Faith',
+    "I'm Your Man", // in the band's lower key, C: the song's own transpose
+    'Club Tropicana',
+    'Waiting (Reprise)',
+  ],
+}
+

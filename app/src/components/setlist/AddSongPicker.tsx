@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store/use-store'
+import { playedKey } from '../../music/setlist-text'
 import type { Song } from '../../types'
 
 interface AddSongPickerProps {
@@ -91,7 +92,10 @@ function CreateSongForm({ setlistId, onDone, onCreated }: {
 export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: AddSongPickerProps) {
   const allSongs = useStore(s => s.allSongs)
   const addSongToSetlist = useStore(s => s.addSongToSetlist)
+  const removeSongFromSetlist = useStore(s => s.removeSongFromSetlist)
+  const listName = useStore(s => s.setlistData.lists[setlistId]?.name ?? 'this setlist')
   const customSongs = useStore(s => s.customSongs)
+  const edits = useStore(s => s.edits)
   const deleteCustomSong = useStore(s => s.deleteCustomSong)
   const [tab, setTab] = useState<Tab>('library')
   const ownTitles = new Set(customSongs.map(song => song.title))
@@ -117,7 +121,12 @@ export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: 
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '16px 20px', borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
       }}>
-        <h2 style={{ margin: 0, color: 'var(--text, #fff)', fontSize: 20 }}>Add Song</h2>
+        <div>
+          <h2 style={{ margin: 0, color: 'var(--text, #fff)', fontSize: 20 }}>Songs</h2>
+          <div style={{ color: 'var(--text-muted, #888)', fontSize: 13, marginTop: 2 }}>
+            Tap a song to add it to {listName}, or tap it again to take it out
+          </div>
+        </div>
         <button onClick={onClose} style={{
           background: 'none', border: 'none', color: 'var(--accent, #4af)', fontSize: 16, fontWeight: 600,
         }}>
@@ -142,27 +151,41 @@ export function AddSongPicker({ setlistId, currentTitles, onClose, onCreated }: 
             </div>
           ) : songs.map(song => {
             const inSetlist = currentSet.has(song.title)
+            // One tap adds, the next takes it out again: the whole list is the switch
+            const toggle = () => {
+              if (inSetlist) removeSongFromSetlist(setlistId, song.title)
+              else addSongToSetlist(setlistId, song.title)
+            }
             return (
               <div
                 key={song.title}
-                onClick={() => { if (!inSetlist) addSongToSetlist(setlistId, song.title) }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={inSetlist}
+                aria-label={inSetlist ? `${song.title}, in ${listName}. Tap to take it out` : `Add ${song.title} to ${listName}`}
+                onClick={toggle}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle() } }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '12px 20px', cursor: inSetlist ? 'default' : 'pointer',
-                  opacity: inSetlist ? 0.3 : 1,
+                  padding: '12px 20px', cursor: 'pointer', minHeight: 56,
+                  background: inSetlist ? 'rgba(59, 130, 246, 0.12)' : 'transparent',
                   borderBottom: '1px solid var(--border, rgba(255,255,255,0.05))',
                 }}
               >
-                <span style={{
-                  color: inSetlist ? 'var(--text-muted, #888)' : 'var(--accent, #4af)',
-                  fontSize: 18, width: 24, textAlign: 'center', fontWeight: 600,
+                <span aria-hidden="true" style={{
+                  width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 16, fontWeight: 700,
+                  background: inSetlist ? 'var(--accent, #4af)' : 'transparent',
+                  border: inSetlist ? 'none' : '2px solid var(--accent, #4af)',
+                  color: inSetlist ? '#fff' : 'var(--accent, #4af)',
                 }}>
                   {inSetlist ? '\u2713' : '+'}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: 'var(--text, #fff)', fontWeight: 500 }}>{song.title}</div>
                   <div style={{ color: 'var(--text-muted, #888)', fontSize: 13, marginTop: 2 }}>
-                    {song.artist} — Key: {song.key} | {song.bpm} BPM
+                    {song.artist} — Key: {playedKey(song, edits[song.title]).key} | {edits[song.title]?.bpm ?? song.bpm} BPM
                   </div>
                 </div>
                 {ownTitles.has(song.title) && (

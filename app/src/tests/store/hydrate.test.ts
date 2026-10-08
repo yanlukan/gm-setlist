@@ -5,6 +5,7 @@ import {
   getCustomSongs, getSongEdits, getSetting,
 } from '../../store/persistence'
 import type { SetlistData } from '../../types'
+import { REHEARSAL_SETLIST } from '../../data/songs'
 
 beforeEach(async () => {
   resetDb()
@@ -51,7 +52,8 @@ describe('hydrate does not destroy saved data', () => {
     expect(after.lists.gig.songTitles).toEqual([])
     // The other setlist must survive — this is what was lost before.
     expect(after.lists.default.songTitles).toEqual(['Faith', 'Outside'])
-    expect(Object.keys(after.lists)).toHaveLength(2)
+    // Both kept, beside the next rehearsal's list, which is added once
+    expect(Object.keys(after.lists).sort()).toEqual(['default', 'gig', REHEARSAL_SETLIST.id])
   })
 
   it('does not overwrite what is on disk while hydrating', async () => {
@@ -288,5 +290,52 @@ describe('deleting a setlist', () => {
     })
     useStore.getState().deleteSetlist('a')
     expect(useStore.getState().setlistData.lists.a).toBeDefined()
+  })
+})
+
+describe('the next rehearsal', () => {
+  const saved: SetlistData = {
+    lists: { default: { id: 'default', name: 'GM Tribute', songTitles: ['Faith'] } },
+    activeId: 'default',
+  }
+
+  it('is added beside your own setlists, in the running order, without switching to it', async () => {
+    await saveSetlistData(saved)
+    await useStore.getState().hydrate()
+    const after = useStore.getState().setlistData
+    expect(after.activeId).toBe('default')
+    expect(after.lists.default.songTitles).toEqual(['Faith'])
+    expect(after.lists[REHEARSAL_SETLIST.id]).toEqual({
+      id: REHEARSAL_SETLIST.id,
+      name: 'Next rehearsal',
+      songTitles: [
+        "I Can't Make You Love Me", 'Roxanne', 'Kissing a Fool', 'Last Christmas',
+        'Faith', "I'm Your Man", 'Club Tropicana', 'Waiting (Reprise)',
+      ],
+    })
+    await toLand(async () => {
+      expect((await getSetlistData())?.lists[REHEARSAL_SETLIST.id]).toBeDefined()
+    })
+  })
+
+  it('is yours once added: deleted, it does not come back', async () => {
+    await saveSetlistData(saved)
+    await useStore.getState().hydrate()
+    await toLand(async () => {
+      expect(await getSetting(`seeded:${REHEARSAL_SETLIST.id}`)).toBe(true)
+    })
+    useStore.getState().deleteSetlist(REHEARSAL_SETLIST.id)
+    await toLand(async () => {
+      expect((await getSetlistData())?.lists[REHEARSAL_SETLIST.id]).toBeUndefined()
+    })
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().setlistData.lists[REHEARSAL_SETLIST.id]).toBeUndefined()
+  })
+
+  it('only names songs the app has', () => {
+    const titles = new Set(useStore.getState().songs.map(song => song.title))
+    for (const title of REHEARSAL_SETLIST.songTitles) expect(titles.has(title), title).toBe(true)
   })
 })

@@ -35,3 +35,22 @@ describe('creating a song', () => {
     expect(useStore.getState().setlistData.lists.default.songTitles).toContain('Encore Jam')
   })
 })
+
+describe('adding and removing songs', () => {
+  it('adds a song with one tap and takes it out with the next', () => {
+    useStore.setState(useStore.getInitialState())
+    useStore.getState().createSetlist('Next rehearsal')
+    const id = useStore.getState().setlistData.activeId
+    const titles = () => useStore.getState().setlistData.lists[id].songTitles
+    const { rerender } = render(<AddSongPicker setlistId={id} currentTitles={titles()} onClose={() => {}} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add Roxanne to Next rehearsal' }))
+    expect(titles()).toEqual(['Roxanne'])
+
+    rerender(<AddSongPicker setlistId={id} currentTitles={titles()} onClose={() => {}} />)
+    const inList = screen.getByRole('button', { name: 'Roxanne, in Next rehearsal. Tap to take it out' })
+    expect(inList).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(inList)
+    expect(titles()).toEqual([])
+  })
+})
