@@ -5,6 +5,8 @@ import {
   shouldUseFlats,
   getDiatonicChords,
   getDiatonic7ths,
+  getMinorDominants,
+  keyUsesFlats,
   sectionColor,
   getAllChordNames,
   isChartMark,
@@ -90,6 +92,14 @@ describe('getDiatonicChords', () => {
   it('uses flats for Bb major', () => {
     const chords = getDiatonicChords('Bb');
     expect(chords).toEqual(['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim']);
+  });
+
+  it('spells each degree on its own letter, as the key signature has it', () => {
+    // Was Fdim in F#, and B in Gb and Ebm
+    expect(getDiatonicChords('F#')).toEqual(['F#', 'G#m', 'A#m', 'B', 'C#', 'D#m', 'E#dim']);
+    expect(getDiatonicChords('Gb')).toEqual(['Gb', 'Abm', 'Bbm', 'Cb', 'Db', 'Ebm', 'Fdim']);
+    expect(getDiatonicChords('Ebm')).toEqual(['Ebm', 'Fdim', 'Gb', 'Abm', 'Bbm', 'Cb', 'Db']);
+    expect(getDiatonic7ths('F#')[6]).toBe('E#m7b5');
   });
 
   it('returns 7 chords', () => {
@@ -240,5 +250,27 @@ describe('moving a chart to another key keeps its own spelling', () => {
 
   it('comes back to exactly the same spelling, so edits made in D store the book\'s names', () => {
     expect(transposeInKey(transposeInKey(book, 'Eb', -1), 'D', 1)).toBe(book);
+  });
+});
+
+describe('getMinorDominants', () => {
+  it('gives the major V and V7 of a minor key', () => {
+    expect(getMinorDominants('Am')).toEqual(['E', 'E7']);
+    expect(getMinorDominants('Bbm')).toEqual(['F', 'F7']);
+    expect(getMinorDominants('C#m')).toEqual(['G#', 'G#7']);
+    expect(getMinorDominants('Gm')).toEqual(['D', 'D7']);
+  });
+
+  it('gives nothing for a major key', () => {
+    expect(getMinorDominants('C')).toEqual([]);
+  });
+});
+
+describe('keyUsesFlats', () => {
+  it('follows how the key itself is written', () => {
+    expect(keyUsesFlats('F#')).toBe(false);
+    expect(keyUsesFlats('Gb')).toBe(true);
+    expect(keyUsesFlats('C')).toBe(true);
+    expect(keyUsesFlats('G')).toBe(false);
   });
 });

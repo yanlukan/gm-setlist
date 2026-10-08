@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getDiatonicChords, getDiatonic7ths, getRoots, shouldUseFlats } from '../../music/theory'
+import { getDiatonicChords, getDiatonic7ths, getMinorDominants, getRoots, keyUsesFlats } from '../../music/theory'
 
 const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', '6', '9', 'add9', 'm7b5', 'dim', 'aug']
 /** Not chords, but the songbook charts are full of them. */
@@ -8,6 +8,8 @@ const MARKS = ['N.C.', '(x2)', '(x3)', '(x4)']
 export interface ChordKeyboardProps {
   /** The key as shown on screen, used to offer the chords that belong to it. */
   songKey: string
+  /** The chords the chart already has, in the order they first appear. */
+  songChords?: string[]
   /** False until the cursor is somewhere: until then there is nowhere to put a chord. */
   ready: boolean
   /** What the next tap will do, in words. */
@@ -28,13 +30,17 @@ export interface ChordKeyboardProps {
  * is selected.
  */
 export function ChordKeyboard({
-  songKey, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
+  songKey, songChords = [], ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
 }: ChordKeyboardProps) {
   const [root, setRoot] = useState<string | null>(null)
 
-  const inKey = songKey ? getDiatonicChords(songKey) : []
-  const sevenths = songKey ? getDiatonic7ths(songKey) : []
-  const roots = getRoots(songKey ? shouldUseFlats(songKey, 0) : false)
+  // In a minor key the major V sits beside the scale's own chords: E and E7 in A minor
+  const dominants = songKey ? getMinorDominants(songKey) : []
+  // A chord the song already has is in its own row: it is not offered twice
+  const notInSong = (chord: string) => !songChords.includes(chord)
+  const inKey = songKey ? [...getDiatonicChords(songKey), ...dominants.slice(0, 1)].filter(notInSong) : []
+  const sevenths = songKey ? [...getDiatonic7ths(songKey), ...dominants.slice(1)].filter(notInSong) : []
+  const roots = getRoots(songKey ? keyUsesFlats(songKey) : false)
 
   const put = (chord: string) => {
     onChord(chord)
@@ -55,17 +61,24 @@ export function ChordKeyboard({
         <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; New line</button>
       </div>
 
+      {songChords.length > 0 && (
+        <div className="ck-row">
+          <span className="ck-label">Song</span>
+          <div className="ck-chips">{songChords.map(chip)}</div>
+        </div>
+      )}
+
       {inKey.length > 0 && (
-        <>
-          <div className="ck-row">
-            <span className="ck-label">In {songKey}</span>
-            <div className="ck-chips">{inKey.map(chip)}</div>
-          </div>
-          <div className="ck-row">
-            <span className="ck-label">7ths</span>
-            <div className="ck-chips">{sevenths.map(chip)}</div>
-          </div>
-        </>
+        <div className="ck-row">
+          <span className="ck-label">In {songKey}</span>
+          <div className="ck-chips">{inKey.map(chip)}</div>
+        </div>
+      )}
+      {sevenths.length > 0 && (
+        <div className="ck-row">
+          <span className="ck-label">7ths</span>
+          <div className="ck-chips">{sevenths.map(chip)}</div>
+        </div>
       )}
 
       <div className="ck-row">

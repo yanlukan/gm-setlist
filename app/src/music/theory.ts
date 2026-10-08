@@ -146,10 +146,12 @@ function buildDiatonicChords(key: string, intervals: number[], qualities: string
   const { root } = parseChord(key);
   const rootIndex = noteToIndex(root);
   const useFlats = FLAT_KEYS.has(key);
+  const letter = LETTERS.indexOf(root[0]);
 
   return intervals.map((interval, i) => {
     const noteIndex = ((rootIndex + interval) % 12 + 12) % 12;
-    const note = indexToNote(noteIndex, useFlats);
+    // Each degree on its own letter: the 7th of F# is E#, not F, and the 4th of Gb is Cb, not B
+    const note = spellOnLetter((letter + i) % 7, noteIndex) ?? indexToNote(noteIndex, useFlats);
     return `${note}${qualities[i]}`;
   });
 }
@@ -183,6 +185,27 @@ export function sectionColor(name: string): string {
   if (lower === 'prechorus') return 'var(--section-prechorus)';
   if (lower === 'intro' || lower === 'outro') return 'var(--section-intro)';
   return 'var(--section-default)';
+}
+
+/**
+ * The V and V7 of a minor key, which songs in minor nearly always use in
+ * place of the natural minor's own v: E and E7 in A minor. Empty for a major key.
+ */
+export function getMinorDominants(key: string): string[] {
+  const { root, quality } = parseChord(key);
+  const rootIndex = noteToIndex(root);
+  if (quality !== 'm' || rootIndex === -1) return [];
+  const pitch = (rootIndex + 7) % 12;
+  const note = spellOnLetter((LETTERS.indexOf(root[0]) + 4) % 7, pitch) ?? indexToNote(pitch, FLAT_KEYS.has(key));
+  return [note, `${note}7`];
+}
+
+/** Sharps or flats for the roots of a key: as the key itself is written, else by its key signature. */
+export function keyUsesFlats(key: string): boolean {
+  const { root } = parseChord(key);
+  if (root.endsWith('#')) return false;
+  if (root.endsWith('b')) return true;
+  return shouldUseFlats(key, 0);
 }
 
 /** The twelve roots, spelled with flats or sharps. */

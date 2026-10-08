@@ -87,4 +87,23 @@ describe('chord keyboard', () => {
     setup({ hint: 'Changing Gb: tap the chord to put there' })
     expect(screen.getByText('Changing Gb: tap the chord to put there')).toBeInTheDocument()
   })
+
+  it("puts the chart's own chords first", () => {
+    const { onChord } = setup({ songKey: 'D', songChords: ['Bm7', 'G/B'] })
+    const songRow = screen.getByText('Song').parentElement!
+    fireEvent.click(within(songRow).getByRole('button', { name: 'G/B' }))
+    expect(onChord).toHaveBeenCalledWith('G/B')
+  })
+
+  it('offers the major V in a minor key', () => {
+    setup({ songKey: 'Am' })
+    expect(key('E')).toBeInTheDocument()
+    expect(key('E7')).toBeInTheDocument()
+  })
+
+  it('spells the roots the way a sharp key is written', () => {
+    setup({ songKey: 'F#' })
+    expect(key('Chords built on C#')).toBeInTheDocument()
+    expect(key('E#dim')).toBeInTheDocument()
+  })
 })

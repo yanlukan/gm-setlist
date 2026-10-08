@@ -82,6 +82,11 @@ export function ChartEditor({
   /** The chart's section names, each once, for the song order to choose from. */
   const names = Array.from(new Set(sections.map(s => s.name).filter(name => name.trim() !== '')))
 
+  /** Every chord the chart has, each once, so the song's own chords are one tap away. */
+  const songChords = Array.from(new Set(
+    displaySections.flatMap(s => parseChordText(s.chords).flat()).filter(c => !isChartMark(c)),
+  ))
+
   /** A section's lines: the draft while it still says what is saved, else what is saved. */
   const linesOf = (i: number): ChordLines => {
     const text = displaySections[i]?.chords ?? ''
@@ -351,6 +356,7 @@ export function ChartEditor({
       {typing === null && (
         <ChordKeyboard
           songKey={songKey}
+          songChords={songChords}
           ready={at !== null}
           hint={hint}
           canUndo={history.past.length > 0}
