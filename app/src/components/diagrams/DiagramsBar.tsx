@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
-import { shownSections } from '../../music/chart-view'
+import { capoFor, shownSections } from '../../music/chart-view'
+import { strum } from '../../music/sound'
 import { hasShapes, shapeToShow, voicingsFor } from '../../music/voicings'
 import { useBandPositions } from '../../hooks/use-band-positions'
 import { ChordDiagram } from './ChordDiagram'
@@ -121,6 +122,19 @@ export function DiagramsBar() {
               <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                 {voicing.l}
               </span>
+              {!onStage && (
+                <button
+                  type="button"
+                  className="diagram-play"
+                  aria-label={`Play ${name}`}
+                  onClick={e => {
+                    e.stopPropagation()
+                    strum(voicing, capoFor(song, edits[song.title]))
+                  }}
+                >
+                  &#9654;
+                </button>
+              )}
               {researched[name] !== undefined && shapeFor(name) === researched[name] ? (
                 // The shape the songbook or a lesson shows for this song
                 <span className="diagram-mark is-researched">{song.shapesFrom ?? 'Researched'}</span>
@@ -137,6 +151,7 @@ export function DiagramsBar() {
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
+          capo={capoFor(song, edits[song.title])}
           selectedIndex={shapeFor(pickerChord)}
           recommendedIndex={band[pickerChord]}
           onSelect={(index) => {

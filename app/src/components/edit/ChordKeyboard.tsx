@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { getDiatonicChords, getDiatonic7ths, getMinorDominants, getRoots, keyUsesFlats } from '../../music/theory'
+import { getDiatonicChords, getDiatonic7ths, getMinorDominants, getRoots, keyUsesFlats, isChartMark } from '../../music/theory'
+import { shapeToShow, voicingsFor } from '../../music/voicings'
+import { strum } from '../../music/sound'
 
 const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', '6', '9', 'add9', 'm7b5', 'dim', 'aug']
 /** Not chords, but the songbook charts are full of them. */
@@ -10,6 +12,8 @@ export interface ChordKeyboardProps {
   songKey: string
   /** The chords the chart already has, in the order they first appear. */
   songChords?: string[]
+  /** The capo on for this song, so a chord is heard at the pitch it sounds. */
+  capo?: number
   /** False until the cursor is somewhere: until then there is nowhere to put a chord. */
   ready: boolean
   /** What the next tap will do, in words. */
@@ -30,9 +34,11 @@ export interface ChordKeyboardProps {
  * is selected.
  */
 export function ChordKeyboard({
-  songKey, songChords = [], ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
+  songKey, songChords = [], capo = 0, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
 }: ChordKeyboardProps) {
   const [root, setRoot] = useState<string | null>(null)
+  /** Hear each chord as it is put in. */
+  const [sound, setSound] = useState(false)
 
   // In a minor key the major V sits beside the scale's own chords: E and E7 in A minor
   const dominants = songKey ? getMinorDominants(songKey) : []
@@ -45,6 +51,10 @@ export function ChordKeyboard({
   const put = (chord: string) => {
     onChord(chord)
     setRoot(null)
+    if (sound && !isChartMark(chord)) {
+      const shape = voicingsFor(chord)[shapeToShow(chord)]
+      if (shape) strum(shape, capo)
+    }
   }
 
   const chip = (chord: string) => (
@@ -58,6 +68,14 @@ export function ChordKeyboard({
         <button className="ck-tool" onClick={onUndo} disabled={!canUndo} aria-label="Undo">&#8630; Undo</button>
         <button className="ck-tool" onClick={onRedo} disabled={!canRedo} aria-label="Redo">&#8631; Redo</button>
         <button className="ck-tool" onClick={onBackspace} disabled={!ready} aria-label="Delete">&#9003;</button>
+        <button
+          className={sound ? 'ck-tool is-on' : 'ck-tool'}
+          onClick={() => setSound(!sound)}
+          aria-pressed={sound}
+          aria-label="Hear chords as you tap them"
+        >
+          {sound ? '\u{1F50A}' : '\u{1F508}'} Sound
+        </button>
         <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; New line</button>
       </div>
 

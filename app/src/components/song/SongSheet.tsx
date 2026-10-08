@@ -290,6 +290,7 @@ export function SongSheet() {
           displaySections={displaySections}
           form={form}
           songKey={shapeKey(playedKey(song, edits[song.title]).key, -capo)}
+          capo={capo}
           notes={notes}
           onChords={updateChordsAt}
           onSections={next => saveSections(song.title, next)}
@@ -306,6 +307,7 @@ export function SongSheet() {
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
+          capo={capo}
           selectedIndex={shapeToShow(pickerChord, selectedVoicings[pickerChord], band[pickerChord])}
           recommendedIndex={band[pickerChord]}
           onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}

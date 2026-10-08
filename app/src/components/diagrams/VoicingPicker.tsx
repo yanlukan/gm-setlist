@@ -2,9 +2,12 @@ import { useEffect, useRef } from 'react'
 import { Modal } from '../shared/Modal'
 import { voicingsFor } from '../../music/voicings'
 import { ChordDiagram } from './ChordDiagram'
+import { strum } from '../../music/sound'
 
 interface VoicingPickerProps {
   chord: string
+  /** The capo on for this song, so a shape is heard at the pitch it sounds. */
+  capo?: number
   selectedIndex: number
   /** The recommended shape for this song. */
   recommendedIndex?: number
@@ -14,7 +17,7 @@ interface VoicingPickerProps {
   onClose: () => void
 }
 
-export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect, onUseRecommended, onClose }: VoicingPickerProps) {
+export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex, onSelect, onUseRecommended, onClose }: VoicingPickerProps) {
   const voicings = voicingsFor(chord)
   const selectedRef = useRef<HTMLDivElement>(null)
 
@@ -94,10 +97,21 @@ export function VoicingPicker({ chord, selectedIndex, recommendedIndex, onSelect
                 background: i === selectedIndex ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)',
               }}
             >
-              <ChordDiagram voicing={voicing} size={96} />
+              <ChordDiagram voicing={voicing} size={112} />
               <span style={{ fontSize: 10, color: '#888', marginTop: 4 }}>
                 {voicing.l}
               </span>
+              <button
+                type="button"
+                className="diagram-play"
+                aria-label={`Play ${chord} at ${voicing.l}`}
+                onClick={e => {
+                  e.stopPropagation()
+                  strum(voicing, capo)
+                }}
+              >
+                &#9654;
+              </button>
               {i === recommendedIndex && (
                 <span style={{ fontSize: 9, color: '#4ade80', marginTop: 2, fontWeight: 700 }}>
                   Recommended

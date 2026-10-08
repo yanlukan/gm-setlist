@@ -39,6 +39,8 @@ interface Props {
   form: string[]
   /** The key as shown, for the chords that belong to it. */
   songKey: string
+  /** The capo on for this song, so chords are heard at the pitch they sound. */
+  capo?: number
   notes: string
   /** One section's chords, as shown on screen. */
   onChords: (index: number, text: string) => void
@@ -63,7 +65,7 @@ function copyName(name: string): string {
  * the cursor. Every change is saved at once and can be undone.
  */
 export function ChartEditor({
-  title, heading, banners, sections, displaySections, form, songKey, notes, onChords, onSections, onNotes, onForm,
+  title, heading, banners, sections, displaySections, form, songKey, capo = 0, notes, onChords, onSections, onNotes, onForm,
 }: Props) {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   /** Lines as typed, kept while editing so a new empty line at the end survives. */
@@ -357,6 +359,7 @@ export function ChartEditor({
         <ChordKeyboard
           songKey={songKey}
           songChords={songChords}
+          capo={capo}
           ready={at !== null}
           hint={hint}
           canUndo={history.past.length > 0}
