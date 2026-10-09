@@ -24,7 +24,11 @@ type AudioContextClass = typeof AudioContext
 let context: AudioContext | null = null
 const plucks = new Map<number, AudioBuffer>()
 
-function audio(): AudioContext | null {
+/**
+ * The one AudioContext the app plays through, made on first use. Null where
+ * the device has no web audio.
+ */
+export function audioContext(): AudioContext | null {
   // Sleep, a call or another app's audio leaves iOS sound "interrupted", and
   // it may never come back: start afresh on the tap rather than stay silent
   const state = context?.state as string | undefined
@@ -84,7 +88,7 @@ function pluck(ctx: AudioContext, midi: number): AudioBuffer {
  * False where the device cannot play sound.
  */
 export function strum(v: ChordVoicing, capo = 0): boolean {
-  const ctx = audio()
+  const ctx = audioContext()
   if (!ctx) return false
   // iOS starts audio suspended until a tap asks for it: this is that tap
   if (ctx.state === 'suspended') void ctx.resume()

@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { useStore } from '../../store/use-store'
 import { Modal } from './Modal'
+import { startClick, beatsPerBar } from '../../music/click'
 
 interface Props {
   open: boolean
@@ -27,13 +28,26 @@ export function TapTempo({ open, onClose }: Props) {
 
   const [bpm, setBpm] = useState((currentSong ? (edits[currentSong.title]?.bpm ?? currentSong.bpm) : 120))
   const tapsRef = useRef<number[]>([])
+  // Hearing the tempo: a click at the shown bpm, four (or three) to the bar
+  const [clicking, setClicking] = useState(false)
+  const beats = beatsPerBar(currentSong?.timeSignature ?? '4/4')
 
   useEffect(() => {
     if (open) {
       setBpm((currentSong ? (edits[currentSong.title]?.bpm ?? currentSong.bpm) : 120))
       tapsRef.current = []
     }
+    setClicking(false)
   }, [open, currentSong])
+
+  // The click follows the shown tempo: it restarts when the taps change it,
+  // and stops when the sheet closes or the component goes
+  useEffect(() => {
+    if (!clicking || !open) return
+    const stop = startClick(bpm, beats)
+    if (!stop) { setClicking(false); return }
+    return stop
+  }, [clicking, open, bpm, beats])
 
   const handleTap = () => {
     const now = Date.now()
@@ -51,13 +65,18 @@ export function TapTempo({ open, onClose }: Props) {
     }
   }
 
-  const handleSave = () => {
-    if (currentSong) saveBpm(currentSong.title, bpm)
+  const close = () => {
+    setClicking(false)
     onClose()
   }
 
+  const handleSave = () => {
+    if (currentSong) saveBpm(currentSong.title, bpm)
+    close()
+  }
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={close}>
       <div style={{
         background: 'var(--picker-bg)',
         borderRadius: 12,
@@ -75,10 +94,18 @@ export function TapTempo({ open, onClose }: Props) {
           }}
           style={{
           width: '100%', padding: 20, fontSize: 20, fontWeight: 'bold',
-          background: 'var(--accent)', color: '#fff', borderRadius: 8, marginBottom: 16,
+          background: 'var(--accent)', color: '#fff', borderRadius: 8, marginBottom: 12,
         }}>TAP</button>
+        <button
+          onClick={() => setClicking(c => !c)}
+          aria-pressed={clicking}
+          style={{
+            width: '100%', padding: 10, fontSize: 16, fontWeight: 600, borderRadius: 8, marginBottom: 16,
+            background: clicking ? 'var(--warning, #f59e0b)' : 'var(--badge-bg)',
+            color: clicking ? '#000' : 'inherit',
+          }}>{clicking ? 'Stop' : 'Hear it'}</button>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={onClose} style={{
+          <button onClick={close} style={{
             flex: 1, padding: 10, fontSize: 16, borderRadius: 8, background: 'var(--badge-bg)',
           }}>Cancel</button>
           <button onClick={handleSave} style={{
