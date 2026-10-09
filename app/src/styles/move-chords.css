@@ -1,32 +1,74 @@
-/* Moving every chord of a song up or down the neck, at the start of the diagrams strip */
-.diagrams-move {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--badge-bg);
-}
-.diagrams-move button {
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--diagram-tile);
-  color: var(--text);
+/* Moving every chord of a song up or down the neck: a sheet opened from the
+   position on the chart's title line, which is a button except on stage */
+button.chart-position {
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  line-height: inherit;
+  background: transparent;
   cursor: pointer;
 }
-.diagrams-move button:disabled { opacity: 0.35; cursor: default; }
-.diagrams-move-area {
+/* An area the player chose, in the colour of their own picks */
+.chart-position.is-moved {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.move-chords {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 16px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.move-chords-area {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+.move-chords-label { font-size: 24px; font-weight: 800; }
+.move-chords-from {
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-muted);
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--section-chorus);
 }
-.diagrams-move-steps { display: flex; gap: 6px; }
+.move-chords-from.is-own { color: var(--accent); }
+.move-chords-steps { display: flex; gap: 8px; }
+.move-chords-btn {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.move-chords-btn:disabled { opacity: 0.35; cursor: default; }
+.move-chords-btn.is-primary { width: 100%; border-color: var(--accent); color: var(--accent); }
+.move-chords-done { width: 100%; margin-top: 4px; }
+/* The song's shapes at the chosen area, as the diagrams strip will show them */
+.move-chords-shapes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.move-chords-shape {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--diagram-tile);
+  font-size: 12px;
+  font-weight: 600;
+}
+.move-chords-shape small { font-size: 10px; color: var(--text-muted); }

@@ -65,7 +65,7 @@ describe('chord shapes for electric guitar', () => {
 
   it("show the song's recommended area of the neck on its title line", () => {
     render(<SongSheet />) // Faith
-    const position = screen.getByLabelText('Recommended position: frets 2 to 9')
+    const position = screen.getByLabelText('Recommended position: frets 2 to 9. Move the chords')
     expect(position).toHaveTextContent('Frets 2–9') // the riff at the 7th fret, the pre-chorus barres lower
     expect(position.parentElement).toBe(screen.getByRole('heading', { name: 'Faith' }).parentElement)
   })
@@ -81,7 +81,7 @@ describe('chord shapes for electric guitar', () => {
   it('call the acoustic song open position', () => {
     open('Waiting (Reprise)')
     render(<SongSheet />)
-    expect(screen.getByLabelText('Recommended position: open position')).toHaveTextContent('Open position')
+    expect(screen.getByLabelText('Recommended position: open position. Move the chords')).toHaveTextContent('Open position')
   })
 
   it('keep open chords for the acoustic song', () => {

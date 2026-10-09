@@ -3,15 +3,10 @@ import { useChartView, useStore } from '../../store/use-store'
 import { capoFor, guitarFor, shownSections } from '../../music/chart-view'
 import { strum } from '../../music/sound'
 import { hasShapes, voicingsFor } from '../../music/voicings'
-import { neckFor, positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
-import { backToSongShapes, clearSongShape, moveChords, pickSongShape } from '../../store/song-shapes'
+import { shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
+import { clearSongShape, pickSongShape } from '../../store/song-shapes'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
-
-/** How far Lower and Higher move the chords, and how far they go. */
-const NECK_STEP = 2
-const MIN_NECK = 3
-const MAX_NECK = 12
 
 export function DiagramsBar() {
   // Primitive selectors — no method calls
@@ -41,7 +36,7 @@ export function DiagramsBar() {
 
   // A shape picked by hand wins; otherwise the song's band shape
   const songEdits = song ? edits[song.title] : undefined
-  const { picks: band, researched, span } = useBandPositions(song, songEdits)
+  const { picks: band, researched } = useBandPositions(song, songEdits)
   const choice = (name: string) => shapeChoice(name, songEdits, selectedVoicings, band[name])
   const shapeFor = (name: string) => choice(name).index
 
@@ -101,33 +96,6 @@ export function DiagramsBar() {
             <span>{focus.name}</span>
             <span className="diagrams-focus-all">All &#10005;</span>
           </button>
-        )}
-        {!onStage && (
-          // Every chord up or down the neck at once, then a few changed by hand
-          <div className="diagrams-move" role="group" aria-label="Move the chords on the neck">
-            {songEdits?.neck === undefined ? (
-              <button type="button" onClick={() => moveChords(song.title, neckFor(song, songEdits, view))}>
-                Move chords
-              </button>
-            ) : (
-              <>
-                <span className="diagrams-move-area">{positionLabel(span)}</span>
-                <span className="diagrams-move-steps">
-                  <button type="button" aria-label="Move the chords lower on the neck" disabled={songEdits.neck <= MIN_NECK}
-                    onClick={() => moveChords(song.title, Math.max(MIN_NECK, songEdits.neck! - NECK_STEP))}>
-                    Lower
-                  </button>
-                  <button type="button" aria-label="Move the chords higher on the neck" disabled={songEdits.neck >= MAX_NECK}
-                    onClick={() => moveChords(song.title, Math.min(MAX_NECK, songEdits.neck! + NECK_STEP))}>
-                    Higher
-                  </button>
-                </span>
-                <button type="button" onClick={() => backToSongShapes(song.title)}>
-                  {song.shapesFrom ? `Back to ${song.shapesFrom.toLowerCase()}` : 'Put back'}
-                </button>
-              </>
-            )}
-          </div>
         )}
         {uniqueChords.map(name => {
           const voicings = voicingsFor(name)

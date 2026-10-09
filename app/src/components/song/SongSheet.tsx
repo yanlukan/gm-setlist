@@ -6,6 +6,7 @@ import { hasShapes } from '../../music/voicings'
 import { positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
 import { clearSongShape, pickSongShape } from '../../store/song-shapes'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
+import { MoveChordsSheet } from './MoveChordsSheet'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
 import { formMatches } from '../../music/form'
@@ -46,6 +47,7 @@ export function SongSheet() {
   const prevSong = useStore(s => s.prevSong)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
+  const [movingChords, setMovingChords] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fitRef = useRef<HTMLDivElement>(null)
@@ -164,14 +166,25 @@ export function SongSheet() {
           {song.preset.solo && ` → ${song.preset.solo} solo`}
         </span>
       )}
-      {span && (
-        <span
-          className="chart-position"
-          aria-label={`Recommended position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`}
-        >
-          {positionLabel(span)}
-        </span>
-      )}
+      {span && (() => {
+        // The song's area of the neck. Tap it to move every chord, except on stage
+        const moved = edits[song.title]?.neck !== undefined
+        const where = `${moved ? 'Your' : 'Recommended'} position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`
+        return onStage ? (
+          <span className="chart-position" aria-label={where}>
+            {positionLabel(span)}
+          </span>
+        ) : (
+          <button
+            type="button"
+            className={moved ? 'chart-position is-moved' : 'chart-position'}
+            aria-label={`${where}. Move the chords`}
+            onClick={() => setMovingChords(true)}
+          >
+            {positionLabel(span)}
+          </button>
+        )
+      })()}
       {edited && (
         <button
           type="button"
@@ -311,6 +324,10 @@ export function SongSheet() {
         <div ref={scrollRef} className="chart-scroll">
           {renderBody()}
         </div>
+      )}
+
+      {movingChords && song && !onStage && (
+        <MoveChordsSheet song={song} edits={edits[song.title]} onClose={() => setMovingChords(false)} />
       )}
 
       {/* Outside the chart, so swipes on the picker cannot change song */}
