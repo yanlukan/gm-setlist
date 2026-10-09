@@ -15,6 +15,9 @@
   flex-shrink: 0;
 }
 .tb-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* The ⋮ keeps to the right end of its row: when the bar wraps (an iPad held
+   upright) the menu hanging from the button's right edge stays on the screen */
+.tb-menu { margin-left: auto; }
 .tb-break { display: none; }
 .tb-meta {
   display: flex;
@@ -83,7 +86,7 @@
 @media (max-width: 700px) {
   /* Phones, two rows: the buttons and the menu on top, then the song info
      with the transpose buttons at its end. */
-  .tb-menu { order: 2; margin-left: auto; }
+  .tb-menu { order: 2; }
   .tb-break { display: block; order: 3; flex-basis: 100%; height: 0; }
   .tb-meta { order: 4; flex: 1 1 0; }
   .tb-transpose { order: 5; }
