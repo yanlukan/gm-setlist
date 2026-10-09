@@ -6,7 +6,7 @@ import { useStore } from '../../store/use-store'
 import { moveChords, backToSongShapes, pickSongShape, clearSongShape } from '../../store/song-shapes'
 
 const roxanne = DEFAULT_SONGS.find(s => s.title === 'Roxanne')!
-const electric = { simple: false, guitar: 'electric' as const }
+const electric = { simple: false, guitar: 'electric' as const, instrument: 'guitar' as const }
 
 const shapesOf = (picks: Record<string, number>) => Object.entries(picks).map(([name, i]) => voicingsFor(name)[i])
 const middle = (picks: Record<string, number>) => {

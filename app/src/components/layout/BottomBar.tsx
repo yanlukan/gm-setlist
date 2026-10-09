@@ -18,6 +18,7 @@ export function BottomBar() {
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const editMode = useStore(s => s.editMode)
+  const instrument = useStore(s => s.instrument)
   const [gridOpen, setGridOpen] = useState(false)
 
   const setlistSongs = useMemo(() => {
@@ -82,8 +83,8 @@ export function BottomBar() {
               <span className="songnav-num">{currentIndex + 2}.</span>
               <span className="songnav-title">{next.title}</span>
               {nextKey && <span className="songnav-key">{nextKey}</span>}
-              {/* The sound to switch to before the next song */}
-              {next.preset && <span className="songnav-preset">{next.preset.name}</span>}
+              {/* The sound to switch to before the next song: the guitarist's GX-10, not the keyboard's */}
+              {next.preset && instrument === 'guitar' && <span className="songnav-preset">{next.preset.name}</span>}
             </>
           ) : (
             <span className="songnav-title">End of set</span>

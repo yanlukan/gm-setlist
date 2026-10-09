@@ -1,7 +1,7 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
-import { capoFor, guitarFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
+import { capoFor, shapeKey, shapeSections, shapeShift, simplifyRuleFor, simplifyText } from '../../music/chart-view'
 import { hasShapes } from '../../music/voicings'
 import { positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
 import { clearSongShape, pickSongShape } from '../../store/song-shapes'
@@ -73,24 +73,26 @@ export function SongSheet() {
   }, [song, edits])
 
   const view = useChartView()
+  // The keyboard player reads every chord as it sounds: no capo, no shapes, no guitar sound
+  const keyboard = view.instrument === 'keyboard'
   const semitones = song ? transposeFor(song, edits[song.title]) : 0
-  const capo = song ? capoFor(song, edits[song.title]) : 0
+  const capo = song ? capoFor(song, edits[song.title], view) : 0
   // From the stored chart to the shapes played: the band's key, less the capo
-  const shift = song ? shapeShift(song, edits[song.title]) : 0
+  const shift = song ? shapeShift(song, edits[song.title], view) : 0
   const sourceKey = song ? (edits[song.title]?.key ?? song.key ?? '') : ''
 
   // The chart at the shapes' pitch. Editing writes back through this, so the
   // guitarist edits what they see and the stored chart stays at source pitch.
   const displaySections = useMemo(
-    () => (song ? shapeSections(song, edits[song.title]) : []),
-    [song, edits],
+    () => (song ? shapeSections(song, edits[song.title], view) : []),
+    [song, edits, view],
   )
   // What is read: the same, made plain if the player asked for plain chords.
   // Never edited, so a plain chart can never overwrite the real chords.
-  const guitar = song ? guitarFor(song, edits[song.title], view) : 'acoustic'
+  const rule = simplifyRuleFor(song, song ? edits[song.title] : undefined, view)
   const readSections = useMemo(
-    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords, guitar) })) : displaySections),
-    [displaySections, view.simple, guitar],
+    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : displaySections),
+    [displaySections, view.simple, rule],
   )
 
   const notes = useMemo(() => {
@@ -118,7 +120,7 @@ export function SongSheet() {
 
   // Fit the whole chart to the screen: biggest text that needs no scrolling.
   const fitKey = song
-    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo, onStage])
+    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo, onStage, keyboard])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,
@@ -157,7 +159,8 @@ export function SongSheet() {
   const renderHeading = (song: Song) => (
     <div className="chart-head">
       <h1 className="chart-title">{song.title}</h1>
-      {song.preset && (
+      {/* The GX-10 sound and the neck position are the guitarist's: the keyboard has neither */}
+      {song.preset && !keyboard && (
         <span
           className="chart-preset"
           aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
@@ -166,7 +169,7 @@ export function SongSheet() {
           {song.preset.solo && ` → ${song.preset.solo} solo`}
         </span>
       )}
-      {span && (() => {
+      {span && !keyboard && (() => {
         // The song's area of the neck. Tap it to move every chord, except on stage
         const moved = edits[song.title]?.neck !== undefined
         const where = `${moved ? 'Your' : 'Recommended'} position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`
@@ -251,7 +254,7 @@ export function SongSheet() {
             const focused = focusSection?.title === song.title && focusSection.index === i
             return (
               <Fragment key={`${song.title}-${i}`}>
-                {diagramsVisible ? (
+                {diagramsVisible && !keyboard ? (
                   // Tap a section to see just its chord shapes in the diagrams below
                   <button
                     type="button"
@@ -283,7 +286,7 @@ export function SongSheet() {
     text.split(/(\s+)/).map((token, i) => {
       if (!token.trim()) return <span key={i}>{token}</span>
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
-      if (onStage) return <span key={i}>{token}</span>
+      if (onStage || keyboard) return <span key={i}>{token}</span>
       if (!hasShapes(token)) return <span key={i}>{token}</span>
       return (
         <span

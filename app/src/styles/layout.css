@@ -208,6 +208,37 @@
   cursor: pointer;
 }
 .diagrams-focus-all { font-size: 11px; color: var(--text-muted); }
+/* The handle at the start of the shapes strip that hides it: slim, the tiles' height */
+.diagrams-hide {
+  flex-shrink: 0;
+  width: 22px;
+  align-self: stretch;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+}
+.diagrams-hide:active { color: var(--text); }
+/* What is left when the shapes are hidden: a thin bar that brings them back */
+.diagrams-collapsed {
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 12px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
 .chart-chords {
   font-weight: 700;
   line-height: 1.3;

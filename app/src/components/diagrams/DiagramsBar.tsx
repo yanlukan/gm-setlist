@@ -20,6 +20,8 @@ export function DiagramsBar() {
   const onStage = useStore(s => s.viewMode === 'stage')
   const focusSection = useStore(s => s.focusSection)
   const setFocusSection = useStore(s => s.setFocusSection)
+  const diagramsVisible = useStore(s => s.diagramsVisible)
+  const toggleDiagrams = useStore(s => s.toggleDiagrams)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)
 
@@ -67,7 +69,18 @@ export function DiagramsBar() {
     return result
   }, [song, edits, focus, view])
 
+  // The keyboard player reads chords, not shapes
+  if (view.instrument === 'keyboard') return null
   if (!song || uniqueChords.length === 0) return null
+
+  // Hidden for a bigger chart: a thin bar is left to bring the shapes back
+  if (!diagramsVisible) {
+    return (
+      <button type="button" className="diagrams-collapsed" onClick={toggleDiagrams} aria-label="Show the chord shapes">
+        Chord shapes <span aria-hidden="true">&#709;</span>
+      </button>
+    )
+  }
 
   return (
     <>
@@ -86,6 +99,10 @@ export function DiagramsBar() {
           flexShrink: 0,
         }}
       >
+        {/* The way to hide the shapes lives on the shapes themselves, not only in the menu */}
+        <button type="button" className="diagrams-hide" onClick={toggleDiagrams} aria-label="Hide the chord shapes">
+          <span aria-hidden="true">&#711;</span>
+        </button>
         {focus && (
           <button
             type="button"

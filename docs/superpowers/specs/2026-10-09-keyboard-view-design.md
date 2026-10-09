@@ -63,7 +63,8 @@ correct one: the "Key" badge in the top bar already shows the sounding key.
   their actions. `use-store.ts` spreads it in and shrinks (it is over the
   800-line limit; it must not grow). `hydrate` reads the `instrument` setting.
 - `DiagramsBar` renders the strip with the hide handle, or the collapsed bar,
-  from `diagramsVisible`; `App` only gates it on the instrument and edit mode.
+  from `diagramsVisible`, and renders nothing for the keyboard; `App` only
+  gates it on edit mode.
 - `TopBar`, `SongSheet`, `SongGrid`, `BottomBar` read `instrument` through
   `useChartView()` and drop the guitar-only elements.
 - Version 3.51.0.

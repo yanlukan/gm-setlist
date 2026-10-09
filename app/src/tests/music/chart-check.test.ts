@@ -8,8 +8,8 @@ import { isChartMark } from '../../music/theory'
 
 const VIEWS: ChartView[] = [
   DEFAULT_VIEW,
-  { simple: true, guitar: 'acoustic' },
-  { simple: true, guitar: 'electric' },
+  { simple: true, guitar: 'acoustic', instrument: 'guitar' },
+  { simple: true, guitar: 'electric', instrument: 'guitar' },
 ]
 
 describe('every built-in chart', () => {

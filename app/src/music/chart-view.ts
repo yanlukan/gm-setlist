@@ -3,6 +3,9 @@ import { isChartMark, keySpelling, shouldUseFlats, transposeChord, transposeInKe
 import { transposeFor } from './setlist-text'
 import type { Guitar } from './voicings'
 
+/** What the player plays: the keyboard player needs chords, not shapes. */
+export type Instrument = 'guitar' | 'keyboard'
+
 /** How the player wants chords shown: the same for every song. */
 export interface ChartView {
   /** Plain chords only: Cmaj7 as C on acoustic, as Cmaj7 still on electric. */
@@ -13,9 +16,11 @@ export interface ChartView {
    * on the song itself wins over both.
    */
   guitar: Guitar | 'auto'
+  /** The keyboard reads every chord as it sounds: no capo, no shapes. */
+  instrument: Instrument
 }
 
-export const DEFAULT_VIEW: ChartView = { simple: false, guitar: 'auto' }
+export const DEFAULT_VIEW: ChartView = { simple: false, guitar: 'auto', instrument: 'guitar' }
 
 /**
  * The guitar a song is played on: the player's choice for the song, else
@@ -33,8 +38,12 @@ export function guitarFor(song: Song | undefined, edits: SongEdits | undefined, 
 /** The highest capo offered: past the 7th fret the neck runs out of chords. */
 export const MAX_CAPO = 7
 
-/** The capo the player set for this song, else the song's own, else none. */
-export function capoFor(song: Song | undefined, edits?: SongEdits): number {
+/**
+ * The capo the player set for this song, else the song's own, else none. A
+ * keyboard has no capo: it plays what sounds, whatever the guitarist does.
+ */
+export function capoFor(song: Song | undefined, edits?: SongEdits, view?: ChartView): number {
+  if (view?.instrument === 'keyboard') return 0
   return edits?.capo ?? song?.capo ?? 0
 }
 
@@ -43,8 +52,8 @@ export function capoFor(song: Song | undefined, edits?: SongEdits): number {
  * (or the player's transpose), then down by the capo, since with a capo on
  * the 2nd fret a D chord is played with a C shape.
  */
-export function shapeShift(song: Song | undefined, edits?: SongEdits): number {
-  return transposeFor(song, edits) - capoFor(song, edits)
+export function shapeShift(song: Song | undefined, edits?: SongEdits, view?: ChartView): number {
+  return transposeFor(song, edits) - capoFor(song, edits, view)
 }
 
 /** The key the shapes are in: with a capo on 2, a song in D is played in C shapes. */
@@ -115,20 +124,28 @@ export function simplifyText(text: string, guitar: Guitar = 'acoustic'): string 
  * The chart at the pitch it is played from: the band's key, less the capo.
  * This is what the editor shows and writes back through.
  */
-export function shapeSections(song: Song, edits: SongEdits | undefined): Section[] {
+export function shapeSections(song: Song, edits: SongEdits | undefined, view?: ChartView): Section[] {
   const sections = edits?.sections ?? song.sections ?? []
-  const shift = shapeShift(song, edits)
+  const shift = shapeShift(song, edits, view)
   if (!shift) return sections
   const key = edits?.key ?? song.key ?? ''
   return sections.map(section => ({ name: section.name, chords: transposeInKey(section.chords, key, shift) }))
 }
 
+/**
+ * Which simplify rule a song gets: its guitar's, or the plain acoustic rule
+ * on the keyboard, where a 7th is colour the player adds, not the part.
+ */
+export function simplifyRuleFor(song: Song | undefined, edits: SongEdits | undefined, view: ChartView): Guitar {
+  return view.instrument === 'keyboard' ? 'acoustic' : guitarFor(song, edits, view)
+}
+
 /** The chart as it is read: at the shapes' pitch, and simpler if the player asked for that. */
 export function shownSections(song: Song, edits: SongEdits | undefined, view: ChartView): Section[] {
-  const sections = shapeSections(song, edits)
+  const sections = shapeSections(song, edits, view)
   if (!view.simple) return sections
-  const guitar = guitarFor(song, edits, view)
-  return sections.map(section => ({ ...section, chords: simplifyText(section.chords, guitar) }))
+  const rule = simplifyRuleFor(song, edits, view)
+  return sections.map(section => ({ ...section, chords: simplifyText(section.chords, rule) }))
 }
 
 /** Root pitch classes of the open chords every guitarist knows. */

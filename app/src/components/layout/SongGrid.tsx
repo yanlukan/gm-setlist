@@ -19,9 +19,12 @@ export function SongGrid({ songs, onClose }: SongGridProps) {
   const currentIndex = useStore(s => s.currentIndex)
   const goToSong = useStore(s => s.goToSong)
   const edits = useStore(s => s.edits)
-  // Each song's recommended area of the neck, worked out once per open
+  // Each song's recommended area of the neck, worked out once per open. Not for the keyboard.
   const view = useChartView()
-  const positions = useMemo(() => songs.map(song => positionLabel(bandPlanFor(song, edits[song.title], view).span)), [songs, edits, view])
+  const positions = useMemo(
+    () => (view.instrument === 'keyboard' ? [] : songs.map(song => positionLabel(bandPlanFor(song, edits[song.title], view).span))),
+    [songs, edits, view],
+  )
   const setlistName = useStore(s => s.setlistData.lists[s.setlistData.activeId]?.name ?? 'Setlist')
   const currentRef = useRef<HTMLButtonElement>(null)
 

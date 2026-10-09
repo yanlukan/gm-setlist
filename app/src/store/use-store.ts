@@ -6,9 +6,10 @@ import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
 import { sameForm } from '../music/form'
-import { MAX_CAPO, type ChartView } from '../music/chart-view'
+import { MAX_CAPO, type ChartView, type Instrument } from '../music/chart-view'
 import type { Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
+import { viewSettings, type ViewSettings } from './view-settings'
 import {
   saveSongEdits,
   getSongEdits,
@@ -17,11 +18,9 @@ import {
   getSetlistData,
   saveCustomSongs,
   getCustomSongs,
-  saveTheme,
   getTheme,
   saveSelectedVoicings,
   getSelectedVoicings,
-  saveDiagramsVisible,
   getDiagramsVisible,
   saveSetting,
   getSetting,
@@ -186,7 +185,8 @@ function clampIndex(index: number, length: number): number {
   return Math.max(0, Math.min(index, length - 1))
 }
 
-interface StoreState {
+/** The whole store. The view settings (theme, stage, instrument...) live in their own slice. */
+export interface StoreState extends ViewSettings {
   // State
   songs: Song[]
   customSongs: Song[]
@@ -194,13 +194,6 @@ interface StoreState {
   setlistData: SetlistData
   currentIndex: number
   editMode: boolean
-  theme: Theme
-  viewMode: ViewMode
-  diagramsVisible: boolean
-  /** Plain chords on the chart and diagrams: Cmaj7 as C. Saved. */
-  simpleChords: boolean
-  /** The guitar for every song, or 'auto' for each song's own (from its sound). Saved. */
-  guitar: Guitar | 'auto'
   selectedVoicings: Record<string, number>
   /**
    * A section tapped on the chart: the diagrams below then show only its
@@ -265,11 +258,6 @@ interface StoreState {
   clearVoicing: (chord: string) => void
   /** False if a song with that title already exists (titles are the song's identity). */
   addCustomSong: (song: Song) => boolean
-  toggleTheme: () => void
-  toggleViewMode: () => void
-  toggleDiagrams: () => void
-  toggleSimpleChords: () => void
-  setGuitar: (guitar: Guitar | 'auto') => void
   setFocusSection: (focus: { title: string; index: number } | null) => void
   restoreGigOrder: () => void
   /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
@@ -282,6 +270,8 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>((set, get) => ({
+  ...viewSettings(set, get, () => !readOnly),
+
   // State
   songs: DEFAULT_SONGS,
   customSongs: [],
@@ -289,11 +279,6 @@ export const useStore = create<StoreState>((set, get) => ({
   setlistData: defaultSetlistData,
   currentIndex: 0,
   editMode: false,
-  theme: 'dark' as Theme,
-  viewMode: 'normal' as ViewMode,
-  diagramsVisible: true,
-  simpleChords: false,
-  guitar: 'auto',
   selectedVoicings: {},
   focusSection: null,
   toast: null,
@@ -720,38 +705,6 @@ export const useStore = create<StoreState>((set, get) => ({
     return true
   },
 
-  toggleTheme: () => {
-    set(state => ({
-      theme: state.theme === 'dark' ? 'light' : 'dark',
-    }))
-    if (!readOnly) saveTheme(get().theme).catch(e => console.warn('saveTheme failed:', e))
-  },
-
-  toggleViewMode: () => {
-    set(state => {
-      const viewMode: ViewMode = state.viewMode === 'normal' ? 'stage' : 'normal'
-      // Stage Mode locks the chart, so it cannot be entered mid-edit.
-      return { viewMode, ...(viewMode === 'stage' && { editMode: false }) }
-    })
-    if (!readOnly) saveSetting('viewMode', get().viewMode).catch(e => console.warn('save viewMode failed:', e))
-  },
-
-  toggleDiagrams: () => {
-    set(state => ({ diagramsVisible: !state.diagramsVisible }))
-    // Remembered, so hiding them for a bigger chart sticks across launches.
-    if (!readOnly) saveDiagramsVisible(get().diagramsVisible).catch(e => console.warn('saveDiagramsVisible failed:', e))
-  },
-
-  toggleSimpleChords: () => {
-    set(state => ({ simpleChords: !state.simpleChords }))
-    if (!readOnly) saveSetting('simpleChords', get().simpleChords).catch(e => console.warn('save simpleChords failed:', e))
-  },
-
-  setGuitar: guitar => {
-    set({ guitar })
-    if (!readOnly) saveSetting('guitar', guitar).catch(e => console.warn('save guitar failed:', e))
-  },
-
   setFocusSection: focus => set({ focusSection: focus }),
 
   /** Rebuild the active setlist as the printed Sept 2026 running order. */
@@ -788,11 +741,13 @@ export const useStore = create<StoreState>((set, get) => ({
     let positionResult: SavedPosition | undefined
     let simpleResult: boolean | undefined
     let guitarResult: Guitar | 'auto' | undefined
+    let instrumentResult: Instrument | undefined
 
     try {
       ;[
         setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
         diagramsVisibleResult, viewModeResult, positionResult, simpleResult, guitarResult,
+        instrumentResult,
       ] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
@@ -803,6 +758,7 @@ export const useStore = create<StoreState>((set, get) => ({
         getSetting<SavedPosition>('position'),
         getSetting<boolean>('simpleChords'),
         getSetting<Guitar | 'auto'>('guitar'),
+        getSetting<Instrument>('instrument'),
       ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -854,6 +810,7 @@ export const useStore = create<StoreState>((set, get) => ({
         ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
         ...(typeof simpleResult === 'boolean' && { simpleChords: simpleResult }),
         ...((guitarResult === 'auto' || guitarResult === 'acoustic' || guitarResult === 'electric') && { guitar: guitarResult }),
+        ...((instrumentResult === 'guitar' || instrumentResult === 'keyboard') && { instrument: instrumentResult }),
         edits,
         loadFailed: false,
         currentIndex: clampIndex(savedIndex, listLength),
@@ -869,5 +826,6 @@ export const useStore = create<StoreState>((set, get) => ({
 export function useChartView(): ChartView {
   const simple = useStore(s => s.simpleChords)
   const guitar = useStore(s => s.guitar)
-  return useMemo(() => ({ simple, guitar }), [simple, guitar])
+  const instrument = useStore(s => s.instrument)
+  return useMemo(() => ({ simple, guitar, instrument }), [simple, guitar, instrument])
 }

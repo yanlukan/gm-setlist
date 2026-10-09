@@ -86,7 +86,6 @@ function AppInner() {
   const theme = useStore(s => s.theme)
   const viewMode = useStore(s => s.viewMode)
   const editMode = useStore(s => s.editMode)
-  const diagramsVisible = useStore(s => s.diagramsVisible)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const loadFailed = useStore(s => s.loadFailed)
@@ -156,8 +155,9 @@ function AppInner() {
         </div>
       )}
       <SongSheet />
-      {/* While editing, the chord keyboard takes the diagrams' place */}
-      {diagramsVisible && !editMode && <DiagramsBar />}
+      {/* While editing, the chord keyboard takes the diagrams' place. The strip
+          itself handles being hidden (a thin bar is left) and the keyboard view (nothing). */}
+      {!editMode && <DiagramsBar />}
       <BottomBar />
       {toast && <div className="toast" role="status">{toast}</div>}
     </>

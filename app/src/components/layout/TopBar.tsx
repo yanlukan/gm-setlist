@@ -39,6 +39,8 @@ export function TopBar() {
   const toggleSimpleChords = useStore(s => s.toggleSimpleChords)
   const guitar = useStore(s => s.guitar)
   const setGuitar = useStore(s => s.setGuitar)
+  const instrument = useStore(s => s.instrument)
+  const setInstrument = useStore(s => s.setInstrument)
   const setSongGuitar = useStore(s => s.setSongGuitar)
   const view = useChartView()
   const resetEdits = useStore(s => s.resetEdits)
@@ -215,7 +217,10 @@ export function TopBar() {
               )}
               <button className="tb-badge" onClick={() => setShowTapTempo(true)} aria-label="Tap tempo">{bpm} BPM</button>
               <span className="tb-badge">{song.timeSignature}</span>
-              {(() => {
+              {instrument === 'keyboard' ? (
+                // The keyboard has no sound to switch and no capo to set
+                <span className="tb-badge">Keyboard</span>
+              ) : (() => {
                 // The guitar this song is played on: tap to switch, just for this song
                 const played = guitarFor(song, edits[song.title], view)
                 const label = played === 'electric' ? 'Electric' : 'Acoustic'
@@ -231,7 +236,7 @@ export function TopBar() {
                   </button>
                 )
               })()}
-              {viewMode === 'stage' ? (
+              {instrument === 'keyboard' ? null : viewMode === 'stage' ? (
                 capoFor(song, edits[song.title]) > 0 && <span className="tb-badge is-warn">Capo {capoFor(song, edits[song.title])}</span>
               ) : (
                 <button
@@ -263,21 +268,29 @@ export function TopBar() {
             <button className="tb-btn" onClick={() => setShowMenu(!showMenu)} aria-label="Menu">&#8942;</button>
             {showMenu && (
               <div className="menu">
-                <button className="menu-item" onClick={menuAction(toggleDiagrams)}>
-                  {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
+                {/* Who is reading: the keyboard player gets chords as they sound, and nothing about guitars */}
+                <button className="menu-item" onClick={menuAction(() => setInstrument(instrument === 'guitar' ? 'keyboard' : 'guitar'))}>
+                  Instrument: {instrument}
                 </button>
+                {instrument === 'guitar' && (
+                  <button className="menu-item" onClick={menuAction(toggleDiagrams)}>
+                    {diagramsVisible ? 'Hide Chord Diagrams' : 'Show Chord Diagrams'}
+                  </button>
+                )}
                 <button className="menu-item" onClick={menuAction(toggleSimpleChords)} aria-pressed={simpleChords}>
                   {simpleChords ? 'Show Full Chord Names' : 'Simplify Chords (Cmaj7 → C)'}
                 </button>
                 {/* Each song's own guitar, then electric for all, then acoustic for all */}
-                <button
-                  className="menu-item"
-                  onClick={menuAction(() => setGuitar(guitar === 'auto' ? 'electric' : guitar === 'electric' ? 'acoustic' : 'auto'))}
-                >
-                  {guitar === 'auto'
-                    ? 'Guitar: each song its own'
-                    : guitar === 'electric' ? 'Guitar: electric for all songs' : 'Guitar: acoustic for all songs'}
-                </button>
+                {instrument === 'guitar' && (
+                  <button
+                    className="menu-item"
+                    onClick={menuAction(() => setGuitar(guitar === 'auto' ? 'electric' : guitar === 'electric' ? 'acoustic' : 'auto'))}
+                  >
+                    {guitar === 'auto'
+                      ? 'Guitar: each song its own'
+                      : guitar === 'electric' ? 'Guitar: electric for all songs' : 'Guitar: acoustic for all songs'}
+                  </button>
+                )}
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                 </button>
