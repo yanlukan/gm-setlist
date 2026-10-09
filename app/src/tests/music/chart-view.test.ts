@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   guitarFor, capoFor, easiestCapo, shapeKey, shapeSections, shapeShift, shownSections, simplifyChord, simplifyText,
+  songChordsOf,
 } from '../../music/chart-view'
 import type { Song } from '../../types'
 
@@ -89,6 +90,16 @@ describe('capo', () => {
   it('shows plain chords only when asked', () => {
     expect(shownSections(song(), { capo: 2 }, { simple: true, guitar: 'acoustic', instrument: 'guitar' })[0].chords).toBe('C  Am  F  Gsus4')
     expect(shownSections(song(), undefined, { simple: false, guitar: 'acoustic', instrument: 'guitar' })[0].chords).toBe('D  Bm7  Gmaj7  A7sus4')
+  })
+
+  it('lists the chords of a song as they are played, once each, without the marks', () => {
+    const faith = song({ sections: [
+      { name: 'Verse', chords: 'D  Bm7  N.C.  D' },
+      { name: 'Chorus', chords: 'Gmaj7  A7sus4  (x2)' },
+    ] })
+    expect(songChordsOf(faith, undefined)).toEqual(['D', 'Bm7', 'Gmaj7', 'A7sus4'])
+    // With a capo on 2 the chart shows C shapes, and so does the list
+    expect(songChordsOf(faith, { capo: 2 })).toEqual(['C', 'Am7', 'Fmaj7', 'G7sus4'])
   })
 
   it('suggests the capo that leaves the most open chords', () => {

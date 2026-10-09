@@ -107,7 +107,9 @@ export function shapeChoice(
   everySong: Record<string, number>,
   planned: number | undefined,
 ): { index: number; mine: boolean } {
-  const own = edits?.shapes?.[name]
+  const pick = edits?.shapes?.[name]
+  // Your own shape is picked by its text; gone from the list, it is passed over
+  const own = typeof pick === 'string' ? indexOfShape(name, pick) : pick
   const shared = edits?.neck === undefined ? everySong[name] : undefined
   const index = shapeToShow(name, own, shared, planned)
   const mine = (own !== undefined && index === own) || (shared !== undefined && index === shared)

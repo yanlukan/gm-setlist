@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
-import { AutoSaveText } from '../shared/AutoSaveText'
+import { AutoSaveText, type AutoSaveHandle } from '../shared/AutoSaveText'
 import { ChordKeyboard } from './ChordKeyboard'
+import { ChordFinder } from '../finder/ChordFinder'
+import { chordSuggestions, normalizeChordName } from '../../music/chord-names'
 import { SongHistoryModal } from './SongHistoryModal'
 import { FormEditor } from './FormEditor'
 import { isChartMark, sectionColor } from '../../music/theory'
@@ -49,6 +51,8 @@ interface Props {
   onNotes: (text: string) => void
   /** The whole new song order. */
   onForm: (next: string[]) => void
+  /** The shape chosen for a chord in the finder: its index, or its fret text for one of your own. */
+  onShape: (chord: string, pick: number | string) => void
 }
 
 /** "Verse" is copied as "Verse 2", "Bridge 2" as "Bridge 3". */
@@ -66,6 +70,7 @@ function copyName(name: string): string {
  */
 export function ChartEditor({
   title, heading, banners, sections, displaySections, form, songKey, capo = 0, notes, onChords, onSections, onNotes, onForm,
+  onShape,
 }: Props) {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   /** Lines as typed, kept while editing so a new empty line at the end survives. */
@@ -78,6 +83,10 @@ export function ChartEditor({
   const [showAdd, setShowAdd] = useState(false)
   const [customName, setCustomName] = useState('')
   const [showHistory, setShowHistory] = useState(false)
+  const [showFinder, setShowFinder] = useState(false)
+  /** The text being typed and where the caret is, for the chords the word there could be. */
+  const [typed, setTyped] = useState<{ text: string; caret: number } | null>(null)
+  const typedRef = useRef<AutoSaveHandle>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   /** The chart's section names, each once, for the song order to choose from. */
@@ -204,8 +213,22 @@ export function ChartEditor({
 
   const typeInto = (i: number | null) => {
     setTyping(i)
+    setTyped(null)
     setCursor(null)
     setDrafts({})
+  }
+
+  // The word at the caret while typing, and the chords it could be: "em1" offers Em11 and Em13
+  const word = typed ? (typed.text.slice(0, typed.caret).match(/\S+$/)?.[0] ?? '') : ''
+  const wordStart = typed ? typed.caret - word.length : 0
+  const offers = /^[A-Ga-g]/.test(word) ? chordSuggestions(word, songChords) : []
+  const offering = offers.length > 0 && !(offers.length === 1 && offers[0] === normalizeChordName(word))
+  const complete = (chord: string) => {
+    if (!typed) return
+    const text = typed.text.slice(0, wordStart) + chord + typed.text.slice(typed.caret)
+    const caret = wordStart + chord.length
+    typedRef.current?.set(text, caret)
+    setTyped({ text, caret })
   }
 
   // Keep the cursor in view above the keyboard
@@ -312,17 +335,37 @@ export function ChartEditor({
                   </div>
 
                   {typing === si ? (
-                    <AutoSaveText
-                      multiline
-                      className="edit-chords"
-                      value={section.chords}
-                      onChange={text => {
-                        if (normalizeChordText(text) !== normalizeChordText(section.chords)) remember()
-                        onChords(si, text)
-                      }}
-                      aria-label={`Chords for ${section.name}`}
-                      placeholder="Chords. Return starts a new line"
-                    />
+                    <>
+                      {offering && (
+                        <div className="ce-suggest" role="group" aria-label="Chord suggestions">
+                          {offers.map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              className="ck-chip"
+                              // Keep the focus in the box, so the tap completes the word there
+                              onMouseDown={e => e.preventDefault()}
+                              onClick={() => complete(c)}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <AutoSaveText
+                        multiline
+                        ref={typedRef}
+                        className="edit-chords"
+                        value={section.chords}
+                        onChange={text => {
+                          if (normalizeChordText(text) !== normalizeChordText(section.chords)) remember()
+                          onChords(si, text)
+                        }}
+                        onTyping={(text, caret) => setTyped({ text, caret })}
+                        aria-label={`Chords for ${section.name}`}
+                        placeholder="Chords. Return starts a new line"
+                      />
+                    </>
                   ) : (
                     <div className="ce-lines">{lines.map((tokens, li) => renderLine(si, li, tokens, lines.length))}</div>
                   )}
@@ -365,6 +408,15 @@ export function ChartEditor({
       </div>
 
       {showHistory && <SongHistoryModal title={title} onClose={() => setShowHistory(false)} />}
+      {showFinder && (
+        <ChordFinder
+          chord={selectedChord}
+          songChords={songChords}
+          capo={capo}
+          onPick={(c, pick) => { putChord(c); onShape(c, pick) }}
+          onClose={() => setShowFinder(false)}
+        />
+      )}
 
       {/* Typing brings up the phone's own keyboard, and two keyboards would fill a phone */}
       {typing === null && (
@@ -381,6 +433,7 @@ export function ChartEditor({
           onNewLine={newLine}
           onUndo={undo}
           onRedo={redo}
+          onFind={() => setShowFinder(true)}
         />
       )}
     </>

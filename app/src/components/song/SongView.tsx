@@ -7,6 +7,7 @@ import { useState, useMemo } from 'react'
 import { useStore } from '../../store/use-store'
 import { sectionColor, transposeChord, shouldUseFlats } from '../../music/theory'
 import { lookupChord } from '../../data/chords-db'
+import { indexOfShape } from '../../music/voicings'
 import { ChordDiagram } from '../diagrams/ChordDiagram'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 
@@ -338,7 +339,12 @@ export function SongView({
 
       {pickerChord && (
         <VoicingPicker chord={pickerChord} selectedIndex={selectedVoicings[pickerChord] ?? 0}
-          onSelect={(i) => { selectVoicing(pickerChord, i); setPickerChord(null) }} onClose={() => setPickerChord(null)} />
+          onSelect={pick => {
+            // This view keeps a pick for every song, by index: a written shape is looked up
+            const index = typeof pick === 'string' ? indexOfShape(pickerChord, pick) : pick
+            if (index >= 0) selectVoicing(pickerChord, index)
+            setPickerChord(null)
+          }} onClose={() => setPickerChord(null)} />
       )}
     </div>
   )

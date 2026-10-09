@@ -83,8 +83,8 @@ export interface SongEdits {
    * are then chosen around it, the songbook's set aside.
    */
   neck?: number
-  /** Shapes the player picked for this song only, by chord: index into `voicingsFor`. */
-  shapes?: Record<string, number>
+  /** Shapes the player picked for this song only, by chord: index into `voicingsFor`, or one of your own shapes as its fret text. */
+  shapes?: Record<string, number | string>
 }
 
 /**

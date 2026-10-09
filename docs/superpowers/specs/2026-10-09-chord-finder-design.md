@@ -40,7 +40,7 @@ A full-screen sheet opened from the ⋮ menu ("Chord Finder…") and from a
   from: "Yours", "Songbook"/"Researched", "Library", "Generated".
 - A "More shapes" switch. Off (default) shows the list the chart uses
   (`voicingsFor`). On adds the wider generator's shapes: dropped third or root,
-  open strings, two to six strings, frets up to 15, marked "Generated".
+  open strings, three to six strings, frets up to 15, marked "Generated".
 - "Your shape": a fret field (`x-x-2-2-3-5`). While it parses, the app draws
   it, names the notes it sounds, and says which of them are outside the chord
   ("F is not in Em11") without refusing. "Save" keeps it under the chord's

@@ -199,6 +199,7 @@ export async function exportAllData(): Promise<string> {
   const customSongs = await d.get('customSongs', 'all')
   const theme = await d.get('settings', 'theme')
   const voicings = await d.get('settings', 'selectedVoicings')
+  const ownShapes = await d.get('settings', 'ownShapes')
 
   const backup = {
     version: 1,
@@ -208,6 +209,7 @@ export async function exportAllData(): Promise<string> {
     customSongs: customSongs ?? [],
     theme: theme ?? null,
     selectedVoicings: voicings ?? null,
+    ownShapes: ownShapes ?? null,
   }
   return JSON.stringify(backup, null, 2)
 }
@@ -246,6 +248,14 @@ export function validateBackup(backup: any): string | null {
     if (backup.customSongs.some((song: { title?: unknown; sections?: unknown } | null) =>
       !song || typeof song.title !== 'string' || !Array.isArray(song.sections))) {
       return 'The backup file is damaged (songs).'
+    }
+  }
+
+  if (backup.ownShapes != null) {
+    const shapes = backup.ownShapes
+    if (typeof shapes !== 'object' || Array.isArray(shapes)
+      || Object.values(shapes).some(list => !Array.isArray(list) || list.some(s => typeof s !== 'string'))) {
+      return 'The backup file is damaged (shapes).'
     }
   }
   return null
@@ -291,5 +301,10 @@ export async function importAllData(json: string): Promise<void> {
   // Voicings
   if (backup.selectedVoicings) {
     await d.put('settings', backup.selectedVoicings, 'selectedVoicings')
+  }
+
+  // Your own shapes
+  if (backup.ownShapes) {
+    await d.put('settings', backup.ownShapes, 'ownShapes')
   }
 }

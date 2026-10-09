@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { bandPlanFor, neckFor, shapeChoice } from '../../hooks/use-band-positions'
-import { fretSpan, voicingsFor } from '../../music/voicings'
+import { fretSpan, setOwnShapes, shapeText, voicingsFor } from '../../music/voicings'
 import { useStore } from '../../store/use-store'
 import { moveChords, backToSongShapes, pickSongShape, clearSongShape } from '../../store/song-shapes'
 
@@ -47,6 +47,16 @@ describe('which shape a chord shows', () => {
   it('a moved song leaves out picks made for every song, which are where the chords were', () => {
     expect(shapeChoice('Bm', { neck: 7 }, { Bm: 2 }, 1)).toEqual({ index: 1, mine: false })
   })
+
+  it('a song\'s pick of your own shape is the shape itself, wherever it sits in the list', () => {
+    expect(voicingsFor('Bm').map(shapeText)).not.toContain('x-2-4-4-7-x')
+    setOwnShapes({ Bm: ['x-2-4-4-7-x'] })
+    const index = voicingsFor('Bm').findIndex(v => shapeText(v) === 'x-2-4-4-7-x')
+    expect(index).toBeGreaterThan(0)
+    expect(shapeChoice('Bm', { shapes: { Bm: 'x-2-4-4-7-x' } }, { Bm: 2 }, 1)).toEqual({ index, mine: true })
+    setOwnShapes({})
+    expect(shapeChoice('Bm', { shapes: { Bm: 'x-2-4-4-7-x' } }, { Bm: 2 }, 1)).toEqual({ index: 2, mine: true })
+  })
 })
 
 describe('saving moved chords', () => {
@@ -54,6 +64,13 @@ describe('saving moved chords', () => {
     useStore.setState(useStore.getInitialState())
   })
   const edits = () => useStore.getState().edits.Roxanne
+
+  it('keeps a pick of your own shape by its text', () => {
+    pickSongShape('Roxanne', 'Bm', 'x-2-4-4-7-x')
+    expect(edits().shapes).toEqual({ Bm: 'x-2-4-4-7-x' })
+    clearSongShape('Roxanne', 'Bm')
+    expect(edits().shapes).toBeUndefined()
+  })
 
   it('keeps the area and the song\'s own picks, and goes back to the songbook in one tap', () => {
     pickSongShape('Roxanne', 'Bm', 2)

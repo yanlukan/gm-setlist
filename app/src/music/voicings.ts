@@ -30,7 +30,7 @@ const INTERVALS: Record<string, number[]> = {
   '9': [0, 4, 7, 10, 2], m9: [0, 3, 7, 10, 2], maj9: [0, 4, 7, 11, 2], mmaj9: [0, 3, 7, 11, 2],
   '7b9': [0, 4, 7, 10, 1], '7#9': [0, 4, 7, 10, 3], '9b5': [0, 4, 6, 10, 2], aug9: [0, 4, 8, 10, 2],
   '11': [0, 7, 10, 2, 5], m11: [0, 3, 7, 10, 2, 5], maj11: [0, 4, 7, 11, 2, 5], '9#11': [0, 4, 7, 10, 2, 6],
-  '13': [0, 4, 7, 10, 2, 9], maj13: [0, 4, 7, 11, 2, 9],
+  '13': [0, 4, 7, 10, 2, 9], maj13: [0, 4, 7, 11, 2, 9], m13: [0, 3, 7, 10, 2, 9],
 }
 
 export interface ChordNotes {
@@ -95,7 +95,8 @@ interface Shape {
   score: number
 }
 
-const pitchAt = (string: number, fret: number) => (OPEN_STRINGS[string] + fret) % 12
+/** The pitch class a string sounds at a fret. */
+export const pitchAt = (string: number, fret: number) => (OPEN_STRINGS[string] + fret) % 12
 
 function findShapes(notes: ChordNotes): Shape[] {
   const found: Shape[] = []
@@ -261,10 +262,12 @@ function soundsWrongNote(v: ChordVoicing, name: string, notes: ChordNotes): bool
  * The first of the given picks (a saved one, then the recommended one) that
  * can be shown, else the chord's first good shape.
  */
-export function shapeToShow(name: string, ...picks: Array<number | undefined>): number {
+export function shapeToShow(name: string, ...picks: Array<number | string | undefined>): number {
   const list = voicingsFor(name)
+  // A pick of your own shape is its fret text, as its place in the list can change
+  const index = (p: number | string | undefined) => (typeof p === 'string' ? list.findIndex(v => shapeText(v) === p) : p)
   const good = (i: number | undefined): i is number => i !== undefined && list[i] !== undefined && !list[i].wrong
-  return picks.find(good) ?? Math.max(0, list.findIndex(v => !v.wrong))
+  return picks.map(index).find(good) ?? Math.max(0, list.findIndex(v => !v.wrong))
 }
 
 /** Whether a chord has a diagram worth showing. */
@@ -273,6 +276,20 @@ export function hasShapes(name: string): boolean {
 }
 
 const cache = new Map<string, Entry>()
+
+/** Shapes the player wrote, by chord. They go last in a chord's list and are never recommended. */
+let OWN: Record<string, string[]> = {}
+
+/** Replace the player's own shapes (from the store), so every chord's list is rebuilt. */
+export function setOwnShapes(shapes: Record<string, string[]>): void {
+  OWN = shapes
+  cache.clear()
+}
+
+/** The player's own shapes for a chord, as fret text. */
+export function ownShapesFor(name: string): string[] {
+  return OWN[name] ?? []
+}
 
 /**
  * Songs with researched shapes, in the order their shapes were released. A
@@ -303,8 +320,8 @@ for (const title of SHAPES_RELEASED) {
   }
 }
 
-/** A written shape (x-7-9-9-9-7) as a diagram. */
-function fromText(shape: string): ChordVoicing | null {
+/** A written shape (x-7-9-9-9-7, low E to high e) as a diagram, or null when it cannot be read. */
+export function voicingFromText(shape: string): ChordVoicing | null {
   const parts = shape.split('-')
   if (parts.length !== 6) return null
   const frets = parts.map(p => (p === 'x' ? null : Number(p)))
@@ -360,11 +377,16 @@ function entryFor(name: string): Entry {
   const added = list.length
   for (const shape of RESEARCHED.get(name) ?? []) {
     if (list.some(v => shapeText(v) === shape)) continue
-    const voicing = fromText(shape)
+    const voicing = voicingFromText(shape)
     if (!voicing) continue
     const described = notes ? describe(voicing, list.length, null, notes) : null
     if (described) band.push(described)
     list.push(voicing)
+  }
+  for (const shape of OWN[name] ?? []) {
+    if (list.some(v => shapeText(v) === shape)) continue
+    const voicing = voicingFromText(shape)
+    if (voicing) list.push(voicing)
   }
   const quality = normalizeQuality((name.match(/^[A-G][#b]?(.*?)(?:\/[A-G][#b]?)?$/)?.[1] ?? '').replace(/^us/, 'sus'))
   const entry = { list, added, band, notes, quality }

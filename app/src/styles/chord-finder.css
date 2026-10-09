@@ -1,0 +1,127 @@
+/* The chord finder: a name typed, every shape for it, more shapes to keep,
+   and a shape of your own written as frets. A sheet like Move chords. */
+.chord-finder {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 16px;
+  width: min(760px, calc(100vw - 32px));
+  max-height: 88vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cf-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.cf-name {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+}
+.cf-close { min-width: 44px; min-height: 44px; font-size: 26px; color: var(--text-muted); }
+
+.cf-suggest, .cf-ranges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cf-chip {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+/* A chord the song already has */
+.cf-chip.is-song { border-color: var(--accent); }
+.cf-chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.cf-chip:active { filter: brightness(1.35); }
+
+.cf-status { margin: 4px 0 10px; color: var(--danger); font-size: 14px; font-weight: 600; }
+.cf-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 4px 0 6px; }
+.cf-title h3 { margin: 0; font-size: 26px; }
+/* The notes a chord or a shape sounds */
+.cf-notes { font-size: 15px; font-weight: 600; letter-spacing: 0.06em; color: var(--text-muted); }
+.cf-hint { margin: 4px 0 8px; font-size: 13px; color: var(--text-muted); }
+.cf-outside { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--danger); }
+
+.cf-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.cf-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--diagram-tile);
+  font-size: 11px;
+}
+.cf-tile.is-pick { cursor: pointer; }
+.cf-tile.is-pick:active { border-color: var(--accent); }
+.cf-frets { margin-top: 2px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 600; }
+.cf-where { font-size: 10px; color: var(--text-muted); }
+.cf-tile .diagram-mark { margin-top: 2px; }
+
+.cf-keep, .cf-remove, .cf-save, .cf-more-btn {
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cf-keep, .cf-save { border-color: var(--accent); color: var(--accent); }
+.cf-remove { color: var(--danger); }
+.cf-save { min-height: 44px; }
+.cf-more-btn { min-height: 44px; width: 100%; margin: 4px 0 10px; font-size: 15px; }
+.cf-more-btn.is-on { border-color: var(--accent); color: var(--accent); }
+
+.cf-own { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.cf-own-row { display: flex; align-items: center; gap: 8px; }
+.cf-shape-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+.cf-written { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+
+/* ---- The chord keyboard's way in: every quality in groups, and Find… ---- */
+
+/* A root chosen on the Any tab shows every quality the app can draw: taller, scrolled */
+.ck-chips.is-tall { max-height: 176px; }
+.ck-group {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ck-group:first-of-type { margin-top: 0; }
+.ck-find { font-size: 15px; }
+
+/* While typing, the chords the word at the caret could be, one tap to complete it */
+.ce-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}

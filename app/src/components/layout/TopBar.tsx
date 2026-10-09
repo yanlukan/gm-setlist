@@ -12,6 +12,8 @@ import { shareFile } from '../../utils/share'
 import { SetlistScreen } from '../setlist/SetlistScreen'
 import { TapTempo } from '../shared/TapTempo'
 import { CapoPicker } from '../song/CapoPicker'
+import { ChordFinder } from '../finder/ChordFinder'
+import { songChordsOf } from '../../music/chart-view'
 import { capoFor, guitarFor } from '../../music/chart-view'
 import type { Song } from '../../types'
 
@@ -64,6 +66,7 @@ export function TopBar() {
   const [showMenu, setShowMenu] = useState(false)
   const [showRestore, setShowRestore] = useState(false)
   const [showSaved, setShowSaved] = useState(false)
+  const [showFinder, setShowFinder] = useState(false)
   // Songs that show chords saved on this device instead of the built-in chart
   const savedCharts = useStore(s => s.allSongs().filter(song => hasEditedChart(song, s.edits[song.title])).length)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -294,6 +297,8 @@ export function TopBar() {
                 <button className="menu-item" onClick={menuAction(toggleTheme)}>
                   {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                 </button>
+                {/* Any chord by name, its shapes and more: on stage too, for a chord the band calls */}
+                <button className="menu-item" onClick={menuAction(() => setShowFinder(true))}>Chord Finder&hellip;</button>
                 <button className="menu-item" onClick={handleExport}>Export Backup</button>
                 {viewMode !== 'stage' && (
                   <>
@@ -349,6 +354,13 @@ export function TopBar() {
       )}
       {showRestore && <RestoreModal onClose={() => setShowRestore(false)} />}
       {showSaved && <SavedChartsModal onClose={() => setShowSaved(false)} />}
+      {showFinder && (
+        <ChordFinder
+          songChords={song ? songChordsOf(song, edits[song.title], view) : []}
+          capo={song ? capoFor(song, edits[song.title], view) : 0}
+          onClose={() => setShowFinder(false)}
+        />
+      )}
     </>
   )
 }

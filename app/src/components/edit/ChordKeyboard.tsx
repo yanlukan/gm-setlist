@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { getDiatonicChords, getDiatonic7ths, getMinorDominants, getRoots, keyUsesFlats, isChartMark } from '../../music/theory'
 import { shapeToShow, voicingsFor } from '../../music/voicings'
 import { strum } from '../../music/sound'
+import { QUALITY_GROUPS } from '../../music/chord-names'
 
-const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', '6', '9', 'add9', 'm7b5', 'dim', 'aug']
 /** Not chords, but the songbook charts are full of them. */
 const MARKS = ['N.C.', '(x2)', '(x3)', '(x4)']
 
@@ -25,6 +25,8 @@ export interface ChordKeyboardProps {
   onNewLine: () => void
   onUndo: () => void
   onRedo: () => void
+  /** Open the chord finder: any chord by name, with every shape for it. */
+  onFind?: () => void
 }
 
 type Tab = 'song' | 'key' | 'sevenths' | 'any' | 'marks'
@@ -38,6 +40,7 @@ type Tab = 'song' | 'key' | 'sevenths' | 'any' | 'marks'
  */
 export function ChordKeyboard({
   songKey, songChords = [], capo = 0, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
+  onFind,
 }: ChordKeyboardProps) {
   const [root, setRoot] = useState<string | null>(null)
   /** Hear each chord as it is put in. */
@@ -91,6 +94,7 @@ export function ChordKeyboard({
           {sound ? '\u{1F50A}' : '\u{1F508}'}
         </button>
         <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; Line</button>
+        {onFind && <button className="ck-tool ck-find" onClick={onFind}>Find&hellip;</button>}
       </div>
 
       <div className="ck-tabs" role="tablist" aria-label="Chord sets">
@@ -107,7 +111,11 @@ export function ChordKeyboard({
         ))}
       </div>
 
-      <div className="ck-chips" role="tabpanel" aria-label={tabs.find(t => t.id === tab)?.label}>
+      <div
+        className={tab === 'any' && root ? 'ck-chips is-tall' : 'ck-chips'}
+        role="tabpanel"
+        aria-label={tabs.find(t => t.id === tab)?.label}
+      >
         {tab === 'song' && songChords.map(chip)}
         {tab === 'key' && inKey.map(chip)}
         {tab === 'sevenths' && sevenths.map(chip)}
@@ -118,7 +126,12 @@ export function ChordKeyboard({
               <button className="ck-chip ck-root is-selected" onClick={() => setRoot(null)} aria-label="Back to all roots">
                 &#8592; {root}
               </button>
-              {QUALITIES.map(q => chip(root + q))}
+              {QUALITY_GROUPS.map(group => (
+                <Fragment key={group.label}>
+                  <span className="ck-group">{group.label}</span>
+                  {group.qualities.map(q => chip(root + q))}
+                </Fragment>
+              ))}
             </>
           )
           : roots.map(r => (

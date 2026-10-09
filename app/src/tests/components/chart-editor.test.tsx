@@ -441,3 +441,51 @@ describe('notes', () => {
     expect(useStore.getState().edits['Faith'].sections![1].name).toBe('Verse 1')
   })
 })
+
+describe('finding chords while editing', () => {
+  it('the Any tab offers every quality the app can draw, in groups', () => {
+    render(<SongSheet />)
+    gap('Verse', 'Cursor at the end of line 1')
+    fireEvent.click(key('Chords built on E'))
+    expect(within(keyboard()).getByText('Ninths and up')).toBeInTheDocument()
+    tap('Em11')
+    expect(saved(1)).toBe('B  E  B  E  B  Em11')
+  })
+
+  it('Find… looks a chord up, and a tapped shape puts the chord on the chart with that shape', () => {
+    render(<SongSheet />)
+    gap('Verse', 'Cursor before chord 3')
+    tap('Find…')
+    const finder = screen.getByRole('dialog', { name: 'Chord Finder' })
+    fireEvent.input(within(finder).getByRole('textbox', { name: 'Chord name' }), { target: { value: 'em11' } })
+    fireEvent.click(within(finder).getAllByRole('button', { name: /^Em11 at / })[0])
+    expect(saved(1)).toBe('B  E  Em11  B  E  B')
+    expect(useStore.getState().edits['Faith']?.shapes?.Em11).toBeDefined()
+    expect(screen.queryByRole('dialog', { name: 'Chord Finder' })).not.toBeInTheDocument()
+  })
+
+  it('Find… starts from the chord that is selected', () => {
+    render(<SongSheet />)
+    chord('Verse', 1) // the first E
+    tap('Find…')
+    const finder = screen.getByRole('dialog', { name: 'Chord Finder' })
+    expect((within(finder).getByRole('textbox', { name: 'Chord name' }) as HTMLInputElement).value).toBe('E')
+    fireEvent.click(within(finder).getByRole('button', { name: 'E at Open' }))
+    expect(saved(1)).toBeUndefined() // the same chord, so the chart is unchanged
+    expect(useStore.getState().edits['Faith']?.shapes?.E).toBeDefined()
+  })
+
+  it('while typing, offers the chords the word at the caret could be, and a tap completes it', () => {
+    render(<SongSheet />)
+    fireEvent.click(screen.getByRole('button', { name: 'Type chords for Verse' }))
+    const box = screen.getByRole('textbox', { name: 'Chords for Verse' }) as HTMLTextAreaElement
+    expect(screen.queryByRole('group', { name: 'Chord suggestions' })).not.toBeInTheDocument()
+    fireEvent.input(box, { target: { value: 'B  E  em1' } })
+    const row = screen.getByRole('group', { name: 'Chord suggestions' })
+    expect(within(row).getAllByRole('button').map(b => b.textContent)).toEqual(['Em11', 'Em13'])
+    fireEvent.click(within(row).getByRole('button', { name: 'Em11' }))
+    expect(box.value).toBe('B  E  Em11')
+    expect(saved(1)).toBe('B  E  Em11')
+    expect(screen.queryByRole('group', { name: 'Chord suggestions' })).not.toBeInTheDocument()
+  })
+})

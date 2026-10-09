@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, type CSSProperties, type Ref } from 'react'
 
 interface Props {
   value: string
@@ -11,6 +11,15 @@ interface Props {
   'aria-label'?: string
   /** ms to wait after typing stops before saving. */
   debounce?: number
+  /** Each keystroke, with the text so far and where the caret is: for suggestions as you type. */
+  onTyping?: (value: string, caret: number) => void
+  ref?: Ref<AutoSaveHandle>
+}
+
+/** What a parent can do to the field: put text in it, as a tap on a suggestion does. */
+export interface AutoSaveHandle {
+  /** Set the text, keep the focus, put the caret (at the end unless told), and save at once. */
+  set: (value: string, caret?: number) => void
 }
 
 /**
@@ -29,9 +38,9 @@ interface Props {
  * so the caret stays put.
  */
 export function AutoSaveText({
-  value, onChange, multiline = false, className, style, placeholder, debounce = 400, ...rest
+  value, onChange, multiline = false, className, style, placeholder, debounce = 400, onTyping, ref, ...rest
 }: Props) {
-  const ref = useRef<HTMLTextAreaElement & HTMLInputElement>(null)
+  const node = useRef<HTMLTextAreaElement & HTMLInputElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latest = useRef(value)
   const onChangeRef = useRef(onChange)
@@ -46,7 +55,7 @@ export function AutoSaveText({
   // Push external changes in only when this field is not being typed in,
   // otherwise React would stomp on the caret mid-word.
   useLayoutEffect(() => {
-    const el = ref.current
+    const el = node.current
     if (!el) return
     if (document.activeElement !== el && el.value !== value) el.value = value
     if (document.activeElement !== el) latest.current = value
@@ -68,11 +77,24 @@ export function AutoSaveText({
     }
   }
 
+  useImperativeHandle(ref, () => ({
+    set: (text, caret) => {
+      const el = node.current
+      if (!el) return
+      el.value = text
+      grow(el)
+      el.focus()
+      const at = caret ?? text.length
+      el.setSelectionRange(at, at)
+      commit(el)
+    },
+  }))
+
   // Save whatever is in the field if this unmounts (switching song, leaving
   // edit mode, a re-render that drops the node) or if the page goes away.
-  // React clears `ref.current` before cleanup runs, so hold on to the node.
+  // React clears `node.current` before cleanup runs, so hold on to the node.
   useEffect(() => {
-    const el = ref.current
+    const el = node.current
     const onHide = () => { if (document.visibilityState === 'hidden') commit(el) }
     const onPageHide = () => commit(el)
     document.addEventListener('visibilitychange', onHide)
@@ -96,21 +118,26 @@ export function AutoSaveText({
     autoCorrect: 'off',
     autoComplete: 'off',
     spellCheck: false,
-    onBlur: () => commit(ref.current),
+    onBlur: () => commit(node.current),
   }
 
   const typed = () => {
     if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => commit(ref.current), debounce)
+    timer.current = setTimeout(() => commit(node.current), debounce)
   }
 
   if (multiline) {
     return (
       <textarea
         {...common}
-        ref={ref}
+        ref={node}
         rows={1}
-        onInput={() => { grow(ref.current); typed() }}
+        onInput={() => {
+          const el = node.current
+          grow(el)
+          typed()
+          if (el) onTyping?.(el.value, el.selectionStart ?? el.value.length)
+        }}
       />
     )
   }
@@ -118,11 +145,11 @@ export function AutoSaveText({
   return (
     <input
       {...common}
-      ref={ref}
+      ref={node}
       type="text"
       enterKeyHint="done"
       onInput={typed}
-      onKeyDown={e => { if (e.key === 'Enter') commit(ref.current) }}
+      onKeyDown={e => { if (e.key === 'Enter') commit(node.current) }}
     />
   )
 }

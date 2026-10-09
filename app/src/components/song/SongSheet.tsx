@@ -322,6 +322,7 @@ export function SongSheet() {
           onSections={next => saveSections(song.title, next)}
           onNotes={text => saveNotes(song.title, text)}
           onForm={next => saveForm(song.title, next)}
+          onShape={(chord, pick) => pickSongShape(song.title, chord, pick)}
         />
       ) : (
         <div ref={scrollRef} className="chart-scroll">
@@ -340,7 +341,7 @@ export function SongSheet() {
           capo={capo}
           selectedIndex={shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).index}
           recommendedIndex={band[pickerChord]}
-          onSelect={i => { pickSongShape(song.title, pickerChord, i); setPickerChord(null) }}
+          onSelect={pick => { pickSongShape(song.title, pickerChord, pick); setPickerChord(null) }}
           onUseRecommended={!shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).mine ? undefined : () => {
             if (edits[song.title]?.shapes?.[pickerChord] !== undefined) clearSongShape(song.title, pickerChord)
             else clearVoicing(pickerChord)

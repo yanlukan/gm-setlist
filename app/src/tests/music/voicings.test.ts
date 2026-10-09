@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { chordNotes, voicingsFor, bandPositions, hasShapes, shapeToShow, shapeText, fretSpan, researchedStart, SHAPES_RELEASED } from '../../music/voicings'
+import { describe, it, expect, afterEach } from 'vitest'
+import { chordNotes, voicingsFor, bandPositions, hasShapes, shapeToShow, shapeText, fretSpan, researchedStart, SHAPES_RELEASED, setOwnShapes, ownShapesFor } from '../../music/voicings'
 import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
@@ -304,5 +304,42 @@ describe('shapes with wrong notes', () => {
   it('leave the 3rd of an 11th chord alone', () => {
     expect(voicingsFor('C11').filter(v => !v.wrong).length).toBeGreaterThan(0)
     expect(hasShapes('C11')).toBe(true)
+  })
+})
+
+describe('your own shapes', () => {
+  afterEach(() => setOwnShapes({}))
+
+  it('come after every other shape of the chord, and a pick by text finds them', () => {
+    const before = voicingsFor('Em11').length
+    setOwnShapes({ Em11: ['x-x-2-2-3-5', 'x-x-7-7-10-x'] })
+    const list = voicingsFor('Em11')
+    expect(list.length).toBe(before + 2)
+    expect(shapeText(list[before])).toBe('x-x-2-2-3-5')
+    expect(shapeText(list[before + 1])).toBe('x-x-7-7-10-x')
+    expect(ownShapesFor('Em11')).toEqual(['x-x-2-2-3-5', 'x-x-7-7-10-x'])
+    expect(shapeToShow('Em11', 'x-x-7-7-10-x')).toBe(before + 1)
+    expect(shapeToShow('Em11', 'x-x-9-9-9-9', 1)).toBe(1)
+  })
+
+  it('are gone again when removed', () => {
+    setOwnShapes({ Em11: ['x-x-2-2-3-5'] })
+    const n = voicingsFor('Em11').length
+    setOwnShapes({})
+    expect(voicingsFor('Em11').length).toBe(n - 1)
+    expect(ownShapesFor('Em11')).toEqual([])
+  })
+
+  it('skip a shape the chord already has, and one that cannot be read', () => {
+    const n = voicingsFor('Em').length
+    setOwnShapes({ Em: [shapeText(voicingsFor('Em')[0]), 'x-x-2'] })
+    expect(voicingsFor('Em').length).toBe(n)
+  })
+
+  it('are never the shape recommended for a song', () => {
+    const chords = [{ name: 'Em11', weight: 1 }, { name: 'A7', weight: 1 }]
+    const plain = bandPositions(chords, 'electric')
+    setOwnShapes({ Em11: ['x-x-7-7-10-x'] })
+    expect(bandPositions(chords, 'electric')).toEqual(plain)
   })
 })

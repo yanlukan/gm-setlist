@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { capoFor, guitarFor, shownSections } from '../../music/chart-view'
 import { strum } from '../../music/sound'
-import { hasShapes, voicingsFor } from '../../music/voicings'
+import { hasShapes, ownShapesFor, shapeText, voicingsFor } from '../../music/voicings'
 import { shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
 import { clearSongShape, pickSongShape } from '../../store/song-shapes'
 import { ChordDiagram } from './ChordDiagram'
@@ -16,6 +16,8 @@ export function DiagramsBar() {
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
   const selectedVoicings = useStore(s => s.selectedVoicings)
+  // Read so the strip follows a shape the player writes or removes
+  useStore(s => s.ownShapes)
   const clearVoicing = useStore(s => s.clearVoicing)
   const onStage = useStore(s => s.viewMode === 'stage')
   const focusSection = useStore(s => s.focusSection)
@@ -155,7 +157,9 @@ export function DiagramsBar() {
                   &#9654;
                 </button>
               )}
-              {researched[name] !== undefined && shapeFor(name) === researched[name] ? (
+              {ownShapesFor(name).includes(shapeText(voicing)) ? (
+                <span className="diagram-mark is-own">Yours</span>
+              ) : researched[name] !== undefined && shapeFor(name) === researched[name] ? (
                 // The shape the songbook or a lesson shows for this song
                 <span className="diagram-mark is-researched">{song.shapesFrom ?? 'Researched'}</span>
               ) : band[name] !== undefined && shapeFor(name) === band[name] ? (
@@ -177,9 +181,9 @@ export function DiagramsBar() {
           capo={capoFor(song, edits[song.title])}
           selectedIndex={shapeFor(pickerChord)}
           recommendedIndex={band[pickerChord]}
-          onSelect={(index) => {
+          onSelect={pick => {
             // For this song only: the same chord elsewhere keeps its own shape
-            pickSongShape(song.title, pickerChord, index)
+            pickSongShape(song.title, pickerChord, pick)
             setPickerChord(null)
           }}
           onUseRecommended={!choice(pickerChord).mine ? undefined : () => {

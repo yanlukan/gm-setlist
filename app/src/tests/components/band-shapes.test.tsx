@@ -1,13 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { DiagramsBar } from '../../components/diagrams/DiagramsBar'
 import { SongSheet } from '../../components/song/SongSheet'
 import { SongGrid } from '../../components/layout/SongGrid'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
 import { useStore } from '../../store/use-store'
+import { pickSongShape } from '../../store/song-shapes'
+import { setOwnShapes } from '../../music/voicings'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  setOwnShapes({})
 })
 
 const tile = (name: string) =>
@@ -88,5 +91,41 @@ describe('chord shapes for electric guitar', () => {
     open('Waiting (Reprise)')
     render(<DiagramsBar />)
     expect(within(tile('G')).getByText('Open')).toBeInTheDocument()
+  })
+})
+
+describe('your own shapes', () => {
+  // An E with its third and fifth up the neck. A muted string in the middle:
+  // no generator makes it, and the library does not have it.
+  const OWN = '0-x-6-4-0-0'
+
+  it('are offered in the picker marked Yours, and a tap keeps one for this song only', () => {
+    useStore.getState().addOwnShape('E', OWN)
+    render(<DiagramsBar />) // Faith
+    fireEvent.click(tile('E'))
+    expect(screen.getByText(/A shape you tap is used for E in this song only/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'E at 4th fret, yours' }))
+    expect(within(tile('E')).getByText('4th fret')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('Yours')).toBeInTheDocument()
+    expect(useStore.getState().edits.Faith?.shapes?.E).toBe(OWN)
+    expect(useStore.getState().selectedVoicings.E).toBeUndefined()
+  })
+
+  it('go back to the songbook shape when the own shape is removed', () => {
+    useStore.getState().addOwnShape('E', OWN)
+    pickSongShape('Faith', 'E', OWN)
+    render(<DiagramsBar />)
+    expect(within(tile('E')).getByText('Yours')).toBeInTheDocument()
+    act(() => useStore.getState().removeOwnShape('E', OWN))
+    expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
+    expect(within(tile('E')).getByText('Songbook')).toBeInTheDocument()
+  })
+
+  it('can be picked from a chord on the chart too', () => {
+    useStore.getState().addOwnShape('E', OWN)
+    render(<SongSheet />)
+    fireEvent.click(screen.getAllByText('E').find(el => el.classList.contains('chart-chord-tap'))!)
+    fireEvent.click(screen.getByRole('button', { name: 'E at 4th fret, yours' }))
+    expect(useStore.getState().edits.Faith?.shapes?.E).toBe(OWN)
   })
 })

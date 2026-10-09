@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Modal } from '../shared/Modal'
-import { voicingsFor } from '../../music/voicings'
+import { ownShapesFor, shapeText, voicingsFor } from '../../music/voicings'
 import { ChordDiagram } from './ChordDiagram'
 import { strum } from '../../music/sound'
 
@@ -11,7 +11,8 @@ interface VoicingPickerProps {
   selectedIndex: number
   /** The recommended shape for this song. */
   recommendedIndex?: number
-  onSelect: (index: number) => void
+  /** The shape's index in the chord's list, or its fret text for a shape the player wrote. */
+  onSelect: (pick: number | string) => void
   /** Present when a shape was picked by hand: go back to the recommended one. */
   onUseRecommended?: () => void
   onClose: () => void
@@ -19,6 +20,7 @@ interface VoicingPickerProps {
 
 export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex, onSelect, onUseRecommended, onClose }: VoicingPickerProps) {
   const voicings = voicingsFor(chord)
+  const own = ownShapesFor(chord)
   const selectedRef = useRef<HTMLDivElement>(null)
 
   // The chosen shape can be far down the list: start there, not at the top
@@ -57,7 +59,7 @@ export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex
         </div>
 
         <p style={{ margin: '0 0 12px', fontSize: 13, color: '#888' }}>
-          The recommended shape suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in every song.
+          The recommended shape suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in this song only.
         </p>
         {onUseRecommended && (
           <button
@@ -84,8 +86,9 @@ export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex
               key={i}
               ref={i === selectedIndex ? selectedRef : undefined}
               role="button"
-              aria-label={`${chord} at ${voicing.l}${i === recommendedIndex ? ', recommended' : ''}${i === selectedIndex ? ', selected' : ''}`}
-              onClick={() => onSelect(i)}
+              aria-label={`${chord} at ${voicing.l}${own.includes(shapeText(voicing)) ? ', yours' : ''}${i === recommendedIndex ? ', recommended' : ''}${i === selectedIndex ? ', selected' : ''}`}
+              // A shape the player wrote is picked by its text: it keeps meaning the same shape as the list changes
+              onClick={() => onSelect(own.includes(shapeText(voicing)) ? shapeText(voicing) : i)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -112,6 +115,11 @@ export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex
               >
                 &#9654;
               </button>
+              {own.includes(shapeText(voicing)) && (
+                <span style={{ fontSize: 9, color: '#4a9eff', marginTop: 2, fontWeight: 700 }}>
+                  Yours
+                </span>
+              )}
               {i === recommendedIndex && (
                 <span style={{ fontSize: 9, color: '#4ade80', marginTop: 2, fontWeight: 700 }}>
                   Recommended

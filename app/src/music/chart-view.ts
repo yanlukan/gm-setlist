@@ -1,6 +1,7 @@
 import type { Section, Song, SongEdits } from '../types'
 import { isChartMark, keySpelling, shouldUseFlats, transposeChord, transposeInKey } from './theory'
 import { transposeFor } from './setlist-text'
+import { parseChordText } from './chord-text'
 import type { Guitar } from './voicings'
 
 /** What the player plays: the keyboard player needs chords, not shapes. */
@@ -130,6 +131,12 @@ export function shapeSections(song: Song, edits: SongEdits | undefined, view?: C
   if (!shift) return sections
   const key = edits?.key ?? song.key ?? ''
   return sections.map(section => ({ name: section.name, chords: transposeInKey(section.chords, key, shift) }))
+}
+
+/** The chords of a song as the chart shows them, once each in order, without marks like N.C. */
+export function songChordsOf(song: Song, edits: SongEdits | undefined, view?: ChartView): string[] {
+  const chords = shapeSections(song, edits, view).flatMap(s => parseChordText(s.chords).flat())
+  return [...new Set(chords.filter(c => !isChartMark(c)))]
 }
 
 /**

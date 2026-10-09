@@ -9,7 +9,7 @@ function change(title: string, update: (edits: SongEdits) => SongEdits): void {
 }
 
 /** Without the song's own picks, leaving no empty set behind. */
-function withShapes(edits: SongEdits, shapes: Record<string, number>): SongEdits {
+function withShapes(edits: SongEdits, shapes: Record<string, number | string>): SongEdits {
   const { shapes: _, ...rest } = edits
   return Object.keys(shapes).length > 0 ? { ...rest, shapes } : rest
 }
@@ -30,9 +30,9 @@ export function backToSongShapes(title: string): void {
   })
 }
 
-/** A shape the player picked for one chord of this song only. */
-export function pickSongShape(title: string, chord: string, index: number): void {
-  change(title, edits => withShapes(edits, { ...edits.shapes, [chord]: index }))
+/** A shape the player picked for one chord of this song only: its index, or one of your own shapes as fret text. */
+export function pickSongShape(title: string, chord: string, pick: number | string): void {
+  change(title, edits => withShapes(edits, { ...edits.shapes, [chord]: pick }))
 }
 
 /** Back to the app's shape for one chord of this song. */

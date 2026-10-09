@@ -7,9 +7,10 @@ import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
 import { sameForm } from '../music/form'
 import { MAX_CAPO, type ChartView, type Instrument } from '../music/chart-view'
-import type { Guitar } from '../music/voicings'
+import { setOwnShapes, type Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
 import { viewSettings, type ViewSettings } from './view-settings'
+import { shapeSettings, type ShapeSettings } from './own-shapes'
 import {
   saveSongEdits,
   getSongEdits,
@@ -19,7 +20,6 @@ import {
   saveCustomSongs,
   getCustomSongs,
   getTheme,
-  saveSelectedVoicings,
   getSelectedVoicings,
   getDiagramsVisible,
   saveSetting,
@@ -186,7 +186,7 @@ function clampIndex(index: number, length: number): number {
 }
 
 /** The whole store. The view settings (theme, stage, instrument...) live in their own slice. */
-export interface StoreState extends ViewSettings {
+export interface StoreState extends ViewSettings, ShapeSettings {
   // State
   songs: Song[]
   customSongs: Song[]
@@ -194,7 +194,6 @@ export interface StoreState extends ViewSettings {
   setlistData: SetlistData
   currentIndex: number
   editMode: boolean
-  selectedVoicings: Record<string, number>
   /**
    * A section tapped on the chart: the diagrams below then show only its
    * chords. Tied to the song's title, so it lapses on its own when the song
@@ -253,9 +252,6 @@ export interface StoreState extends ViewSettings {
   deleteCustomSong: (title: string) => void
 
   // Other actions
-  selectVoicing: (chord: string, index: number) => void
-  /** Forget the shape picked for a chord, so each song shows its band shape again. */
-  clearVoicing: (chord: string) => void
   /** False if a song with that title already exists (titles are the song's identity). */
   addCustomSong: (song: Song) => boolean
   setFocusSection: (focus: { title: string; index: number } | null) => void
@@ -271,6 +267,7 @@ export interface StoreState extends ViewSettings {
 
 export const useStore = create<StoreState>((set, get) => ({
   ...viewSettings(set, get, () => !readOnly),
+  ...shapeSettings(set, get, () => !readOnly),
 
   // State
   songs: DEFAULT_SONGS,
@@ -279,7 +276,6 @@ export const useStore = create<StoreState>((set, get) => ({
   setlistData: defaultSetlistData,
   currentIndex: 0,
   editMode: false,
-  selectedVoicings: {},
   focusSection: null,
   toast: null,
   loadFailed: false,
@@ -678,23 +674,6 @@ export const useStore = create<StoreState>((set, get) => ({
     })
   },
 
-  // Voicing selection
-  selectVoicing: (chord: string, index: number) => {
-    set(state => ({
-      selectedVoicings: { ...state.selectedVoicings, [chord]: index },
-    }))
-    if (!readOnly) saveSelectedVoicings(get().selectedVoicings).catch(e => console.warn('saveSelectedVoicings failed:', e))
-  },
-
-  clearVoicing: (chord: string) => {
-    set(state => {
-      const rest = { ...state.selectedVoicings }
-      delete rest[chord]
-      return { selectedVoicings: rest }
-    })
-    if (!readOnly) saveSelectedVoicings(get().selectedVoicings).catch(e => console.warn('saveSelectedVoicings failed:', e))
-  },
-
   // Other actions
   addCustomSong: (song: Song) => {
     // A second song with the same title would be hidden behind the first
@@ -742,12 +721,13 @@ export const useStore = create<StoreState>((set, get) => ({
     let simpleResult: boolean | undefined
     let guitarResult: Guitar | 'auto' | undefined
     let instrumentResult: Instrument | undefined
+    let ownShapesResult: Record<string, string[]> | undefined
 
     try {
       ;[
         setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
         diagramsVisibleResult, viewModeResult, positionResult, simpleResult, guitarResult,
-        instrumentResult,
+        instrumentResult, ownShapesResult,
       ] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
@@ -759,6 +739,7 @@ export const useStore = create<StoreState>((set, get) => ({
         getSetting<boolean>('simpleChords'),
         getSetting<Guitar | 'auto'>('guitar'),
         getSetting<Instrument>('instrument'),
+        getSetting<Record<string, string[]>>('ownShapes'),
       ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -768,6 +749,9 @@ export const useStore = create<StoreState>((set, get) => ({
       console.error('Could not read saved data — running read-only:', e)
       return
     }
+
+    // Your own shapes go into every chord's list, even read-only: they are only drawn
+    setOwnShapes(ownShapesResult ?? {})
 
     // Load per-song edits. One bad record must not lose the rest.
     const allSongTitles = [
@@ -806,6 +790,7 @@ export const useStore = create<StoreState>((set, get) => ({
         ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
         ...(themeResult && { theme: themeResult }),
         ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
+        ...(ownShapesResult && { ownShapes: ownShapesResult }),
         ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
         ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
         ...(typeof simpleResult === 'boolean' && { simpleChords: simpleResult }),

@@ -14,6 +14,8 @@ import {
   exportAllData,
   importAllData,
   validateBackup,
+  saveSetting,
+  getSetting,
 } from '../../store/persistence'
 
 beforeEach(async () => {
@@ -129,5 +131,25 @@ describe('importing a backup', () => {
     expect((await getSetlistData())?.lists.a.songTitles).toEqual(['Faith', 'Roxanne'])
     expect((await getSongEdits('Roxanne'))?.transpose).toBe(-2)
     expect((await getSongEdits('Faith'))?.form).toEqual(['Intro', 'Verse', 'Chorus']) // the song order goes in a backup too
+  })
+})
+
+describe('your own shapes in a backup', () => {
+  it('go out with the export and come back with the import', async () => {
+    await saveSetting('ownShapes', { Em11: ['x-x-2-2-3-5'] })
+    const backup = await exportAllData()
+    expect(JSON.parse(backup).ownShapes).toEqual({ Em11: ['x-x-2-2-3-5'] })
+    expect(validateBackup(JSON.parse(backup))).toBeNull()
+
+    await saveSetting('ownShapes', {})
+    await importAllData(backup)
+    expect(await getSetting('ownShapes')).toEqual({ Em11: ['x-x-2-2-3-5'] })
+  })
+
+  it('are refused when damaged', () => {
+    expect(validateBackup({ version: 1, ownShapes: { Em11: 'x-x-2-2-3-5' } })).toBe('The backup file is damaged (shapes).')
+    expect(validateBackup({ version: 1, ownShapes: { Em11: [5] } })).toBe('The backup file is damaged (shapes).')
+    expect(validateBackup({ version: 1, ownShapes: [] })).toBe('The backup file is damaged (shapes).')
+    expect(validateBackup({ version: 1, ownShapes: null })).toBeNull()
   })
 })
