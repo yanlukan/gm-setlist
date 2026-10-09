@@ -12,12 +12,15 @@ afterEach(() => {
 /** Just enough of an AudioContext to see what would be played. */
 function fakeAudio() {
   const started: number[] = []
+  const made: { state: string }[] = []
   class FakeContext {
     sampleRate = 8000
     currentTime = 0
     state = 'suspended'
     destination = {}
-    resume = vi.fn()
+    constructor() { made.push(this) }
+    resume = vi.fn(() => Promise.resolve())
+    close = vi.fn(() => Promise.resolve())
     createBuffer = (_c: number, length: number) => ({ getChannelData: () => new Float32Array(length) })
     createGain = () => ({
       gain: { value: 1, setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
@@ -26,7 +29,7 @@ function fakeAudio() {
     createBufferSource = () => ({ buffer: null, connect: vi.fn(), start: (t: number) => started.push(t), stop: vi.fn() })
   }
   vi.stubGlobal('AudioContext', FakeContext)
-  return started
+  return Object.assign(started, { made })
 }
 
 describe('chord sound', () => {
@@ -48,7 +51,30 @@ describe('chord sound', () => {
     const { strum } = await import('../../music/sound')
     expect(strum(openC)).toBe(true)
     expect(started).toHaveLength(5)
-    expect([...started].sort((a, b) => a - b)).toEqual(started)
+    expect([...started].sort((a, b) => a - b)).toEqual([...started])
+  })
+
+  it('plays through the iPad\'s silent mode, as a music app does', async () => {
+    fakeAudio()
+    const session = { type: 'auto' }
+    vi.stubGlobal('navigator', { audioSession: session })
+    const { strum } = await import('../../music/sound')
+    strum(openC)
+    expect(session.type).toBe('playback')
+  })
+
+  it('starts the sound afresh when the iPad left it interrupted by sleep or another app', async () => {
+    const started = fakeAudio()
+    const { strum } = await import('../../music/sound')
+    strum(openC)
+    started.made[0].state = 'interrupted'
+    strum(openC)
+    expect(started.made).toHaveLength(2)
+    expect(started).toHaveLength(10)
+    // A working sound is kept, not rebuilt on every tap
+    started.made[1].state = 'running'
+    strum(openC)
+    expect(started.made).toHaveLength(2)
   })
 
   it('says so on a device with no sound', async () => {

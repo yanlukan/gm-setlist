@@ -25,12 +25,22 @@ let context: AudioContext | null = null
 const plucks = new Map<number, AudioBuffer>()
 
 function audio(): AudioContext | null {
-  if (context) return context
+  // Sleep, a call or another app's audio leaves iOS sound "interrupted", and
+  // it may never come back: start afresh on the tap rather than stay silent
+  const state = context?.state as string | undefined
+  if (context && state !== 'interrupted' && state !== 'closed') return context
+  if (context) void context.close().catch(() => {})
+  context = null
+  plucks.clear()
   const Ctor: AudioContextClass | undefined =
     typeof window === 'undefined'
       ? undefined
       : window.AudioContext ?? (window as unknown as { webkitAudioContext?: AudioContextClass }).webkitAudioContext
   if (!Ctor) return null
+  // Safari mutes web sound in silent mode unless it is marked as playback,
+  // the way a music app's is (iOS 17 and later)
+  const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession
+  if (session) session.type = 'playback'
   context = new Ctor()
   return context
 }
