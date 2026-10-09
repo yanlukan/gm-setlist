@@ -46,9 +46,28 @@ describe('useFitText', () => {
     expect(chart.size()).toBe(33)
   })
 
-  it('keeps the smallest size when not even the chords fit', () => {
+  it('keeps the smallest size when not even the chords fit, and says the chart is cramped', () => {
     const chart = fakeChart(40, 30)
     renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
     expect(chart.size()).toBe(20)
+    expect(chart.container.current.dataset.cramped).toBe('on')
+  })
+
+  it('is not cramped when the chords fit', () => {
+    const chart = fakeChart(25, 12)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
+    expect(chart.container.current.dataset.cramped).toBeUndefined()
+  })
+
+  it('forgets cramped when the chart changes', () => {
+    let chordLines = 30
+    const chart = fakeChart(40, 30)
+    chart.sections.current.getBoundingClientRect = () => ({ top: 0, bottom: chart.size() * chordLines }) as DOMRect
+    const { rerender } = renderHook(({ key }) =>
+      useFitText(chart.container, chart.content, key, { ...options, essentialRef: chart.sections }), { initialProps: { key: 'a' } })
+    expect(chart.container.current.dataset.cramped).toBe('on')
+    chordLines = 12
+    rerender({ key: 'b' })
+    expect(chart.container.current.dataset.cramped).toBeUndefined()
   })
 })

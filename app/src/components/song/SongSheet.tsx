@@ -116,7 +116,7 @@ export function SongSheet() {
 
   // Fit the whole chart to the screen: biggest text that needs no scrolling.
   const fitKey = song
-    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo])
+    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo, onStage])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,

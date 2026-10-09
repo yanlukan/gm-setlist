@@ -70,6 +70,7 @@ export function DiagramsBar() {
   return (
     <>
       <div
+        className="diagrams-strip"
         role="list"
         aria-label={focus ? `Chord shapes for ${focus.name}` : 'Chord shapes'}
         style={{

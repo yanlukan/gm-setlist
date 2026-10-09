@@ -1094,3 +1094,6 @@
 }
 .diagram-play:active { filter: brightness(1.4); }
 .ck-tool.is-on { border-color: var(--accent); color: var(--accent); }
+
+/* A chart whose chords cannot fit even at the smallest text gets smaller chord diagrams */
+.chart-scroll[data-cramped] ~ .diagrams-strip svg { zoom: 0.7; }

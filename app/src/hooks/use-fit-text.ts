@@ -83,8 +83,16 @@ export function useFitText(
 
     const fit = () => {
       fitBy(fits)
-      if (!fits() && essentialRef?.current) fitBy(essentialFits)
+      if (!fits() && essentialRef?.current) {
+        fitBy(essentialFits)
+        // Not even the essential part fits: say so, so the page can make room
+        // (smaller chord diagrams). Kept until the content changes, so the room
+        // it makes cannot take it away again and flicker.
+        if (!essentialFits()) container.dataset.cramped = 'on'
+      }
     }
+
+    delete container.dataset.cramped
 
     fit()
 
