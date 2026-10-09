@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { bandPositions, fretSpan, indexOfShape, voicingsFor } from '../music/voicings'
+import { bandPositions, fretSpan, indexOfShape, shapeToShow, voicingsFor } from '../music/voicings'
 import { transposeFor } from '../music/setlist-text'
 import { isChartMark } from '../music/theory'
 import { capoFor, DEFAULT_VIEW, guitarFor, shownSections, type ChartView } from '../music/chart-view'
@@ -66,16 +66,50 @@ function planSong(song: Song, edits: SongEdits | undefined, view: ChartView): Ba
   // Researched shapes are for the key the band plays, with no capo. In
   // another key a chord of the same name is a different chord of the song
   // (Faith's F# down two is E), so the shapes are chosen afresh.
+  // Chords the player moved up the neck leave the songbook's shapes aside too.
   const fixed: Record<string, number> = {}
-  if (transposeFor(song, edits) === (song.transpose ?? 0) && capoFor(song, edits) === 0) {
+  if (edits?.neck === undefined && transposeFor(song, edits) === (song.transpose ?? 0) && capoFor(song, edits) === 0) {
     for (const [name, shape] of Object.entries(song.shapes ?? {})) {
       const index = indexOfShape(name, shape)
       if (index >= 0 && counts.has(name)) fixed[name] = index
     }
   }
-  const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), guitarFor(song, edits, view), fixed)
+  const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), guitarFor(song, edits, view), fixed, edits?.neck)
   const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(v => v && !v.wrong)
   // Only the researched shapes the plan kept (acoustic leaves out the two- and three-string ones)
   const researched = Object.fromEntries(Object.entries(fixed).filter(([name, i]) => picks[name] === i))
   return { picks, span: fretSpan(shapes), researched }
+}
+
+/**
+ * Where on the neck to move a song's chords when the player asks: the middle
+ * of the shapes the app would choose with no songbook shapes to keep.
+ */
+export function neckFor(song: Song, edits: SongEdits | undefined, view: ChartView = DEFAULT_VIEW): number {
+  const { neck: _, shapes: __, ...rest } = edits ?? {}
+  // A capo of 0 and an unchanged key would bring the songbook back: plan a
+  // copy of the song without its researched shapes instead
+  const plan = planSong({ ...song, shapes: undefined }, rest, view)
+  const span = plan.span
+  if (!span || span.max === 0) return 5
+  // Not the open strings: the point of moving is to leave them
+  return Math.min(12, Math.max(3, Math.round((span.min + span.max) / 2)))
+}
+
+/**
+ * The shape a chord shows in a song: the player's pick for this song, then a
+ * pick made for every song, then the plan. A song whose chords were moved
+ * leaves out the every-song picks, which belong where the chords were.
+ */
+export function shapeChoice(
+  name: string,
+  edits: SongEdits | undefined,
+  everySong: Record<string, number>,
+  planned: number | undefined,
+): { index: number; mine: boolean } {
+  const own = edits?.shapes?.[name]
+  const shared = edits?.neck === undefined ? everySong[name] : undefined
+  const index = shapeToShow(name, own, shared, planned)
+  const mine = (own !== undefined && index === own) || (shared !== undefined && index === shared)
+  return { index, mine }
 }

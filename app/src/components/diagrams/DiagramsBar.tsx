@@ -2,10 +2,16 @@ import { useState, useMemo } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { capoFor, guitarFor, shownSections } from '../../music/chart-view'
 import { strum } from '../../music/sound'
-import { hasShapes, shapeToShow, voicingsFor } from '../../music/voicings'
-import { useBandPositions } from '../../hooks/use-band-positions'
+import { hasShapes, voicingsFor } from '../../music/voicings'
+import { neckFor, positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
+import { backToSongShapes, clearSongShape, moveChords, pickSongShape } from '../../store/song-shapes'
 import { ChordDiagram } from './ChordDiagram'
 import { VoicingPicker } from './VoicingPicker'
+
+/** How far Lower and Higher move the chords, and how far they go. */
+const NECK_STEP = 2
+const MIN_NECK = 3
+const MAX_NECK = 12
 
 export function DiagramsBar() {
   // Primitive selectors — no method calls
@@ -15,7 +21,6 @@ export function DiagramsBar() {
   const edits = useStore(s => s.edits)
   const currentIndex = useStore(s => s.currentIndex)
   const selectedVoicings = useStore(s => s.selectedVoicings)
-  const selectVoicing = useStore(s => s.selectVoicing)
   const clearVoicing = useStore(s => s.clearVoicing)
   const onStage = useStore(s => s.viewMode === 'stage')
   const focusSection = useStore(s => s.focusSection)
@@ -35,8 +40,10 @@ export function DiagramsBar() {
   }, [allSongs, setlistData, currentIndex])
 
   // A shape picked by hand wins; otherwise the song's band shape
-  const { picks: band, researched } = useBandPositions(song, song ? edits[song.title] : undefined)
-  const shapeFor = (name: string) => shapeToShow(name, selectedVoicings[name], band[name])
+  const songEdits = song ? edits[song.title] : undefined
+  const { picks: band, researched, span } = useBandPositions(song, songEdits)
+  const choice = (name: string) => shapeChoice(name, songEdits, selectedVoicings, band[name])
+  const shapeFor = (name: string) => choice(name).index
 
   // The section tapped on the chart, if it belongs to this song
   const focus = useMemo(() => {
@@ -95,6 +102,33 @@ export function DiagramsBar() {
             <span className="diagrams-focus-all">All &#10005;</span>
           </button>
         )}
+        {!onStage && (
+          // Every chord up or down the neck at once, then a few changed by hand
+          <div className="diagrams-move" role="group" aria-label="Move the chords on the neck">
+            {songEdits?.neck === undefined ? (
+              <button type="button" onClick={() => moveChords(song.title, neckFor(song, songEdits, view))}>
+                Move chords
+              </button>
+            ) : (
+              <>
+                <span className="diagrams-move-area">{positionLabel(span)}</span>
+                <span className="diagrams-move-steps">
+                  <button type="button" aria-label="Move the chords lower on the neck" disabled={songEdits.neck <= MIN_NECK}
+                    onClick={() => moveChords(song.title, Math.max(MIN_NECK, songEdits.neck! - NECK_STEP))}>
+                    Lower
+                  </button>
+                  <button type="button" aria-label="Move the chords higher on the neck" disabled={songEdits.neck >= MAX_NECK}
+                    onClick={() => moveChords(song.title, Math.min(MAX_NECK, songEdits.neck! + NECK_STEP))}>
+                    Higher
+                  </button>
+                </span>
+                <button type="button" onClick={() => backToSongShapes(song.title)}>
+                  {song.shapesFrom ? `Back to ${song.shapesFrom.toLowerCase()}` : 'Put back'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
         {uniqueChords.map(name => {
           const voicings = voicingsFor(name)
           const voicing = voicings[shapeFor(name)]
@@ -144,7 +178,7 @@ export function DiagramsBar() {
                 <span className="diagram-mark is-recommended">
                   {guitarFor(song, edits[song.title], view) === 'electric' ? 'Electric' : 'Acoustic'}
                 </span>
-              ) : selectedVoicings[name] !== undefined ? (
+              ) : choice(name).mine ? (
                 <span className="diagram-mark is-own">Your pick</span>
               ) : null}
             </div>
@@ -159,11 +193,13 @@ export function DiagramsBar() {
           selectedIndex={shapeFor(pickerChord)}
           recommendedIndex={band[pickerChord]}
           onSelect={(index) => {
-            selectVoicing(pickerChord, index)
+            // For this song only: the same chord elsewhere keeps its own shape
+            pickSongShape(song.title, pickerChord, index)
             setPickerChord(null)
           }}
-          onUseRecommended={selectedVoicings[pickerChord] === undefined ? undefined : () => {
-            clearVoicing(pickerChord)
+          onUseRecommended={!choice(pickerChord).mine ? undefined : () => {
+            if (songEdits?.shapes?.[pickerChord] !== undefined) clearSongShape(song.title, pickerChord)
+            else clearVoicing(pickerChord)
             setPickerChord(null)
           }}
           onClose={() => setPickerChord(null)}

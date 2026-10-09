@@ -450,6 +450,8 @@ function isFamiliar(c: Candidate, notes: ChordNotes, quality: string): boolean {
 /** Keeping a song's shapes near each other only breaks ties. */
 const STAY_NEAR = 0.1
 const MOVE = 0.25
+/** Chords moved to an area of the neck stay in it. */
+const KEEP_NEAR = 0.6
 
 /** The cost of moving the hand from one shape to the next. */
 function move(a: Candidate, b: Candidate): number {
@@ -487,6 +489,8 @@ export function bandPositions(
   guitar: Guitar = 'acoustic',
   /** Shapes already settled for this song (researched), by chord: index into its list. */
   fixed: Record<string, number> = {},
+  /** The fret the player moved the chords to; else the best area is found. */
+  around?: number,
 ): Record<string, number> {
   const full = guitar === 'acoustic'
   if (full) {
@@ -516,9 +520,12 @@ export function bandPositions(
   if (steps.length === 0) return picks
 
   let best: { total: number; choice: Candidate[] } | null = null
-  for (let home = 1; home <= 12; home++) {
+  const homes = around === undefined ? Array.from({ length: 12 }, (_, i) => i + 1) : [around]
+  // Moved chords leave the open strings behind, even on acoustic
+  const near = around === undefined ? STAY_NEAR : KEEP_NEAR
+  for (const home of homes) {
     const own = (step: (typeof steps)[number], shape: Candidate) =>
-      step.weight * ((full ? unusual(shape, step.entry.notes!, step.entry.quality, true) : electricCost(shape, step.entry.notes!)) + STAY_NEAR * Math.abs((shape.min + shape.max) / 2 - home))
+      step.weight * ((full ? unusual(shape, step.entry.notes!, step.entry.quality, around === undefined) : electricCost(shape, step.entry.notes!)) + near * Math.abs((shape.min + shape.max) / 2 - home))
     // Cheapest way to reach each shape of each chord, walking the song in order
     let totals = steps[0].shapes.map(shape => own(steps[0], shape))
     const back: number[][] = []

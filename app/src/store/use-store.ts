@@ -81,7 +81,7 @@ function track(title: string, write: Promise<unknown>): void {
     })
 }
 
-function persistEdits(title: string, edits: SongEdits): void {
+export function persistEdits(title: string, edits: SongEdits): void {
   if (readOnly) {
     useStore.setState({ saveStatus: 'readonly' })
     return

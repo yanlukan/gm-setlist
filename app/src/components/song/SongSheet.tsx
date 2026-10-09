@@ -2,8 +2,9 @@ import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { capoFor, guitarFor, shapeKey, shapeSections, shapeShift, simplifyText } from '../../music/chart-view'
-import { hasShapes, shapeToShow } from '../../music/voicings'
-import { positionLabel, useBandPositions } from '../../hooks/use-band-positions'
+import { hasShapes } from '../../music/voicings'
+import { positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
+import { clearSongShape, pickSongShape } from '../../store/song-shapes'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
@@ -34,7 +35,6 @@ export function SongSheet() {
   const focusSection = useStore(s => s.focusSection)
   const setFocusSection = useStore(s => s.setFocusSection)
   const selectedVoicings = useStore(s => s.selectedVoicings)
-  const selectVoicing = useStore(s => s.selectVoicing)
   const clearVoicing = useStore(s => s.clearVoicing)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
@@ -318,11 +318,12 @@ export function SongSheet() {
         <VoicingPicker
           chord={pickerChord}
           capo={capo}
-          selectedIndex={shapeToShow(pickerChord, selectedVoicings[pickerChord], band[pickerChord])}
+          selectedIndex={shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).index}
           recommendedIndex={band[pickerChord]}
-          onSelect={i => { selectVoicing(pickerChord, i); setPickerChord(null) }}
-          onUseRecommended={selectedVoicings[pickerChord] === undefined ? undefined : () => {
-            clearVoicing(pickerChord)
+          onSelect={i => { pickSongShape(song.title, pickerChord, i); setPickerChord(null) }}
+          onUseRecommended={!shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).mine ? undefined : () => {
+            if (edits[song.title]?.shapes?.[pickerChord] !== undefined) clearSongShape(song.title, pickerChord)
+            else clearVoicing(pickerChord)
             setPickerChord(null)
           }}
           onClose={() => setPickerChord(null)}

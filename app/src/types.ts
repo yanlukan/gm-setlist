@@ -78,6 +78,13 @@ export interface SongEdits {
   capo?: number
   /** The guitar the player plays this song on, which decides the shapes recommended. */
   guitar?: 'acoustic' | 'electric'
+  /**
+   * The fret the player moved the song's chords to, all at once: the shapes
+   * are then chosen around it, the songbook's set aside.
+   */
+  neck?: number
+  /** Shapes the player picked for this song only, by chord: index into `voicingsFor`. */
+  shapes?: Record<string, number>
 }
 
 /**
