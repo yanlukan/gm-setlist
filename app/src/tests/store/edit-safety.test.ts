@@ -218,7 +218,7 @@ describe('the song order', () => {
 
   it('is the built-in order until you change it', () => {
     expect(useStore.getState().getForm('Faith')).toEqual(builtIn)
-    expect(useStore.getState().getForm('Amazing')).toEqual([]) // a song with no order
+    expect(useStore.getState().getForm('Outside')).toEqual([]) // a song with no order
   })
 
   it('keeps your own order, without touching the chords', () => {
@@ -246,8 +246,8 @@ describe('the song order', () => {
   })
 
   it('needs no saved edit for a song that never had an order and still has none', () => {
-    useStore.getState().saveForm('Amazing', [])
-    expect(useStore.getState().edits['Amazing']).toBeUndefined()
+    useStore.getState().saveForm('Outside', [])
+    expect(useStore.getState().edits['Outside']).toBeUndefined()
   })
 
   it('is written to the database with the song', async () => {

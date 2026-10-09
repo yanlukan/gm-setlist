@@ -37,6 +37,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { Am: 'x-0-2-2-1-0', 'G/B': 'x-2-0-0-0-x', F6: 'x-x-3-2-3-1' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The book is a whole tone above the band. Where one of its shapes moves down two frets note for note, that shape is shown, marked Songbook; its open chords cannot move down, so the rest are the usual shapes. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus; the chorus vamp carries on through a post-chorus and an instrumental; Bridge; then the Chorus repeated to fade.',
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Chorus', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'D  G  C  D  G  C' },
       { name: 'Verse', chords: 'D  G6  A6  G6  D  G6  A6  G6' },
@@ -61,6 +62,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 13), which is in the band's key. Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Form: Verse, Chorus, Instrumental, Verse, Chorus, Instrumental, Post-Chorus hook twice, drum break, Bridge, Outro. The book marks 100 BPM. The verse swaps two shapes at the 3rd to 5th fret: Dm9 x-5-3-5-5-x and Am11 over the open A (x-0-5-4-3-3, no third); the bridge chords are open.",
+    form: ['Verse', 'Chorus', 'Instrumental', 'Verse', 'Chorus', 'Instrumental', 'Post-Chorus', 'Drum break', 'Bridge', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'Dm9  Am11  Dm9  Am11' },
       { name: 'Chorus', chords: 'Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9' },
@@ -106,6 +108,7 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The band checked the chords in its own key on 2026-10-09: the first chord of the pre-chorus is the one they play, a third below the published charts'. Form: Intro, Verse twice, Pre-Chorus, Chorus twice, Verse, Pre-Chorus, then the Chorus repeated to the end. Keyboard-driven production; guitar doubles synth lines.",
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7' },
       { name: 'Verse', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7  (x2)' },
@@ -172,6 +175,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 15). The book plays it with a capo on the 1st fret; this chart is at concert pitch. The shapes are the book\'s capo boxes at concert pitch: every dot on the 1st fret is where the capo sits (Bbsus2 is an Asus2 shape, Absus2 a Gsus2 shape). Form: Verse twice, Chorus, a bar of Bbsus2 into an instrumental, Verse, Chorus, Bridge twice (the second time ending Fsus4 F), back to the top for Verse and Chorus, then Outro. Keyboard-driven, play with restraint. The book and the recording both give 102 BPM.',
+    form: ['Verse', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Bridge', 'Bridge 2', 'Verse', 'Chorus', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'Bbsus2  Absus2  Bbsus2  Absus2  Bbsus2  Gbsus2  Abadd9  Bb  Gbsus2  Absus2  Fsus4  F' },
       { name: 'Chorus', chords: 'Bbadd9  Abadd9  Bbadd9  Abadd9' },
@@ -196,6 +200,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 19). Form: Intro (the chorus hook, sung then instrumental), Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Verse, Pre-Chorus, Pre-Chorus 2, Chorus, Interlude, Bridge, then back to Pre-Chorus 2 and the Chorus repeated to fade. The pre-chorus and bridge are a Cm line cliche: the book holds a Cm barre at the 3rd fret (A shape) and walks the G string down, 5-4-3-2. The rest are open chords, F as the small x-x-3-2-1-1. The book marks 92 BPM.',
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Pre-Chorus 2', 'Chorus', 'Verse', 'Pre-Chorus', 'Pre-Chorus 2', 'Chorus', 'Interlude', 'Bridge', 'Pre-Chorus 2', 'Chorus', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'C  Bb  F  C  (x2)' },
       { name: 'Verse', chords: 'G  F  F/C  C  F/C  C  (x4)' },
@@ -226,6 +231,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 35). The book plays it with a capo on the 4th fret; this chart is at concert pitch. The shapes are the book\'s capo boxes moved to concert pitch: every dot on the 4th fret is where the capo sits, so with a capo there they are the book\'s open shapes (C#m is an Am shape, G# an E shape, B a G shape). Without a capo, barre the 4th fret. The C# box is read from a blurred page (x-4-6-6-6-x). Form: Verse (twice round), Pre-Chorus, Chorus, instrumental, back to the top for Verse, Pre-Chorus, Chorus, then Bridge and Last Chorus. The book starts at the verse, with no intro. The book marks 86 BPM.',
+    form: ['Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Last Chorus'],
     sections: [
       { name: 'Verse', chords: 'C#madd9  G#7  Amaj7  G#7  F#m9  B6  C#sus24  C#m  (x2)' },
       { name: 'Pre-Chorus', chords: 'F#m7  B  F#m7  B  Emaj7  G#7sus4  G#' },
@@ -247,6 +253,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2' },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 8), which prints it in G and says the recording sounds a semitone lower; the band plays it at the record's pitch, Gb. The book writes D/G between the G chords, but on the record the keyboard plays G over D there, so the chart has Gb/Db. The guitar skips those and holds Gb: the Db is only a bass note (A string, 4th fret, inside the Gb barre). At the end of each line the bass holds Ab while the guitar plays two chords over it, a bar each: Ebm, then Abm (the book has Am7 there). The book's open G cannot slide down a fret, so the Gb shown is the same notes a semitone lower, fingered as a barre: 2-4-4-3-2-2. Form: Verse, Chorus, Instrumental, Bridge, Chorus, Outro (instrumental to fade); the book leaves the instrumental bars without chords. Sparse and atmospheric, best fingerpicked.",
+    form: ['Verse', 'Chorus', 'Bridge', 'Chorus', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Ebm  Abm  Gb  Gb/Db  Gb  Gb/Db  Ebm  Abm  Gb' },
       { name: 'Chorus', chords: 'Gb  Gb/Db  Gb  Gb/Db  Gb  Ebm  Abm  Gb' },
@@ -266,6 +273,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { Dm: 'x-x-0-2-3-1', 'G/D': 'x-x-0-4-3-3', 'Am/D': 'x-x-0-5-5-5' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 61). One groove over a D pedal all the way through, two beats per chord; only the two-bar N.C. break stops it. The book keeps the open D ringing under all three shapes: Dm, G/D (x-x-0-4-3-3) and Am/D (x-x-0-5-5-5). Tight muted funk comping; synth and piano lead. Form: Verse twice, Pre-Chorus, Chorus, keyboard solo, break, Outro vamp. The book marks 100 BPM.',
+    form: ['Verse', 'Verse', 'Pre-Chorus', 'Chorus', 'Keyboard solo', 'Break', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'Dm  G/D  Am/D  G/D' },
       { name: 'Pre-Chorus', chords: 'Dm  G/D  Am/D  G/D' },
@@ -291,6 +299,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 11). Synth-driven. Form: Verse, Post-Verse, Pre-Chorus, Chorus; back to the top with an instrumental verse, then the verses and Chorus again; Bridge; Outro to fade. Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove. The verse shapes stay on the top four strings (F#sus4 x-x-4-4-2-2, F# x-x-4-3-2-2, Esus24 x-x-2-2-0-2, Eadd9 x-x-2-1-0-2); the chorus uses barres, with C#aug as x-4-x-6-6-5.',
+    form: ['Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Outro'],
     sections: [
       { name: 'Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x4)' },
       { name: 'Post-Verse', chords: 'F#sus4  F#  Esus24  Eadd9  (x2)' },
@@ -314,6 +323,7 @@ export const DEFAULT_SONGS: Song[] = [
     shapes: { Em7: 'x-7-9-7-8-7', A: '5-7-7-6-5-5', 'C#m7': 'x-4-6-4-5-4', 'A/C#': 'x-4-7-6-5-5', D: 'x-5-7-7-7-5' },
     shapesFrom: 'Songsterr',
     notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM. The shapes marked Songsterr are the record\'s rhythm guitar as Songsterr\'s transcription plays it, barres between the 6th and 11th frets, moved down two frets to the band\'s key.',
+    form: ['Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'F#m7  (x8)' },
       { name: 'Intro 2', chords: 'F#m7  B7  (x2)' },
@@ -344,6 +354,7 @@ export const DEFAULT_SONGS: Song[] = [
     },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 52): gospel 12/8 shuffle, with a few bars of 6/8, NOT straight 4/4. George Michael sang it in G at the 1992 Freddie Mercury Tribute, a semitone below the Queen original in Ab (checked against the Five Live recording). Form: Intro, Verse, Chorus, Verse, Chorus (the second time it ends C/D G, into the Bridge), Bridge, Solo over the verse, then straight to the Outro: a held chord, then the G5 riff four times. 73 is the dotted-quarter beat, four to the bar; the book marks 76.',
+    form: ['Intro', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Bridge', 'Verse', 'Outro'],
     sections: [
       { name: 'Intro', chords: 'G  D/F#  Em  C  D' },
       { name: 'Verse', chords: 'G  D/F#  Em  G  A  D  G  D/F#  Em  A7  D7  G  A7  D' },
