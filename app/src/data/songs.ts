@@ -105,11 +105,11 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. Form: Intro, Verse twice, Pre-Chorus, Chorus twice, Verse, Pre-Chorus, then the Chorus repeated to the end. Keyboard-driven production; guitar doubles synth lines.",
+    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The band checked the chords in its own key on 2026-10-09: the pre-chorus starts a step lower than the published charts have it. Form: Intro, Verse twice, Pre-Chorus, Chorus twice, Verse, Pre-Chorus, then the Chorus repeated to the end. Keyboard-driven production; guitar doubles synth lines.",
     sections: [
       { name: 'Intro', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7' },
       { name: 'Verse', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7  (x2)' },
-      { name: 'Pre-Chorus', chords: 'Ebm7  Bbm7  Ab  Ebm7  Gb  Ab' },
+      { name: 'Pre-Chorus', chords: 'Cm7  Bbm7  Ab  Ebm7  Gb  Ab' }, // first chord as the band plays it, not the published charts'
       { name: 'Chorus', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x2)' },
       { name: 'Outro', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x4)' },
     ],

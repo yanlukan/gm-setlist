@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { transposeInKey } from '../../music/theory'
 
 describe('song notes and cues', () => {
   it('never name chords on a song whose chart is shown in another key', () => {
@@ -31,5 +32,22 @@ describe('song notes and cues', () => {
     // about it in the strip: no memory names, slots, pedal switches or tone.
     const gx10 = /GX-10|U0\d-\d|toe switch|\b(FUNK|CRUNCH|LEAD|80s CLEAN|WARM JAZZ)\b|clean tone/
     for (const song of DEFAULT_SONGS) expect(song.cue ?? '', song.title).not.toMatch(gx10)
+  })
+})
+
+describe('Amazing, as the band plays it in Am (2026-10-09)', () => {
+  const song = DEFAULT_SONGS.find(s => s.title === 'Amazing')!
+  const inAm = (chords: string) => transposeInKey(chords, song.key, song.transpose ?? 0)
+
+  it('is charted at the recording pitch and played a semitone lower', () => {
+    expect(song.key).toBe('Bbm')
+    expect(song.transpose).toBe(-1)
+  })
+
+  it('reads Am7 Fmaj7 in the verse, Bm7 Am7 G Dm7 F G in the pre-chorus, Am7 Fmaj7 Em7 Dm7 Em7 in the chorus', () => {
+    const by = Object.fromEntries(song.sections.map(s => [s.name, inAm(s.chords)]))
+    expect(by['Verse']).toBe('Am7  Fmaj7  Am7  Fmaj7  (x2)')
+    expect(by['Pre-Chorus']).toBe('Bm7  Am7  G  Dm7  F  G')
+    expect(by['Chorus']).toBe('Am7  Fmaj7  Em7  Dm7  Em7  (x2)')
   })
 })
