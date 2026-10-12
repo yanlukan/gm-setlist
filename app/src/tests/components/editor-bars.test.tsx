@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { GIG_SETLIST_2026 } from '../../data/songs'
 import { useStore } from '../../store/use-store'
@@ -80,5 +80,17 @@ describe('keys while typing chords', () => {
     fireEvent.click(within(keys).getByRole('button', { name: 'Bar line' }))
     expect((screen.getByRole('textbox', { name: 'Chords for Verse' }) as HTMLTextAreaElement).value).toBe('D  G  |  ')
     expect(saved('Faith', 0)).toBe('D  G  |')
+  })
+
+  it('puts the key in where the caret was left, even if the tap took the focus away', () => {
+    faithWith('D  G')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Type chords for Verse' })[0])
+    const box = screen.getByRole('textbox', { name: 'Chords for Verse' }) as HTMLTextAreaElement
+    act(() => { box.focus(); box.setSelectionRange(1, 1) })
+    act(() => box.blur())
+    const keys = screen.getByRole('group', { name: 'Keys for typing chords' })
+    fireEvent.click(within(keys).getByRole('button', { name: 'Bar line' }))
+    expect(box.value).toBe('D  |  G')
+    expect(saved('Faith', 0)).toBe('D  |  G')
   })
 })

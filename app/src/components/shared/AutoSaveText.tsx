@@ -20,7 +20,7 @@ interface Props {
 export interface AutoSaveHandle {
   /** Set the text, keep the focus, put the caret (at the end unless told), and save at once. */
   set: (value: string, caret?: number) => void
-  /** The text and the caret: at the end when the field is not being typed in. */
+  /** The text and the caret: where it was left once the field has had the focus, else at the end. */
   read: () => { value: string; caret: number } | null
 }
 
@@ -45,6 +45,9 @@ export function AutoSaveText({
   const node = useRef<HTMLTextAreaElement & HTMLInputElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latest = useRef(value)
+  // Once the field has had the focus its caret means something, even after a
+  // tap elsewhere took the focus away (iPad Safari may blur on a key's tap)
+  const placed = useRef(false)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
@@ -93,7 +96,7 @@ export function AutoSaveText({
     read: () => {
       const el = node.current
       if (!el) return null
-      const caret = document.activeElement === el ? (el.selectionStart ?? el.value.length) : el.value.length
+      const caret = document.activeElement === el || placed.current ? (el.selectionStart ?? el.value.length) : el.value.length
       return { value: el.value, caret }
     },
   }))
@@ -126,6 +129,7 @@ export function AutoSaveText({
     autoCorrect: 'off',
     autoComplete: 'off',
     spellCheck: false,
+    onFocus: () => { placed.current = true },
     onBlur: () => commit(node.current),
   }
 
