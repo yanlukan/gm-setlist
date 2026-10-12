@@ -54,7 +54,7 @@ describe('a section laid out by its parts', () => {
   })
 
   it('puts parts that start alike and end differently on lines of their own', () => {
-    expect(phraseLines(section('Fastlove', 'Chorus'))).toEqual(['Am7  Fmaj7  Am7  Dm9', 'Am7  Fmaj7  Em7  Dm9'])
+    expect(phraseLines('Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9')).toEqual(['Am7  Fmaj7  Am7  Dm9', 'Am7  Fmaj7  Em7  Dm9'])
     expect(phraseLines(section('Kissing a Fool', 'Verse'))).toEqual([
       'Eb6  Edim7  Fm7  Cb(b5)  Bb7',
       'Eb6  C7(b9)  Fm7  Cb(b5)  Bb',

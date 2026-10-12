@@ -457,15 +457,15 @@ describe('charts checked against the recordings', () => {
     const byName = Object.fromEntries(song('Fastlove').sections.map(s => [s.name, s.chords]))
     expect(song('Fastlove').key).toBe('Am')
     expect(song('Fastlove').transpose ?? 0).toBe(0) // charted in Am, not Bbm moved down
-    expect(byName.Verse).toBe('Dm9  Am11  Dm9  Am11')
-    expect(byName.Chorus).toBe('Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9') // songbook no. 13
+    expect(byName.Verse).toBe('|  Dm9  |  Am11  |  Dm9  |  Am11  |  (x4)')
+    expect(byName.Chorus).toBe('|  Am7  |  Fmaj7  |  Am7  |  Dm9  |\n|  Am7  |  Fmaj7  |  Em7  |  Dm9  |') // songbook no. 13
   })
 
   it('has the Everything She Wants chorus as the songbook writes it', () => {
     // Songbook no. 11, and the band plays it as the book has it (user,
     // 2026-09-29). It replaced the F# Bm7 E given earlier for the chorus.
     const chorus = song('Everything She Wants').sections.find(s => s.name === 'Chorus')!
-    expect(chorus.chords).toBe('F#m  Bm  C#aug  C#  F#m')
+    expect(chorus.chords).toBe('|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |')
   })
 
   it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {

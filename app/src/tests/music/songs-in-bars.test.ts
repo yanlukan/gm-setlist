@@ -77,7 +77,10 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
 
 describe('a line played again straight away', () => {
   it('is written once with its repeat count, so the chart stays big enough to read on stage', () => {
-    for (const title of ['Faith', "I'm Your Man", 'Club Tropicana', 'Amazing', 'Roxanne', 'A Different Corner', "Freedom! '90", 'Papa Was a Rolling Stone']) {
+    for (const title of [
+      'Faith', "I'm Your Man", 'Club Tropicana', 'Amazing', 'Roxanne', 'A Different Corner', "Freedom! '90", 'Papa Was a Rolling Stone',
+      'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove',
+    ]) {
       for (const section of by(title).sections) {
         const lines = playedLines(section.chords)
         lines.forEach((line, i) => expect(line, `${title}, ${section.name}, line ${i + 1}`).not.toBe(lines[i - 1]))
@@ -318,5 +321,159 @@ describe('Papa Was a Rolling Stone in bars (songbook no. 36, the Killer / Papa m
     expect(chordsOf(PAPA).filter(c => !song.shapes?.[c])).toEqual([])
     expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
     expect(song.cue).toBe('Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.')
+  })
+})
+
+describe('Too Funky in bars (songbook no. 61)', () => {
+  const FUNKY = 'Too Funky'
+  const GROOVE = '|  Dm  G/D  |  Am/D  G/D  |  Dm  G/D  |  Am/D  G/D  |'
+  it('writes every line of every section in bars', () => everyLineInBars(FUNKY))
+
+  it("has the book's bars on its one groove, with the intro from the recording", () => {
+    expect(sectionBars(FUNKY)).toEqual({ Intro: 8, Verse: 16, Keyboard: 4, 'Pre-Chorus': 8, Chorus: 4, Break: 2, Outro: 24 })
+    const chords = Object.fromEntries(by(FUNKY).sections.map(s => [s.name, s.chords]))
+    expect(chords.Intro).toBe(`${GROOVE}  (x2)`)
+    expect(chords.Verse).toBe(`${GROOVE}  (x4)`)
+    expect(chords.Keyboard).toBe(GROOVE)
+    expect(chords.Break).toBe('|  N.C.  |  %  |')
+    expect(chords.Outro).toBe(`${GROOVE}  (x6)`)
+  })
+
+  it('plays the four keyboard bars after each verse and after the chorus', () => {
+    expect(by(FUNKY).form).toEqual([
+      'Intro', 'Verse', 'Keyboard', 'Verse', 'Keyboard', 'Pre-Chorus', 'Chorus', 'Keyboard', 'Break', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording, up to the end of the fade (3:41)', () => {
+    expect(Math.abs(formBars(FUNKY) - recordingBars(FUNKY, 0.65, 220.6))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in Dm over the open D with the songbook shapes and its sound', () => {
+    const song = by(FUNKY)
+    expect(song.key).toBe('Dm')
+    expect(song.transpose).toBeUndefined()
+    expect(chordsOf(FUNKY).filter(c => !song.shapes?.[c])).toEqual([])
+    expect(song.shapes).toEqual({ Dm: 'x-x-0-2-3-1', 'G/D': 'x-x-0-4-3-3', 'Am/D': 'x-x-0-5-5-5' })
+    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
+  })
+})
+
+describe('Jesus to a Child in bars (songbook no. 35)', () => {
+  const JESUS = 'Jesus to a Child'
+  const VERSE = '|  C#madd9  |  G#7  |  Amaj7  |  G#7  |\n|  F#m9  |  B6  |  C#sus24  |  C#m  |'
+  it('writes every line of every section in bars', () => everyLineInBars(JESUS))
+
+  it("has the book's bars, with the intro from the recording", () => {
+    expect(sectionBars(JESUS)).toEqual({
+      Intro: 2, Instrumental: 8, Verse: 8, 'Pre-Chorus': 8, Chorus: 16, Bridge: 19, 'Last Chorus': 21,
+    })
+    const chords = Object.fromEntries(by(JESUS).sections.map(s => [s.name, s.chords]))
+    expect(chords.Intro).toBe('|  C#m  |  %  |')
+    expect(chords.Verse).toBe(VERSE)
+    expect(chords.Instrumental).toBe(VERSE)
+    expect(chords['Pre-Chorus']).toBe('|  F#m7  |  B  |  F#m7  |  B  |\n|  Emaj7  |  G#7sus4  |  G#  |  %  |')
+    expect(chords['Last Chorus'].split('\n').slice(-2)).toEqual(['|  G#m7  |  F#m7  |  G#aug  |  C#m11  |', '|  %  |'])
+  })
+
+  it('plays the verse chords twice before the voice comes in, and again after the first chorus', () => {
+    expect(by(JESUS).form).toEqual([
+      'Intro', 'Instrumental', 'Instrumental', 'Verse', 'Verse', 'Pre-Chorus', 'Chorus',
+      'Instrumental', 'Verse', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Last Chorus',
+    ])
+  })
+
+  it('comes to the length of the recording, up to the end of the last C#m11 (6:44)', () => {
+    expect(Math.abs(formBars(JESUS) - recordingBars(JESUS, 0.627, 404.5))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in C#m at concert pitch with a songbook shape for every chord and its sound', () => {
+    const song = by(JESUS)
+    expect(song.key).toBe('C#m')
+    expect(song.transpose).toBeUndefined()
+    expect(song.capo).toBeNull()
+    expect(chordsOf(JESUS).filter(c => !song.shapes?.[c])).toEqual([])
+    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
+  })
+})
+
+describe("Everything She Wants in bars (songbook no. 11, the 12-inch version)", () => {
+  const ESW = 'Everything She Wants'
+  const GROOVE = '|  F#sus4  |  F#  |  Esus24  |  Eadd9  |'
+  // The record is the 12-inch remix: after the third chorus it plays 32 bars
+  // the book doesn't have (4:16 to 5:23), which are not charted.
+  const REMIX_BARS = 32
+  it('writes every line of every section in bars', () => everyLineInBars(ESW))
+
+  it("has the book's bars, with the intro from the recording", () => {
+    expect(sectionBars(ESW)).toEqual({
+      Intro: 26, Verse: 16, 'Post-Verse': 8, 'Pre-Chorus': 2, Chorus: 6, Instrumental: 8, Bridge: 8, Outro: 16,
+    })
+    const chords = Object.fromEntries(by(ESW).sections.map(s => [s.name, s.chords]))
+    expect(chords.Intro).toBe(`|  N.C.  |  %  |\n${GROOVE}  (x6)`)
+    expect(chords.Verse).toBe(`${GROOVE}  (x4)`)
+    expect(chords['Pre-Chorus']).toBe('|  Bm  C#aug  |  C#  |')
+    expect(chords.Chorus).toBe('|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |')
+    expect(chords.Bridge).toBe('|  F#sus4  |  %  |  Bm  |  %  |  (x2)')
+    expect(chords.Outro).toBe('|  Bm  C#aug  |  C#  |  F#m  |  %  |  (x4)')
+  })
+
+  it('plays the verse chords after each chorus but the last, and the bridge before the third chorus', () => {
+    expect(by(ESW).form).toEqual([
+      'Intro', 'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
+      'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
+      'Bridge', 'Pre-Chorus', 'Chorus', 'Instrumental', 'Pre-Chorus', 'Chorus', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording with the remix section, up to the end of the fade (6:29)', () => {
+    expect(Math.abs(formBars(ESW) + REMIX_BARS - recordingBars(ESW, 0.58, 389.3))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in F#m with a songbook shape for every chord and its sound', () => {
+    const song = by(ESW)
+    expect(song.key).toBe('F#m')
+    expect(song.transpose).toBeUndefined()
+    expect(chordsOf(ESW).filter(c => !song.shapes?.[c])).toEqual([])
+    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
+  })
+})
+
+describe('Fastlove in bars (songbook no. 13)', () => {
+  const FAST = 'Fastlove'
+  const VAMP = '|  Dm9  |  Am11  |  Dm9  |  Am11  |'
+  const BRIDGE = '|  Am7  Fmaj9  |  G6  Em7  |  Am7  Fmaj9  |  G6  Em7  |'
+  it('writes every line of every section in bars', () => everyLineInBars(FAST))
+
+  it("has the book's bars, with the intro, the drum break and the outro counted on the recording", () => {
+    expect(sectionBars(FAST)).toEqual({
+      Intro: 12, Verse: 16, Chorus: 8, Instrumental: 8, 'Post-Chorus': 8, 'Drum break': 4, Bridge: 24, Outro: 8,
+    })
+    const chords = Object.fromEntries(by(FAST).sections.map(s => [s.name, s.chords]))
+    expect(chords.Intro).toBe(`${VAMP}  (x3)`)
+    expect(chords.Verse).toBe(`${VAMP}  (x4)`)
+    expect(chords.Chorus).toBe('|  Am7  |  Fmaj7  |  Am7  |  Dm9  |\n|  Am7  |  Fmaj7  |  Em7  |  Dm9  |')
+    expect(chords.Instrumental).toBe(`${VAMP}  (x2)`)
+    expect(chords['Drum break']).toBe('|  N.C.  |  %  |  %  |  %  |')
+    expect(chords.Bridge).toBe(`${BRIDGE}  (x6)`)
+    expect(chords.Outro).toBe(`${BRIDGE}  (x2)`)
+  })
+
+  it('opens with the groove before the verse', () => {
+    expect(by(FAST).form).toEqual([
+      'Intro', 'Verse', 'Chorus', 'Instrumental', 'Verse', 'Chorus', 'Instrumental', 'Post-Chorus', 'Drum break', 'Bridge', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording, from the groove after four quiet bars to the held A at the end (0:10 to 4:48)', () => {
+    expect(Math.abs(formBars(FAST) - recordingBars(FAST, 9.77, 287.6))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in Am with a songbook shape for every chord and its sound', () => {
+    const song = by(FAST)
+    expect(song.key).toBe('Am')
+    expect(song.transpose).toBeUndefined()
+    expect(chordsOf(FAST).filter(c => !song.shapes?.[c])).toEqual([])
+    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
