@@ -8,3 +8,29 @@
 .ck-bar { min-width: 44px; padding: 0 8px; }
 .ck-tools .ck-bar-start { margin-left: auto; }
 .ck-tools .ck-bar-start ~ .ck-newline { margin-left: 0; }
+
+/* A section written in bars: a box per bar, every box as wide as the widest
+   in the section (equal 1fr columns in a grid only as wide as it needs), so
+   the bars of every line stand in the same columns. */
+.bar-grid {
+  display: grid;
+  width: max-content;
+  max-width: 100%;
+  row-gap: 0.2em;
+}
+.bar-plain { grid-column: 1 / -1; }
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding: 0 0.35em;
+  border-left: 2px solid var(--text-muted);
+}
+.bar-first { grid-column-start: 1; }
+.bar-last { border-right: 2px solid var(--text-muted); }
+/* Chords in one bar share it evenly, as their beats do */
+.bar-chord { flex: 1 1 0; min-width: max-content; }
+.bar-repeat { flex: 1 1 0; text-align: center; font-weight: 600; color: var(--text-muted); }
+.bar-count { margin-left: 0.25em; }
+/* Set by the fit: a bar's chords stay side by side while that still reads big */
+.chart[data-wrap="off"] .bar { flex-wrap: nowrap; }

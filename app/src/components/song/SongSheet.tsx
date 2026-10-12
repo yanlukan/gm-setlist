@@ -9,6 +9,8 @@ import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { MoveChordsSheet } from './MoveChordsSheet'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
+import { BarGrid } from './BarGrid'
+import { hasBars } from '../../music/bars'
 import { formMatches } from '../../music/form'
 import { layOutParts } from '../../music/phrases'
 import { hasEditedChart } from '../../music/chart-edits'
@@ -290,6 +292,8 @@ export function SongSheet() {
   // stays in the text, for anything that reads the chart as text.
   const renderChords = (text: string) => {
     const lines = text.split('\n')
+    // Written in bars: a box per bar, the bars of every line in the same columns
+    if (lines.some(line => hasBars(line))) return <BarGrid lines={lines} renderTokens={renderTokens} />
     return lines.map((line, li) => (
       <div key={li} className="chart-line">
         {renderTokens(line)}
