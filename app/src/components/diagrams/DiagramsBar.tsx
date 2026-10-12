@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { capoFor, guitarFor, shownSections } from '../../music/chart-view'
 import { strum } from '../../music/sound'
-import { hasShapes, ownShapesFor, shapeText, voicingsFor } from '../../music/voicings'
+import { hasShapes, isPlayersShape, shapeText, voicingsFor } from '../../music/voicings'
 import { shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
 import { clearSongShape, pickSongShape } from '../../store/song-shapes'
 import { ChordDiagram } from './ChordDiagram'
@@ -157,7 +157,7 @@ export function DiagramsBar() {
                   &#9654;
                 </button>
               )}
-              {ownShapesFor(name).includes(shapeText(voicing)) ? (
+              {isPlayersShape(name, shapeText(voicing)) ? (
                 <span className="diagram-mark is-own">Yours</span>
               ) : researched[name] !== undefined && shapeFor(name) === researched[name] ? (
                 // The shape the songbook or a lesson shows for this song

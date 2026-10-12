@@ -46,6 +46,12 @@ export interface Song {
   /** Where those shapes come from, shown on their diagrams: 'Songbook', 'Lessons'. */
   shapesFrom?: string
   /**
+   * Shapes the player asked to play in place of the researched ones, by chord:
+   * { Em11: 'x-x-2-2-3-5' }. They win over `shapes` and show as "Yours"; the
+   * researched shape stays in the chord's list to pick.
+   */
+  playerShapes?: Record<string, string>
+  /**
    * Set when the band plays this lower than the original recording.
    * The exact amount lives in the per-song transpose (SongEdits.transpose);
    * this flag makes an unset transpose visible instead of silently wrong.

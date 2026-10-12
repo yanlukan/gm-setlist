@@ -9,7 +9,10 @@ const sounded = (v: ChordVoicing) =>
 describe('more shapes', () => {
   it('include the ways Em11 is really played', () => {
     const texts = moreShapesFor('Em11').map(shapeText)
-    expect(texts).toContain('x-x-2-2-3-5')
+    // x-x-2-2-3-5 is in the chart's own list now, as the player plays it
+    expect(voicingsFor('Em11').map(shapeText)).toContain('x-x-2-2-3-5')
+    expect(texts).not.toContain('x-x-2-2-3-5')
+    expect(texts).toContain('x-x-2-4-3-5')
     expect(texts).toContain('x-x-7-7-10-x')
   })
 

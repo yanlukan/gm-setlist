@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Modal } from '../shared/Modal'
-import { ownShapesFor, shapeText, voicingsFor } from '../../music/voicings'
+import { isPlayersShape, ownShapesFor, shapeText, voicingsFor } from '../../music/voicings'
 import { ChordDiagram } from './ChordDiagram'
 import { strum } from '../../music/sound'
 
@@ -86,7 +86,7 @@ export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex
               key={i}
               ref={i === selectedIndex ? selectedRef : undefined}
               role="button"
-              aria-label={`${chord} at ${voicing.l}${own.includes(shapeText(voicing)) ? ', yours' : ''}${i === recommendedIndex ? ', recommended' : ''}${i === selectedIndex ? ', selected' : ''}`}
+              aria-label={`${chord} at ${voicing.l}${isPlayersShape(chord, shapeText(voicing)) ? ', yours' : ''}${i === recommendedIndex ? ', recommended' : ''}${i === selectedIndex ? ', selected' : ''}`}
               // A shape the player wrote is picked by its text: it keeps meaning the same shape as the list changes
               onClick={() => onSelect(own.includes(shapeText(voicing)) ? shapeText(voicing) : i)}
               style={{
@@ -115,7 +115,7 @@ export function VoicingPicker({ chord, capo = 0, selectedIndex, recommendedIndex
               >
                 &#9654;
               </button>
-              {own.includes(shapeText(voicing)) && (
+              {isPlayersShape(chord, shapeText(voicing)) && (
                 <span style={{ fontSize: 9, color: '#4a9eff', marginTop: 2, fontWeight: 700 }}>
                   Yours
                 </span>

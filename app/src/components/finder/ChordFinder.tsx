@@ -6,7 +6,7 @@ import { chordSuggestions, normalizeChordName } from '../../music/chord-names'
 import { moreShapesFor } from '../../music/more-shapes'
 import { outsideNotes, parseShapeText, shapeNotes } from '../../music/own-shapes'
 import {
-  chordNotes, ownShapesFor, pitchAt, researchedStart, shapeText, voicingsFor, type ChordNotes,
+  chordNotes, isPlayersShape, ownShapesFor, pitchAt, researchedStart, shapeText, voicingsFor, type ChordNotes,
 } from '../../music/voicings'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { getRoots } from '../../music/theory'
@@ -143,7 +143,7 @@ export function ChordFinder({ chord, songChords = [], capo = 0, onPick, onClose 
   const writtenIsOwn = own.includes(writtenText)
 
   const mark = (i: number, v: ChordVoicing) => {
-    if (own.includes(shapeText(v))) return <span className="diagram-mark is-own">Yours</span>
+    if (name && isPlayersShape(name, shapeText(v))) return <span className="diagram-mark is-own">Yours</span>
     if (i < library) return <span className="diagram-mark">Library</span>
     if (i < generated) return <span className="diagram-mark">Generated</span>
     return <span className="diagram-mark is-researched">Researched</span>

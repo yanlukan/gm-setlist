@@ -405,6 +405,8 @@ export const DEFAULT_SONGS: Song[] = [
       G: '3-x-0-0-3-3', 'G/C': 'x-3-0-0-3-3', 'D/F#': '2-x-0-2-3-2', Fmaj9: 'x-8-10-9-8-8',
     },
     shapesFrom: 'Songbook',
+    // The Em11 the player plays (asked for 2026-10-12): E A D A, no open strings
+    playerShapes: { Em11: 'x-x-2-2-3-5' },
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
     notes: "From the songbook (no. 25), in George Michael's key of G. Piano-led; guitar plays sparse arpeggios, no strumming. Form: Verse, Chorus, Verse, Chorus, Outro, ending on Fmaj9. The first time, the verse has one 2/4 bar before G/D, and the chorus ends on Am7 back to the verse; the second time it goes straight into the Outro. The book marks 60 BPM; the recording measures 58.",
     form: ['Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'],

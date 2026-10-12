@@ -55,17 +55,17 @@ describe('the chord finder', () => {
   it('finds the shapes the chart list leaves out behind More shapes, by area of the neck', () => {
     render(<ChordFinder onClose={() => {}} />)
     lookUp('Em11')
-    expect(screen.queryByText('x-x-2-2-3-5')).not.toBeInTheDocument()
+    expect(screen.queryByText('x-x-2-4-3-5')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'More shapes' }))
     // Thousands for a six-note chord: the area of the neck and the strings narrow them down
     fireEvent.click(screen.getByRole('button', { name: '1–3' }))
     fireEvent.click(screen.getByRole('button', { name: 'D–e' }))
-    expect(within(more('Em11')).getByText('x-x-2-2-3-5')).toBeInTheDocument()
+    expect(within(more('Em11')).getByText('x-x-2-4-3-5')).toBeInTheDocument()
     expect(within(more('Em11')).queryByText('x-x-7-7-10-x')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '7–9' }))
     fireEvent.click(screen.getByRole('button', { name: 'D–B' }))
     expect(within(more('Em11')).getByText('x-x-7-7-10-x')).toBeInTheDocument()
-    expect(within(more('Em11')).queryByText('x-x-2-2-3-5')).not.toBeInTheDocument()
+    expect(within(more('Em11')).queryByText('x-x-2-4-3-5')).not.toBeInTheDocument()
   })
 
   it('keeps a found shape as yours', () => {
@@ -74,11 +74,12 @@ describe('the chord finder', () => {
     fireEvent.click(screen.getByRole('button', { name: 'More shapes' }))
     fireEvent.click(screen.getByRole('button', { name: '1–3' }))
     fireEvent.click(screen.getByRole('button', { name: 'D–e' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Keep x-x-2-2-3-5' }))
-    expect(own().Em11).toEqual(['x-x-2-2-3-5'])
-    expect(within(shapes('Em11')).getByText('x-x-2-2-3-5')).toBeInTheDocument()
-    expect(within(shapes('Em11')).getByText('Yours')).toBeInTheDocument()
-    expect(within(more('Em11')).queryByText('x-x-2-2-3-5')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Keep x-x-2-4-3-5' }))
+    expect(own().Em11).toEqual(['x-x-2-4-3-5'])
+    expect(within(shapes('Em11')).getByText('x-x-2-4-3-5')).toBeInTheDocument()
+    // The kept one and the player's built-in x-x-2-2-3-5
+    expect(within(shapes('Em11')).getAllByText('Yours')).toHaveLength(2)
+    expect(within(more('Em11')).queryByText('x-x-2-4-3-5')).not.toBeInTheDocument()
   })
 
   it('draws a shape you write, names what it sounds, and says which notes are outside the chord', () => {
@@ -127,9 +128,9 @@ describe('the chord finder', () => {
     fireEvent.click(screen.getByRole('button', { name: 'More shapes' }))
     fireEvent.click(screen.getByRole('button', { name: '1–3' }))
     fireEvent.click(screen.getByRole('button', { name: 'D–e' }))
-    fireEvent.click(within(more('Em11')).getByRole('button', { name: 'Em11 at 2nd fret, x-x-2-2-3-5' }))
-    expect(own().Em11).toEqual(['x-x-2-2-3-5'])
-    expect(onPick).toHaveBeenCalledWith('Em11', 'x-x-2-2-3-5')
+    fireEvent.click(within(more('Em11')).getByRole('button', { name: 'Em11 at 2nd fret, x-x-2-4-3-5' }))
+    expect(own().Em11).toEqual(['x-x-2-4-3-5'])
+    expect(onPick).toHaveBeenCalledWith('Em11', 'x-x-2-4-3-5')
   })
 })
 

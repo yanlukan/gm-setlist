@@ -21,18 +21,18 @@ const toLand = (check: () => Promise<void>) => vi.waitFor(check, { timeout: 5000
 
 describe('your own shapes', () => {
   it('are kept, drawn for the chord, and remembered across a relaunch', async () => {
-    useStore.getState().addOwnShape('Em11', 'x-x-2-2-3-5')
-    expect(useStore.getState().ownShapes).toEqual({ Em11: ['x-x-2-2-3-5'] })
-    expect(ownShapesFor('Em11')).toEqual(['x-x-2-2-3-5'])
-    expect(voicingsFor('Em11').map(shapeText)).toContain('x-x-2-2-3-5')
-    await toLand(async () => expect(await getSetting('ownShapes')).toEqual({ Em11: ['x-x-2-2-3-5'] }))
+    useStore.getState().addOwnShape('Em11', 'x-x-2-4-3-5')
+    expect(useStore.getState().ownShapes).toEqual({ Em11: ['x-x-2-4-3-5'] })
+    expect(ownShapesFor('Em11')).toEqual(['x-x-2-4-3-5'])
+    expect(voicingsFor('Em11').map(shapeText)).toContain('x-x-2-4-3-5')
+    await toLand(async () => expect(await getSetting('ownShapes')).toEqual({ Em11: ['x-x-2-4-3-5'] }))
 
     useStore.setState(useStore.getInitialState())
     setOwnShapes({})
-    expect(voicingsFor('Em11').map(shapeText)).not.toContain('x-x-2-2-3-5')
+    expect(voicingsFor('Em11').map(shapeText)).not.toContain('x-x-2-4-3-5')
     await useStore.getState().hydrate()
-    expect(useStore.getState().ownShapes).toEqual({ Em11: ['x-x-2-2-3-5'] })
-    expect(voicingsFor('Em11').map(shapeText)).toContain('x-x-2-2-3-5')
+    expect(useStore.getState().ownShapes).toEqual({ Em11: ['x-x-2-4-3-5'] })
+    expect(voicingsFor('Em11').map(shapeText)).toContain('x-x-2-4-3-5')
   })
 
   it('are tidied, not kept twice, and not kept when they cannot be read', () => {

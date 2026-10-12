@@ -13,6 +13,8 @@ export interface BandPlan {
   span: ReturnType<typeof fretSpan>
   /** The picks that are the song's researched shapes (`Song.shapes`), by chord. */
   researched: Record<string, number>
+  /** The picks that are the shapes the player plays in this song (`Song.playerShapes`), by chord. */
+  yours: Record<string, number>
 }
 
 /**
@@ -43,7 +45,7 @@ const NO_EDITS = {}
 
 /** The same plan as `useBandPositions`, for any number of songs at once. */
 export function bandPlanFor(song: Song | undefined, edits: SongEdits | undefined, view: ChartView = DEFAULT_VIEW): BandPlan {
-  if (!song) return { picks: {}, span: null, researched: {} }
+  if (!song) return { picks: {}, span: null, researched: {}, yours: {} }
   const bySong = plans.get(song) ?? new WeakMap<object, Map<string, BandPlan>>()
   plans.set(song, bySong)
   const byEdits = bySong.get(edits ?? NO_EDITS) ?? new Map<string, BandPlan>()
@@ -69,7 +71,8 @@ function planSong(song: Song, edits: SongEdits | undefined, view: ChartView): Ba
   // Chords the player moved up the neck leave the songbook's shapes aside too.
   const fixed: Record<string, number> = {}
   if (edits?.neck === undefined && transposeFor(song, edits) === (song.transpose ?? 0) && capoFor(song, edits) === 0) {
-    for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+    // The player's own shape for a chord wins over the book's
+    for (const [name, shape] of Object.entries({ ...song.shapes, ...song.playerShapes })) {
       const index = indexOfShape(name, shape)
       if (index >= 0 && counts.has(name)) fixed[name] = index
     }
@@ -77,8 +80,10 @@ function planSong(song: Song, edits: SongEdits | undefined, view: ChartView): Ba
   const picks = bandPositions([...counts].map(([name, weight]) => ({ name, weight })), guitarFor(song, edits, view), fixed, edits?.neck)
   const shapes = Object.entries(picks).map(([name, i]) => voicingsFor(name)[i]).filter(v => v && !v.wrong)
   // Only the researched shapes the plan kept (acoustic leaves out the two- and three-string ones)
-  const researched = Object.fromEntries(Object.entries(fixed).filter(([name, i]) => picks[name] === i))
-  return { picks, span: fretSpan(shapes), researched }
+  const kept = Object.entries(fixed).filter(([name, i]) => picks[name] === i)
+  const researched = Object.fromEntries(kept.filter(([name]) => song.playerShapes?.[name] === undefined))
+  const yours = Object.fromEntries(kept.filter(([name]) => song.playerShapes?.[name] !== undefined))
+  return { picks, span: fretSpan(shapes), researched, yours }
 }
 
 /**
@@ -89,7 +94,7 @@ export function neckFor(song: Song, edits: SongEdits | undefined, view: ChartVie
   const { neck: _, shapes: __, ...rest } = edits ?? {}
   // A capo of 0 and an unchanged key would bring the songbook back: plan a
   // copy of the song without its researched shapes instead
-  const plan = planSong({ ...song, shapes: undefined }, rest, view)
+  const plan = planSong({ ...song, shapes: undefined, playerShapes: undefined }, rest, view)
   const span = plan.span
   if (!span || span.max === 0) return 5
   // Not the open strings: the point of moving is to leave them

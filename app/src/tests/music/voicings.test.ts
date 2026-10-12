@@ -40,8 +40,8 @@ describe('band shapes', () => {
     for (const name of allGigChords) {
       const notes = chordNotes(name)!
       const library = (lookupChord(name) ?? []).length
-      // Only the app's own generated shapes: book and lesson shapes are checked below
-      const researched = new Set(DEFAULT_SONGS.flatMap(song => (song.shapes?.[name] ? [song.shapes[name]] : [])))
+      // Only the app's own generated shapes: book and lesson shapes, and the player's, are checked below
+      const researched = new Set(DEFAULT_SONGS.flatMap(song => [song.shapes?.[name], song.playerShapes?.[name]].filter(s => s !== undefined)))
       for (const v of voicingsFor(name).slice(library).filter(v => !researched.has(shapeText(v)))) {
         const s = sounding(v)
         const pitches = new Set(s.map(n => n.pitch))
@@ -89,6 +89,7 @@ describe('band positions', () => {
     for (const song of DEFAULT_SONGS.filter(s => s.shapes)) {
       const { picks, researched } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric', instrument: 'guitar' })
       for (const [name, shape] of Object.entries(song.shapes!)) {
+        if (song.playerShapes?.[name] !== undefined) continue // the player's own shape is played instead
         if (picks[name] === undefined) wrong.push(`${song.title} ${name}: not a chord of the song as the band plays it`)
         else if (shapeText(voicingsFor(name)[picks[name]]) !== shape || researched[name] !== picks[name]) wrong.push(`${song.title} ${name}: not recommended`)
       }
@@ -129,10 +130,10 @@ describe('band positions', () => {
     expect(fretSpan([voicingsFor('E')[0], voicingsFor('B')[2]])).toEqual({ min: 1, max: 9, open: true })
   })
 
-  it('have every researched shape in its chord\'s list, playing only that chord', () => {
+  it('have every researched shape, and every shape the player plays, in its chord\'s list, playing only that chord', () => {
     const wrong: string[] = []
     for (const song of DEFAULT_SONGS) {
-      for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+      for (const [name, shape] of [...Object.entries(song.shapes ?? {}), ...Object.entries(song.playerShapes ?? {})]) {
         const v = voicingsFor(name).find(x => shapeText(x) === shape)
         if (!v) { wrong.push(`${song.title} ${name} ${shape}: not in the list`); continue }
         // A book or lesson shape may leave a note out (the songbook's Em11 has
@@ -170,9 +171,9 @@ describe('band positions', () => {
   it('on electric, leave room for the band: no open-position strumming chords, three or four strings, every chord note there', () => {
     const wrong: string[] = []
     for (const song of DEFAULT_SONGS) {
-      const { picks, researched } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric', instrument: 'guitar' })
+      const { picks, researched, yours } = bandPlanFor(song, undefined, { simple: false, guitar: 'electric', instrument: 'guitar' })
       for (const [name, i] of Object.entries(picks)) {
-        if (researched[name] === i) continue // the songbook's own shape stays
+        if (researched[name] === i || yours[name] === i) continue // the songbook's shape, or the player's, stays
         const notes = chordNotes(name)
         if (!notes) continue
         const s = sounding(voicingsFor(name)[i])
@@ -214,13 +215,25 @@ describe('band positions', () => {
 })
 
 describe('the songbook shapes', () => {
-  it("recommend I Can't Make You Love Me exactly as the book prints it, the Em11 included", () => {
+  it("recommend I Can't Make You Love Me as the book prints it, but the Em11 as the player plays it", () => {
     const song = DEFAULT_SONGS.find(s => s.title === "I Can't Make You Love Me")!
-    const { picks } = bandPlanFor(song, undefined)
+    const { picks, researched, yours } = bandPlanFor(song, undefined)
     for (const [name, shape] of Object.entries(song.shapes!)) {
+      if (name === 'Em11') continue
       expect(shapeText(voicingsFor(name)[picks[name]]), name).toBe(shape)
     }
-    expect(shapeText(voicingsFor('Em11')[picks.Em11])).toBe('0-2-4-2-3-2')
+    expect(shapeText(voicingsFor('Em11')[picks.Em11])).toBe('x-x-2-2-3-5')
+    expect(yours.Em11).toBe(picks.Em11)
+    expect(researched.Em11).toBeUndefined()
+    // The book's Em11 is still there to pick
+    expect(voicingsFor('Em11').map(shapeText)).toContain('0-2-4-2-3-2')
+  })
+
+  it("leave the player's Em11 aside, like the book's, when the chords are moved up the neck", () => {
+    const song = DEFAULT_SONGS.find(s => s.title === "I Can't Make You Love Me")!
+    const { picks, yours } = bandPlanFor(song, { neck: 7 })
+    expect(shapeText(voicingsFor('Em11')[picks.Em11])).not.toBe('x-x-2-2-3-5')
+    expect(yours).toEqual({})
   })
 })
 
@@ -245,7 +258,8 @@ describe('the list of shapes', () => {
     // chord's list. Once released, someone may have picked it: add new ones
     // after it, never before. Extend this list when a song adds one.
     const added: Record<string, Record<number, string>> = {
-      Cadd9: { 25: 'x-3-2-0-3-3' }, Em11: { 24: '0-2-4-2-3-2', 25: '0-2-0-2-0-2' }, C: { 26: 'x-3-2-0-1-3' },
+      // Em11's 26 is the player's own shape (3.54.1), after every researched one
+      Cadd9: { 25: 'x-3-2-0-3-3' }, Em11: { 24: '0-2-4-2-3-2', 25: '0-2-0-2-0-2', 26: 'x-x-2-2-3-5' }, C: { 26: 'x-3-2-0-1-3' },
       Em7: { 26: '0-2-2-0-3-3', 27: 'x-x-2-0-3-0', 28: '0-5-5-4-3-x', 29: '0-2-0-0-0-3' }, Am7: { 27: 'x-0-2-0-1-3' }, 'G/D': { 14: 'x-x-0-4-3-3' },
       G: { 27: '3-x-0-0-3-3' }, 'G/C': { 11: 'x-3-0-0-3-3' }, 'D/F#': { 15: '2-x-0-2-3-2' },
       Fmaj9: { 10: 'x-8-10-9-8-8', 11: '1-x-2-0-1-0' }, E: { 26: '0-7-9-9-9-x' },
@@ -265,7 +279,7 @@ describe('the list of shapes', () => {
     }
     const found: Record<string, Record<number, string>> = {}
     for (const song of DEFAULT_SONGS) {
-      for (const [name, shape] of Object.entries(song.shapes ?? {})) {
+      for (const [name, shape] of [...Object.entries(song.shapes ?? {}), ...Object.entries(song.playerShapes ?? {})]) {
         const index = voicingsFor(name).findIndex(v => shapeText(v) === shape)
         if (index >= researchedStart(name)) found[name] = { ...found[name], [index]: shape }
       }
@@ -312,18 +326,18 @@ describe('your own shapes', () => {
 
   it('come after every other shape of the chord, and a pick by text finds them', () => {
     const before = voicingsFor('Em11').length
-    setOwnShapes({ Em11: ['x-x-2-2-3-5', 'x-x-7-7-10-x'] })
+    setOwnShapes({ Em11: ['x-x-2-4-3-5', 'x-x-7-7-10-x'] })
     const list = voicingsFor('Em11')
     expect(list.length).toBe(before + 2)
-    expect(shapeText(list[before])).toBe('x-x-2-2-3-5')
+    expect(shapeText(list[before])).toBe('x-x-2-4-3-5')
     expect(shapeText(list[before + 1])).toBe('x-x-7-7-10-x')
-    expect(ownShapesFor('Em11')).toEqual(['x-x-2-2-3-5', 'x-x-7-7-10-x'])
+    expect(ownShapesFor('Em11')).toEqual(['x-x-2-4-3-5', 'x-x-7-7-10-x'])
     expect(shapeToShow('Em11', 'x-x-7-7-10-x')).toBe(before + 1)
     expect(shapeToShow('Em11', 'x-x-9-9-9-9', 1)).toBe(1)
   })
 
   it('are gone again when removed', () => {
-    setOwnShapes({ Em11: ['x-x-2-2-3-5'] })
+    setOwnShapes({ Em11: ['x-x-2-4-3-5'] })
     const n = voicingsFor('Em11').length
     setOwnShapes({})
     expect(voicingsFor('Em11').length).toBe(n - 1)

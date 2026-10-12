@@ -319,6 +319,21 @@ for (const title of SHAPES_RELEASED) {
     if (!known.includes(shape)) RESEARCHED.set(name, [...known, shape])
   }
 }
+// The shapes the player plays in place of a song's researched ones
+// (`Song.playerShapes`, 3.54.1) come after every researched shape, so the
+// researched shapes keep their places in the list.
+for (const title of SHAPES_RELEASED) {
+  const song = DEFAULT_SONGS.find(s => s.title === title)
+  for (const [name, shape] of Object.entries(song?.playerShapes ?? {})) {
+    const known = RESEARCHED.get(name) ?? []
+    if (!known.includes(shape)) RESEARCHED.set(name, [...known, shape])
+  }
+}
+
+/** Shapes the player plays, as fret text: the ones they wrote and the ones built into songs for them. */
+export function isPlayersShape(name: string, shape: string): boolean {
+  return ownShapesFor(name).includes(shape) || DEFAULT_SONGS.some(s => s.playerShapes?.[name] === shape)
+}
 
 /** A written shape (x-7-9-9-9-7, low E to high e) as a diagram, or null when it cannot be read. */
 export function voicingFromText(shape: string): ChordVoicing | null {
