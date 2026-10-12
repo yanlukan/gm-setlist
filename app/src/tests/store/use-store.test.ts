@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../../store/use-store'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { isChartMark } from '../../music/theory'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
@@ -405,18 +406,19 @@ describe('Outside', () => {
     const outside = useStore.getInitialState().allSongs().find(s => s.title === 'Outside')!
     const byName = Object.fromEntries(outside.sections.map(s => [s.name, s.chords]))
     expect(outside.key).toBe('Gm')
-    expect(byName.Verse).toBe('Gm9  C6  Gm9  C6')
-    expect(byName.Chorus).toBe('Cm7  Cm6  Gm9  Gm  (x3)')
-    expect(byName['Chorus end']).toBe('Cm7  Cm6  Dsus4') // the turnaround belongs to the chorus
-    expect(byName.Instrumental).toBe('N.C.')             // guitar lays out
-    expect(byName.Outro).toBe('Gm9  C6  Gm9  C6')
+    expect(byName.Verse).toBe('|  Gm9  |  C6  |  Gm9  |  C6  |  (x4)')
+    // the turnaround on Dsus4 is the chorus's last line, no section of its own
+    expect(byName.Chorus).toBe('|  Cm7  |  Cm6  |  Gm9  |  Gm  |  (x3)\n|  Cm7  |  Cm6  |  Dsus4  |  Dsus4  |')
+    expect(byName['Chorus end']).toBeUndefined()
+    expect(byName.Instrumental).toBe('|  N.C.  |  %  |  %  |  %  |  (x2)') // guitar lays out
+    expect(byName.Outro).toBe('|  Gm9  |  C6  |  Gm9  |  C6  |  (x4)')
     expect(byName.Bridge).toBeUndefined()                // the chorus was once mislabelled Bridge
   })
 })
 
 describe('charts checked against the recordings', () => {
   const song = (title: string) => useStore.getInitialState().allSongs().find(s => s.title === title)!
-  const first = (title: string) => song(title).sections[0].chords.split(/\s+/)[0]
+  const first = (title: string) => song(title).sections[0].chords.split(/\s+/).find(t => t && !isChartMark(t))
 
   it('has Somebody to Love in G, as George Michael sang it with Queen', () => {
     expect(song('Somebody to Love').key).toBe('G')

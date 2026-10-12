@@ -60,8 +60,8 @@ describe('song order from the notes (2026-10-09)', () => {
     expect(missing).toEqual([])
   })
 
-  it('leaves the songs with no written order without one', () => {
-    for (const title of ['Papa Was a Rolling Stone', 'Outside']) expect(by(title).form, title).toBeUndefined()
+  it('leaves the song with no written order without one', () => {
+    for (const title of ['Papa Was a Rolling Stone']) expect(by(title).form, title).toBeUndefined()
   })
 
   it('Club Tropicana comes back to the chorus after the bass solo and after the last verse walk-up', () => {
@@ -71,8 +71,11 @@ describe('song order from the notes (2026-10-09)', () => {
     ])
   })
 
-  it('Somebody to Love plays its solo over the verse and goes straight to the outro', () => {
-    expect(by('Somebody to Love').form).toEqual(['Intro', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Bridge', 'Verse', 'Outro'])
+  it('Somebody to Love plays its solo over a verse and a chorus, then the coda, the riff and the long ending', () => {
+    expect(by('Somebody to Love').form).toEqual([
+      'Intro', 'Verse', 'Chorus', 'Turnaround', 'Verse', 'Chorus', 'Chorus end', 'Bridge',
+      'Solo', 'Turnaround', 'Verse', 'Coda', 'Break', 'Riff', 'Build', 'Outro',
+    ])
   })
 
   it("Freedom! '90 goes back to the second pre-chorus after the bridge", () => {
@@ -82,9 +85,9 @@ describe('song order from the notes (2026-10-09)', () => {
     ])
   })
 
-  it('Father Figure plays the bridge twice, the second ending differently, then the top again', () => {
+  it('Father Figure opens with the vamp, plays the bridge twice, the second ending differently, then the top again', () => {
     expect(by('Father Figure').form).toEqual([
-      'Verse', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Bridge', 'Bridge 2', 'Verse', 'Chorus', 'Outro',
+      'Intro', 'Verse', 'Verse', 'Chorus', 'Instrumental', 'Verse', 'Chorus', 'Bridge', 'Bridge 2', 'Verse', 'Chorus', 'Outro',
     ])
   })
 })

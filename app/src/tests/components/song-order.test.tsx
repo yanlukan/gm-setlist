@@ -8,7 +8,7 @@ import { useStore } from '../../store/use-store'
 // Faith: Intro | Verse | Pre-Chorus | Chorus | Solo, played as
 // Intro Verse Pre-Chorus Chorus Verse Pre-Chorus Chorus Solo Pre-Chorus Chorus
 const FAITH = FAITH_ONE_LINE
-const OUTSIDE = DEFAULT_SONGS.find(s => s.title === 'Outside')! // no built-in order
+const PAPA = DEFAULT_SONGS.find(s => s.title === 'Papa Was a Rolling Stone')! // no built-in order
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
@@ -61,7 +61,7 @@ describe('the song order on the chart', () => {
   })
 
   it('is not there for a song that has no order', () => {
-    open('Outside')
+    open('Papa Was a Rolling Stone')
     render(<SongSheet />)
     expect(strip()).not.toBeInTheDocument()
   })
@@ -185,20 +185,20 @@ describe('editing the song order', () => {
   })
 
   it('starts an order for a song that had none, and it shows on the chart afterwards', () => {
-    open('Outside')
+    open('Papa Was a Rolling Stone')
     act(() => useStore.setState({ editMode: true }))
     render(<SongSheet />)
     expect(within(editor()).getByText(/No order yet/)).toBeInTheDocument()
     // With nothing to look at yet, the add buttons are already open
     expect(within(editor()).queryByRole('button', { name: 'Add a section to the song order' })).not.toBeInTheDocument()
-    add('Verse')
-    add('Chorus')
-    add('Verse')
-    expect(useStore.getState().edits['Outside'].form).toEqual(['Verse', 'Chorus', 'Verse'])
-    expect(OUTSIDE.sections.map(s => s.name)).toEqual(expect.arrayContaining(['Verse', 'Chorus']))
+    add('Intro')
+    add('Killer')
+    add('Outro')
+    expect(useStore.getState().edits['Papa Was a Rolling Stone'].form).toEqual(['Intro', 'Killer', 'Outro'])
+    expect(PAPA.sections.map(s => s.name)).toEqual(expect.arrayContaining(['Intro', 'Killer', 'Outro']))
 
     act(() => useStore.setState({ editMode: false }))
-    expect(tags()).toEqual(['V', 'C', 'V'])
+    expect(tags()).toEqual(['Intro', 'Killer', 'Outro'])
   })
 
   it('marks a step that is not in the chart, and says why the chart does not show the order', () => {
