@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
-import { GIG_SETLIST_2026 } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 
 // The editor opens a section in the lines the chart shows it in: each time
 // through a part on a line of its own, not one chord after another.
 
-const LOVE = "I Can't Make You Love Me"
+// I Can't Make You Love Me's verse as it was charted before it was written
+// in bars: one line, as saved copies on a device still hold it
+const LOVE_VERSE = 'Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
@@ -42,25 +43,23 @@ function faithWith(verse: string) {
 
 describe('the editor shows a section by its parts', () => {
   it('opens the verse a line for each time through, the turnaround on its own line, and saves nothing for it', () => {
-    useStore.setState({ currentIndex: GIG_SETLIST_2026.indexOf(LOVE) })
-    render(<SongSheet />)
+    faithWith(LOVE_VERSE)
     expect(linesIn('Verse')).toEqual([
       ['Cadd9', 'Em11', 'C', 'G/B', 'Em7', 'Am7'],
       ['Cadd9', 'Em11', 'C', 'G/B', 'Em7', 'Am7'],
       ['G/D', 'D', 'G/B'],
     ])
-    expect(useStore.getState().edits).toEqual({})
+    expect(saved('Faith', 0)).toBe(LOVE_VERSE)
   })
 
-  it('saves the lines it shows, and a chord put back by Undo leaves the song on the built-in chart', () => {
-    useStore.setState({ currentIndex: GIG_SETLIST_2026.indexOf(LOVE) })
-    render(<SongSheet />)
+  it('saves the lines it shows, and a chord put back by Undo leaves the chart as it was', () => {
+    faithWith(LOVE_VERSE)
     chord('Verse', 0)
     tap('Delete')
     // Saved just as shown: the three lines, less the chord taken out
-    expect(saved(LOVE, 0)).toBe('Em11  C  G/B  Em7  Am7\nCadd9  Em11  C  G/B  Em7  Am7\nG/D  D  G/B')
+    expect(saved('Faith', 0)).toBe('Em11  C  G/B  Em7  Am7\nCadd9  Em11  C  G/B  Em7  Am7\nG/D  D  G/B')
     tap('Undo')
-    expect(useStore.getState().edits[LOVE]).toBeUndefined()
+    expect(saved('Faith', 0)).toBe(LOVE_VERSE)
   })
 
   it('lays one line out by its parts as chords go in, then keeps the lines as shown', () => {

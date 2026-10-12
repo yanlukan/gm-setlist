@@ -50,8 +50,13 @@ describe('charts that were only looked at', () => {
 })
 
 describe('the chart as it is read', () => {
-  // The chords, in order: the chart breaks a section into lines by its parts
-  const chordsOf = (text: string) => text.split(/\s+/).filter(Boolean)
+  // The chords, in order: the chart breaks a section into lines by its parts,
+  // and draws a section written in bars as a box for each bar, its bar lines
+  // the edges of the boxes
+  const chordsOf = (text: string) => text.split(/\s+/).filter(t => t && t !== '|')
+  const shownChords = (el: Element) => el.querySelector('.bar-grid')
+    ? Array.from(el.querySelectorAll('.bar-plain, .bar > span')).flatMap(e => chordsOf(e.textContent ?? ''))
+    : chordsOf(el.textContent ?? '')
 
   it.each(['normal', 'stage'] as const)('shows every song\'s chords exactly as saved, in %s mode, in the band key', mode => {
     const wrong: string[] = []
@@ -59,7 +64,7 @@ describe('the chart as it is read', () => {
       const song = gigSongs[i]
       useStore.setState({ currentIndex: i, editMode: false, viewMode: mode })
       const view = render(<SongSheet />)
-      const shown = Array.from(view.container.querySelectorAll('.chart-chords')).map(e => chordsOf(e.textContent ?? ''))
+      const shown = Array.from(view.container.querySelectorAll('.chart-chords')).map(shownChords)
       const semitones = transposeFor(song)
       const expected = song.sections.map(sec => chordsOf(semitones ? transposeInKey(sec.chords, song.key, semitones) : sec.chords))
       if (JSON.stringify(shown) !== JSON.stringify(expected)) wrong.push(song.title)
@@ -68,6 +73,13 @@ describe('the chart as it is read', () => {
     }
     expect(wrong).toEqual([])
   })
+
+  // A saved copy of I Can't Make You Love Me from before its chart was
+  // written in bars: the verse on one line, as a device may still hold it
+  const LOVE = "I Can't Make You Love Me"
+  const savedVerse = (chords: string) =>
+    useStore.setState({ edits: { [LOVE]: { sections: [{ name: 'Verse', chords }] } } })
+  const ONE_LINE = 'Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B'
 
   const verseLines = (title: string) => {
     useStore.setState({ currentIndex: gigSongs.findIndex(s => s.title === title), editMode: false })
@@ -78,7 +90,8 @@ describe('the chart as it is read', () => {
   }
 
   it('starts each time through a verse on a line of its own', () => {
-    expect(verseLines("I Can't Make You Love Me")).toEqual([
+    savedVerse(ONE_LINE)
+    expect(verseLines(LOVE)).toEqual([
       'Cadd9  Em11  C  G/B  Em7  Am7',
       'Cadd9  Em11  C  G/B  Em7  Am7',
       'G/D  D  G/B',
@@ -86,7 +99,8 @@ describe('the chart as it is read', () => {
   })
 
   it('makes each line a block of its own, so a line too long for the screen wraps indented under itself', () => {
-    useStore.setState({ currentIndex: gigSongs.findIndex(s => s.title === "I Can't Make You Love Me"), editMode: false })
+    savedVerse(ONE_LINE)
+    useStore.setState({ currentIndex: gigSongs.findIndex(s => s.title === LOVE), editMode: false })
     const view = render(<SongSheet />)
     const verse = view.container.querySelectorAll('.chart-chords')[0]
     expect(Array.from(verse.querySelectorAll('.chart-line')).map(line => (line.textContent ?? '').trim())).toEqual([
@@ -98,10 +112,9 @@ describe('the chart as it is read', () => {
   })
 
   it('keeps the lines the player set in the editor', () => {
-    const song = gigSongs.find(s => s.title === "I Can't Make You Love Me")!
     const own = 'Cadd9  Em11  C  G/B\nEm7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B'
-    useStore.setState({ edits: { [song.title]: { sections: [{ name: 'Verse', chords: own }, ...song.sections.slice(1)] } } })
-    expect(verseLines(song.title)).toEqual(own.split('\n'))
+    savedVerse(own)
+    expect(verseLines(LOVE)).toEqual(own.split('\n'))
   })
 })
 

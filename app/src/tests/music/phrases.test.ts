@@ -7,7 +7,8 @@ const section = (title: string, name: string) =>
 
 describe('a section laid out by its parts', () => {
   it('starts each time through the verse on a line of its own, the turnaround on its own line', () => {
-    expect(phraseLines(section("I Can't Make You Love Me", 'Verse'))).toEqual([
+    // I Can't Make You Love Me's verse as one line, before it was written in bars
+    expect(phraseLines('Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B')).toEqual([
       'Cadd9  Em11  C  G/B  Em7  Am7',
       'Cadd9  Em11  C  G/B  Em7  Am7',
       'G/D  D  G/B',
@@ -34,7 +35,7 @@ describe('a section laid out by its parts', () => {
   })
 
   it('keeps the chords before the part on a line of their own', () => {
-    expect(phraseLines(section("I Can't Make You Love Me", 'Chorus'))).toEqual([
+    expect(phraseLines('Cadd9  G  Cadd9  G  G/B  C  D  Em7  G/C  D/F#  Em7  G/C  D/F#  Em7  Am7  G/D  D  G/B')).toEqual([
       'Cadd9  G  Cadd9  G  G/B  C  D',
       'Em7  G/C  D/F#',
       'Em7  G/C  D/F#',

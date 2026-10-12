@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CHORD_DB, lookupChord, type ChordVoicing } from '../../data/chords-db'
 import { DEFAULT_SONGS } from '../../data/songs'
-import { transposeInKey } from '../../music/theory'
+import { isChartMark, transposeInKey } from '../../music/theory'
 
 describe('chord diagrams', () => {
   it('has a real diagram for every chord in the set, in the keys the band plays', () => {
@@ -11,8 +11,8 @@ describe('chord diagrams', () => {
       for (const section of song.sections) {
         const shown = transposeInKey(section.chords, song.key, k)
         for (const chord of shown.split(/\s+/).filter(Boolean)) {
-          // "no chord" and repeat marks like (x3) are instructions, not chords
-          if (/^N\.?C\.?$/i.test(chord) || /^\(?x\d+\)?$/i.test(chord)) continue
+          // "no chord", bar lines and repeat marks like (x3) are instructions, not chords
+          if (isChartMark(chord)) continue
           // The chord as written, spelled any way (C7(b9), Cb7) — never a simpler stand-in
           if (!lookupChord(chord, { simplify: false })) missing.push(`${chord} in ${song.title}`)
         }

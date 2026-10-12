@@ -408,13 +408,16 @@ export const DEFAULT_SONGS: Song[] = [
     // The Em11 the player plays (asked for 2026-10-12): E A D A, no open strings
     playerShapes: { Em11: 'x-x-2-2-3-5' },
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
-    notes: "From the songbook (no. 25), in George Michael's key of G. Piano-led; guitar plays sparse arpeggios, no strumming. Form: Verse, Chorus, Verse, Chorus, Outro, ending on Fmaj9. The first time, the verse has one 2/4 bar before G/D, and the chorus ends on Am7 back to the verse; the second time it goes straight into the Outro. The book marks 60 BPM; the recording measures 58.",
-    form: ['Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'],
+    notes: "From the songbook (no. 25), in George Michael's key of G, with the 8-bar piano intro from his recording (the book starts at the verse). Piano-led; guitar plays sparse arpeggios, no strumming. In the verse lines the C and the G/B come in late, after the piano: about beat 3 and beat 2 of their bars. The first time, the Am7 bar before G/D is only two beats (a 2/4 bar); the second time it is a full bar. Chorus end (Am7) goes back to the verse; the second chorus goes straight into the Outro, which opens on Em7 Am7. The last two bars slow down; hold the Fmaj9. The book marks 60 BPM; the recording measures 58.",
+    form: ['Intro', 'Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'],
+    // In bars, as the book writes them (one bar line per bar, a chord held
+    // into the next bar written again rather than %, which repeats a whole bar)
     sections: [
-      { name: 'Verse', chords: 'Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B' },
-      { name: 'Chorus', chords: 'Cadd9  G  Cadd9  G  G/B  C  D  Em7  G/C  D/F#  Em7  G/C  D/F#  Em7  Am7  G/D  D  G/B' },
-      { name: 'Chorus end', chords: 'Cadd9  G  G/C  Cadd9  Em11  C  G/B  Am7' },
-      { name: 'Outro', chords: 'Em7  Am7  Cadd9  Em11  C  G/B  Am7  C  Em11  C  G/B  Em7  Am7  C  Em11  Cadd9  G/B  Em7  Cadd9  Fmaj9' },
+      { name: 'Intro', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |' },
+      { name: 'Verse', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Am7  |  G/D  |  D  G/B  |' },
+      { name: 'Chorus', chords: '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n|  Cadd9  Em11  |  C  |  G/B  |' },
+      { name: 'Chorus end', chords: '|  Am7  |' },
+      { name: 'Outro', chords: '|  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |' },
     ],
   },
   {
