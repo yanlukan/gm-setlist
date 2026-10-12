@@ -23,7 +23,9 @@ interface FitOptions {
  * inside `container` without scrolling, found by binary search on real
  * layout. If even `min` does not fit, the essential part (if given) is fitted
  * instead, else it stays at `min`; the rest scrolls, so chords are never
- * shrunk to unreadable.
+ * shrunk to unreadable. If even `min` leaves it too wide, `content` gets
+ * `data-narrow="on"` (the page's narrower layout: bars two to a row on a
+ * phone) and is fitted again.
  *
  * `contentKey` must change whenever the text changes (song, transpose, ...).
  * Changes to the container's size — rotating the iPad, hiding the chord
@@ -81,15 +83,25 @@ export function useFitText(
       content.style.fontSize = `${largestFitting(fits)}px`
     }
 
-    const fit = () => {
+    const fitLayout = () => {
       fitBy(fits)
-      if (!fits() && essentialRef?.current) {
-        fitBy(essentialFits)
-        // Not even the essential part fits: say so, so the page can make room
-        // (smaller chord diagrams). Kept until the content changes, so the room
-        // it makes cannot take it away again and flicker.
-        if (!essentialFits()) container.dataset.cramped = 'on'
+      if (!fits() && essentialRef?.current) fitBy(essentialFits)
+    }
+
+    const fit = () => {
+      delete content.dataset.narrow
+      fitLayout()
+      // Too wide even at `min`, which would cut off the end of a line: use the
+      // narrower layout instead. Decided afresh on every fit, so turning the
+      // iPad to a wider screen brings the usual layout back.
+      if (container.scrollWidth > container.clientWidth + 1) {
+        content.dataset.narrow = 'on'
+        fitLayout()
       }
+      // Not even the essential part fits: say so, so the page can make room
+      // (smaller chord diagrams). Kept until the content changes, so the room
+      // it makes cannot take it away again and flicker.
+      if (essentialRef?.current && !fits() && !essentialFits()) container.dataset.cramped = 'on'
     }
 
     delete container.dataset.cramped

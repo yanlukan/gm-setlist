@@ -351,7 +351,7 @@ describe('band keys that ship with the songs', () => {
     const freedom = useStore.getState().allSongs().find(s => s.title === "Freedom! '90")!
     expect(freedom.key).toBe('C')
     // The songbook's line cliche (no. 19)
-    expect(freedom.sections.map(s => s.chords).join(' ')).toContain('Cm  Cm(maj7)  Cm7  Cm6')
+    expect(freedom.sections.find(s => s.name === 'Pre-Chorus')!.chords).toContain('|  Cm  |  Cm(maj7)  |  Cm7  |  Cm6  |')
     expect(freedom.transpose ?? 0).toBe(0)
   })
 })
@@ -433,10 +433,12 @@ describe('charts checked against the recordings', () => {
     // the keyboard plays G over D, "we are going to keep as original but when i play i will skip"
     const corner = song('A Different Corner')
     expect(corner.key).toBe('Gb')
-    const chords = new Set(corner.sections.flatMap(s => s.chords.split(/\s+/).filter(Boolean)))
+    const chords = new Set(corner.sections.flatMap(s => s.chords.split(/\s+/).filter(t => t && t !== '|' && t !== '%')))
     expect([...chords].sort()).toEqual(['Abm', 'Ebm', 'Gb', 'Gb/Db'])
     // "bass plays Ab but guitar needs to play 2 chords over Ab", which the user named: "Ebm and Abm"
-    expect(corner.sections[0].chords).toBe('Gb  Gb/Db  Gb  Gb/Db  Gb  Ebm  Abm  Gb  Gb/Db  Gb  Gb/Db  Ebm  Abm  Gb')
+    expect(corner.sections.find(s => s.name === 'Verse')!.chords).toBe(
+      '|  Gb  |  Gb/Db  Gb  |  Gb  |  Gb/Db  Gb  |\n|  Ebm  |  Abm  |  Gb  |  %  |\n|  Gb  |  Gb/Db  Gb  |  Gb  |  Gb/Db  |\n|  Ebm  |  Abm  |  Gb  |  %  |',
+    )
     // The book's G and Am7 voicings a semitone lower, fingered as barres
     // Gb/Db is the same barre with the Db bass on the A string, the note the guitar plays for it
     expect(corner.shapes).toEqual({ Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2' })
@@ -445,10 +447,10 @@ describe('charts checked against the recordings', () => {
 
   it('has the Killer / Papa medley as written in the songbook', () => {
     const byName = Object.fromEntries(song('Papa Was a Rolling Stone').sections.map(s => [s.name, s.chords]))
-    expect(byName['Killer verse']).toBe('N.C.')        // riff only, no chords
-    expect(byName.Killer).toBe('Bbm  Gb  Fm  Bbm  Gb  Fm')
+    expect(byName['Killer verse']).toBe('|  N.C.  |  %  |  %  |  %  |  (x4)')   // riff only, no chords
+    expect(byName.Killer).toBe('|  Bbm  |  Bbm  Gb  |  Fm  |  %  |  (x6)')
     expect(byName['Trumpet solo']).toContain('Ab')
-    expect(byName.Papa).toBe('Bbm7')                  // one-chord vamp
+    expect(byName.Papa).toBe('|  Bbm7  |  %  |  %  |  %  |  (x10)')            // one-chord vamp
   })
 
   it('has Fastlove in Am, the band\'s key, on its real groove', () => {

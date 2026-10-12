@@ -16,7 +16,8 @@ describe('a section laid out by its parts', () => {
   })
 
   it('runs a line on until the part comes round again', () => {
-    expect(phraseLines(section('A Different Corner', 'Verse'))).toEqual([
+    // A Different Corner's verse as one line, before it was written in bars
+    expect(phraseLines('Gb  Gb/Db  Gb  Gb/Db  Gb  Ebm  Abm  Gb  Gb/Db  Gb  Gb/Db  Ebm  Abm  Gb')).toEqual([
       'Gb  Gb/Db  Gb  Gb/Db  Gb  Ebm  Abm',
       'Gb  Gb/Db  Gb  Gb/Db  Ebm  Abm  Gb',
     ])

@@ -6,14 +6,14 @@ import { useFitText } from '../../hooks/use-fit-text'
  * jsdom has no layout, so the chart is faked: a 400px tall screen, a whole
  * chart `lines` lines tall, and chord sections ending after `chordLines`.
  */
-function fakeChart(lines: number, chordLines: number) {
+function fakeChart(lines: number, chordLines: number, width: (content: HTMLElement) => number = () => 300) {
   const container = document.createElement('div')
   const content = document.createElement('div')
   const sections = document.createElement('div')
   const px = () => parseInt(content.style.fontSize) || 0
   Object.defineProperty(container, 'clientHeight', { get: () => 400 })
   Object.defineProperty(container, 'clientWidth', { get: () => 300 })
-  Object.defineProperty(container, 'scrollWidth', { get: () => 300 })
+  Object.defineProperty(container, 'scrollWidth', { get: () => width(content) })
   Object.defineProperty(container, 'scrollHeight', { get: () => Math.max(400, px() * lines) })
   container.getBoundingClientRect = () => ({ top: 0, bottom: 400 }) as DOMRect
   sections.getBoundingClientRect = () => ({ top: 0, bottom: px() * chordLines }) as DOMRect
@@ -57,6 +57,31 @@ describe('useFitText', () => {
     const chart = fakeChart(25, 12)
     renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
     expect(chart.container.current.dataset.cramped).toBeUndefined()
+  })
+
+  it('lays the chart out narrower when even the smallest size is too wide, and fits it again', () => {
+    // Too wide at any size until the page lays it out narrower (bars two to a row on a phone)
+    const chart = fakeChart(10, 8, content => (content.dataset.narrow ? 300 : 340))
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
+    expect(chart.content.current.dataset.narrow).toBe('on')
+    expect(chart.size()).toBe(40)
+  })
+
+  it('keeps the usual layout when the chart is not too wide', () => {
+    const chart = fakeChart(25, 12)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
+    expect(chart.content.current.dataset.narrow).toBeUndefined()
+  })
+
+  it('goes back to the usual layout when the next chart is not too wide', () => {
+    let wide = 340
+    const chart = fakeChart(10, 8, content => (content.dataset.narrow ? 300 : wide))
+    const { rerender } = renderHook(({ key }) =>
+      useFitText(chart.container, chart.content, key, { ...options, essentialRef: chart.sections }), { initialProps: { key: 'a' } })
+    expect(chart.content.current.dataset.narrow).toBe('on')
+    wide = 300
+    rerender({ key: 'b' })
+    expect(chart.content.current.dataset.narrow).toBeUndefined()
   })
 
   it('forgets cramped when the chart changes', () => {

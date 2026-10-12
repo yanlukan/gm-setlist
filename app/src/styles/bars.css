@@ -17,10 +17,14 @@
    the bars of every line stand in the same columns. */
 .bar-grid {
   display: grid;
+  grid-template-columns: repeat(var(--bars, 1), 1fr);
   width: max-content;
   max-width: 100%;
   row-gap: 0.2em;
 }
+/* Set by the fit when even the smallest size is too wide (a phone): each line
+   takes two rows of half its bars, so no bar is cut off at the edge. */
+.chart[data-narrow="on"] .bar-grid { grid-template-columns: repeat(var(--bars-half, 1), 1fr); }
 .bar-plain { grid-column: 1 / -1; }
 /* The grid's width must never widen the chords column (on a phone that
    pushed the chart sideways). Too wide a grid runs past the edge instead,

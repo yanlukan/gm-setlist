@@ -18,7 +18,9 @@ describe('a section written in bars', () => {
   it('draws a box per bar, as many columns as the longest line has bars', () => {
     const page = faith('|  D  |  %  |  G  A  |  D  |\nN.C.\n|  Bm7  |  G  |')
     const grid = page.querySelector('.bar-grid')!
-    expect((grid as HTMLElement).style.gridTemplateColumns).toBe('repeat(4, 1fr)')
+    // 4 columns, or 2 (bars 1-2 over 3-4) when the chart is laid out narrow on a phone
+    expect((grid as HTMLElement).style.getPropertyValue('--bars')).toBe('4')
+    expect((grid as HTMLElement).style.getPropertyValue('--bars-half')).toBe('2')
     expect(rows(grid)).toEqual(['D', '%', 'GA', 'D', 'N.C.', 'Bm7', 'G'])
     expect(grid.querySelectorAll('.bar-first')).toHaveLength(2)
     expect(grid.querySelector('.bar-plain')?.textContent).toBe('N.C.')

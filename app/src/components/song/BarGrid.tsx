@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { barsOf, hasBars, isRepeatCount, REPEAT_BAR } from '../../music/bars'
 
 interface Props {
@@ -12,13 +12,15 @@ interface Props {
  * A section written in bars: a box for each bar, every box as wide as the
  * widest in the section, so bar 1 of every line stands in the same column.
  * Two chords in a bar share it evenly. A line without bars (N.C., or one
- * left blank) runs across the whole width.
+ * left blank) runs across the whole width. When even the smallest size is too
+ * wide (a phone), the chart is laid out narrow and each line takes two rows
+ * of half its bars, still in columns.
  */
 export function BarGrid({ lines, renderTokens }: Props) {
   const rows = lines.map(line => line.split(/\s+/).filter(Boolean))
   const columns = Math.max(1, ...rows.filter(row => hasBars(row)).map(row => barsOf(row).length))
   return (
-    <div className="bar-grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+    <div className="bar-grid" style={{ '--bars': String(columns), '--bars-half': String(Math.ceil(columns / 2)) } as CSSProperties}>
       {rows.map((row, li) => {
         if (!hasBars(row)) return <div key={li} className="chart-line bar-plain">{renderTokens(lines[li])}</div>
         const bars = barsOf(row)
