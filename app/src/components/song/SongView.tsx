@@ -10,6 +10,7 @@ import { lookupChord } from '../../data/chords-db'
 import { indexOfShape } from '../../music/voicings'
 import { ChordDiagram } from '../diagrams/ChordDiagram'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
+import { layOutParts } from '../../music/phrases'
 
 interface LyricsLine { c?: string; l?: string }
 interface Section { name: string; chords: string }
@@ -242,7 +243,7 @@ export function SongView({
                       color: sectionColor(section.name), marginBottom: 2,
                     }}>{section.name}</div>
                     <div style={{ letterSpacing: 1, wordSpacing: 10, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {renderTappableChords(section.chords, 20)}
+                      {renderTappableChords(layOutParts(section.chords), 20)}
                     </div>
                   </>
                 )}

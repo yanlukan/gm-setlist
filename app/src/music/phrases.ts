@@ -1,4 +1,5 @@
 import { isChartMark } from './theory'
+import { normalizeChordText, parseChordText, type Caret, type ChordLines } from './chord-text'
 
 /** The shortest part, in chords, that counts as one: shorter repeats are a riff inside a line. */
 const MIN_PART = 3
@@ -31,6 +32,44 @@ export function layOutParts(text: string): string {
   return text.includes('\n') ? text : phraseLines(text).join('\n')
 }
 
+/**
+ * A section's chords as they are saved after an edit. Lines that are just
+ * the parts laid out again are saved as one line, so the chart goes on
+ * laying them out itself and an edit undone leaves the song as it was.
+ * Lines the player changed are saved as they are.
+ */
+export function keptLines(text: string): string {
+  if (!text.includes('\n')) return text
+  const oneLine = parseChordText(text).flat().join('  ')
+  return normalizeChordText(text) === normalizeChordText(layOutParts(oneLine)) ? oneLine : text
+}
+
+/** A section's lines are the ones the chart lays out itself, not lines the player set. */
+export function isLaidOutByParts(lines: ChordLines): boolean {
+  const own = lines.map(line => line.join('  ')).join('\n')
+  return own === parseChordText(layOutParts(lines.flat().join('  '))).map(line => line.join('  ')).join('\n')
+}
+
+/**
+ * A chord put in, changed or taken out of a section the chart lays out by
+ * its parts. The section stays laid out by its parts, so its lines follow
+ * the new chords: the chords as one line to save, the lines they now make,
+ * and the cursor at the same place among the chords.
+ */
+export function relayOut(lines: ChordLines, caret: Caret): { text: string; lines: ChordLines; caret: Caret } {
+  const text = lines.flat().join('  ')
+  const laidOut = parseChordText(layOutParts(text))
+  if (laidOut.length === 0) return { text, lines: [[]], caret: { line: 0, pos: 0 } }
+  let before = lines.slice(0, caret.line).reduce((n, line) => n + line.length, 0) + caret.pos
+  for (let line = 0; line < laidOut.length; line++) {
+    // At the end of a line rather than the start of the next: after the chord just put in
+    if (before <= laidOut[line].length) return { text, lines: laidOut, caret: { line, pos: before } }
+    before -= laidOut[line].length
+  }
+  const last = laidOut.length - 1
+  return { text, lines: laidOut, caret: { line: last, pos: laidOut[last].length } }
+}
+
 /** Each chord with the marks that follow it ("D (x2)"), so a mark never starts a line. */
 function groups(tokens: string[]): string[][] {
   const out: string[][] = []
@@ -45,7 +84,11 @@ const same = (a: string[], b: string[]) => a.length === b.length && a.every((t, 
 
 function split(chords: string[][]): string[][][] {
   const part = longestRepeat(chords)
-  if (!part) return [chords]
+  if (!part) {
+    const length = alikeParts(chords)
+    if (!length) return [chords]
+    return Array.from({ length: chords.length / length }, (_, n) => chords.slice(n * length, (n + 1) * length))
+  }
   const { start, length } = part
   const playedAt = (i: number) => chords.slice(i, i + length).every((c, k) => same(c, chords[start + k]))
   // Every time the part is played, left to right, never overlapping
@@ -76,6 +119,28 @@ function split(chords: string[][]): string[][][] {
     }
   })
   return lines
+}
+
+/**
+ * Parts that start alike and end differently ("Am7 Fmaj7 Am7 Dm9", then
+ * "Am7 Fmaj7 Em7 Dm9"): the section cut into equal parts that each open on
+ * the same chord and have at least half their chords in the same places.
+ * The fewest such parts, so each line is as long as it can be. Their length,
+ * or null when the section does not cut that way.
+ */
+function alikeParts(chords: string[][]): number | null {
+  for (let count = 2; chords.length / count >= MIN_PART; count++) {
+    if (chords.length % count !== 0) continue
+    const length = chords.length / count
+    const first = chords.slice(0, length)
+    const alike = (n: number) => {
+      const part = chords.slice(n * length, (n + 1) * length)
+      const shared = part.filter((c, k) => same(c, first[k])).length
+      return same(part[0], first[0]) && shared * 2 >= length
+    }
+    if (Array.from({ length: count - 1 }, (_, n) => n + 1).every(alike)) return length
+  }
+  return null
 }
 
 /** The longest run of chords played twice without overlapping, the earliest if more than one. */

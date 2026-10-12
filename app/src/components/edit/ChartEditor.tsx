@@ -7,6 +7,7 @@ import { SongHistoryModal } from './SongHistoryModal'
 import { FormEditor } from './FormEditor'
 import { isChartMark, sectionColor } from '../../music/theory'
 import { formAfterDelete, formAfterRename } from '../../music/form'
+import { isLaidOutByParts, keptLines, layOutParts, relayOut } from '../../music/phrases'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
   normalizeChordText, parseChordText, replaceChord, unknownChords,
@@ -97,9 +98,12 @@ export function ChartEditor({
     displaySections.flatMap(s => parseChordText(s.chords).flat()).filter(c => !isChartMark(c)),
   ))
 
-  /** A section's lines: the draft while it still says what is saved, else what is saved. */
+  /**
+   * A section's lines: the draft while it still says what is saved, else
+   * what is saved, laid out by its parts as the chart shows it.
+   */
   const linesOf = (i: number): ChordLines => {
-    const text = displaySections[i]?.chords ?? ''
+    const text = layOutParts(displaySections[i]?.chords ?? '')
     const draft = drafts[i]
     const lines = draft && formatChordText(draft) === normalizeChordText(text) ? draft : parseChordText(text)
     return lines.length > 0 ? lines : [[]]
@@ -121,8 +125,14 @@ export function ChartEditor({
     setHistory(h => ({ past: [...h.past.slice(-(MAX_UNDO - 1)), { sections, form }], future: [] }))
 
   const changeChords = (i: number, produce: (lines: ChordLines) => Edited) => {
-    const { lines, caret } = produce(linesOf(i))
-    const text = formatChordText(lines)
+    const shown = linesOf(i)
+    const edited = produce(shown)
+    // A chord put in, changed or taken out where the chart lays the lines out
+    // itself: they follow the new chords. A new line, or two lines joined, is
+    // the player's own and is kept.
+    const chordsChanged = edited.lines.flat().join(' ') !== shown.flat().join(' ')
+    const { lines, caret } = chordsChanged && isLaidOutByParts(shown) ? relayOut(edited.lines, edited.caret) : edited
+    const text = keptLines(formatChordText(lines))
     if (text !== normalizeChordText(displaySections[i].chords)) remember()
     setDrafts(d => ({ ...d, [i]: lines }))
     setCursor({ kind: 'caret', section: i, ...caret })
@@ -356,8 +366,9 @@ export function ChartEditor({
                         multiline
                         ref={typedRef}
                         className="edit-chords"
-                        value={section.chords}
-                        onChange={text => {
+                        value={layOutParts(section.chords)}
+                        onChange={typedText => {
+                          const text = keptLines(typedText)
                           if (normalizeChordText(text) !== normalizeChordText(section.chords)) remember()
                           onChords(si, text)
                         }}

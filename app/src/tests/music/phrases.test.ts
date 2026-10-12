@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SONGS } from '../../data/songs'
-import { layOutParts, phraseLines } from '../../music/phrases'
+import { isLaidOutByParts, keptLines, layOutParts, phraseLines, relayOut } from '../../music/phrases'
 
 const section = (title: string, name: string) =>
   DEFAULT_SONGS.find(s => s.title === title)!.sections.find(s => s.name === name)!.chords
@@ -50,6 +50,17 @@ describe('a section laid out by its parts', () => {
     ])
   })
 
+  it('puts parts that start alike and end differently on lines of their own', () => {
+    expect(phraseLines(section('Fastlove', 'Chorus'))).toEqual(['Am7  Fmaj7  Am7  Dm9', 'Am7  Fmaj7  Em7  Dm9'])
+    expect(phraseLines(section('Kissing a Fool', 'Verse'))).toEqual([
+      'Eb6  Edim7  Fm7  Cb(b5)  Bb7',
+      'Eb6  C7(b9)  Fm7  Cb(b5)  Bb',
+    ])
+    // Not alike: another first chord, or only the first chord the same
+    expect(phraseLines('C  F  G  Am  D  F  G  Bm')).toEqual(['C  F  G  Am  D  F  G  Bm'])
+    expect(phraseLines('C  F  G  Am  C  Dm  Em  G')).toEqual(['C  F  G  Am  C  Dm  Em  G'])
+  })
+
   it('leaves a section with no part played twice on one line', () => {
     expect(phraseLines('Bm  D/A  Gmaj7  F#m7  Em7  G/A  B11  F#7#5')).toEqual(['Bm  D/A  Gmaj7  F#m7  Em7  G/A  B11  F#7#5'])
     // Two chords back and forth is not a part
@@ -82,5 +93,35 @@ describe('the lines the chart shows', () => {
 
   it('lays a one-line section out by its parts', () => {
     expect(layOutParts('D  G  C  D  G  C')).toBe('D  G  C\nD  G  C')
+  })
+})
+
+describe('lines saved from the editor', () => {
+  it('saves the lines the chart lays out itself as one line, so it goes on laying them out', () => {
+    expect(keptLines('D  G  C\nD  G  C')).toBe('D  G  C  D  G  C')
+    expect(keptLines('D  G  C  D  G  C')).toBe('D  G  C  D  G  C')
+  })
+
+  it('saves lines the player set as they are', () => {
+    expect(keptLines('D  G\nC  D  G  C')).toBe('D  G\nC  D  G  C')
+    expect(keptLines('B  E\nB  E  B')).toBe('B  E\nB  E  B')
+  })
+
+  it('knows lines the chart laid out from lines the player set', () => {
+    expect(isLaidOutByParts([['D', 'G', 'C'], ['D', 'G', 'C']])).toBe(true)
+    expect(isLaidOutByParts([['D', 'G'], ['C', 'D', 'G', 'C']])).toBe(false)
+    // An empty line to type into is the player's
+    expect(isLaidOutByParts([['D', 'G', 'C', 'D', 'G'], []])).toBe(false)
+  })
+
+  it('lays the lines out again after a chord goes in, the cursor after it', () => {
+    expect(relayOut([['D', 'G', 'C', 'D', 'G', 'C']], { line: 0, pos: 6 })).toEqual({
+      text: 'D  G  C  D  G  C',
+      lines: [['D', 'G', 'C'], ['D', 'G', 'C']],
+      caret: { line: 1, pos: 3 },
+    })
+    // At the end of a line, not the start of the next
+    expect(relayOut([['D', 'G', 'C', 'D', 'G', 'C']], { line: 0, pos: 3 }).caret).toEqual({ line: 0, pos: 3 })
+    expect(relayOut([[]], { line: 0, pos: 0 })).toEqual({ text: '', lines: [[]], caret: { line: 0, pos: 0 } })
   })
 })

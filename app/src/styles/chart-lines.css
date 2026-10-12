@@ -1,0 +1,15 @@
+/* Each line of a section is one part of it. A line too long for the screen
+   goes on indented under itself, so where it wraps never looks like the next
+   part starting. An empty line the player left keeps its height. */
+.chart-line {
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+  min-height: 1.3em;
+}
+
+/* The same in the editor, whose lines are rows of buttons. The first row
+   starts where it always did; a row after a wrap starts past the first chord
+   (the 26px cursor gap before it, and 20px more), whether it opens on a chord
+   or on a gap. In px: a gap's em is its own small font, not the chart's. */
+.ce-line { padding-left: 46px; }
+.ce-line > :first-child { margin-left: -46px; }

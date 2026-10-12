@@ -4,6 +4,7 @@ import { differingSections, hasEditedChart } from '../../music/chart-edits'
 import { isChordToken, unknownChords } from '../../music/chord-text'
 import { transposeFor } from '../../music/setlist-text'
 import { transposeInKey } from '../../music/theory'
+import { layOutParts } from '../../music/phrases'
 import type { Song } from '../../types'
 
 interface Props {
@@ -19,7 +20,7 @@ function inBandKey(key: string, semitones: number, chords: string): string {
 function Chords({ text, className }: { text: string; className: string }) {
   return (
     <span className={className}>
-      {text.split(/(\s+)/).map((token, i) =>
+      {layOutParts(text).split(/(\s+)/).map((token, i) =>
         token.trim() && !isChordToken(token)
           ? <mark key={i} className="sc-bad">{token}</mark>
           : <Fragment key={i}>{token}</Fragment>)}

@@ -285,7 +285,20 @@ export function SongSheet() {
 
   // Tappable chords open the voicing picker — except on stage, where a brushed
   // chord must not throw a pop-up over the chart mid-song.
-  const renderChords = (text: string) =>
+  // Each line is one part. A line too long for the screen goes on indented,
+  // so where it wraps never looks like the next part starting. The line break
+  // stays in the text, for anything that reads the chart as text.
+  const renderChords = (text: string) => {
+    const lines = text.split('\n')
+    return lines.map((line, li) => (
+      <div key={li} className="chart-line">
+        {renderTokens(line)}
+        {li < lines.length - 1 && '\n'}
+      </div>
+    ))
+  }
+
+  const renderTokens = (text: string) =>
     text.split(/(\s+)/).map((token, i) => {
       if (!token.trim()) return <span key={i}>{token}</span>
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>

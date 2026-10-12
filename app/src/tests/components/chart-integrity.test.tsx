@@ -85,6 +85,18 @@ describe('the chart as it is read', () => {
     ])
   })
 
+  it('makes each line a block of its own, so a line too long for the screen wraps indented under itself', () => {
+    useStore.setState({ currentIndex: gigSongs.findIndex(s => s.title === "I Can't Make You Love Me"), editMode: false })
+    const view = render(<SongSheet />)
+    const verse = view.container.querySelectorAll('.chart-chords')[0]
+    expect(Array.from(verse.querySelectorAll('.chart-line')).map(line => (line.textContent ?? '').trim())).toEqual([
+      'Cadd9  Em11  C  G/B  Em7  Am7',
+      'Cadd9  Em11  C  G/B  Em7  Am7',
+      'G/D  D  G/B',
+    ])
+    cleanup()
+  })
+
   it('keeps the lines the player set in the editor', () => {
     const song = gigSongs.find(s => s.title === "I Can't Make You Love Me")!
     const own = 'Cadd9  Em11  C  G/B\nEm7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B'

@@ -3,6 +3,7 @@ import { useStore } from '../../store/use-store'
 import { getSongHistory } from '../../store/persistence'
 import { whenHistorySaved } from '../../store/song-history'
 import { transposeInKey } from '../../music/theory'
+import { layOutParts } from '../../music/phrases'
 import type { Section, SongVersion } from '../../types'
 
 interface Props {
@@ -91,7 +92,7 @@ export function SongHistoryModal({ title, onClose }: Props) {
                     {version.sections.map((section, k) => (
                       <div key={k} className="hist-section">
                         <span className="hist-section-name">{section.name}</span>
-                        <span className="hist-chords">{shown(section.chords)}</span>
+                        <span className="hist-chords">{layOutParts(shown(section.chords))}</span>
                       </div>
                     ))}
                     <button className="hist-restore" onClick={() => bringBack(version)}>Bring this version back</button>

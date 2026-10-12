@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { layOutParts } from '../../music/phrases'
 import type { Section } from '../../types'
 
 export interface AnalysisResult {
@@ -158,7 +159,7 @@ export function ResultsView({ result, onSave, onRefine, refining }: Props) {
               fontFamily: 'monospace',
               whiteSpace: 'pre-wrap',
             }}>
-              {section.chords}
+              {layOutParts(section.chords)}
             </div>
           </div>
         ))}
