@@ -12,14 +12,17 @@ export const DEFAULT_SONGS: Song[] = [
     capo: null,
     shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' },
     shapesFrom: 'Songbook',
-    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz).',
-    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Chorus'],
+    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz). The chart counts bars at 96, so each bar is two of the book\'s. The 4-bar guitar intro and a bar of silence before the last chorus are from the recording; the organ opening before the guitar is in free time and not in bars.',
+    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Stop', 'Chorus'],
+    // In bars at 96, so each bar is two of the book's; the guitar intro and the
+    // stop before the last chorus are counted from the recording
     sections: [
-      { name: 'Intro', chords: 'B' },
-      { name: 'Verse', chords: 'B  E  B  E  B' },
-      { name: 'Pre-Chorus', chords: 'E  B  E  B  E  B  G#m  C#m  F#  N.C.' },
-      { name: 'Chorus', chords: 'B' },
-      { name: 'Solo', chords: 'B  E  B  E  B' },
+      { name: 'Intro', chords: '|  B  |  %  |  %  |  %  |' },
+      { name: 'Verse', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
+      { name: 'Pre-Chorus', chords: '|  E  |  B  |  E  |  B  |\n|  E  |  B  G#m  |  C#m  |  F#  N.C.  |' },
+      { name: 'Chorus', chords: '|  B  |  %  |  %  |  %  |' },
+      { name: 'Solo', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
+      { name: 'Stop', chords: '|  N.C.  |' },
     ],
   },
   {
@@ -36,15 +39,26 @@ export const DEFAULT_SONGS: Song[] = [
     capo: null,
     shapes: { Am: 'x-0-2-2-1-0', 'G/B': 'x-2-0-0-0-x', F6: 'x-x-3-2-3-1' },
     shapesFrom: 'Songbook',
-    notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The book is a whole tone above the band. Where one of its shapes moves down two frets note for note, that shape is shown, marked Songbook; its open chords cannot move down, so the rest are the usual shapes. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus; the chorus vamp carries on through a post-chorus and an instrumental; Bridge; then the Chorus repeated to fade.',
-    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Chorus', 'Outro'],
+    notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The book is a whole tone above the band. Where one of its shapes moves down two frets note for note, that shape is shown, marked Songbook; its open chords cannot move down, so the rest are the usual shapes. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus twice; an instrumental over the pre-chorus chords; Bridge; then the Chorus four times into the fade. The bars are counted from the recording at 132.',
+    form: [
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Instrumental', 'Bridge',
+      'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Outro',
+    ],
+    // Bars from the book, counted against the recording at 132. The intro, the
+    // instrumental (the book has only rests there) and the bridge's last bar,
+    // played before the last choruses, are from the recording.
     sections: [
-      { name: 'Intro', chords: 'D  G  C  D  G  C' },
-      { name: 'Verse', chords: 'D  G6  A6  G6  D  G6  A6  G6' },
-      { name: 'Pre-Chorus', chords: 'G  A  D  G  A  D' },
-      { name: 'Chorus', chords: 'D  G6  D  G6  D  G6  D  G6' },
-      { name: 'Bridge', chords: 'D  G6  D  G6  D  G6  D  G6  A6  G6  D  A  Bm  A/C#  D  G6  D  G6  D  G6  D' },
-      { name: 'Outro', chords: 'D  G6  D  G6' },
+      { name: 'Intro', chords: '|  D  |  G  C  |  D  |  G  C  |\n|  D  |  G6  |  D  |  G6  |' },
+      { name: 'Verse', chords: '|  D  |  G6  |  A6  |  G6  |  (x2)' },
+      { name: 'Pre-Chorus', chords: '|  G  |  A  |  D  |  D  |  (x2)' },
+      { name: 'Chorus', chords: '|  D  |  G6  |  D  |  G6  |  (x2)' },
+      { name: 'Instrumental', chords: '|  G  |  A  |  D  |  D  |  (x2)' },
+      {
+        name: 'Bridge',
+        chords:
+          '|  D  |  G6  |  D  |  G6  |  (x2)\n|  G6  |  A6  |  G6  |  D  |\n|  A  |  Bm  |  A/C#  |  D  |\n|  D  |  G6  |  D  |  G6  |  (x2)',
+      },
+      { name: 'Outro', chords: '|  D  |  G6  |  D  |  G6  |' },
     ],
   },
   {
@@ -107,14 +121,18 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The band checked the chords in its own key on 2026-10-09: the first chord of the pre-chorus is the one they play, a third below the published charts'. Form: Intro, Verse twice, Pre-Chorus, Chorus twice, Verse, Pre-Chorus, then the Chorus repeated to the end. Keyboard-driven production; guitar doubles synth lines.",
-    form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Outro'],
+    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The band checked the chords in its own key on 2026-10-09: the first chord of the pre-chorus is the one they play, a third below the published charts'. Form: Intro, Verse, Pre-Chorus, Chorus twice; the intro again; Verse, Pre-Chorus, then the Chorus six times into the fade. The bars are counted from the recording at 128, from where the band comes in after the quiet opening. Keyboard-driven production; guitar doubles synth lines.",
+    form: [
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus',
+      'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus',
+    ],
+    // Bars counted from the recording at 128, from where the band comes in after
+    // the quiet opening; the record fades on the sixth chorus.
     sections: [
-      { name: 'Intro', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7' },
-      { name: 'Verse', chords: 'Bbm7  Gbmaj7  Bbm7  Gbmaj7  (x2)' },
-      { name: 'Pre-Chorus', chords: 'Cm7  Bbm7  Ab  Ebm7  Gb  Ab' }, // first chord as the band plays it, not the published charts'
-      { name: 'Chorus', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x2)' },
-      { name: 'Outro', chords: 'Bbm7  Gbmaj7  Fm7  Ebm7  Fm7  (x4)' },
+      { name: 'Intro', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |  (x2)' },
+      { name: 'Verse', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |  (x4)' },
+      { name: 'Pre-Chorus', chords: '|  Cm7  |  %  |  Bbm7  |  Ab  |\n|  Ebm7  |  %  |  Gb  |  Ab  |' }, // first chord as the band plays it, not the published charts'
+      { name: 'Chorus', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |\n|  Fm7  |  %  |  Ebm7  |  Fm7  |' },
     ],
   },
   {
@@ -324,16 +342,18 @@ export const DEFAULT_SONGS: Song[] = [
     shapesFrom: 'Songsterr',
     notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM. The shapes marked Songsterr are the record\'s rhythm guitar as Songsterr\'s transcription plays it, barres between the 6th and 11th frets, moved down two frets to the band\'s key.',
     form: ['Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro'],
+    // Bars from the bass transcription, 114 in all, matching the recording at
+    // 118 after its sound-effects opening. The fade plays the walk-up once more.
     sections: [
-      { name: 'Intro', chords: 'F#m7  (x8)' },
-      { name: 'Intro 2', chords: 'F#m7  B7  (x2)' },
-      { name: 'Verse', chords: 'F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  B/D#  E' },
-      { name: 'Chorus', chords: 'B  D#m7  B  D#m7  B  D#m7  B  D#m7  Dm7  C#m7' },
-      { name: 'Instrumental', chords: 'F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  F#m7  B7  B/D#  E' },
-      { name: 'Bass solo', chords: 'F#m7  B7  (x4)' },
-      { name: 'Last verse', chords: 'F#m7  B7  (x7)' },
-      { name: 'Walk-up', chords: 'F#m7  B7  C#m  B/D#  E' },
-      { name: 'Outro', chords: 'F#m7  B7  (x8)' },
+      { name: 'Intro', chords: '|  F#m7  |  %  |  %  |  %  |  (x2)' },
+      { name: 'Intro 2', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |' },
+      { name: 'Verse', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |\n|  F#m7  |  B7  |  F#m7  |  B7  B/D#  E  |' },
+      { name: 'Chorus', chords: '|  B  |  D#m7  |  B  |  D#m7  |\n|  B  |  D#m7  |  B  |  D#m7  Dm7  C#m7  |' },
+      { name: 'Instrumental', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |  (x2)\n|  F#m7  |  B7  |  F#m7  |  B7  B/D#  E  |' },
+      { name: 'Bass solo', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |  (x2)' },
+      { name: 'Last verse', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |  (x3)\n|  F#m7  |  B7  |' },
+      { name: 'Walk-up', chords: '|  F#m7  |  B7  C#m  B/D#  E  |' },
+      { name: 'Outro', chords: '|  F#m7  |  B7  |  F#m7  |  B7  |  (x2)\n|  F#m7  |  B7  |  F#m7  |  B7  C#m  B/D#  E  |\n|  F#m7  |  B7  |  F#m7  |  B7  |\n|  F#m7  |  B7  |' },
     ],
   },
   {

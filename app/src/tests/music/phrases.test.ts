@@ -27,7 +27,8 @@ describe('a section laid out by its parts', () => {
   })
 
   it('puts what comes between on its own line when it is as long as the part', () => {
-    expect(phraseLines(section("I'm Your Man", 'Bridge'))).toEqual([
+    // I'm Your Man's bridge as one line, before it was written in bars
+    expect(phraseLines('D  G6  D  G6  D  G6  D  G6  A6  G6  D  A  Bm  A/C#  D  G6  D  G6  D  G6  D')).toEqual([
       'D  G6  D  G6  D  G6  D',
       'G6  A6  G6  D  A  Bm  A/C#',
       'D  G6  D  G6  D  G6  D',

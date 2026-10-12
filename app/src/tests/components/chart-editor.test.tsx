@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { FAITH_ONE_LINE, faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
 
-// Faith, the first song: Intro B | Verse B E B E B | Pre-Chorus E B E B E B G#m C#m F# N.C. | Chorus B | Solo B E B E B
-const FAITH = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+// Faith, the first song, one line a section as it was before bars: Intro B | Verse B E B E B | Pre-Chorus E B E B E B G#m C#m F# N.C. | Chorus B | Solo B E B E B
+const FAITH = FAITH_ONE_LINE
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  faithOneLine()
   useStore.setState({ editMode: true })
 })
 afterEach(() => {

@@ -2,15 +2,17 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { DEFAULT_SONGS } from '../../data/songs'
+import { FAITH_ONE_LINE, faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
 
 // Faith: Intro | Verse | Pre-Chorus | Chorus | Solo, played as
 // Intro Verse Pre-Chorus Chorus Verse Pre-Chorus Chorus Solo Pre-Chorus Chorus
-const FAITH = DEFAULT_SONGS.find(s => s.title === 'Faith')!
+const FAITH = FAITH_ONE_LINE
 const OUTSIDE = DEFAULT_SONGS.find(s => s.title === 'Outside')! // no built-in order
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  faithOneLine()
 })
 afterEach(() => {
   vi.restoreAllMocks()

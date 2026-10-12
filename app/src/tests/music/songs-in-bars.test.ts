@@ -8,17 +8,38 @@ import { barsOf, hasBars, REPEAT_BAR, isRepeatCount } from '../../music/bars'
 
 const by = (title: string) => DEFAULT_SONGS.find(s => s.title === title)!
 const tokens = (line: string) => line.split(/\s+/).filter(Boolean)
-const barsIn = (chords: string) => chords.split('\n').reduce((n, line) => n + barsOf(tokens(line)).length, 0)
+/** How many times a line is played: once, or as its repeat count says. */
+const timesPlayed = (line: string) => Number(tokens(line).find(isRepeatCount)?.match(/\d+/)?.[0] ?? 1)
+const barsIn = (chords: string) =>
+  chords.split('\n').reduce((n, line) => n + barsOf(tokens(line)).length * timesPlayed(line), 0)
 const sectionBars = (title: string) => Object.fromEntries(by(title).sections.map(s => [s.name, barsIn(s.chords)]))
 
-function recordingBars(title: string) {
+/** The recording's bars at its tempo, leaving out an opening in free time and,
+ * for a long fade, what comes after the music has gone (both in seconds). */
+function recordingBars(title: string, freeTime = 0, end = by(title).duration!) {
   const song = by(title)
   const beatsPerBar = Number(song.timeSignature?.split('/')[0] ?? 4)
-  return (song.duration! * song.bpm!) / 60 / beatsPerBar
+  return ((end - freeTime) * song.bpm!) / 60 / beatsPerBar
+}
+const chordsOf = (title: string) =>
+  [...new Set(by(title).sections.flatMap(s => tokens(s.chords)).filter(t => t !== '|' && t !== REPEAT_BAR && !isRepeatCount(t) && t !== 'N.C.'))]
+function everyLineInBars(title: string) {
+  for (const section of by(title).sections) {
+    for (const line of section.chords.split('\n')) expect(hasBars(line), `${section.name}: ${line}`).toBe(true)
+  }
 }
 function formBars(title: string) {
   const bars = sectionBars(title)
   return by(title).form!.reduce((n, name) => n + bars[name], 0)
+}
+/** A section's lines as played: each % written out as the bar it repeats. */
+function playedLines(chords: string) {
+  let before: string[] = []
+  return chords.split('\n').map(line =>
+    barsOf(tokens(line).filter(t => !isRepeatCount(t)))
+      .map(bar => (before = bar[0] === REPEAT_BAR ? before : bar).join(' '))
+      .join(' | '),
+  )
 }
 
 describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
@@ -49,5 +70,122 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
     const missing = [...new Set(chords)].filter(c => !song.shapes?.[c])
     expect(missing).toEqual([])
     expect(song.playerShapes).toEqual({ Em11: 'x-x-2-2-3-5' })
+  })
+})
+
+describe('a line played again straight away', () => {
+  it('is written once with its repeat count, so the chart stays big enough to read on stage', () => {
+    for (const title of ['Faith', "I'm Your Man", 'Club Tropicana', 'Amazing']) {
+      for (const section of by(title).sections) {
+        const lines = playedLines(section.chords)
+        lines.forEach((line, i) => expect(line, `${title}, ${section.name}, line ${i + 1}`).not.toBe(lines[i - 1]))
+      }
+    }
+  })
+
+  it('counts its bars as many times as it is played', () => {
+    expect(barsIn('|  D  |  G6  |  A6  |  G6  |  (x2)\n|  D  |')).toBe(9)
+  })
+})
+
+describe('Faith in bars (songbook no. 12)', () => {
+  // The book marks 192 in quarter notes; the chart counts bars at 96, the
+  // recording's tempo, so each chart bar is two of the book's.
+  it('writes every line of every section in bars', () => everyLineInBars('Faith'))
+
+  it("has the book's bars at 96, with the guitar intro and the last stop from the recording", () => {
+    expect(sectionBars('Faith')).toEqual({ Intro: 4, Verse: 8, 'Pre-Chorus': 8, Chorus: 4, Solo: 8, Stop: 1 })
+  })
+
+  it('stops for a bar more before the last chorus, as the recording does', () => {
+    expect(by('Faith').form).toEqual([
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Stop', 'Chorus',
+    ])
+  })
+
+  it('comes to the length of the recording after the organ opening, which is in free time (29 s)', () => {
+    expect(Math.abs(formBars('Faith') - recordingBars('Faith', 29))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in B with the songbook shapes', () => {
+    const song = by('Faith')
+    expect(song.key).toBe('B')
+    expect(chordsOf('Faith').filter(c => !song.shapes?.[c])).toEqual([])
+  })
+})
+
+describe("I'm Your Man in bars (songbook no. 31)", () => {
+  const MAN = "I'm Your Man"
+  it('writes every line of every section in bars', () => everyLineInBars(MAN))
+
+  it("has the book's bars, with the intro and instrumental from the recording", () => {
+    expect(sectionBars(MAN)).toEqual({ Intro: 8, Verse: 8, 'Pre-Chorus': 8, Chorus: 8, Instrumental: 8, Bridge: 24, Outro: 4 })
+  })
+
+  it('plays the chorus twice after the second verse, and four times after the bridge', () => {
+    expect(by(MAN).form).toEqual([
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Instrumental', 'Bridge',
+      'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording, give or take the fade', () => {
+    expect(Math.abs(formBars(MAN) - recordingBars(MAN))).toBeLessThanOrEqual(2)
+  })
+
+  it('stays in D, a whole tone above the band', () => {
+    expect(by(MAN).key).toBe('D')
+    expect(by(MAN).transpose).toBe(-2)
+  })
+})
+
+describe('Club Tropicana in bars (the NoTreble bass transcription)', () => {
+  const TROP = 'Club Tropicana'
+  it('writes every line of every section in bars', () => everyLineInBars(TROP))
+
+  it("has the transcription's bars, with the walk-up it plays once more in the fade", () => {
+    expect(sectionBars(TROP)).toEqual({
+      Intro: 8, 'Intro 2': 4, Verse: 8, Chorus: 8, Instrumental: 12, 'Bass solo': 8, 'Last verse': 14, 'Walk-up': 2, Outro: 18,
+    })
+  })
+
+  it('keeps the song order', () => {
+    expect(by(TROP).form).toEqual([
+      'Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording after its sound-effects opening (35 s)', () => {
+    expect(Math.abs(formBars(TROP) - recordingBars(TROP, 35))).toBeLessThanOrEqual(2)
+  })
+
+  it('stays in B, a whole tone above the band', () => {
+    expect(by(TROP).key).toBe('B')
+    expect(by(TROP).transpose).toBe(-2)
+  })
+})
+
+describe('Amazing in bars (from the recording, chords as the band plays them)', () => {
+  it('writes every line of every section in bars', () => everyLineInBars('Amazing'))
+
+  it('changes chord every two bars, with the pre-chorus turning faster', () => {
+    expect(sectionBars('Amazing')).toEqual({ Intro: 8, Verse: 16, 'Pre-Chorus': 8, Chorus: 8 })
+  })
+
+  it('plays the intro again before the second verse, and the chorus six times into the fade', () => {
+    expect(by('Amazing').form).toEqual([
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus',
+      'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus',
+    ])
+  })
+
+  it('comes to the length of the recording from where the band comes in (15 s) to where the fade has gone (4:15)', () => {
+    expect(Math.abs(formBars('Amazing') - recordingBars('Amazing', 15, 255))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in Bbm, a semitone above the band, with the pre-chorus starting on the band\'s chord', () => {
+    expect(by('Amazing').key).toBe('Bbm')
+    expect(by('Amazing').transpose).toBe(-1)
+    expect(by('Amazing').sections.find(s => s.name === 'Pre-Chorus')!.chords.startsWith('|  Cm7  |')).toBe(true)
   })
 })

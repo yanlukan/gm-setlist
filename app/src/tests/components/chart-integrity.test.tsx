@@ -43,7 +43,7 @@ describe('charts that were only looked at', () => {
     render(<SongSheet />)
     const verse = screen.getAllByRole('group', { name: 'Verse' })[0]
     fireEvent.click(within(verse).getAllByRole('button').filter(b => b.classList.contains('ce-chord'))[1])
-    fireEvent.click(within(verse).getByRole('button', { name: 'Cursor before chord 2' }))
+    fireEvent.click(within(verse).getAllByRole('button', { name: 'Cursor before chord 2' })[0])
     cleanup()
     expect(useStore.getState().edits).toEqual({})
   })

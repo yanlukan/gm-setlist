@@ -7,9 +7,11 @@ import { BottomBar } from '../../components/layout/BottomBar'
 import { SongGrid } from '../../components/layout/SongGrid'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { useStore } from '../../store/use-store'
+import { faithOneLine } from '../faith-one-line'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  faithOneLine()
 })
 
 const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Menu' }))

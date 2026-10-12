@@ -3,9 +3,11 @@ import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { TopBar } from '../../components/layout/TopBar'
 import { useStore } from '../../store/use-store'
+import { faithOneLine } from '../faith-one-line'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  faithOneLine()
 })
 
 const verse = () => screen.getAllByText((_, el) => el?.className === 'chart-chords')[1]

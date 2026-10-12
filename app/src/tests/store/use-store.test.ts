@@ -238,11 +238,11 @@ describe('gig-critical behaviour', () => {
       useStore.getState().setTranspose(title, -2)
 
       expect(useStore.getState().getDisplayKey(title)).toBe('A')
-      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('A')
+      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('|  A  |  %  |  %  |  %  |')
 
       useStore.getState().setTranspose(title, 0)
       expect(useStore.getState().getDisplayKey(title)).toBe('B')
-      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('B')
+      expect(useStore.getState().getDisplaySections(title)[0].chords).toBe('|  B  |  %  |  %  |  %  |')
     })
 
     it('is clamped to +/- 11 semitones', () => {
@@ -332,7 +332,7 @@ describe('band keys that ship with the songs', () => {
     const s = useStore.getState()
     expect(s.getTranspose('Amazing')).toBe(-1)
     expect(s.getDisplayKey('Amazing')).toBe('Am')
-    expect(s.getDisplaySections('Amazing')[0].chords.split(/\s+/)[0]).toBe('Am7')
+    expect(s.getDisplaySections('Amazing')[0].chords.split(/\s+/).filter(t => t !== '|')[0]).toBe('Am7')
   })
 
   it("lets the player's own transpose win over the band key", () => {
@@ -394,9 +394,9 @@ describe('Club Tropicana', () => {
     expect(s.getDisplayKey('Club Tropicana')).toBe('A')
     // The bass transcription and two guitar charts: a chromatic slide into the verse
     const chorus = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Chorus')!
-    expect(chorus.chords).toBe('A  C#m7  A  C#m7  A  C#m7  A  C#m7  Cm7  Bm7')
+    expect(chorus.chords).toBe('|  A  |  C#m7  |  A  |  C#m7  |\n|  A  |  C#m7  |  A  |  C#m7  Cm7  Bm7  |')
     const verse = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Verse')!
-    expect(verse.chords).toBe('Em7  A7  Em7  A7  Em7  A7  Em7  A7  A/C#  D')
+    expect(verse.chords).toBe('|  Em7  |  A7  |  Em7  |  A7  |\n|  Em7  |  A7  |  Em7  |  A7  A/C#  D  |')
   })
 })
 

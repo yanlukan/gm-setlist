@@ -46,9 +46,9 @@ describe('Amazing, as the band plays it in Am (2026-10-09)', () => {
 
   it('reads Am7 Fmaj7 in the verse, Bm7 Am7 G Dm7 F G in the pre-chorus, Am7 Fmaj7 Em7 Dm7 Em7 in the chorus', () => {
     const by = Object.fromEntries(song.sections.map(s => [s.name, inAm(s.chords)]))
-    expect(by['Verse']).toBe('Am7  Fmaj7  Am7  Fmaj7  (x2)')
-    expect(by['Pre-Chorus']).toBe('Bm7  Am7  G  Dm7  F  G')
-    expect(by['Chorus']).toBe('Am7  Fmaj7  Em7  Dm7  Em7  (x2)')
+    expect(by['Verse']).toBe('|  Am7  |  %  |  Fmaj7  |  %  |  (x4)')
+    expect(by['Pre-Chorus']).toBe('|  Bm7  |  %  |  Am7  |  G  |\n|  Dm7  |  %  |  F  |  G  |')
+    expect(by['Chorus']).toBe('|  Am7  |  %  |  Fmaj7  |  %  |\n|  Em7  |  %  |  Dm7  |  Em7  |')
   })
 })
 
