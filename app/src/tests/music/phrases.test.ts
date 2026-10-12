@@ -2,9 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { layOutParts, phraseLines, relayOut } from '../../music/phrases'
 
-const section = (title: string, name: string) =>
-  DEFAULT_SONGS.find(s => s.title === title)!.sections.find(s => s.name === name)!.chords
-
 describe('a section laid out by its parts', () => {
   it('starts each time through the verse on a line of its own, the turnaround on its own line', () => {
     // I Can't Make You Love Me's verse as one line, before it was written in bars
@@ -55,7 +52,8 @@ describe('a section laid out by its parts', () => {
 
   it('puts parts that start alike and end differently on lines of their own', () => {
     expect(phraseLines('Am7  Fmaj7  Am7  Dm9  Am7  Fmaj7  Em7  Dm9')).toEqual(['Am7  Fmaj7  Am7  Dm9', 'Am7  Fmaj7  Em7  Dm9'])
-    expect(phraseLines(section('Kissing a Fool', 'Verse'))).toEqual([
+    // Kissing a Fool's verse as one line, before it was written in bars
+    expect(phraseLines('Eb6  Edim7  Fm7  Cb(b5)  Bb7  Eb6  C7(b9)  Fm7  Cb(b5)  Bb')).toEqual([
       'Eb6  Edim7  Fm7  Cb(b5)  Bb7',
       'Eb6  C7(b9)  Fm7  Cb(b5)  Bb',
     ])

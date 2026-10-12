@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { barsOf, hasBars, REPEAT_BAR, isRepeatCount } from '../../music/bars'
+import { transposeInKey } from '../../music/theory'
 
 // The songs charted in bars from the songbook, each checked against the
 // recording: the bars of the song order, played through, must come to the
@@ -80,6 +81,7 @@ describe('a line played again straight away', () => {
     for (const title of [
       'Faith', "I'm Your Man", 'Club Tropicana', 'Amazing', 'Roxanne', 'A Different Corner', "Freedom! '90", 'Papa Was a Rolling Stone',
       'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove',
+      'Kissing a Fool', 'Last Christmas', 'Waiting (Reprise)',
     ]) {
       for (const section of by(title).sections) {
         const lines = playedLines(section.chords)
@@ -475,5 +477,115 @@ describe('Fastlove in bars (songbook no. 13)', () => {
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(FAST).filter(c => !song.shapes?.[c])).toEqual([])
     expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
+  })
+})
+
+describe('Kissing a Fool in bars (songbook no. 37)', () => {
+  const KISS = 'Kissing a Fool'
+  const chords = () => Object.fromEntries(by(KISS).sections.map(s => [s.name, s.chords]))
+  it('writes every line of every section in bars', () => everyLineInBars(KISS))
+
+  it("has the book's bars, four to a line, with the odd last bar on a line of its own", () => {
+    expect(sectionBars(KISS)).toEqual({
+      Intro: 4, Verse: 8, Chorus: 17, Bridge: 9, 'Bridge 2': 11, 'Last verse': 5, Outro: 5,
+    })
+    const c = chords()
+    expect(c.Intro).toBe('|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |')
+    expect(c.Verse).toBe('|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |')
+    expect(c.Chorus).toBe(
+      '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Bb13  Bb7(b9)  |\n' +
+        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Fdim7/Eb  |',
+    )
+    expect(c.Bridge).toBe('|  Eb  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |')
+    expect(c['Bridge 2']).toBe(
+      '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb  |  Bb7(b9)  |',
+    )
+    expect(c['Last verse']).toBe('|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |')
+    expect(c.Outro).toBe('|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  Bb7  |\n|  Ebmaj9  |')
+  })
+
+  it('keeps the form', () => {
+    expect(by(KISS).form).toEqual(['Intro', 'Verse', 'Chorus', 'Bridge', 'Verse', 'Chorus', 'Bridge 2', 'Last verse', 'Outro'])
+  })
+
+  it('comes to the length of the recording, up to the held chords at the end (0:00 to 4:19)', () => {
+    expect(Math.abs(formBars(KISS) - recordingBars(KISS, 0.378, 259.4))).toBeLessThanOrEqual(1)
+  })
+
+  it('stays in the book\'s Eb, played a semitone down in D, with a band shape for every chord and its sound', () => {
+    const song = by(KISS)
+    expect(song.key).toBe('Eb')
+    expect(song.transpose).toBe(-1)
+    expect(song.lowerKey).toBe(true)
+    expect(song.shapes?.['Edim7/D']).toBe('x-x-0-3-2-3')
+    expect(chordsOf(KISS).map(c => transposeInKey(c, 'Eb', -1)).filter(c => !song.shapes?.[c])).toEqual([])
+    expect(song.preset).toEqual({ name: 'WARM JAZZ', slot: 'U01-3' })
+  })
+})
+
+describe('Waiting (Reprise) in bars (songbook no. 63)', () => {
+  const WAIT = 'Waiting (Reprise)'
+  const VAMP = '|  G  |  Cadd9  |  G  |  Cadd9  |'
+  it('writes every line of every section in bars', () => everyLineInBars(WAIT))
+
+  it("has the book's bars, with the guitar's intro from the recording", () => {
+    expect(sectionBars(WAIT)).toEqual({ Intro: 8, Verse: 4, Hook: 4, 'Verse 2': 6, 'Last verse': 10, Ending: 5 })
+    const chords = Object.fromEntries(by(WAIT).sections.map(s => [s.name, s.chords]))
+    expect(chords.Intro).toBe(`${VAMP}  (x2)`)
+    expect(chords.Verse).toBe(VAMP)
+    expect(chords.Hook).toBe(VAMP)
+    expect(chords['Verse 2']).toBe(`${VAMP}\n|  D  |  C  |`)
+    expect(chords['Last verse']).toBe(`${VAMP}  (x2)\n|  D  |  C  |`)
+    expect(chords.Ending).toBe(`${VAMP}\n|  G  |`)
+  })
+
+  it('opens with the vamp before the first verse', () => {
+    expect(by(WAIT).form).toEqual(['Intro', 'Verse', 'Hook', 'Verse 2', 'Hook', 'Last verse', 'Ending'])
+  })
+
+  it('comes to the length of the recording, to the last G (0:00 to 2:21)', () => {
+    expect(Math.abs(formBars(WAIT) - recordingBars(WAIT, 0.5, 141.5))).toBeLessThanOrEqual(2)
+  })
+
+  it('stays in G with the book\'s open shapes and its sound', () => {
+    const song = by(WAIT)
+    expect(song.key).toBe('G')
+    expect(song.transpose).toBeUndefined()
+    expect(song.shapes).toEqual({ G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' })
+    expect(song.preset).toEqual({ name: 'ACOUSTIC', slot: 'U02-3' })
+  })
+})
+
+describe('Last Christmas in bars (published chords, form from the recording)', () => {
+  const XMAS = 'Last Christmas'
+  const ROUND = '|  D  |  %  |  Bm7  |  %  |\n|  Em7  |  %  |  A  |  %  |'
+  it('writes every line of every section in bars', () => everyLineInBars(XMAS))
+
+  it('plays one 8-bar round everywhere, two bars a chord, and ends on D', () => {
+    expect(sectionBars(XMAS)).toEqual({ Intro: 8, Chorus: 8, Instrumental: 8, Verse: 8, Outro: 9 })
+    for (const name of ['Intro', 'Chorus', 'Instrumental', 'Verse']) {
+      expect(by(XMAS).sections.find(s => s.name === name)!.chords, name).toBe(ROUND)
+    }
+    expect(by(XMAS).sections.find(s => s.name === 'Outro')!.chords).toBe(`${ROUND}\n|  D  |`)
+  })
+
+  it('goes round the chorus twice, a round with no voice, then the verse twice, three times over', () => {
+    expect(by(XMAS).form).toEqual([
+      'Intro', 'Chorus', 'Chorus', 'Instrumental', 'Verse', 'Verse',
+      'Chorus', 'Chorus', 'Instrumental', 'Verse', 'Verse',
+      'Chorus', 'Chorus', 'Instrumental', 'Outro',
+    ])
+  })
+
+  it('comes to the length of the recording, to where the fade has gone (4:24), with the band\'s last D', () => {
+    expect(Math.abs(formBars(XMAS) - recordingBars(XMAS, 0.224, 264.2))).toBeLessThanOrEqual(3)
+  })
+
+  it('stays in D with its sound and no shapes of its own', () => {
+    const song = by(XMAS)
+    expect(song.key).toBe('D')
+    expect(song.transpose).toBeUndefined()
+    expect(song.shapes).toBeUndefined()
+    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
   })
 })

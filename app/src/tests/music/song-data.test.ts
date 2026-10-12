@@ -61,7 +61,7 @@ describe('song order from the notes (2026-10-09)', () => {
   })
 
   it('leaves the songs with no written order without one', () => {
-    for (const title of ['Papa Was a Rolling Stone', 'Outside', 'Last Christmas']) expect(by(title).form, title).toBeUndefined()
+    for (const title of ['Papa Was a Rolling Stone', 'Outside']) expect(by(title).form, title).toBeUndefined()
   })
 
   it('Club Tropicana comes back to the chorus after the bass solo and after the last verse walk-up', () => {

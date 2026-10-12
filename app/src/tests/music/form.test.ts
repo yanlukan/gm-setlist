@@ -90,8 +90,8 @@ describe('the same order', () => {
 describe('the song orders the app ships', () => {
   const withForm = DEFAULT_SONGS.filter(s => s.form)
 
-  it('are there for every song but the three whose order nobody has written down', () => {
-    const unwritten = ['Papa Was a Rolling Stone', 'Outside', 'Last Christmas']
+  it('are there for every song but the two whose order nobody has written down', () => {
+    const unwritten = ['Papa Was a Rolling Stone', 'Outside']
     const expected = DEFAULT_SONGS.filter(s => !unwritten.includes(s.title)).map(s => s.title)
     expect(withForm.map(s => s.title).sort()).toEqual(expected.sort())
   })
