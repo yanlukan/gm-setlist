@@ -50,20 +50,46 @@ describe('charts that were only looked at', () => {
 })
 
 describe('the chart as it is read', () => {
+  // The chords, in order: the chart breaks a section into lines by its parts
+  const chordsOf = (text: string) => text.split(/\s+/).filter(Boolean)
+
   it.each(['normal', 'stage'] as const)('shows every song\'s chords exactly as saved, in %s mode, in the band key', mode => {
     const wrong: string[] = []
     for (let i = 0; i < gigSongs.length; i++) {
       const song = gigSongs[i]
       useStore.setState({ currentIndex: i, editMode: false, viewMode: mode })
       const view = render(<SongSheet />)
-      const shown = Array.from(view.container.querySelectorAll('.chart-chords')).map(e => e.textContent ?? '')
+      const shown = Array.from(view.container.querySelectorAll('.chart-chords')).map(e => chordsOf(e.textContent ?? ''))
       const semitones = transposeFor(song)
-      const expected = song.sections.map(sec => (semitones ? transposeInKey(sec.chords, song.key, semitones) : sec.chords))
+      const expected = song.sections.map(sec => chordsOf(semitones ? transposeInKey(sec.chords, song.key, semitones) : sec.chords))
       if (JSON.stringify(shown) !== JSON.stringify(expected)) wrong.push(song.title)
       view.unmount()
       cleanup()
     }
     expect(wrong).toEqual([])
+  })
+
+  const verseLines = (title: string) => {
+    useStore.setState({ currentIndex: gigSongs.findIndex(s => s.title === title), editMode: false })
+    const view = render(<SongSheet />)
+    const verse = view.container.querySelectorAll('.chart-chords')[0].textContent ?? ''
+    cleanup()
+    return verse.split('\n')
+  }
+
+  it('starts each time through a verse on a line of its own', () => {
+    expect(verseLines("I Can't Make You Love Me")).toEqual([
+      'Cadd9  Em11  C  G/B  Em7  Am7',
+      'Cadd9  Em11  C  G/B  Em7  Am7',
+      'G/D  D  G/B',
+    ])
+  })
+
+  it('keeps the lines the player set in the editor', () => {
+    const song = gigSongs.find(s => s.title === "I Can't Make You Love Me")!
+    const own = 'Cadd9  Em11  C  G/B\nEm7  Am7  Cadd9  Em11  C  G/B  Em7  Am7  G/D  D  G/B'
+    useStore.setState({ edits: { [song.title]: { sections: [{ name: 'Verse', chords: own }, ...song.sections.slice(1)] } } })
+    expect(verseLines(song.title)).toEqual(own.split('\n'))
   })
 })
 

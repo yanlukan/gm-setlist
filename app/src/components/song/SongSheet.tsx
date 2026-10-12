@@ -10,6 +10,7 @@ import { MoveChordsSheet } from './MoveChordsSheet'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
 import { formMatches } from '../../music/form'
+import { layOutParts } from '../../music/phrases'
 import { hasEditedChart } from '../../music/chart-edits'
 import { playedKey, transposeFor } from '../../music/setlist-text'
 import { normalizeChordText } from '../../music/chord-text'
@@ -87,13 +88,15 @@ export function SongSheet() {
     () => (song ? shapeSections(song, edits[song.title], view) : []),
     [song, edits, view],
   )
-  // What is read: the same, made plain if the player asked for plain chords.
-  // Never edited, so a plain chart can never overwrite the real chords.
+  // What is read: the same, each part of a section on a line of its own, made
+  // plain if the player asked for plain chords. Never edited, so a plain chart
+  // can never overwrite the real chords. The parts are found before the chords
+  // are made plain, so plain and full charts break their lines in the same places.
   const rule = simplifyRuleFor(song, song ? edits[song.title] : undefined, view)
-  const readSections = useMemo(
-    () => (view.simple ? displaySections.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : displaySections),
-    [displaySections, view.simple, rule],
-  )
+  const readSections = useMemo(() => {
+    const laidOut = displaySections.map(sec => ({ ...sec, chords: layOutParts(sec.chords) }))
+    return view.simple ? laidOut.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : laidOut
+  }, [displaySections, view.simple, rule])
 
   const notes = useMemo(() => {
     if (!song) return ''
