@@ -71,3 +71,14 @@ describe('bars in the editor', () => {
     expect(useStore.getState().edits).toEqual({})
   })
 })
+
+describe('keys while typing chords', () => {
+  it('puts a bar line in at the caret, spaced as the chart writes it', () => {
+    faithWith('D  G')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Type chords for Verse' })[0])
+    const keys = screen.getByRole('group', { name: 'Keys for typing chords' })
+    fireEvent.click(within(keys).getByRole('button', { name: 'Bar line' }))
+    expect((screen.getByRole('textbox', { name: 'Chords for Verse' }) as HTMLTextAreaElement).value).toBe('D  G  |  ')
+    expect(saved('Faith', 0)).toBe('D  G  |')
+  })
+})

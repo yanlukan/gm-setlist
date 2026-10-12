@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseChordText, formatChordText, normalizeChordText, unknownChords, isChordToken,
-  insertChord, replaceChord, deleteChord, backspace, breakLine,
+  insertChord, replaceChord, deleteChord, backspace, breakLine, typeAt,
 } from '../../music/chord-text'
 
 describe('chord text', () => {
@@ -148,5 +148,18 @@ describe('editing lines of chords', () => {
   it('takes a cursor that points past the end as the end', () => {
     expect(insertChord(lines, { line: 0, pos: 99 }, 'Db').lines).toEqual([['Gb', 'Abm', 'Db'], ['Ebm']])
     expect(insertChord(lines, { line: 9, pos: 0 }, 'Db').lines).toEqual([['Gb', 'Abm'], ['Db', 'Ebm']])
+  })
+})
+
+describe('typeAt', () => {
+  it('spaces a key from what is either side of the caret', () => {
+    expect(typeAt('C', 1, '|')).toEqual({ text: 'C  |  ', caret: 6 })
+    expect(typeAt('C  |  ', 6, 'G')).toEqual({ text: 'C  |  G  ', caret: 9 })
+    expect(typeAt('C  Am', 3, '|')).toEqual({ text: 'C  |  Am', caret: 6 })
+    expect(typeAt('', 0, '|')).toEqual({ text: '|  ', caret: 3 })
+  })
+  it('starts a new line at the caret', () => {
+    expect(typeAt('C  G  ', 6, '\n')).toEqual({ text: 'C  G\n', caret: 5 })
+    expect(typeAt('C  G', 3, '\n')).toEqual({ text: 'C\nG', caret: 2 })
   })
 })

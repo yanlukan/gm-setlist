@@ -34,3 +34,7 @@
 .bar-count { margin-left: 0.25em; }
 /* Set by the fit: a bar's chords stay side by side while that still reads big */
 .chart[data-wrap="off"] .bar { flex-wrap: nowrap; }
+
+/* One-tap keys above the text box while typing chords */
+.tk { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+.tk-key { min-width: 44px; }

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AutoSaveText, type AutoSaveHandle } from '../shared/AutoSaveText'
 import { ChordKeyboard } from './ChordKeyboard'
+import { TypeKeys } from './TypeKeys'
 import { ChordFinder } from '../finder/ChordFinder'
 import { chordSuggestions, normalizeChordName } from '../../music/chord-names'
 import { SongHistoryModal } from './SongHistoryModal'
@@ -11,7 +12,7 @@ import { layOutParts, relayOut } from '../../music/phrases'
 import { BAR, REPEAT_BAR, hasBars } from '../../music/bars'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
-  normalizeChordText, parseChordText, replaceChord, unknownChords,
+  normalizeChordText, parseChordText, replaceChord, typeAt, unknownChords,
   type Caret, type ChordLines, type Edited,
 } from '../../music/chord-text'
 import type { Section } from '../../types'
@@ -251,6 +252,14 @@ export function ChartEditor({
     typedRef.current?.set(text, caret)
     setTyped({ text, caret })
   }
+  // A one-tap key while typing: it goes in at the caret, spaced as the chart writes it
+  const typeKey = (token: string) => {
+    const now = typedRef.current?.read()
+    if (!now) return
+    const { text, caret } = typeAt(now.value, now.caret, token)
+    typedRef.current?.set(text, caret)
+    setTyped({ text, caret })
+  }
 
   // Keep the cursor in view above the keyboard
   useEffect(() => {
@@ -362,6 +371,7 @@ export function ChartEditor({
 
                   {typing === si ? (
                     <>
+                      <TypeKeys songChords={songChords} onKey={typeKey} />
                       {offering && (
                         <div className="ce-suggest" role="group" aria-label="Chord suggestions">
                           {offers.map(c => (

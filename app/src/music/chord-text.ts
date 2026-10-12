@@ -140,3 +140,17 @@ export function breakLine(lines: ChordLines, caret: Caret): Edited {
   at.lines.splice(at.line, 1, line.slice(0, at.pos), line.slice(at.pos))
   return { lines: at.lines, caret: { line: at.line + 1, pos: 0 } }
 }
+
+/**
+ * A key typed at the caret: two spaces either side, as the chart writes it,
+ * or a line break with no spaces round it. The caret goes after it.
+ */
+export function typeAt(text: string, caret: number, token: string): { text: string; caret: number } {
+  const before = text.slice(0, caret).replace(/[ \t]+$/, '')
+  const after = text.slice(caret).replace(/^[ \t]+/, '')
+  if (token === '\n') return { text: `${before}\n${after}`, caret: before.length + 1 }
+  const lead = before === '' || before.endsWith('\n') ? '' : '  '
+  const trail = after.startsWith('\n') ? '' : '  '
+  const head = before + lead + token + trail
+  return { text: head + after, caret: head.length }
+}

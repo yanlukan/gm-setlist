@@ -20,6 +20,8 @@ interface Props {
 export interface AutoSaveHandle {
   /** Set the text, keep the focus, put the caret (at the end unless told), and save at once. */
   set: (value: string, caret?: number) => void
+  /** The text and the caret: at the end when the field is not being typed in. */
+  read: () => { value: string; caret: number } | null
 }
 
 /**
@@ -87,6 +89,12 @@ export function AutoSaveText({
       const at = caret ?? text.length
       el.setSelectionRange(at, at)
       commit(el)
+    },
+    read: () => {
+      const el = node.current
+      if (!el) return null
+      const caret = document.activeElement === el ? (el.selectionStart ?? el.value.length) : el.value.length
+      return { value: el.value, caret }
     },
   }))
 
