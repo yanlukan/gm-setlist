@@ -1,9 +1,10 @@
+import { fromGrid } from './bars'
 import { isChartMark } from './theory'
 import { chordNotes } from './voicings'
 
 /**
  * A section's chords as lines of chords. A token is a chord or a chart mark
- * such as N.C. or (x2). The stored text is these lines written out: two
+ * such as N.C., (x2), a bar line | or the repeat bar %. The stored text is these lines written out: two
  * spaces between chords, one line break between lines.
  */
 export type ChordLines = string[][]
@@ -13,13 +14,17 @@ const INVISIBLE = /[\u200b-\u200d\u2060\ufeff]/g
 /** Every kind of line ending a keyboard, a paste or a phone can produce. */
 const LINE_ENDINGS = /\r\n|[\r\u2028\u2029\u0085]/g
 
-/** Text to lines of chords. Blank lines are kept here; `formatChordText` decides how many stay. */
+/**
+ * Text to lines of chords. Blank lines are kept here; `formatChordText`
+ * decides how many stay. Bar lines typed against a chord stand apart, and
+ * the beat dots of a pasted ChordPro grid go.
+ */
 export function parseChordText(text: string): ChordLines {
-  const clean = text
+  const clean = fromGrid(text
     .replace(INVISIBLE, '')
     .replace(/\u266d/g, 'b')
     .replace(/\u266f/g, '#')
-    .replace(LINE_ENDINGS, '\n')
+    .replace(LINE_ENDINGS, '\n'))
   if (!clean.trim()) return []
   return clean.split('\n').map(line => line.split(/\s+/).filter(Boolean))
 }
@@ -45,10 +50,9 @@ export function normalizeChordText(text: string): string {
   return formatChordText(parseChordText(text))
 }
 
-/** A chord the app understands, a chart mark, or a bar line. */
+/** A chord the app understands, or a chart mark such as a bar line. */
 export function isChordToken(token: string): boolean {
-  if (isChartMark(token) || token === '|') return true
-  return chordNotes(token) !== null
+  return isChartMark(token) || chordNotes(token) !== null
 }
 
 /**

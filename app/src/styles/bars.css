@@ -1,0 +1,10 @@
+/* ---------- Bars in the editor ---------- */
+/* A bar line reads as a divider, not a chord, but is still big enough to tap and select */
+.ce-chord.is-bar { min-width: 28px; font-weight: 400; color: var(--text-muted); }
+.ce-chord.is-repeat { color: var(--text-muted); }
+.ce-chord.is-bar.is-selected, .ce-chord.is-repeat.is-selected { color: #fff; }
+
+/* Bar | and % sit with ↵ Line at the right of the keyboard's tools */
+.ck-bar { min-width: 44px; padding: 0 8px; }
+.ck-tools .ck-bar-start { margin-left: auto; }
+.ck-tools .ck-bar-start ~ .ck-newline { margin-left: 0; }

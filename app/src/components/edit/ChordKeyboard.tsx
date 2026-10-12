@@ -23,6 +23,8 @@ export interface ChordKeyboardProps {
   onChord: (chord: string) => void
   onBackspace: () => void
   onNewLine: () => void
+  /** A bar line | or a repeat bar %, beside the chord selected or at the cursor. */
+  onBar: (token: string) => void
   onUndo: () => void
   onRedo: () => void
   /** Open the chord finder: any chord by name, with every shape for it. */
@@ -39,8 +41,8 @@ type Tab = 'song' | 'key' | 'sevenths' | 'any' | 'marks'
  * keyboard leaves most of a phone screen to the chart.
  */
 export function ChordKeyboard({
-  songKey, songChords = [], capo = 0, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onUndo, onRedo,
-  onFind,
+  songKey, songChords = [], capo = 0, ready, hint, canUndo, canRedo, onChord, onBackspace, onNewLine, onBar, onUndo,
+  onRedo, onFind,
 }: ChordKeyboardProps) {
   const [root, setRoot] = useState<string | null>(null)
   /** Hear each chord as it is put in. */
@@ -93,6 +95,8 @@ export function ChordKeyboard({
         >
           {sound ? '\u{1F50A}' : '\u{1F508}'}
         </button>
+        <button className="ck-tool ck-bar ck-bar-start" onClick={() => onBar('|')} disabled={!ready} aria-label="Bar line">|</button>
+        <button className="ck-tool ck-bar" onClick={() => onBar('%')} disabled={!ready} aria-label="Repeat the bar before">%</button>
         <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; Line</button>
         {onFind && <button className="ck-tool ck-find" onClick={onFind}>Find&hellip;</button>}
       </div>

@@ -4,7 +4,7 @@ import { ChordKeyboard, type ChordKeyboardProps } from '../../components/edit/Ch
 
 function setup(over: Partial<ChordKeyboardProps> = {}) {
   const handlers = {
-    onChord: vi.fn(), onBackspace: vi.fn(), onNewLine: vi.fn(), onUndo: vi.fn(), onRedo: vi.fn(),
+    onChord: vi.fn(), onBackspace: vi.fn(), onNewLine: vi.fn(), onBar: vi.fn(), onUndo: vi.fn(), onRedo: vi.fn(),
   }
   render(
     <ChordKeyboard
@@ -68,6 +68,8 @@ describe('chord keyboard', () => {
     expect(key('(x2)')).toBeDisabled()
     expect(key('Delete')).toBeDisabled()
     expect(key('New line')).toBeDisabled()
+    expect(key('Bar line')).toBeDisabled()
+    expect(key('Repeat the bar before')).toBeDisabled()
     fireEvent.click(key('F#'))
     expect(onChord).not.toHaveBeenCalled()
     expect(onBackspace).not.toHaveBeenCalled()
@@ -85,6 +87,13 @@ describe('chord keyboard', () => {
     expect(h.onNewLine).toHaveBeenCalledOnce()
     expect(h.onUndo).toHaveBeenCalledOnce()
     expect(h.onRedo).toHaveBeenCalledOnce()
+  })
+
+  it('puts in a bar line and a repeat bar', () => {
+    const h = setup()
+    fireEvent.click(key('Bar line'))
+    fireEvent.click(key('Repeat the bar before'))
+    expect(h.onBar.mock.calls).toEqual([['|'], ['%']])
   })
 
   it('cannot undo or redo when there is nothing to undo or redo', () => {

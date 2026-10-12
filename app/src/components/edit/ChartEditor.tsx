@@ -7,7 +7,8 @@ import { SongHistoryModal } from './SongHistoryModal'
 import { FormEditor } from './FormEditor'
 import { isChartMark, sectionColor } from '../../music/theory'
 import { formAfterDelete, formAfterRename } from '../../music/form'
-import { isLaidOutByParts, keptLines, layOutParts, relayOut } from '../../music/phrases'
+import { layOutParts, relayOut } from '../../music/phrases'
+import { BAR, REPEAT_BAR, hasBars } from '../../music/bars'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
   normalizeChordText, parseChordText, replaceChord, unknownChords,
@@ -127,17 +128,23 @@ export function ChartEditor({
   const changeChords = (i: number, produce: (lines: ChordLines) => Edited) => {
     const shown = linesOf(i)
     const edited = produce(shown)
-    // A chord put in, changed or taken out where the chart lays the lines out
-    // itself: they follow the new chords. A new line, or two lines joined, is
-    // the player's own and is kept.
-    const chordsChanged = edited.lines.flat().join(' ') !== shown.flat().join(' ')
-    const { lines, caret } = chordsChanged && isLaidOutByParts(shown) ? relayOut(edited.lines, edited.caret) : edited
-    const text = keptLines(formatChordText(lines))
-    if (text !== normalizeChordText(displaySections[i].chords)) remember()
+    // One line with no bars is laid out by its parts, on the chart as here, so
+    // the cursor follows its chord to the new lines. Any other lines are the
+    // player's, kept as they are.
+    const { lines, caret } = edited.lines.length === 1 && !hasBars(edited.lines[0])
+      ? relayOut(edited.lines, edited.caret)
+      : edited
     setDrafts(d => ({ ...d, [i]: lines }))
     setCursor({ kind: 'caret', section: i, ...caret })
+    // Saved just as shown. Nothing changed, nothing saved: the song stays on its own chart
+    const text = formatChordText(lines)
+    if (text === formatChordText(shown)) return
+    remember()
     onChords(i, text)
   }
+
+  /** The cursor, or just after the chord selected: where a bar line or a new line goes. */
+  const after = (here: Cursor): Caret => (here.kind === 'chord' ? { line: here.line, pos: here.index + 1 } : here)
 
   const putChord = (chord: string) => {
     if (!at) return
@@ -150,8 +157,12 @@ export function ChartEditor({
   }
   const newLine = () => {
     if (!at) return
-    const here: Caret = at.kind === 'chord' ? { line: at.line, pos: at.index + 1 } : at
-    changeChords(at.section, lines => breakLine(lines, here))
+    changeChords(at.section, lines => breakLine(lines, after(at)))
+  }
+  /** A bar line or a repeat bar: it goes in beside the chord selected, never in its place. */
+  const putBar = (token: string) => {
+    if (!at) return
+    changeChords(at.section, lines => insertChord(lines, after(at), token))
   }
 
   const tapChord = (section: number, line: number, index: number) =>
@@ -247,11 +258,15 @@ export function ChartEditor({
     el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
   }, [cursor, drafts])
 
-  const selectedChord = at?.kind === 'chord' ? linesOf(at.section)[at.line]?.[at.index] : undefined
+  const selected = at?.kind === 'chord' ? linesOf(at.section)[at.line]?.[at.index] : undefined
+  // A bar line or a mark has no shapes to find
+  const selectedChord = selected !== undefined && !isChartMark(selected) ? selected : undefined
   const hint = !at
     ? 'Tap a chord to change it, or between chords to add'
-    : at.kind === 'chord'
-      ? `Changing ${selectedChord}: tap the chord to put there`
+    : selected === BAR
+      ? 'Bar line selected: Delete takes it out'
+      : at.kind === 'chord'
+      ? `Changing ${selected}: tap the chord to put there`
       : cursor === null
         ? `Adding to the end of ${displaySections[at.section].name} · tap the chart to move`
         : `Adding to ${displaySections[at.section].name}, line ${at.line + 1}`
@@ -281,9 +296,10 @@ export function ChartEditor({
               className={[
                 'ce-chord',
                 picked === ti ? 'is-selected' : '',
-                isChartMark(token) ? 'is-mark' : '',
+                token === BAR ? 'is-bar' : token === REPEAT_BAR ? 'is-repeat' : isChartMark(token) ? 'is-mark' : '',
                 isChordToken(token) ? '' : 'is-bad',
               ].filter(Boolean).join(' ')}
+              aria-label={token === BAR ? 'Bar line' : token === REPEAT_BAR ? 'Repeat the bar before' : undefined}
               aria-pressed={picked === ti}
               data-cursor={picked === ti}
               onClick={() => tapChord(si, li, ti)}
@@ -368,9 +384,10 @@ export function ChartEditor({
                         className="edit-chords"
                         value={layOutParts(section.chords)}
                         onChange={typedText => {
-                          const text = keptLines(typedText)
-                          if (normalizeChordText(text) !== normalizeChordText(section.chords)) remember()
-                          onChords(si, text)
+                          // Saved as typed; the lines shown, left as they were, save nothing
+                          if (normalizeChordText(typedText) === normalizeChordText(layOutParts(section.chords))) return
+                          remember()
+                          onChords(si, typedText)
                         }}
                         onTyping={(text, caret) => setTyped({ text, caret })}
                         aria-label={`Chords for ${section.name}`}
@@ -442,6 +459,7 @@ export function ChartEditor({
           onChord={putChord}
           onBackspace={remove}
           onNewLine={newLine}
+          onBar={putBar}
           onUndo={undo}
           onRedo={redo}
           onFind={() => setShowFinder(true)}

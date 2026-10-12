@@ -65,7 +65,7 @@ describe('putting chords in', () => {
     render(<SongSheet />)
     gap('Verse', 'Cursor before chord 3')
     tap('F#')
-    expect(saved(1)).toBe('B  E  F#  B  E  B')
+    expect(saved(1)).toBe('B  E  F#\nB  E  B')
     expect(chordsIn('Verse')).toEqual(['B', 'E', 'F#', 'B', 'E', 'B'])
   })
 
@@ -74,7 +74,7 @@ describe('putting chords in', () => {
     gap('Verse', 'Cursor before chord 3')
     tap('F#')
     tap('G#m')
-    expect(saved(1)).toBe('B  E  F#  G#m  B  E  B')
+    expect(saved(1)).toBe('B  E  F#  G#m\nB  E  B')
   })
 
   it('adds at the end of a line from the empty space after the last chord', () => {
@@ -151,7 +151,7 @@ describe('changing and deleting chords', () => {
     chord('Verse', 1)
     fireEvent.click(within(section('Verse')).getByRole('button', { pressed: true }))
     tap('F#')
-    expect(saved(1)).toBe('B  E  F#  B  E  B')
+    expect(saved(1)).toBe('B  E  F#\nB  E  B')
   })
 
   it('deletes the chord you chose', () => {
@@ -459,7 +459,7 @@ describe('finding chords while editing', () => {
     const finder = screen.getByRole('dialog', { name: 'Chord Finder' })
     fireEvent.input(within(finder).getByRole('textbox', { name: 'Chord name' }), { target: { value: 'em11' } })
     fireEvent.click(within(finder).getAllByRole('button', { name: /^Em11 at / })[0])
-    expect(saved(1)).toBe('B  E  Em11  B  E  B')
+    expect(saved(1)).toBe('B  E  Em11\nB  E  B')
     expect(useStore.getState().edits['Faith']?.shapes?.Em11).toBeDefined()
     expect(screen.queryByRole('dialog', { name: 'Chord Finder' })).not.toBeInTheDocument()
   })

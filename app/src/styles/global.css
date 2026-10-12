@@ -3,6 +3,7 @@
 @import './move-chords.css';
 @import './chord-finder.css';
 @import './chart-lines.css';
+@import './bars.css';
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

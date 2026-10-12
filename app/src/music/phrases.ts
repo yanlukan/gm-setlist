@@ -1,5 +1,6 @@
+import { hasBars } from './bars'
 import { isChartMark } from './theory'
-import { normalizeChordText, parseChordText, type Caret, type ChordLines } from './chord-text'
+import { parseChordText, type Caret, type ChordLines } from './chord-text'
 
 /** The shortest part, in chords, that counts as one: shorter repeats are a riff inside a line. */
 const MIN_PART = 3
@@ -24,50 +25,30 @@ export function phraseLines(text: string): string[] {
 }
 
 /**
- * A section's chords as the chart shows them. Lines the player set in the
- * editor are kept just as they are; a section written as one line is laid
- * out by its parts.
+ * A section's chords as the chart shows them. Lines and bars that are
+ * written are kept just as they are; only a section written as one line,
+ * with no bars, is laid out by its parts.
  */
 export function layOutParts(text: string): string {
-  return text.includes('\n') ? text : phraseLines(text).join('\n')
+  return text.includes('\n') || hasBars(text) ? text : phraseLines(text).join('\n')
 }
 
 /**
- * A section's chords as they are saved after an edit. Lines that are just
- * the parts laid out again are saved as one line, so the chart goes on
- * laying them out itself and an edit undone leaves the song as it was.
- * Lines the player changed are saved as they are.
+ * An edit that leaves a section as one line with no bars: the chart lays
+ * such a line out by its parts, so the editor does the same. Returns the
+ * lines it now makes, and the cursor at the same place among the chords.
  */
-export function keptLines(text: string): string {
-  if (!text.includes('\n')) return text
-  const oneLine = parseChordText(text).flat().join('  ')
-  return normalizeChordText(text) === normalizeChordText(layOutParts(oneLine)) ? oneLine : text
-}
-
-/** A section's lines are the ones the chart lays out itself, not lines the player set. */
-export function isLaidOutByParts(lines: ChordLines): boolean {
-  const own = lines.map(line => line.join('  ')).join('\n')
-  return own === parseChordText(layOutParts(lines.flat().join('  '))).map(line => line.join('  ')).join('\n')
-}
-
-/**
- * A chord put in, changed or taken out of a section the chart lays out by
- * its parts. The section stays laid out by its parts, so its lines follow
- * the new chords: the chords as one line to save, the lines they now make,
- * and the cursor at the same place among the chords.
- */
-export function relayOut(lines: ChordLines, caret: Caret): { text: string; lines: ChordLines; caret: Caret } {
-  const text = lines.flat().join('  ')
-  const laidOut = parseChordText(layOutParts(text))
-  if (laidOut.length === 0) return { text, lines: [[]], caret: { line: 0, pos: 0 } }
+export function relayOut(lines: ChordLines, caret: Caret): { lines: ChordLines; caret: Caret } {
+  const laidOut = parseChordText(layOutParts(lines.flat().join('  ')))
+  if (laidOut.length === 0) return { lines: [[]], caret: { line: 0, pos: 0 } }
   let before = lines.slice(0, caret.line).reduce((n, line) => n + line.length, 0) + caret.pos
   for (let line = 0; line < laidOut.length; line++) {
     // At the end of a line rather than the start of the next: after the chord just put in
-    if (before <= laidOut[line].length) return { text, lines: laidOut, caret: { line, pos: before } }
+    if (before <= laidOut[line].length) return { lines: laidOut, caret: { line, pos: before } }
     before -= laidOut[line].length
   }
   const last = laidOut.length - 1
-  return { text, lines: laidOut, caret: { line: last, pos: laidOut[last].length } }
+  return { lines: laidOut, caret: { line: last, pos: laidOut[last].length } }
 }
 
 /** Each chord with the marks that follow it ("D (x2)"), so a mark never starts a line. */

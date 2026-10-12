@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SONGS } from '../../data/songs'
-import { isLaidOutByParts, keptLines, layOutParts, phraseLines, relayOut } from '../../music/phrases'
+import { layOutParts, phraseLines, relayOut } from '../../music/phrases'
 
 const section = (title: string, name: string) =>
   DEFAULT_SONGS.find(s => s.title === title)!.sections.find(s => s.name === name)!.chords
@@ -96,32 +96,14 @@ describe('the lines the chart shows', () => {
   })
 })
 
-describe('lines saved from the editor', () => {
-  it('saves the lines the chart lays out itself as one line, so it goes on laying them out', () => {
-    expect(keptLines('D  G  C\nD  G  C')).toBe('D  G  C  D  G  C')
-    expect(keptLines('D  G  C  D  G  C')).toBe('D  G  C  D  G  C')
-  })
-
-  it('saves lines the player set as they are', () => {
-    expect(keptLines('D  G\nC  D  G  C')).toBe('D  G\nC  D  G  C')
-    expect(keptLines('B  E\nB  E  B')).toBe('B  E\nB  E  B')
-  })
-
-  it('knows lines the chart laid out from lines the player set', () => {
-    expect(isLaidOutByParts([['D', 'G', 'C'], ['D', 'G', 'C']])).toBe(true)
-    expect(isLaidOutByParts([['D', 'G'], ['C', 'D', 'G', 'C']])).toBe(false)
-    // An empty line to type into is the player's
-    expect(isLaidOutByParts([['D', 'G', 'C', 'D', 'G'], []])).toBe(false)
-  })
-
+describe('lines laid out again in the editor', () => {
   it('lays the lines out again after a chord goes in, the cursor after it', () => {
     expect(relayOut([['D', 'G', 'C', 'D', 'G', 'C']], { line: 0, pos: 6 })).toEqual({
-      text: 'D  G  C  D  G  C',
       lines: [['D', 'G', 'C'], ['D', 'G', 'C']],
       caret: { line: 1, pos: 3 },
     })
     // At the end of a line, not the start of the next
     expect(relayOut([['D', 'G', 'C', 'D', 'G', 'C']], { line: 0, pos: 3 }).caret).toEqual({ line: 0, pos: 3 })
-    expect(relayOut([[]], { line: 0, pos: 0 })).toEqual({ text: '', lines: [[]], caret: { line: 0, pos: 0 } })
+    expect(relayOut([[]], { line: 0, pos: 0 })).toEqual({ lines: [[]], caret: { line: 0, pos: 0 } })
   })
 })

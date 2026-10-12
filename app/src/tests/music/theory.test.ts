@@ -65,8 +65,8 @@ describe('transposeChord', () => {
 });
 
 describe('isChartMark', () => {
-  it('knows "no chord" and repeat counts are not chords', () => {
-    for (const token of ['N.C.', 'NC', 'n.c.', '(x3)', 'x2', '(x12)']) expect(isChartMark(token), token).toBe(true);
+  it('knows "no chord", repeat counts, bar lines and repeat bars are not chords', () => {
+    for (const token of ['N.C.', 'NC', 'n.c.', '(x3)', 'x2', '(x12)', '|', '%']) expect(isChartMark(token), token).toBe(true);
     for (const token of ['C', 'Cm7', 'Bbm', 'Dsus4', 'G/B', 'x', '(x)']) expect(isChartMark(token), token).toBe(false);
   });
 });

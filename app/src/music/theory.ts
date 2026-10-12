@@ -121,12 +121,12 @@ export function transposeInKey(text: string, key: string, semitones: number): st
 }
 
 /**
- * Directions that sit in a chord line but are not chords: "no chord" and
- * repeat counts like (x3). They are drawn smaller so they never read as
- * something to play.
+ * Directions that sit in a chord line but are not chords: "no chord", repeat
+ * counts like (x3), bar lines and the repeat bar %. Nothing plays them and
+ * nothing gives them a shape.
  */
 export function isChartMark(token: string): boolean {
-  return /^(N\.?C\.?|\(?x\d+\)?)$/i.test(token);
+  return token === '|' || token === '%' || /^(N\.?C\.?|\(?x\d+\)?)$/i.test(token);
 }
 
 export function shouldUseFlats(key: string, semitones: number): boolean {

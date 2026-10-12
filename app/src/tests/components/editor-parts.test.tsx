@@ -52,27 +52,27 @@ describe('the editor shows a section by its parts', () => {
     expect(useStore.getState().edits).toEqual({})
   })
 
-  it('a chord taken out and put back by Undo leaves the song on the built-in chart', () => {
+  it('saves the lines it shows, and a chord put back by Undo leaves the song on the built-in chart', () => {
     useStore.setState({ currentIndex: GIG_SETLIST_2026.indexOf(LOVE) })
     render(<SongSheet />)
     chord('Verse', 0)
     tap('Delete')
-    // The lines follow the chords, and are not saved as the player's own
-    expect(saved(LOVE, 0)).not.toContain('\n')
+    // Saved just as shown: the three lines, less the chord taken out
+    expect(saved(LOVE, 0)).toBe('Em11  C  G/B  Em7  Am7\nCadd9  Em11  C  G/B  Em7  Am7\nG/D  D  G/B')
     tap('Undo')
     expect(useStore.getState().edits[LOVE]).toBeUndefined()
   })
 
-  it('lays the lines out again as chords go in, saving them as one line', () => {
+  it('lays one line out by its parts as chords go in, then keeps the lines as shown', () => {
     faithWith('D  G  C  D  G')
     expect(linesIn('Verse')).toEqual([['D', 'G', 'C', 'D', 'G']])
     fireEvent.click(within(section('Verse')).getByRole('button', { name: 'Cursor at the end of line 1' }))
     tap('C')
-    expect(saved('Faith', 0)).toBe('D  G  C  D  G  C')
+    expect(saved('Faith', 0)).toBe('D  G  C\nD  G  C')
     expect(linesIn('Verse')).toEqual([['D', 'G', 'C'], ['D', 'G', 'C']])
     // The cursor stays after the chord just put in
     tap('E')
-    expect(saved('Faith', 0)).toBe('D  G  C  D  G  C  E')
+    expect(saved('Faith', 0)).toBe('D  G  C\nD  G  C  E')
     expect(linesIn('Verse')).toEqual([['D', 'G', 'C'], ['D', 'G', 'C', 'E']])
   })
 
