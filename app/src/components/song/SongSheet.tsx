@@ -138,9 +138,10 @@ export function SongSheet() {
   useFitText(scrollRef, fitRef, fitKey, {
     // A chart in bands takes its range from bands.css, and when not even its
     // bands fit it goes back to the base size and scrolls, rather than
-    // shrinking the chart and the chord shapes
+    // shrinking the chart and the chord shapes. A chord too wide for its bar
+    // shrinks in that bar alone.
     ...(bands
-      ? { min: BAND_MIN_PX, max: BAND_MAX_PX, fallback: BAND_BASE_PX, cssVars: true, cramped: false }
+      ? { min: BAND_MIN_PX, max: BAND_MAX_PX, fallback: BAND_BASE_PX, cssVars: true, cramped: false, fitCells: '.bar' }
       : { min: MIN_CHART_PX, max: MAX_CHART_PX, preferNoWrapMin: NO_WRAP_MIN_PX }),
     enabled: !!song && !editMode,
     // A long chart keeps its chords on screen; the notes under them can scroll

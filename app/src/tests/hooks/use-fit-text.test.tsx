@@ -139,3 +139,61 @@ describe('useFitText on a band chart', () => {
     expect(chart.size()).toBe(30)
   })
 })
+
+/**
+ * A bar in a 100 px cell whose chord is `ems` chord sizes wide. `--fit` on the
+ * bar scales it down (bands.css turns it into zoom); `pastScreen` is how far
+ * it runs past the screen's edge when it ends a row.
+ */
+function bar(chart: ReturnType<typeof fakeChart>, ems: number) {
+  const cell = document.createElement('div')
+  cell.className = 'bar'
+  Object.defineProperty(cell, 'clientWidth', { get: () => 100 })
+  Object.defineProperty(cell, 'scrollWidth', { get: () => Math.max(100, Math.round(chart.size() * ems)) })
+  chart.content.current.append(cell)
+  const fit = () => cell.style.getPropertyValue('--fit')
+  const pastScreen = () => Math.max(0, chart.size() * ems * (parseFloat(fit()) || 1) - 100)
+  return { fit, pastScreen }
+}
+
+const bandCells = { ...bands, fitCells: '.bar' }
+
+describe('useFitText on a chord too wide for its bar', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('shrinks that bar alone, so the chord does not run into the next one', () => {
+    const chart = withRange(fakeChart(8, 6), 32, 28, 45)
+    const long = bar(chart, 3)
+    const short = bar(chart, 2)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bandCells, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(45)
+    expect(long.fit()).toBe('0.74')
+    expect(short.fit()).toBe('')
+  })
+
+  it('keeps the chart’s size when the chord ends a row, rather than shrinking it or going back to the base size', () => {
+    let atRowEnd = () => 0
+    const chart = withRange(fakeChart(8, 6, () => 300 + atRowEnd()), 32, 28, 45)
+    atRowEnd = bar(chart, 4).pastScreen
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bandCells, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(45)
+    expect(atRowEnd()).toBeLessThanOrEqual(1)
+  })
+
+  it('lets the bar back to full size when the chord fits again', () => {
+    let resize = () => {}
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback: () => void) { resize = callback }
+      observe() {}
+      disconnect() {}
+    })
+    const chart = withRange(fakeChart(8, 6), 32, 28, 45)
+    const long = bar(chart, 3)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bandCells, essentialRef: chart.sections }))
+    expect(long.fit()).toBe('0.74')
+    chart.content.current.style.setProperty('--chart-max', '30px')
+    resize()
+    expect(chart.size()).toBe(30)
+    expect(long.fit()).toBe('')
+  })
+})

@@ -69,4 +69,8 @@ describe('the band chart stylesheet', () => {
   it('makes the shapes handle readable on stage', () => {
     expect(between(css('bands.css'), 'body.stage .diagrams-collapsed {', '}')).toContain('font-size: 16px;')
   })
+
+  it('scales a bar down by the fit the chart gives it, so a long chord stays inside its bar', () => {
+    expect(between(css('bands.css'), '.band-chart .bar {', '}')).toContain('zoom: var(--fit, 1);')
+  })
 })

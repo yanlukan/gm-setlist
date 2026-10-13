@@ -79,6 +79,8 @@
   column-gap: 0.6em;
   padding: 0 0.35em;
   border-left: 2px solid var(--text-muted);
+  /* A chord too wide for its bar is scaled down in that bar alone (set by the fit) */
+  zoom: var(--fit, 1);
 }
 .band-chart .bar-last { border-right: 2px solid var(--text-muted); }
 /* The double bar where a section starts, in the band's colour */
