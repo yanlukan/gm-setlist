@@ -47,6 +47,7 @@ describe('a line played again straight away', () => {
       'Too Funky', 'Jesus to a Child', 'Everything She Wants', 'Fastlove',
       'Kissing a Fool', 'Last Christmas', 'Waiting (Reprise)',
       'Outside', 'Father Figure', 'Wake Me Up Before You Go-Go', 'Somebody to Love',
+      'Careless Whisper',
     ]) {
       for (const section of by(title).sections) {
         const lines = playedLines(section.chords)
