@@ -180,8 +180,21 @@ describe('sectionColor', () => {
   });
 
   it('returns default for unknown sections', () => {
-    expect(sectionColor('solo')).toBe('var(--section-default)');
     expect(sectionColor('unknown')).toBe('var(--section-default)');
+  });
+
+  it('colours a part by its kind: a last verse is a verse, a post-chorus a chorus', () => {
+    for (const name of ['Last verse', 'Killer verse 2', 'Post-Verse']) expect(sectionColor(name)).toBe('var(--section-verse)');
+    for (const name of ['Post-Chorus', 'Last Chorus']) expect(sectionColor(name)).toBe('var(--section-chorus)');
+    expect(sectionColor('Pre-Chorus')).toBe('var(--section-prechorus)');
+  });
+
+  it('gives a solo its own colour, but not a solo on one instrument', () => {
+    expect(sectionColor('Solo')).toBe('var(--section-solo)');
+    expect(sectionColor('solo')).toBe('var(--section-solo)');
+    for (const name of ['unknown', 'Bass solo', 'Trumpet solo', 'Stop', 'Chorus end']) {
+      expect(sectionColor(name)).toBe('var(--section-default)');
+    }
   });
 });
 

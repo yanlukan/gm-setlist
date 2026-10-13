@@ -177,12 +177,14 @@ export function getDiatonic7ths(key: string): string[] {
 }
 
 export function sectionColor(name: string): string {
-  // "Bridge 2" is still a bridge
+  // "Bridge 2" is still a bridge, "Last verse" a verse and "Post-Chorus" a chorus
   const lower = name.toLowerCase().replace(/[\s-_]/g, '').replace(/\d+$/, '');
-  if (lower === 'verse') return 'var(--section-verse)';
-  if (lower === 'chorus') return 'var(--section-chorus)';
-  if (lower === 'bridge') return 'var(--section-bridge)';
-  if (lower === 'prechorus') return 'var(--section-prechorus)';
+  if (lower.endsWith('prechorus')) return 'var(--section-prechorus)';
+  if (lower.endsWith('verse')) return 'var(--section-verse)';
+  if (lower.endsWith('chorus')) return 'var(--section-chorus)';
+  if (lower.endsWith('bridge')) return 'var(--section-bridge)';
+  // A solo on one instrument (Bass solo) stays plain: only the band's solo gets the colour
+  if (lower === 'solo') return 'var(--section-solo)';
   if (lower === 'intro' || lower === 'outro') return 'var(--section-intro)';
   return 'var(--section-default)';
 }
