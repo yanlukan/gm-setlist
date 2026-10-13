@@ -65,4 +65,8 @@ describe('the band chart stylesheet', () => {
     expect(layout.split('max(16px, 0.36em)')).toHaveLength(3)
     expect(layout).toContain('font-size: max(16px, 0.4em);')
   })
+
+  it('makes the shapes handle readable on stage', () => {
+    expect(between(css('bands.css'), 'body.stage .diagrams-collapsed {', '}')).toContain('font-size: 16px;')
+  })
 })

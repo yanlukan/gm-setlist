@@ -1,15 +1,15 @@
 import { create } from 'zustand'
 import { useMemo } from 'react'
-import type { Song, Section, SongEdits, SongVersion, Setlist, SetlistData, Theme, ViewMode } from '../types'
+import type { Song, Section, SongEdits, SongVersion, Setlist, SetlistData } from '../types'
 import { DEFAULT_SONGS, GIG_SETLIST_2026, REHEARSAL_SETLIST } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
 import { sameForm } from '../music/form'
-import { MAX_CAPO, type ChartView, type Instrument } from '../music/chart-view'
+import { MAX_CAPO, type ChartView } from '../music/chart-view'
 import { setOwnShapes, type Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
-import { viewSettings, type ViewSettings } from './view-settings'
+import { readViewSettings, viewSettings, type ViewSettings } from './view-settings'
 import { shapeSettings, type ShapeSettings } from './own-shapes'
 import {
   saveSongEdits,
@@ -19,9 +19,7 @@ import {
   getSetlistData,
   saveCustomSongs,
   getCustomSongs,
-  getTheme,
   getSelectedVoicings,
-  getDiagramsVisible,
   saveSetting,
   getSetting,
   takeSnapshot,
@@ -713,33 +711,19 @@ export const useStore = create<StoreState>((set, get) => ({
   hydrate: async () => {
     let setlistDataResult: SetlistData | undefined
     let customSongsResult: Song[] = []
-    let themeResult: Theme | undefined
     let selectedVoicingsResult: Record<string, number> | undefined
-    let diagramsVisibleResult: boolean | undefined
-    let viewModeResult: ViewMode | undefined
     let positionResult: SavedPosition | undefined
-    let simpleResult: boolean | undefined
-    let guitarResult: Guitar | 'auto' | undefined
-    let instrumentResult: Instrument | undefined
     let ownShapesResult: Record<string, string[]> | undefined
+    let viewResult: Awaited<ReturnType<typeof readViewSettings>> = {}
 
     try {
-      ;[
-        setlistDataResult, customSongsResult, themeResult, selectedVoicingsResult,
-        diagramsVisibleResult, viewModeResult, positionResult, simpleResult, guitarResult,
-        instrumentResult, ownShapesResult,
-      ] = await Promise.all([
+      ;[setlistDataResult, customSongsResult, selectedVoicingsResult, positionResult, ownShapesResult, viewResult] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
-        getTheme(),
         getSelectedVoicings(),
-        getDiagramsVisible(),
-        getSetting<ViewMode>('viewMode'),
         getSetting<SavedPosition>('position'),
-        getSetting<boolean>('simpleChords'),
-        getSetting<Guitar | 'auto'>('guitar'),
-        getSetting<Instrument>('instrument'),
         getSetting<Record<string, string[]>>('ownShapes'),
+        readViewSettings(),
       ])
     } catch (e) {
       // Reading failed. Go read-only rather than showing defaults and then
@@ -788,14 +772,9 @@ export const useStore = create<StoreState>((set, get) => ({
       return {
         ...(setlistDataResult && { setlistData: setlistDataResult }),
         ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
-        ...(themeResult && { theme: themeResult }),
+        ...viewResult,
         ...(selectedVoicingsResult && { selectedVoicings: selectedVoicingsResult }),
         ...(ownShapesResult && { ownShapes: ownShapesResult }),
-        ...(typeof diagramsVisibleResult === 'boolean' && { diagramsVisible: diagramsVisibleResult }),
-        ...((viewModeResult === 'stage' || viewModeResult === 'normal') && { viewMode: viewModeResult }),
-        ...(typeof simpleResult === 'boolean' && { simpleChords: simpleResult }),
-        ...((guitarResult === 'auto' || guitarResult === 'acoustic' || guitarResult === 'electric') && { guitar: guitarResult }),
-        ...((instrumentResult === 'guitar' || instrumentResult === 'keyboard') && { instrument: instrumentResult }),
         edits,
         loadFailed: false,
         currentIndex: clampIndex(savedIndex, listLength),

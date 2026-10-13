@@ -1,5 +1,6 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
+import { shapesShown } from '../../store/view-settings'
 import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
 import { capoFor, shapeKey, shapeSections, shapeShift, simplifyRuleFor, simplifyText } from '../../music/chart-view'
 import { hasShapes } from '../../music/voicings'
@@ -40,7 +41,7 @@ export function SongSheet() {
   const currentIndex = useStore(s => s.currentIndex)
   const editMode = useStore(s => s.editMode)
   const onStage = useStore(s => s.viewMode === 'stage')
-  const diagramsVisible = useStore(s => s.diagramsVisible)
+  const diagramsVisible = useStore(shapesShown)
   const focusSection = useStore(s => s.focusSection)
   const setFocusSection = useStore(s => s.setFocusSection)
   const selectedVoicings = useStore(s => s.selectedVoicings)

@@ -30,9 +30,19 @@ describe('hiding the chord shapes from the strip itself', () => {
     expect(screen.queryByRole('button', { name: 'Show the chord shapes' })).toBeNull()
   })
 
-  it('keeps the handle on stage, where a bigger chart matters most', () => {
+  it('starts closed on stage, so the chart gets the room', () => {
     useStore.setState({ viewMode: 'stage' })
     render(<DiagramsBar />)
+    expect(screen.queryByRole('list', { name: 'Chord shapes' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Show the chord shapes' })).toBeInTheDocument()
+  })
+
+  it('opens on stage without touching the usual setting', () => {
+    useStore.setState({ viewMode: 'stage', diagramsVisible: false })
+    render(<DiagramsBar />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show the chord shapes' }))
+    expect(useStore.getState().stageDiagramsVisible).toBe(true)
+    expect(useStore.getState().diagramsVisible).toBe(false)
     expect(screen.getByRole('button', { name: 'Hide the chord shapes' })).toBeInTheDocument()
   })
 })

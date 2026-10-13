@@ -119,6 +119,10 @@
   font-weight: 800;
 }
 
+/* ---------- On stage ----------
+   The shapes strip starts closed on stage; its handle must read at arm's length */
+body.stage .diagrams-collapsed { font-size: 16px; }
+
 /* ---------- An iPad on its side: eight bars a row ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
   .band-chart {

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
+import { shapesShown } from '../../store/view-settings'
 import { capoFor, guitarFor, shownSections } from '../../music/chart-view'
 import { strum } from '../../music/sound'
 import { hasShapes, isPlayersShape, shapeText, voicingsFor } from '../../music/voicings'
@@ -22,7 +23,7 @@ export function DiagramsBar() {
   const onStage = useStore(s => s.viewMode === 'stage')
   const focusSection = useStore(s => s.focusSection)
   const setFocusSection = useStore(s => s.setFocusSection)
-  const diagramsVisible = useStore(s => s.diagramsVisible)
+  const diagramsVisible = useStore(shapesShown)
   const toggleDiagrams = useStore(s => s.toggleDiagrams)
 
   const [pickerChord, setPickerChord] = useState<string | null>(null)

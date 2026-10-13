@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
+import { shapesShown } from '../../store/view-settings'
 import { transposeFor } from '../../music/setlist-text'
 import { shouldUseFlats, transposeChord } from '../../music/theory'
 import { exportAllData, importAllData, takeSnapshot } from '../../store/persistence'
@@ -32,7 +33,7 @@ export function TopBar() {
   const editMode = useStore(s => s.editMode)
   const viewMode = useStore(s => s.viewMode)
   const theme = useStore(s => s.theme)
-  const diagramsVisible = useStore(s => s.diagramsVisible)
+  const diagramsVisible = useStore(shapesShown)
   const toggleEditMode = useStore(s => s.toggleEditMode)
   const toggleViewMode = useStore(s => s.toggleViewMode)
   const toggleTheme = useStore(s => s.toggleTheme)
