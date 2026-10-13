@@ -20,7 +20,21 @@ describe('section colours', () => {
     const theme = css('theme.css')
     expect(between(theme, ':root {', '}')).toContain('--section-solo: #f472b6;')
     expect(between(theme, 'body.light {', '}')).toContain('--section-solo: #be185d;')
-    expect(between(theme, 'body.stage {', '}')).toContain('--section-solo: #ffffff;')
+  })
+
+  it('keeps the section colours on stage, bright on black', () => {
+    const stage = between(css('theme.css'), 'body.stage {', '}')
+    for (const line of [
+      '--section-verse: #6ab4ff;',
+      '--section-chorus: #5ff08f;',
+      '--section-bridge: #ffa14a;',
+      '--section-prechorus: #d6a6ff;',
+      '--section-solo: #ff8ad0;',
+      '--section-intro: #cccccc;',
+      '--section-default: #cccccc;',
+    ]) {
+      expect(stage).toContain(line)
+    }
   })
 })
 

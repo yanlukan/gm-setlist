@@ -61,11 +61,11 @@ body.stage {
   --text-muted: #999999;
   --badge-bg: #222222;
   --picker-bg: #111111;
-  --section-verse: #ffffff;
-  --section-chorus: #ffffff;
-  --section-bridge: #ffffff;
-  --section-prechorus: #ffffff;
-  --section-solo: #ffffff;
+  --section-verse: #6ab4ff;
+  --section-chorus: #5ff08f;
+  --section-bridge: #ffa14a;
+  --section-prechorus: #d6a6ff;
+  --section-solo: #ff8ad0;
   --section-intro: #cccccc;
   --section-default: #cccccc;
   --border: #222222;
