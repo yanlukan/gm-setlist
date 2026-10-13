@@ -125,3 +125,26 @@ describe('a band on its own', () => {
     expect(rows[0].textContent).toBe('')
   })
 })
+
+describe('the size of a band chart', () => {
+  // jsdom has no layout, so every chart fits: each grows to its largest size
+  it('grows to the largest band size', () => {
+    render(<SongSheet />) // Faith, in bars
+    expect(chart().style.fontSize).toBe('45px')
+  })
+
+  it('keeps the usual sizes for a chart without bars', () => {
+    faithOneLine()
+    render(<SongSheet />)
+    expect(chart().style.fontSize).toBe('64px')
+  })
+
+  it('lets two chords in a bar wrap after a chart that kept its lines unwrapped', () => {
+    faithOneLine()
+    render(<SongSheet />)
+    expect(chart().dataset.wrap).toBe('off')
+    open('Kissing a Fool')
+    expect(chart().classList.contains('band-chart')).toBe(true)
+    expect(chart().dataset.wrap).toBeUndefined()
+  })
+})

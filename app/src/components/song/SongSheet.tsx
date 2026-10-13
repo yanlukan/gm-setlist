@@ -27,6 +27,10 @@ const MIN_CHART_PX = 20
 const MAX_CHART_PX = 64
 /** Keep progressions on one line if that still gives at least this size. */
 const NO_WRAP_MIN_PX = 30
+/** A chart in bands, in portrait: used where the stylesheet sets none (bands.css sets them per screen shape). */
+const BAND_BASE_PX = 32
+const BAND_MIN_PX = 28
+const BAND_MAX_PX = 45
 
 export function SongSheet() {
   const songs = useStore(s => s.songs)
@@ -131,10 +135,13 @@ export function SongSheet() {
     ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo, onStage, keyboard])
     : ''
   useFitText(scrollRef, fitRef, fitKey, {
-    min: MIN_CHART_PX,
-    max: MAX_CHART_PX,
+    // A chart in bands takes its range from bands.css, and when not even its
+    // bands fit it goes back to the base size and scrolls, rather than
+    // shrinking the chart and the chord shapes
+    ...(bands
+      ? { min: BAND_MIN_PX, max: BAND_MAX_PX, fallback: BAND_BASE_PX, cssVars: true, cramped: false }
+      : { min: MIN_CHART_PX, max: MAX_CHART_PX, preferNoWrapMin: NO_WRAP_MIN_PX }),
     enabled: !!song && !editMode,
-    preferNoWrapMin: NO_WRAP_MIN_PX,
     // A long chart keeps its chords on screen; the notes under them can scroll
     essentialRef: sectionsRef,
   })

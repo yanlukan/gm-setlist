@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useFitText } from '../../hooks/use-fit-text'
 
@@ -59,31 +59,6 @@ describe('useFitText', () => {
     expect(chart.container.current.dataset.cramped).toBeUndefined()
   })
 
-  it('lays the chart out narrower when even the smallest size is too wide, and fits it again', () => {
-    // Too wide at any size until the page lays it out narrower (bars two to a row on a phone)
-    const chart = fakeChart(10, 8, content => (content.dataset.narrow ? 300 : 340))
-    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
-    expect(chart.content.current.dataset.narrow).toBe('on')
-    expect(chart.size()).toBe(40)
-  })
-
-  it('keeps the usual layout when the chart is not too wide', () => {
-    const chart = fakeChart(25, 12)
-    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...options, essentialRef: chart.sections }))
-    expect(chart.content.current.dataset.narrow).toBeUndefined()
-  })
-
-  it('goes back to the usual layout when the next chart is not too wide', () => {
-    let wide = 340
-    const chart = fakeChart(10, 8, content => (content.dataset.narrow ? 300 : wide))
-    const { rerender } = renderHook(({ key }) =>
-      useFitText(chart.container, chart.content, key, { ...options, essentialRef: chart.sections }), { initialProps: { key: 'a' } })
-    expect(chart.content.current.dataset.narrow).toBe('on')
-    wide = 300
-    rerender({ key: 'b' })
-    expect(chart.content.current.dataset.narrow).toBeUndefined()
-  })
-
   it('forgets cramped when the chart changes', () => {
     let chordLines = 30
     const chart = fakeChart(40, 30)
@@ -94,5 +69,73 @@ describe('useFitText', () => {
     chordLines = 12
     rerender({ key: 'b' })
     expect(chart.container.current.dataset.cramped).toBeUndefined()
+  })
+
+  it('forgets the last chart’s unwrapped lines when the next one does not ask for them', () => {
+    let prefer: number | undefined = 30
+    const chart = fakeChart(10, 8)
+    const { rerender } = renderHook(({ key }) =>
+      useFitText(chart.container, chart.content, key, { ...options, preferNoWrapMin: prefer }), { initialProps: { key: 'a' } })
+    expect(chart.content.current.dataset.wrap).toBe('off')
+    prefer = undefined
+    rerender({ key: 'b' })
+    expect(chart.content.current.dataset.wrap).toBeUndefined()
+  })
+})
+
+/** Sets the chart's range on the content, the way bands.css does. */
+function withRange(chart: ReturnType<typeof fakeChart>, base: number, min: number, max: number) {
+  const content = chart.content.current
+  content.style.setProperty('--chart-base', `${base}px`)
+  content.style.setProperty('--chart-min', `${min}px`)
+  content.style.setProperty('--chart-max', `${max}px`)
+  // Computed style is only read for an element in the document
+  document.body.append(content)
+  return chart
+}
+
+const bands = { min: 20, max: 60, enabled: true, cssVars: true, cramped: false }
+
+describe('useFitText on a band chart', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('takes its range from the stylesheet', () => {
+    const chart = withRange(fakeChart(10, 8), 32, 28, 36)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bands, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(36)
+  })
+
+  it('shrinks to the smallest size of the range to fit the whole chart', () => {
+    const chart = withRange(fakeChart(14, 8), 32, 28, 36)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bands, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(28)
+  })
+
+  it('keeps the largest size at which the bands fit when the whole chart cannot', () => {
+    const chart = withRange(fakeChart(25, 12), 32, 28, 36)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bands, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(33)
+  })
+
+  it('goes back to the base size and scrolls when not even the bands fit, without saying cramped', () => {
+    const chart = withRange(fakeChart(40, 30), 32, 28, 36)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bands, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(32)
+    expect(chart.container.current.dataset.cramped).toBeUndefined()
+  })
+
+  it('reads the range again when the iPad turns', () => {
+    let resize = () => {}
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback: () => void) { resize = callback }
+      observe() {}
+      disconnect() {}
+    })
+    const chart = withRange(fakeChart(10, 8), 32, 28, 36)
+    renderHook(() => useFitText(chart.container, chart.content, 'a', { ...bands, essentialRef: chart.sections }))
+    expect(chart.size()).toBe(36)
+    chart.content.current.style.setProperty('--chart-max', '30px')
+    resize()
+    expect(chart.size()).toBe(30)
   })
 })
