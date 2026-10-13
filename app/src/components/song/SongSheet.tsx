@@ -9,13 +9,14 @@ import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { MoveChordsSheet } from './MoveChordsSheet'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
-import { BarGrid } from './BarGrid'
+import { BandChart } from './BandChart'
 import { hasBars } from '../../music/bars'
 import { formMatches } from '../../music/form'
+import { letterByName } from '../../music/letters'
 import { layOutParts } from '../../music/phrases'
 import { hasEditedChart } from '../../music/chart-edits'
 import { playedKey, transposeFor } from '../../music/setlist-text'
-import { normalizeChordText } from '../../music/chord-text'
+import { normalizeChordText, splitAlteration } from '../../music/chord-text'
 import { useFitText } from '../../hooks/use-fit-text'
 import { useSwipe } from '../../hooks/use-swipe'
 import type { Song } from '../../types'
@@ -99,6 +100,8 @@ export function SongSheet() {
     const laidOut = displaySections.map(sec => ({ ...sec, chords: layOutParts(sec.chords) }))
     return view.simple ? laidOut.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : laidOut
   }, [displaySections, view.simple, rule])
+  // Written in bars, the chart is drawn in bands: lettered sections, each with its bars in one grid
+  const bands = readSections.some(s => s.chords.split('\n').some(line => hasBars(line)))
 
   const notes = useMemo(() => {
     if (!song) return ''
@@ -250,35 +253,47 @@ export function SongSheet() {
     const banners = renderBanners(song)
 
     return (
-      <div ref={fitRef} className="chart">
+      <div ref={fitRef} className={bands ? 'chart band-chart' : 'chart'}>
         {heading}
         {banners}
-        {formMatches(form, readSections) && <FormStrip form={form} />}
+        {formMatches(form, readSections) && (
+          <FormStrip form={form} letters={bands ? letterByName(readSections.map(s => s.name)) : undefined} />
+        )}
         <div ref={sectionsRef} className="chart-sections">
-          {readSections.map((section, i) => {
-            const focused = focusSection?.title === song.title && focusSection.index === i
-            return (
-              <Fragment key={`${song.title}-${i}`}>
-                {diagramsVisible && !keyboard ? (
-                  // Tap a section to see just its chord shapes in the diagrams below
-                  <button
-                    type="button"
-                    className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
-                    style={{ color: sectionColor(section.name) }}
-                    aria-pressed={focused}
-                    onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
-                  >
-                    {section.name}
-                  </button>
-                ) : (
-                  <div className="chart-label" style={{ color: sectionColor(section.name) }}>
-                    {section.name}
-                  </div>
-                )}
-                <div className="chart-chords">{renderChords(section.chords)}</div>
-              </Fragment>
-            )
-          })}
+          {bands ? (
+            <BandChart
+              sections={readSections}
+              focusable={diagramsVisible && !keyboard}
+              focusedIndex={focusSection?.title === song.title ? focusSection.index : null}
+              onFocus={index => setFocusSection(index === null ? null : { title: song.title, index })}
+              renderTokens={renderTokens}
+            />
+          ) : (
+            readSections.map((section, i) => {
+              const focused = focusSection?.title === song.title && focusSection.index === i
+              return (
+                <Fragment key={`${song.title}-${i}`}>
+                  {diagramsVisible && !keyboard ? (
+                    // Tap a section to see just its chord shapes in the diagrams below
+                    <button
+                      type="button"
+                      className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
+                      style={{ color: sectionColor(section.name) }}
+                      aria-pressed={focused}
+                      onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
+                    >
+                      {section.name}
+                    </button>
+                  ) : (
+                    <div className="chart-label" style={{ color: sectionColor(section.name) }}>
+                      {section.name}
+                    </div>
+                  )}
+                  <div className="chart-chords">{renderChords(section.chords)}</div>
+                </Fragment>
+              )
+            })
+          )}
         </div>
         {notes && <div className="chart-notes">{notes}</div>}
       </div>
@@ -292,8 +307,6 @@ export function SongSheet() {
   // stays in the text, for anything that reads the chart as text.
   const renderChords = (text: string) => {
     const lines = text.split('\n')
-    // Written in bars: a box per bar, the bars of every line in the same columns
-    if (lines.some(line => hasBars(line))) return <BarGrid lines={lines} renderTokens={renderTokens} />
     return lines.map((line, li) => (
       <div key={li} className="chart-line">
         {renderTokens(line)}
@@ -302,12 +315,19 @@ export function SongSheet() {
     ))
   }
 
+  // In bands, a chord's alteration in brackets is drawn a little smaller: Bb7(b9).
+  // The tap still picks the whole chord.
+  const chordText = (token: string) => {
+    const parts = bands ? splitAlteration(token) : null
+    return parts ? <>{parts[0]}<span className="chord-alt">{parts[1]}</span></> : token
+  }
+
   const renderTokens = (text: string) =>
     text.split(/(\s+)/).map((token, i) => {
       if (!token.trim()) return <span key={i}>{token}</span>
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
-      if (onStage || keyboard) return <span key={i}>{token}</span>
-      if (!hasShapes(token)) return <span key={i}>{token}</span>
+      if (onStage || keyboard) return <span key={i}>{chordText(token)}</span>
+      if (!hasShapes(token)) return <span key={i}>{chordText(token)}</span>
       return (
         <span
           key={i}
@@ -317,7 +337,7 @@ export function SongSheet() {
             setPickerChord(token)
           }}
         >
-          {token}
+          {chordText(token)}
         </span>
       )
     })

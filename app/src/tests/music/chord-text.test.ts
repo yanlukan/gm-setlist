@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseChordText, formatChordText, normalizeChordText, unknownChords, isChordToken,
-  insertChord, replaceChord, deleteChord, backspace, breakLine, typeAt,
+  insertChord, replaceChord, deleteChord, backspace, breakLine, typeAt, splitAlteration,
 } from '../../music/chord-text'
 
 describe('chord text', () => {
@@ -161,5 +161,18 @@ describe('typeAt', () => {
   it('starts a new line at the caret', () => {
     expect(typeAt('C  G  ', 6, '\n')).toEqual({ text: 'C  G\n', caret: 5 })
     expect(typeAt('C  G', 3, '\n')).toEqual({ text: 'C\nG', caret: 2 })
+  })
+})
+
+describe('splitAlteration', () => {
+  it('takes a trailing alteration in brackets apart from the chord', () => {
+    expect(splitAlteration('Bb7(b9)')).toEqual(['Bb7', '(b9)'])
+    expect(splitAlteration('E7(#9)')).toEqual(['E7', '(#9)'])
+  })
+
+  it('leaves a chord without brackets at its end alone', () => {
+    expect(splitAlteration('C(add9)/E')).toBeNull()
+    expect(splitAlteration('G')).toBeNull()
+    expect(splitAlteration('(x2)')).toBeNull()
   })
 })

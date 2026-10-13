@@ -23,3 +23,32 @@ describe('section colours', () => {
     expect(between(theme, 'body.stage {', '}')).toContain('--section-solo: #ffffff;')
   })
 })
+
+const LANDSCAPE = '@media (orientation: landscape) and (min-width: 900px)'
+const PHONE = '@media (max-width: 500px)'
+
+describe('the band chart stylesheet', () => {
+  it('has four columns, eight in landscape and two on a phone', () => {
+    const bands = css('bands.css')
+    const base = between(bands, '.band-chart {', '}')
+    expect(base).toContain('--cols: 4;')
+    expect(base).toContain('--chart-base: 32px;')
+    expect(between(bands, LANDSCAPE, PHONE)).toContain('--cols: 8;')
+    const phone = between(bands, PHONE)
+    expect(phone).toContain('--cols: 2;')
+    expect(phone).toContain('.band-chart .pad-wide { display: none; }')
+  })
+
+  it('is loaded, and the old bar view is gone', () => {
+    expect(css('global.css')).toContain("@import './bands.css';")
+    expect(css('bars.css')).not.toContain('.bar-grid')
+    expect(css('bars.css')).not.toContain('data-narrow')
+  })
+
+  it('keeps the title line readable on every chart', () => {
+    const layout = css('layout.css')
+    expect(layout).toContain('font-size: max(26px, 0.6em);')
+    expect(layout.split('max(16px, 0.36em)')).toHaveLength(3)
+    expect(layout).toContain('font-size: max(16px, 0.4em);')
+  })
+})

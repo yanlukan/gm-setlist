@@ -198,7 +198,12 @@ describe('editing the song order', () => {
     expect(PAPA.sections.map(s => s.name)).toEqual(expect.arrayContaining(['Intro', 'Killer', 'Outro']))
 
     act(() => useStore.setState({ editMode: false }))
-    expect(tags()).toEqual(['Intro', 'Killer', 'Outro'])
+    // Papa is written in bars: its chips carry the section letters and full names
+    expect(
+      Array.from(strip()!.querySelectorAll('.form-chip')).map(
+        chip => `${chip.querySelector('.band-letter')!.textContent} ${chip.querySelector('.form-name')!.textContent}`,
+      ),
+    ).toEqual(['A Intro', 'E Killer', 'I Outro'])
   })
 
   it('marks a step that is not in the chart, and says why the chart does not show the order', () => {

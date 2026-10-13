@@ -1,0 +1,158 @@
+/* ---------- A chart in bands (3.64.0) ----------
+   A chart written in bars: each section a band in its colour, lettered A, B, C
+   in chart order, its bars in a grid of four columns (eight in landscape, two
+   on a phone). Every written line is padded to four cells, so bar 1 of every
+   line is in the first column. The fit reads --chart-base, --chart-min and
+   --chart-max from here on every fit, so turning the iPad picks up the other
+   range. */
+.band-chart {
+  --cols: 4;
+  --chart-base: 32px;
+  --chart-min: 28px;
+  --chart-max: 45px;
+  --band-gap: 14px;
+  --row-gap: 5px;
+  --head-size: max(0.6em, 16px);
+  --letter-box: max(1.34em, 26px);
+  --chip-size: 17px;
+}
+.chart-scroll:has(.band-chart) { padding-left: 16px; padding-right: 16px; }
+.band-chart .chart-title { font-size: max(0.8em, 26px); }
+.band-chart .chart-sections {
+  display: flex;
+  flex-direction: column;
+  /* The chart's baseline alignment would shrink each band to its text */
+  align-items: stretch;
+  gap: var(--band-gap);
+}
+
+/* ---------- A section: a tinted band with a thick edge in its colour ---------- */
+.band {
+  border-left: 6px solid var(--band);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--band) 10%, transparent);
+  padding: 0 8px 6px;
+}
+.band-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--band);
+  font-size: var(--head-size);
+}
+/* The filled letter box, in the header and in the song-order chips */
+.band-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--band);
+  color: var(--bg);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+.band-head .band-letter { width: var(--letter-box); height: var(--letter-box); font-size: 1em; }
+.band-head .chart-label { font-size: 1em; text-transform: none; letter-spacing: normal; color: var(--band); }
+.band-head .chart-label-btn { min-height: 44px; }
+.band-rule { flex: 1; height: 1px; background: var(--band); opacity: 0.6; }
+
+/* ---------- The bars ---------- */
+.band-chart .bar-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  row-gap: var(--row-gap);
+}
+/* N.C., a blank line or a line not in bars runs across the whole row */
+.band-chart .bar-plain { grid-column: 1 / -1; min-height: 44px; }
+.band-chart .bar,
+.band-chart .bar-pad { min-height: 44px; }
+.band-chart .bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  column-gap: 0.6em;
+  padding: 0 0.35em;
+  border-left: 2px solid var(--text-muted);
+}
+.band-chart .bar-last { border-right: 2px solid var(--text-muted); }
+/* The double bar where a section starts, in the band's colour */
+.band-chart .bar-double {
+  border-left: none;
+  padding-left: calc(9px + 0.35em);
+  background: linear-gradient(to right, var(--band) 0 5px, transparent 5px 7px, var(--band) 7px 9px, transparent 9px) no-repeat;
+}
+/* Two chords share a bar from its midpoint when both fit, else they wrap */
+.band-chart .bar-chord { flex: 1 1 0; min-width: max-content; }
+.band-chart .bar-shared .bar-chord { font-size: max(0.85em, 24px); }
+.band-chart .bar-repeat {
+  flex: 1 1 0;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: max(0.75em, 24px);
+}
+.band-chart .chart-mark { font-size: max(0.75em, 24px); }
+/* N.C. sharing a bar is already at the shared size */
+.band-chart .bar-shared .bar-chord .chart-mark { font-size: 1em; }
+/* (x2) at the end of its bar */
+.band-chart .bar-count { margin-left: auto; }
+/* The alteration in brackets, a little smaller: Bb7(b9) */
+.band-chart .chord-alt { font-size: max(0.8em, 24px); }
+
+/* ---------- The song order, lettered ----------
+   Each chip shows its section's letter and full name, tinted like its band.
+   The chips are not buttons. */
+.form-strip.is-lettered .form-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 3px;
+  border: 1.5px solid var(--band);
+  background: color-mix(in srgb, var(--band) 22%, transparent);
+  font-size: var(--chip-size);
+  font-weight: 800;
+}
+
+/* ---------- An iPad on its side: eight bars a row ---------- */
+@media (orientation: landscape) and (min-width: 900px) {
+  .band-chart {
+    --cols: 8;
+    --chart-base: 26px;
+    --chart-min: 24px;
+    --chart-max: 36px;
+    --band-gap: 10px;
+    --row-gap: 4px;
+    --head-size: 16px;
+    --letter-box: 22px;
+    --chip-size: 16px;
+  }
+  .chart-scroll:has(.band-chart) { padding-left: 12px; padding-right: 12px; }
+  .band-chart .chart-title { font-size: 24px; }
+  /* Two four-bar phrases a row: the line between them is the stronger one */
+  .band-chart .bar.phrase-start { border-left-color: var(--text); }
+  .band-chart .bar.phrase-end { border-right: none; }
+}
+
+/* ---------- A phone: two bars a row. Last, so it wins on a small screen ---------- */
+@media (max-width: 500px) {
+  .band-chart {
+    --cols: 2;
+    --chart-base: 24px;
+    --chart-min: 24px;
+    --chart-max: 34px;
+    --band-gap: 12px;
+    --row-gap: 4px;
+    --head-size: 16px;
+    --letter-box: 22px;
+    --chip-size: 16px;
+  }
+  .chart-scroll:has(.band-chart) { padding-left: 12px; padding-right: 12px; }
+  .band-chart .chart-title { font-size: 22px; }
+  .band-chart .pad-wide { display: none; }
+}

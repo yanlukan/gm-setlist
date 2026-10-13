@@ -154,3 +154,9 @@ export function typeAt(text: string, caret: number, token: string): { text: stri
   const head = before + lead + token + trail
   return { text: head + after, caret: head.length }
 }
+
+/** A chord's trailing alteration in brackets, apart: Bb7(b9) is Bb7 and (b9). Null when there is none. */
+export function splitAlteration(token: string): [string, string] | null {
+  const match = /^(.+?)(\([^()]+\))$/.exec(token)
+  return match ? [match[1], match[2]] : null
+}

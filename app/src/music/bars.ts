@@ -12,6 +12,13 @@ export function hasBars(line: string | string[]): boolean {
   return tokens.some(t => t === BAR || t === REPEAT_BAR)
 }
 
+/** Blank cells after a written line's bars, to the next multiple of four; the ones past a multiple of two are for wide rows only. */
+export function padsAfter(count: number): ('pad-both' | 'pad-wide')[] {
+  const toFour = (4 - (count % 4)) % 4
+  const toTwo = count % 2
+  return Array.from({ length: toFour }, (_, i) => (i < toTwo ? 'pad-both' : 'pad-wide'))
+}
+
 /**
  * A written line's bars, the chords in each. Bar lines divide them; chords
  * before the first bar line or after the last are a bar of their own, % is

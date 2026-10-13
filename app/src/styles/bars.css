@@ -12,43 +12,6 @@
 .ck-tools { overflow-x: auto; scrollbar-width: none; }
 .ck-tools > * { flex: 0 0 auto; }
 
-/* A section written in bars: a box per bar, every box as wide as the widest
-   in the section (equal 1fr columns in a grid only as wide as it needs), so
-   the bars of every line stand in the same columns. */
-.bar-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--bars, 1), 1fr);
-  width: max-content;
-  max-width: 100%;
-  row-gap: 0.2em;
-}
-/* Set by the fit when even the smallest size is too wide (a phone): each line
-   takes two rows of half its bars, so no bar is cut off at the edge. */
-.chart[data-narrow="on"] .bar-grid { grid-template-columns: repeat(var(--bars-half, 1), 1fr); }
-.bar-plain { grid-column: 1 / -1; }
-/* The grid's width must never widen the chords column (on a phone that
-   pushed the chart sideways). Too wide a grid runs past the edge instead,
-   where the fit sees it: with each bar on one line the boxes stay equal and
-   the fit picks a smaller size; with wrapping, chords wrap inside their bar. */
-.chart-chords:has(> .bar-grid) { min-width: 0; }
-.chart[data-wrap="off"] .bar-grid { max-width: none; }
-.bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.6em;
-  padding: 0 0.35em;
-  border-left: 2px solid var(--text-muted);
-}
-.bar-first { grid-column-start: 1; }
-.bar-last { border-right: 2px solid var(--text-muted); }
-/* Chords in one bar share it evenly, as their beats do */
-.bar-chord { flex: 1 1 0; min-width: max-content; }
-.bar-repeat { flex: 1 1 0; text-align: center; font-weight: 600; color: var(--text-muted); }
-.bar-count { margin-left: 0.25em; }
-/* Set by the fit: a bar's chords stay side by side while that still reads big */
-.chart[data-wrap="off"] .bar { flex-wrap: nowrap; }
-
 /* One-tap keys above the text box while typing chords */
 .tk { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
 .tk-key { min-width: 44px; }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { barsOf, fromGrid, hasBars } from '../../music/bars'
+import { barsOf, fromGrid, hasBars, padsAfter } from '../../music/bars'
 import { parseChordText, normalizeChordText, unknownChords } from '../../music/chord-text'
 import { layOutParts } from '../../music/phrases'
 import { simplifyText, songChordsOf } from '../../music/chart-view'
@@ -52,5 +52,16 @@ describe('bars through the rest of the app', () => {
     expect(songChordsOf(song as never, undefined)).toEqual(['C', 'G'])
     expect(hasShapes('|')).toBe(false)
     expect(hasShapes('%')).toBe(false)
+  })
+})
+
+describe('padsAfter', () => {
+  it('pads a line to four cells, the ones past a multiple of two for wide rows only', () => {
+    expect(padsAfter(1)).toEqual(['pad-both', 'pad-wide', 'pad-wide'])
+    expect(padsAfter(2)).toEqual(['pad-wide', 'pad-wide'])
+    expect(padsAfter(3)).toEqual(['pad-both'])
+    expect(padsAfter(4)).toEqual([])
+    expect(padsAfter(5)).toEqual(['pad-both', 'pad-wide', 'pad-wide'])
+    expect(padsAfter(8)).toEqual([])
   })
 })

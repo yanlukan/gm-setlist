@@ -113,13 +113,13 @@
   margin-bottom: 0.3em;
 }
 .chart-title {
-  font-size: max(20px, 0.6em);
+  font-size: max(26px, 0.6em);
   font-weight: 800;
   line-height: 1.15;
 }
 /* The recommended area of the neck, outlined so it never reads as the GX-10 tag */
 .chart-position {
-  font-size: max(13px, 0.36em);
+  font-size: max(16px, 0.36em);
   font-weight: 700;
   padding: 0.1em 0.6em;
   border-radius: 999px;
@@ -140,7 +140,7 @@
 .diagram-mark.is-own { color: var(--accent); }
 /* The GX-10 sound: a tag on the title line, never a line of its own */
 .chart-preset {
-  font-size: max(14px, 0.4em);
+  font-size: max(16px, 0.4em);
   font-weight: 700;
   letter-spacing: 0.04em;
   padding: 0.1em 0.6em;
@@ -1078,7 +1078,7 @@
 
 /* A chart with the player's own chords: tap the tag to go back to the original */
 .chart-edited {
-  font-size: max(13px, 0.36em);
+  font-size: max(16px, 0.36em);
   font-weight: 700;
   padding: 0.1em 0.6em;
   border-radius: 999px;

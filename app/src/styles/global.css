@@ -4,6 +4,7 @@
 @import './chord-finder.css';
 @import './chart-lines.css';
 @import './bars.css';
+@import './bands.css';
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
