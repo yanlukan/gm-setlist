@@ -24,14 +24,9 @@ export function PracticeScreen() {
   const pick = (chord: string | null) => setPicked(chord && song ? { title: song.title, chord } : null)
 
   const bodyRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
   const panel = usePanelSize()
-  // While the bar is dragged: the size shown now (null: about to hide)
-  const [dragSize, setDragSize] = useState<number | null | undefined>(undefined)
-  const dragging = dragSize !== undefined
-  const shown = dragging ? dragSize !== null : !panel.hidden
-  const size = dragging && dragSize !== null ? dragSize : panel.size
   const endDrag = (px: number | null) => {
-    setDragSize(undefined)
     if (px === null) panel.setHidden(true)
     else {
       panel.setSize(px)
@@ -50,14 +45,21 @@ export function PracticeScreen() {
           <PanelHandle
             bodyRef={bodyRef}
             side={panel.side}
-            hidden={!shown}
-            onDrag={setDragSize}
+            panelRef={panelRef}
+            hidden={panel.hidden}
             onDone={endDrag}
             onToggle={() => panel.setHidden(!panel.hidden)}
           />
         )}
-        {showPanel && shown && (
-          <PracticePanel chart={chart} picked={pickedChord} onPick={pick} size={size} side={panel.side} />
+        {showPanel && !panel.hidden && (
+          <PracticePanel
+            panelRef={panelRef}
+            chart={chart}
+            picked={pickedChord}
+            onPick={pick}
+            size={panel.size}
+            side={panel.side}
+          />
         )}
       </div>
     </main>

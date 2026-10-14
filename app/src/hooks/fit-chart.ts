@@ -69,6 +69,13 @@ function cssPx(content: HTMLElement, name: string, otherwise: number): number {
   return Number.isNaN(value) ? otherwise : value
 }
 
+export const REFIT_EVENT = 'playbook:refit-charts'
+
+/** Fits every chart again: after a resize the fit sat out (a dragged panel). */
+export function refitCharts(): void {
+  window.dispatchEvent(new Event(REFIT_EVENT))
+}
+
 /**
  * Sizes a chart in bars: the largest chord size at which the whole chart fits
  * its container, from `--chart-min` to `--chart-max`, with crowded bars on
@@ -107,8 +114,16 @@ export function useBandFit(
     if (typeof ResizeObserver === 'undefined') return
     // Observing the container, not the content: its size does not depend on
     // the font size, so refitting here cannot loop.
-    const observer = new ResizeObserver(() => fit())
+    // While a panel beside it is dragged, the chart holds its size; the drag
+    // asks for one fit when it ends
+    const observer = new ResizeObserver(() => {
+      if (!container.closest('[data-resizing]')) fit()
+    })
     observer.observe(container)
-    return () => observer.disconnect()
+    window.addEventListener(REFIT_EVENT, fit)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener(REFIT_EVENT, fit)
+    }
   }, [containerRef, contentRef, contentKey, enabled])
 }

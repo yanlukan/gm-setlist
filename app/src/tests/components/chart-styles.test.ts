@@ -64,23 +64,27 @@ describe('the band chart stylesheet', () => {
     expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('flex-wrap: wrap;')
   })
 
-  it('makes Stage bands compact and leaves Practice at 44 px', () => {
+  it('makes the bands compact on both screens, the name beside the letter', () => {
     const bands = css('bands.css')
-    expect(between(bands, '.stage-screen .band-chart {', '}')).toContain('--band-gap: 6px; --row-gap: 3px; --gutter: 124px;')
-    expect(between(bands, '.stage-screen .band {', '}')).toContain('padding: 3px 6px 3px 0;')
-    expect(between(bands, '.stage-screen .band-chart .bar-plain {', '}')).toContain('min-height: 1.45em;')
-    expect(between(bands, '.stage-screen .band-chart .bar {', '}')).toContain('line-height: 1.2;')
-    expect(between(bands, '.stage-screen .band-head {', '}')).toContain('flex-direction: row;')
-    expect(between(bands, '.stage-screen .band-head {', '}')).toContain('gap: 5px; padding: 4px 4px 0 6px;')
-    const label = between(bands, '.stage-screen .band-head .chart-label {', '}')
+    const both = ':is(.stage-screen, .practice-screen)'
+    expect(between(bands, '.practice-screen .band-chart {', '}')).toContain('--band-gap: 6px; --row-gap: 3px; --gutter: 124px;')
+    expect(bands).toContain('.stage-screen .band-chart,\n.practice-screen .band-chart {')
+    expect(between(bands, `${both} .band {`, '}')).toContain('padding: 3px 6px 3px 0;')
+    expect(between(bands, `${both} .band-chart :is(.bar, .bar-pad, .bar-plain) {`, '}')).toContain('min-height: 1.45em;')
+    expect(between(bands, `${both} .band-chart .bar {`, '}')).toContain('line-height: 1.2;')
+    expect(between(bands, `${both} .band-head {`, '}')).toContain('flex-direction: row;')
+    expect(between(bands, `${both} .band-head {`, '}')).toContain('gap: 5px; padding: 4px 4px 0 6px;')
+    const label = between(bands, `${both} .band-head .chart-label {`, '}')
     expect(label).toContain('white-space: normal;')
     expect(label).toContain('font-size: 13px;')
     expect(label).toContain('overflow-wrap: normal;')
-    // The gutter is 44 px on its side and on a phone, which come later and win
+    // The name on Practice is a button, but no taller than the name
+    expect(between(bands, '.practice-screen .band-head .chart-label-btn {', '}')).toContain('min-height: 0;')
+    // The gutter is 44 px on Stage on its side and on a phone, which come later and win
     expect(between(bands, LANDSCAPE, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; }')
-    expect(between(bands, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; }')
+    expect(between(bands, PHONE)).toContain('.practice-screen .band-chart { --gutter: 44px; }')
+    // Other chart views (the editor's preview) keep 44 px bars
     expect(between(bands, '.band-chart .bar-plain {', '}')).toContain('min-height: 44px;')
-    expect(between(bands, '.band-chart .bar,', '}')).toContain('min-height: 44px;')
   })
 
   it('keeps Practice at four bars a row on its side', () => {

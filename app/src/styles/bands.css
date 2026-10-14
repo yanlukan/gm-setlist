@@ -138,19 +138,20 @@
   font-weight: 800;
 }
 
-/* ---------- Stage: more compact, nothing in the chart is tappable ----------
-   Tighter gaps, bars as tall as their chords, the letter beside the name.
-   Practice keeps its 44 px touch targets. (.stage-screen .band-chart outranks
-   the .band-chart overrides in the media blocks below, so it holds on its side.) */
-.stage-screen .band-chart { --band-gap: 6px; --row-gap: 3px; --gutter: 124px; }
-.stage-screen .band { padding: 3px 6px 3px 0; }
-.stage-screen .band-chart .bar,
-.stage-screen .band-chart .bar-pad,
-.stage-screen .band-chart .bar-plain { min-height: 1.45em; }
-.stage-screen .band-chart .bar { line-height: 1.2; }
-.stage-screen .band-head { flex-direction: row; align-items: flex-start; gap: 5px; padding: 4px 4px 0 6px; }
+/* ---------- Both screens: compact bands ----------
+   Tighter gaps, bars as tall as their chords, the letter beside the name, so
+   the chart gets the room. (These outrank the .band-chart overrides in the
+   media blocks below, so they hold on its side.) */
+.stage-screen .band-chart,
+.practice-screen .band-chart { --band-gap: 6px; --row-gap: 3px; --gutter: 124px; }
+:is(.stage-screen, .practice-screen) .band { padding: 3px 6px 3px 0; }
+:is(.stage-screen, .practice-screen) .band-chart :is(.bar, .bar-pad, .bar-plain) { min-height: 1.45em; }
+:is(.stage-screen, .practice-screen) .band-chart .bar { line-height: 1.2; }
+:is(.stage-screen, .practice-screen) .band-head { flex-direction: row; align-items: flex-start; gap: 5px; padding: 4px 4px 0 6px; }
 /* Whole names: they break between words and after hyphens, never inside a word (85 px a column) */
-.stage-screen .band-head .chart-label { white-space: normal; font-size: 13px; line-height: 1.1; padding-top: 2px; overflow-wrap: normal; min-width: 0; }
+:is(.stage-screen, .practice-screen) .band-head .chart-label { white-space: normal; font-size: 13px; line-height: 1.1; padding-top: 2px; overflow-wrap: normal; min-width: 0; }
+/* On Practice the name is still a button (it narrows the shapes), just no taller than the name */
+.practice-screen .band-head .chart-label-btn { min-height: 0; }
 
 /* ---------- An iPad on its side: eight bars a row on Stage ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
@@ -184,7 +185,8 @@
     --chip-size: 16px;
   }
   .chart-scroll:has(.band-chart) { padding-left: 12px; padding-right: 12px; }
-  .stage-screen .band-chart { --gutter: 44px; }
+  .stage-screen .band-chart,
+  .practice-screen .band-chart { --gutter: 44px; }
   .band-chart .chart-title { font-size: 22px; }
   .band-chart .pad-wide { display: none; }
   .band-head .chart-label { display: none; }
