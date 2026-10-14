@@ -3,6 +3,7 @@ import { useStore } from '../../store/use-store'
 import { useShownSong } from '../../hooks/use-shown-song'
 import { playedKey } from '../../music/setlist-text'
 import { SongsSheet } from '../sheets/SongsSheet'
+import { SetlistsSheet } from '../sheets/SetlistsSheet'
 
 /** The sheets the bar opens; only one is open at a time. */
 export type SheetName = 'setlists' | 'songs' | 'notes' | 'more' | 'finder'
@@ -34,6 +35,15 @@ export function BottomBar() {
   return (
     <>
       <nav className="bottom-bar" aria-label="Song controls">
+        <button
+          className="bb-btn"
+          aria-label="Setlists"
+          aria-expanded={open === 'setlists'}
+          onClick={() => toggle('setlists')}
+        >
+          Setlists
+        </button>
+
         <button
           className="bb-btn bb-songs"
           aria-label={`Songs, ${place} of ${total}`}
@@ -103,6 +113,7 @@ export function BottomBar() {
       </nav>
 
       {open === 'songs' && <SongsSheet onStage={onStage} onClose={close} />}
+      {open === 'setlists' && <SetlistsSheet onStage={onStage} onClose={close} />}
     </>
   )
 }

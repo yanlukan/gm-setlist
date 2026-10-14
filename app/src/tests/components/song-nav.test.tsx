@@ -147,7 +147,7 @@ describe('the screen buttons', () => {
   it('keeps getting around on the left', () => {
     render(<BottomBar />)
     const names = within(bar()).getAllByRole('button').map(b => b.getAttribute('aria-label'))
-    expect(names.slice(0, 3)).toEqual(['Songs, 1 of 21', 'Start of set', `Next song: ${G[1]}`])
+    expect(names.slice(0, 4)).toEqual(['Setlists', 'Songs, 1 of 21', 'Start of set', `Next song: ${G[1]}`])
   })
 })
 

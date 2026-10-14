@@ -38,3 +38,31 @@
 .sheet-action + .sheet-action { margin-left: 0; }
 .set-song-list { display: grid; gap: 6px; }
 .songtile-left { color: var(--accent); font-weight: 600; }
+
+/* Setlists sheet: the lists on the left, the tapped list's songs on the right */
+.setlists-sheet { display: grid; grid-template-columns: minmax(170px, 1fr) 2.2fr; gap: 16px; align-items: start; }
+.lists-col { display: grid; gap: 6px; position: sticky; top: 0; }
+.lists-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.lists-item[aria-pressed='true'] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.lists-name { font-weight: 700; }
+.lists-count { color: var(--text-muted); font-size: 13px; }
+.lists-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--success); }
+.lists-songs { min-width: 0; }
+.sheet-action.is-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+@media (max-width: 599px) {
+  .setlists-sheet { grid-template-columns: 1fr; }
+  .lists-col { position: static; }
+}
