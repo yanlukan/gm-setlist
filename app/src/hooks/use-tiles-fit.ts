@@ -5,20 +5,17 @@ import { REFIT_EVENT } from './fit-chart'
 /** The shapes never shrink below this or grow past this. */
 export const MIN_TILES_ZOOM = 0.5
 export const MAX_TILES_ZOOM = 1.8
-const STEPS = 8
 
-/** The largest zoom, in 0.05 steps, at which `fits` holds; the smallest when none does. */
+/**
+ * The largest zoom, in 0.05 steps, at which `fits` holds; the smallest when
+ * none does. Tried from the top down, not halved: bigger tiles wrap onto
+ * another row, so a bigger zoom can fit where a slightly smaller one does not.
+ */
 export function largestZoom(fits: (zoom: number) => boolean, min = MIN_TILES_ZOOM, max = MAX_TILES_ZOOM): number {
-  if (fits(max)) return max
-  if (!fits(min)) return min
-  let lo = min
-  let hi = max
-  for (let i = 0; i < STEPS; i++) {
-    const mid = (lo + hi) / 2
-    if (fits(mid)) lo = mid
-    else hi = mid
+  for (let step = Math.round(max * 20); step >= Math.round(min * 20); step--) {
+    if (fits(step / 20)) return step / 20
   }
-  return Math.floor(lo * 20) / 20
+  return min
 }
 
 /**
