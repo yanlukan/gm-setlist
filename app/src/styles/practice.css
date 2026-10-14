@@ -44,13 +44,41 @@
 .practice-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .practice-panel {
   flex: none;
-  height: 430px;
+  /* The player sets the size with the bar above (hooks/use-panel-size.ts) */
+  height: 300px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 12px 16px;
+}
+/* The bar between the chart and the shapes: drag to resize, or hide them */
+.panel-handle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 36px;
   border-top: 1px solid var(--border);
+  background: var(--bg);
+  cursor: row-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.panel-grip { width: 56px; height: 6px; border-radius: 3px; background: var(--text-muted); opacity: 0.6; }
+.panel-toggle {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 .tiles-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
 .tiles-title { margin: 0; font-size: 17px; font-weight: 800; }
@@ -83,7 +111,10 @@ button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit
 
 @media (orientation: landscape) and (min-width: 900px) {
   .practice-body { flex-direction: row; }
-  .practice-panel { width: 420px; height: auto; border-top: none; border-left: 1px solid var(--border); }
+  .practice-panel { width: 360px; height: auto; }
+  .panel-handle { flex-direction: column; min-height: 0; min-width: 36px; border-top: none; border-left: 1px solid var(--border); cursor: col-resize; }
+  .panel-grip { width: 6px; height: 56px; }
+  .panel-toggle { writing-mode: vertical-rl; min-height: 0; min-width: 36px; padding: 12px 0; }
   /* Practice keeps four bars a row on its side: the panel takes the room */
   .practice-screen .band-chart { --cols: 4; }
 }

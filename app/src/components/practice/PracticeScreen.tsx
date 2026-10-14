@@ -1,15 +1,18 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { useShownSong } from '../../hooks/use-shown-song'
 import { useSongChart } from '../../hooks/use-song-chart'
 import { SongSheet } from '../song/SongSheet'
 import { PracticeHeader } from './PracticeHeader'
 import { PracticePanel } from './PracticePanel'
+import { PanelHandle } from './PanelHandle'
+import { usePanelSize } from '../../hooks/use-panel-size'
 
 /**
  * For home and rehearsal: the header with the song's setup, the chart (which
  * may scroll), and the panel with the shapes and the book. While editing, the
- * chord keyboard under the chart takes the panel's place.
+ * chord keyboard under the chart takes the panel's place. The bar between
+ * the chart and the panel resizes the panel or hides it.
  */
 export function PracticeScreen() {
   const { song, extraFrom } = useShownSong()
@@ -20,13 +23,42 @@ export function PracticeScreen() {
   const pickedChord = picked && song && picked.title === song.title ? picked.chord : null
   const pick = (chord: string | null) => setPicked(chord && song ? { title: song.title, chord } : null)
 
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const panel = usePanelSize()
+  // While the bar is dragged: the size shown now (null: about to hide)
+  const [dragSize, setDragSize] = useState<number | null | undefined>(undefined)
+  const dragging = dragSize !== undefined
+  const shown = dragging ? dragSize !== null : !panel.hidden
+  const size = dragging && dragSize !== null ? dragSize : panel.size
+  const endDrag = (px: number | null) => {
+    setDragSize(undefined)
+    if (px === null) panel.setHidden(true)
+    else {
+      panel.setSize(px)
+      panel.setHidden(false)
+    }
+  }
+  const showPanel = chart && !editMode
+
   return (
     <main className={editMode ? 'practice-screen is-editing' : 'practice-screen'} aria-label="Practice">
       {chart && <PracticeHeader chart={chart} extraFrom={extraFrom} />}
-      <div className="practice-body">
+      <div ref={bodyRef} className="practice-body">
         {/* A second tap on the picked chord lets go of it */}
         <SongSheet picked={pickedChord} onPick={chord => pick(chord === pickedChord ? null : chord)} />
-        {chart && !editMode && <PracticePanel chart={chart} picked={pickedChord} onPick={pick} />}
+        {showPanel && (
+          <PanelHandle
+            bodyRef={bodyRef}
+            side={panel.side}
+            hidden={!shown}
+            onDrag={setDragSize}
+            onDone={endDrag}
+            onToggle={() => panel.setHidden(!panel.hidden)}
+          />
+        )}
+        {showPanel && shown && (
+          <PracticePanel chart={chart} picked={pickedChord} onPick={pick} size={size} side={panel.side} />
+        )}
       </div>
     </main>
   )
