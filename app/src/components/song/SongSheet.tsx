@@ -1,44 +1,25 @@
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useChartView, useStore } from '../../store/use-store'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useStore } from '../../store/use-store'
 import { shapesShown } from '../../store/view-settings'
-import { isChartMark, keySpelling, sectionColor, shouldUseFlats, transposeText } from '../../music/theory'
-import { capoFor, shapeKey, shapeSections, shapeShift, simplifyRuleFor, simplifyText } from '../../music/chart-view'
-import { hasShapes } from '../../music/voicings'
-import { positionLabel, shapeChoice, useBandPositions } from '../../hooks/use-band-positions'
+import { keySpelling, shouldUseFlats, transposeText } from '../../music/theory'
+import { normalizeChordText } from '../../music/chord-text'
+import { positionLabel, shapeChoice } from '../../hooks/use-band-positions'
 import { clearSongShape, pickSongShape } from '../../store/song-shapes'
+import { useShownSong } from '../../hooks/use-shown-song'
+import { useSongChart, type SongChart } from '../../hooks/use-song-chart'
+import { useChartFit } from '../../hooks/use-chart-fit'
+import { useSwipe } from '../../hooks/use-swipe'
 import { VoicingPicker } from '../diagrams/VoicingPicker'
 import { MoveChordsSheet } from './MoveChordsSheet'
 import { ChartEditor } from '../edit/ChartEditor'
 import { FormStrip } from './FormStrip'
-import { BandChart } from './BandChart'
-import { hasBars } from '../../music/bars'
-import { formMatches } from '../../music/form'
-import { letterByName } from '../../music/letters'
-import { layOutParts } from '../../music/phrases'
-import { hasEditedChart } from '../../music/chart-edits'
-import { playedKey, transposeFor } from '../../music/setlist-text'
-import { normalizeChordText, splitAlteration } from '../../music/chord-text'
-import { useFitText } from '../../hooks/use-fit-text'
-import { useSwipe } from '../../hooks/use-swipe'
+import { ChartBody } from './ChartBody'
+import { EmptyList } from './EmptyList'
 import type { Song } from '../../types'
 
-/** Chart text never goes below this — it scrolls instead. */
-const MIN_CHART_PX = 20
-/** Upper bound so a two-chord song does not become a wall of letters. */
-const MAX_CHART_PX = 64
-/** Keep progressions on one line if that still gives at least this size. */
-const NO_WRAP_MIN_PX = 30
-/** A chart in bands, in portrait: used where the stylesheet sets none (bands.css sets them per screen shape). */
-const BAND_BASE_PX = 32
-const BAND_MIN_PX = 28
-const BAND_MAX_PX = 45
-
 export function SongSheet() {
-  const songs = useStore(s => s.songs)
-  const customSongs = useStore(s => s.customSongs)
-  const setlistData = useStore(s => s.setlistData)
-  const edits = useStore(s => s.edits)
-  const currentIndex = useStore(s => s.currentIndex)
+  const { song } = useShownSong()
+  const chart = useSongChart(song)
   const editMode = useStore(s => s.editMode)
   const onStage = useStore(s => s.viewMode === 'stage')
   const diagramsVisible = useStore(shapesShown)
@@ -51,7 +32,6 @@ export function SongSheet() {
   const saveForm = useStore(s => s.saveForm)
   const useBuiltInChart = useStore(s => s.useBuiltInChart)
   const showToast = useStore(s => s.showToast)
-  const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
 
@@ -62,91 +42,14 @@ export function SongSheet() {
   const fitRef = useRef<HTMLDivElement>(null)
   const sectionsRef = useRef<HTMLDivElement>(null)
 
-  const setlistSongs = useMemo(() => {
-    const all = [...songs, ...customSongs]
-    const active = setlistData.lists[setlistData.activeId]
-    if (!active) return []
-    return active.songTitles
-      .map(title => all.find(s => s.title === title))
-      .filter((s): s is Song => s !== undefined)
-  }, [songs, customSongs, setlistData])
-
-  const song = setlistSongs[currentIndex]
-  const { picks: band, span } = useBandPositions(song, song ? edits[song.title] : undefined)
-
-  // Stored chords are always at the song's own pitch.
-  const sections = useMemo(() => {
-    if (!song) return []
-    if (edits[song.title]?.sections) return edits[song.title].sections!
-    return song.sections ?? []
-  }, [song, edits])
-
-  const view = useChartView()
-  // The keyboard player reads every chord as it sounds: no capo, no shapes, no guitar sound
-  const keyboard = view.instrument === 'keyboard'
-  const semitones = song ? transposeFor(song, edits[song.title]) : 0
-  const capo = song ? capoFor(song, edits[song.title], view) : 0
-  // From the stored chart to the shapes played: the band's key, less the capo
-  const shift = song ? shapeShift(song, edits[song.title], view) : 0
-  const sourceKey = song ? (edits[song.title]?.key ?? song.key ?? '') : ''
-
-  // The chart at the shapes' pitch. Editing writes back through this, so the
-  // guitarist edits what they see and the stored chart stays at source pitch.
-  const displaySections = useMemo(
-    () => (song ? shapeSections(song, edits[song.title], view) : []),
-    [song, edits, view],
-  )
-  // What is read: the same, each part of a section on a line of its own, made
-  // plain if the player asked for plain chords. Never edited, so a plain chart
-  // can never overwrite the real chords. The parts are found before the chords
-  // are made plain, so plain and full charts break their lines in the same places.
-  const rule = simplifyRuleFor(song, song ? edits[song.title] : undefined, view)
-  const readSections = useMemo(() => {
-    const laidOut = displaySections.map(sec => ({ ...sec, chords: layOutParts(sec.chords) }))
-    return view.simple ? laidOut.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : laidOut
-  }, [displaySections, view.simple, rule])
-  // Written in bars, the chart is drawn in bands: lettered sections, each with its bars in one grid
-  const bands = readSections.some(s => s.chords.split('\n').some(line => hasBars(line)))
-
-  const notes = useMemo(() => {
-    if (!song) return ''
-    if (edits[song.title]?.notes !== undefined) return edits[song.title].notes!
-    return song.notes ?? ''
-  }, [song, edits])
-
-  // The order the song is played in: the player's own, else the built-in one
-  const form = useMemo(() => {
-    if (!song) return []
-    return edits[song.title]?.form ?? song.form ?? []
-  }, [song, edits])
-
-  const showLowerKeyWarning = !!song?.lowerKey && semitones === 0
-
   // A chart with the player's own chords says so, and one tap goes back to the
   // original. Not on stage, where nothing on the chart should change.
-  const edited = !!song && !editMode && !onStage && hasEditedChart(song, edits[song.title])
-  const goBackToOriginal = (song: Song) => {
-    if (!confirm(`Go back to the original chart for "${song.title}"?\n\nYour chords are kept under Earlier versions (Edit, at the bottom of the chart).`)) return
-    useBuiltInChart(song.title)
-    showToast(`${song.title} shows the original chart`)
-  }
+  const edited = !!chart && !editMode && !onStage && chart.edited
 
-  // Fit the whole chart to the screen: biggest text that needs no scrolling.
-  const fitKey = song
-    ? JSON.stringify([song.title, readSections, form, notes, song.cue ?? '', showLowerKeyWarning, edited, capo, onStage, keyboard])
+  const fitKey = chart
+    ? JSON.stringify([chart.fitKey, chart.notes, chart.song.cue ?? '', chart.lowerKey, edited, onStage])
     : ''
-  useFitText(scrollRef, fitRef, fitKey, {
-    // A chart in bands takes its range from bands.css, and when not even its
-    // bands fit it goes back to the base size and scrolls, rather than
-    // shrinking the chart and the chord shapes. A chord too wide for its bar
-    // shrinks in that bar alone.
-    ...(bands
-      ? { min: BAND_MIN_PX, max: BAND_MAX_PX, fallback: BAND_BASE_PX, cssVars: true, cramped: false, fitCells: '.bar' }
-      : { min: MIN_CHART_PX, max: MAX_CHART_PX, preferNoWrapMin: NO_WRAP_MIN_PX }),
-    enabled: !!song && !editMode,
-    // A long chart keeps its chords on screen; the notes under them can scroll
-    essentialRef: sectionsRef,
-  })
+  useChartFit(scrollRef, fitRef, sectionsRef, fitKey, { bands: chart?.bands ?? false, enabled: !!chart && !editMode })
 
   // Every song opens at its top, not as far down as the last one was scrolled
   const songTitle = song?.title
@@ -157,23 +60,36 @@ export function SongSheet() {
   // Swipe only on the chart itself, never while editing.
   useSwipe(scrollRef, { onSwipeLeft: nextSong, onSwipeRight: prevSong }, !editMode)
 
+  if (!chart) {
+    return (
+      <div ref={scrollRef} className="chart-scroll">
+        <EmptyList />
+      </div>
+    )
+  }
+
+  const goBackToOriginal = (song: Song) => {
+    if (!confirm(`Go back to the original chart for "${song.title}"?\n\nYour chords are kept under Earlier versions (Edit, at the bottom of the chart).`)) return
+    useBuiltInChart(song.title)
+    showToast(`${song.title} shows the original chart`)
+  }
+
   // The reverse move, so an edit keeps the chart's own spelling (Bb7 in D is Cb7 in Eb)
   const toSourcePitch = (text: string) => {
-    if (!shift) return text
-    const { letterShift } = keySpelling(sourceKey, shift)
-    return transposeText(text, -shift, shouldUseFlats(sourceKey, 0), letterShift === undefined ? undefined : -letterShift)
+    if (!chart.shift) return text
+    const { letterShift } = keySpelling(chart.sourceKey, chart.shift)
+    return transposeText(text, -chart.shift, shouldUseFlats(chart.sourceKey, 0), letterShift === undefined ? undefined : -letterShift)
   }
 
   // Chord edits arrive as shown on screen and are stored at the song's own pitch.
   const updateChordsAt = (index: number, chords: string) => {
-    if (!song) return
     // Tidy first: Return is a line break, never a join, and stray spaces go
     const atSource = toSourcePitch(normalizeChordText(chords))
-    saveSections(song.title, sections.map((sec, i) => (i === index ? { ...sec, chords: atSource } : sec)))
+    saveSections(chart.song.title, chart.sections.map((sec, i) => (i === index ? { ...sec, chords: atSource } : sec)))
   }
 
   // The title line, the same on the stage chart and while editing
-  const renderHeading = (song: Song) => (
+  const renderHeading = ({ song, keyboard, span, songEdits }: SongChart) => (
     <div className="chart-head">
       <h1 className="chart-title">{song.title}</h1>
       {/* The GX-10 sound and the neck position are the guitarist's: the keyboard has neither */}
@@ -188,7 +104,7 @@ export function SongSheet() {
       )}
       {span && !keyboard && (() => {
         // The song's area of the neck. Tap it to move every chord, except on stage
-        const moved = edits[song.title]?.neck !== undefined
+        const moved = songEdits?.neck !== undefined
         const where = `${moved ? 'Your' : 'Recommended'} position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}`
         return onStage ? (
           <span className="chart-position" aria-label={where}>
@@ -218,15 +134,15 @@ export function SongSheet() {
     </div>
   )
 
-  const renderBanners = (song: Song) => (
+  const renderBanners = ({ song, capo, shapesKey, playedKey, lowerKey, sourceKey }: SongChart) => (
     <>
       {song.cue && <div className="chart-cue">{song.cue}</div>}
       {capo > 0 && (
         <div className="chart-capo">
-          Capo {capo}: play {shapeKey(playedKey(song, edits[song.title]).key, -capo)} shapes, sounds in {playedKey(song, edits[song.title]).key}
+          Capo {capo}: play {shapesKey} shapes, sounds in {playedKey}
         </div>
       )}
-      {showLowerKeyWarning && (
+      {lowerKey && (
         <div className="chart-warning">
           LOWER KEY — showing original {sourceKey}. Set the transpose with &minus; / + above.
         </div>
@@ -234,165 +150,71 @@ export function SongSheet() {
     </>
   )
 
-  const renderBody = () => {
-    if (!song) {
-      // An empty setlist is a normal state, not an error — but don't leave the
-      // player staring at a blank screen with nothing to tap.
-      const listName = setlistData.lists[setlistData.activeId]?.name ?? 'this setlist'
-      return (
-        <div className="chart-empty">
-          <div>&ldquo;{listName}&rdquo; is empty.</div>
-          <div style={{ fontSize: 14 }}>
-            Your other setlists are safe — open <strong>Setlists</strong> above to switch.
-          </div>
-          <button
-            onClick={() => {
-              if (confirm(`Fill "${listName}" with the GM Tribute running order?`)) restoreGigOrder()
-            }}
-            className="tb-btn is-active"
-            style={{ minHeight: 48, padding: '0 20px', fontSize: 16 }}
-          >
-            Load GM Tribute running order
-          </button>
-        </div>
-      )
-    }
-
-    const heading = renderHeading(song)
-    const banners = renderBanners(song)
-
-    return (
-      <div ref={fitRef} className={bands ? 'chart band-chart' : 'chart'}>
-        {heading}
-        {banners}
-        {formMatches(form, readSections) && (
-          <FormStrip form={form} letters={bands ? letterByName(readSections.map(s => s.name)) : undefined} />
-        )}
-        <div ref={sectionsRef} className="chart-sections">
-          {bands ? (
-            <BandChart
-              sections={readSections}
-              focusable={diagramsVisible && !keyboard}
-              focusedIndex={focusSection?.title === song.title ? focusSection.index : null}
-              onFocus={index => setFocusSection(index === null ? null : { title: song.title, index })}
-              renderTokens={renderTokens}
-            />
-          ) : (
-            readSections.map((section, i) => {
-              const focused = focusSection?.title === song.title && focusSection.index === i
-              return (
-                <Fragment key={`${song.title}-${i}`}>
-                  {diagramsVisible && !keyboard ? (
-                    // Tap a section to see just its chord shapes in the diagrams below
-                    <button
-                      type="button"
-                      className={focused ? 'chart-label chart-label-btn is-focused' : 'chart-label chart-label-btn'}
-                      style={{ color: sectionColor(section.name) }}
-                      aria-pressed={focused}
-                      onClick={() => setFocusSection(focused ? null : { title: song.title, index: i })}
-                    >
-                      {section.name}
-                    </button>
-                  ) : (
-                    <div className="chart-label" style={{ color: sectionColor(section.name) }}>
-                      {section.name}
-                    </div>
-                  )}
-                  <div className="chart-chords">{renderChords(section.chords)}</div>
-                </Fragment>
-              )
-            })
-          )}
-        </div>
-        {notes && <div className="chart-notes">{notes}</div>}
-      </div>
-    )
-  }
-
-  // Tappable chords open the voicing picker — except on stage, where a brushed
-  // chord must not throw a pop-up over the chart mid-song.
-  // Each line is one part. A line too long for the screen goes on indented,
-  // so where it wraps never looks like the next part starting. The line break
-  // stays in the text, for anything that reads the chart as text.
-  const renderChords = (text: string) => {
-    const lines = text.split('\n')
-    return lines.map((line, li) => (
-      <div key={li} className="chart-line">
-        {renderTokens(line)}
-        {li < lines.length - 1 && '\n'}
-      </div>
-    ))
-  }
-
-  // In bands, a chord's alteration in brackets is drawn a little smaller: Bb7(b9).
-  // The tap still picks the whole chord.
-  const chordText = (token: string) => {
-    const parts = bands ? splitAlteration(token) : null
-    return parts ? <>{parts[0]}<span className="chord-alt">{parts[1]}</span></> : token
-  }
-
-  const renderTokens = (text: string) =>
-    text.split(/(\s+)/).map((token, i) => {
-      if (!token.trim()) return <span key={i}>{token}</span>
-      if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
-      if (onStage || keyboard) return <span key={i}>{chordText(token)}</span>
-      if (!hasShapes(token)) return <span key={i}>{chordText(token)}</span>
-      return (
-        <span
-          key={i}
-          className="chart-chord-tap"
-          onClick={e => {
-            e.stopPropagation()
-            setPickerChord(token)
-          }}
-        >
-          {chordText(token)}
-        </span>
-      )
-    })
+  const { song: shown, songEdits, band } = chart
+  const choice = (name: string) => shapeChoice(name, songEdits, selectedVoicings, band[name])
 
   return (
     <>
-      {editMode && song ? (
+      {editMode ? (
         // The chart itself, editable, with the chord keyboard under it
         <ChartEditor
           // Undo, the cursor and the rest belong to one song: a new song starts a new editor
-          key={song.title}
-          title={song.title}
-          heading={renderHeading(song)}
-          banners={renderBanners(song)}
-          sections={sections}
-          displaySections={displaySections}
-          form={form}
-          songKey={shapeKey(playedKey(song, edits[song.title]).key, -capo)}
-          capo={capo}
-          notes={notes}
+          key={shown.title}
+          title={shown.title}
+          heading={renderHeading(chart)}
+          banners={renderBanners(chart)}
+          sections={chart.sections}
+          displaySections={chart.displaySections}
+          form={chart.form}
+          songKey={chart.shapesKey}
+          capo={chart.capo}
+          notes={chart.notes}
           onChords={updateChordsAt}
-          onSections={next => saveSections(song.title, next)}
-          onNotes={text => saveNotes(song.title, text)}
-          onForm={next => saveForm(song.title, next)}
-          onShape={(chord, pick) => pickSongShape(song.title, chord, pick)}
+          onSections={next => saveSections(shown.title, next)}
+          onNotes={text => saveNotes(shown.title, text)}
+          onForm={next => saveForm(shown.title, next)}
+          onShape={(chord, pick) => pickSongShape(shown.title, chord, pick)}
         />
       ) : (
         <div ref={scrollRef} className="chart-scroll">
-          {renderBody()}
+          <div ref={fitRef} className={chart.bands ? 'chart band-chart' : 'chart'}>
+            {renderHeading(chart)}
+            {renderBanners(chart)}
+            {chart.showForm && <FormStrip form={chart.form} letters={chart.letters} />}
+            <ChartBody
+              chart={chart}
+              sectionsRef={sectionsRef}
+              // Tappable chords open the voicing picker, except on stage, where a
+              // brushed chord must not throw a pop-up over the chart mid-song.
+              onChord={onStage ? undefined : setPickerChord}
+              focus={
+                diagramsVisible
+                  ? {
+                      index: focusSection?.title === shown.title ? focusSection.index : null,
+                      onFocus: index => setFocusSection(index === null ? null : { title: shown.title, index }),
+                    }
+                  : undefined
+              }
+            />
+            {chart.notes && <div className="chart-notes">{chart.notes}</div>}
+          </div>
         </div>
       )}
 
-      {movingChords && song && !onStage && (
-        <MoveChordsSheet song={song} edits={edits[song.title]} onClose={() => setMovingChords(false)} />
+      {movingChords && !onStage && (
+        <MoveChordsSheet song={shown} edits={songEdits} onClose={() => setMovingChords(false)} />
       )}
 
       {/* Outside the chart, so swipes on the picker cannot change song */}
       {pickerChord && (
         <VoicingPicker
           chord={pickerChord}
-          capo={capo}
-          selectedIndex={shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).index}
+          capo={chart.capo}
+          selectedIndex={choice(pickerChord).index}
           recommendedIndex={band[pickerChord]}
-          onSelect={pick => { pickSongShape(song.title, pickerChord, pick); setPickerChord(null) }}
-          onUseRecommended={!shapeChoice(pickerChord, edits[song.title], selectedVoicings, band[pickerChord]).mine ? undefined : () => {
-            if (edits[song.title]?.shapes?.[pickerChord] !== undefined) clearSongShape(song.title, pickerChord)
+          onSelect={pick => { pickSongShape(shown.title, pickerChord, pick); setPickerChord(null) }}
+          onUseRecommended={!choice(pickerChord).mine ? undefined : () => {
+            if (songEdits?.shapes?.[pickerChord] !== undefined) clearSongShape(shown.title, pickerChord)
             else clearVoicing(pickerChord)
             setPickerChord(null)
           }}
