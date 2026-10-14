@@ -93,6 +93,7 @@ function AppInner() {
   const editMode = useStore(s => s.editMode)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
+  const closeSheet = useStore(s => s.closeSheet)
   const loadFailed = useStore(s => s.loadFailed)
   const toast = useStore(s => s.toast)
   const [ready, setReady] = useState(false)
@@ -130,10 +131,11 @@ function AppInner() {
   }, [theme, viewMode])
 
   // Page-turner pedal / keyboard. Swipe lives on each screen's chart.
-  // On a chart too long for the screen, the pedal pages through it before turning the song
+  // On a chart too long for the screen, the pedal pages through it before turning the song.
+  // Like the bar's Previous and Next, it closes any open sheet first.
   usePedalKeys({
-    onNext: () => { if (!pageChart(1)) nextSong() },
-    onPrev: () => { if (!pageChart(-1)) prevSong() },
+    onNext: () => { closeSheet(); if (!pageChart(1)) nextSong() },
+    onPrev: () => { closeSheet(); if (!pageChart(-1)) prevSong() },
   }, !editMode)
 
   // Show loading briefly while IndexedDB hydrates

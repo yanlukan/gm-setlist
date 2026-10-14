@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useStore, useChartView } from '../../store/use-store'
 import { useShownSong } from '../../hooks/use-shown-song'
 import { playedKey } from '../../music/setlist-text'
@@ -9,8 +8,6 @@ import { NotesSheet } from '../sheets/NotesSheet'
 import { MoreSheet } from '../sheets/MoreSheet'
 import { ChordFinder } from '../finder/ChordFinder'
 
-/** The sheets the bar opens; only one is open at a time. */
-export type SheetName = 'setlists' | 'songs' | 'notes' | 'more' | 'finder'
 
 /**
  * The only bar, at the bottom of both screens. Getting around comes first and
@@ -28,10 +25,10 @@ export function BottomBar() {
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
   const toggleViewMode = useStore(s => s.toggleViewMode)
-  const [open, setOpen] = useState<SheetName | null>(null)
-
-  const toggle = (name: SheetName) => setOpen(shown => (shown === name ? null : name))
-  const close = () => setOpen(null)
+  // Held in the store so the pedal and arrow keys can close it too
+  const open = useStore(s => s.openSheet)
+  const toggle = useStore(s => s.toggleSheet)
+  const close = useStore(s => s.closeSheet)
   const total = setSongs.length
   const place = total ? currentIndex + 1 : 0
   const nextKey = next ? playedKey(next, edits[next.title]).key : ''

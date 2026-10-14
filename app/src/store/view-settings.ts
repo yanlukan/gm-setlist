@@ -5,6 +5,9 @@ import type { Instrument } from '../music/chart-view'
 import { saveTheme, saveSetting, getSetting, getTheme } from './persistence'
 import type { StoreState } from './use-store'
 
+/** The sheets the bottom bar opens; only one is open at a time. */
+export type SheetName = 'setlists' | 'songs' | 'notes' | 'more' | 'finder'
+
 /**
  * How the player wants the app to look: the same for every song, and saved
  * so it survives a relaunch. Read back by the store's hydrate.
@@ -18,11 +21,16 @@ export interface ViewSettings {
   guitar: Guitar | 'auto'
   /** Who is reading: the keyboard player gets chords as they sound, no shapes. Saved. */
   instrument: Instrument
+  /** The bar's open sheet, if any. Not saved. Previous, Next and the pedal close it. */
+  openSheet: SheetName | null
   toggleTheme: () => void
   toggleViewMode: () => void
   toggleSimpleChords: () => void
   setGuitar: (guitar: Guitar | 'auto') => void
   setInstrument: (instrument: Instrument) => void
+  /** Opens the sheet, or closes it when it is already open. */
+  toggleSheet: (name: SheetName) => void
+  closeSheet: () => void
 }
 
 type Set = StoreApi<StoreState>['setState']
@@ -42,6 +50,7 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
     simpleChords: false,
     guitar: 'auto',
     instrument: 'guitar',
+    openSheet: null,
 
     toggleTheme: () => {
       set(state => ({ theme: state.theme === 'dark' ? 'light' : 'dark' }))
@@ -52,7 +61,8 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
       set(state => {
         const viewMode: ViewMode = state.viewMode === 'normal' ? 'stage' : 'normal'
         // Stage Mode locks the chart, so it cannot be entered mid-edit.
-        return { viewMode, ...(viewMode === 'stage' && { editMode: false }) }
+        // Each screen has its own sheets, so switching closes the open one.
+        return { viewMode, openSheet: null, ...(viewMode === 'stage' && { editMode: false }) }
       })
       persist('save viewMode', () => saveSetting('viewMode', get().viewMode))
     },
@@ -71,6 +81,9 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
       set({ instrument })
       persist('save instrument', () => saveSetting('instrument', instrument))
     },
+
+    toggleSheet: name => set(state => ({ openSheet: state.openSheet === name ? null : name })),
+    closeSheet: () => set({ openSheet: null }),
   }
 }
 
