@@ -11,6 +11,7 @@ import { setOwnShapes, type Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
 import { readViewSettings, viewSettings, type ViewSettings } from './view-settings'
 import { shapeSettings, type ShapeSettings } from './own-shapes'
+import { clampIndex, readPlaces, savePlaces, setNavigation, type Places, type SetNavigation } from './set-navigation'
 import {
   saveSongEdits,
   getSongEdits,
@@ -24,12 +25,6 @@ import {
   getSetting,
   takeSnapshot,
 } from './persistence'
-
-/** Where the player was, so a relaunch mid-set reopens on the same song. */
-interface SavedPosition {
-  setlistId: string
-  index: number
-}
 
 export const defaultSetlistData: SetlistData = {
   lists: {
@@ -169,22 +164,10 @@ async function seedSetlist(list: Setlist): Promise<void> {
   })
 }
 
-function persistPosition(setlistId: string, index: number): void {
-  if (readOnly) return
-  const position: SavedPosition = { setlistId, index }
-  saveSetting('position', position).catch(e => console.warn('save position failed:', e))
-}
-
 let toastTimer: ReturnType<typeof setTimeout> | undefined
 
-/** Keep the current position inside the setlist after songs are added/removed. */
-function clampIndex(index: number, length: number): number {
-  if (length <= 0) return 0
-  return Math.max(0, Math.min(index, length - 1))
-}
-
 /** The whole store. The view settings (theme, stage, instrument...) live in their own slice. */
-export interface StoreState extends ViewSettings, ShapeSettings {
+export interface StoreState extends ViewSettings, ShapeSettings, SetNavigation {
   // State
   songs: Song[]
   customSongs: Song[]
@@ -211,11 +194,6 @@ export interface StoreState extends ViewSettings, ShapeSettings {
   getTranspose: (title: string) => number
   getDisplaySections: (title: string) => Section[]
   getDisplayKey: (title: string) => string
-
-  // Navigation
-  nextSong: () => void
-  prevSong: () => void
-  goToSong: (index: number) => void
 
   // Edit actions
   toggleEditMode: () => void
@@ -266,6 +244,7 @@ export interface StoreState extends ViewSettings, ShapeSettings {
 export const useStore = create<StoreState>((set, get) => ({
   ...viewSettings(set, get, () => !readOnly),
   ...shapeSettings(set, get, () => !readOnly),
+  ...setNavigation(set, get, () => !readOnly),
 
   // State
   songs: DEFAULT_SONGS,
@@ -351,25 +330,6 @@ export const useStore = create<StoreState>((set, get) => ({
     const semitones = getTranspose(title)
     if (!semitones || !key) return key
     return transposeChord(key, semitones, shouldUseFlats(key, semitones))
-  },
-
-  // Navigation
-  nextSong: () => {
-    const { currentIndex, setlistSongs } = get()
-    set({ currentIndex: clampIndex(currentIndex + 1, setlistSongs().length) })
-    persistPosition(get().setlistData.activeId, get().currentIndex)
-  },
-
-  prevSong: () => {
-    const { currentIndex, setlistSongs } = get()
-    set({ currentIndex: clampIndex(currentIndex - 1, setlistSongs().length) })
-    persistPosition(get().setlistData.activeId, get().currentIndex)
-  },
-
-  goToSong: (index: number) => {
-    const { setlistSongs } = get()
-    set({ currentIndex: clampIndex(index, setlistSongs().length), editMode: false })
-    persistPosition(get().setlistData.activeId, get().currentIndex)
   },
 
   // Edit actions
@@ -520,9 +480,13 @@ export const useStore = create<StoreState>((set, get) => ({
     const previous = get().setlistData
     set(state => ({
       setlistData: { ...state.setlistData, activeId: id },
-      currentIndex: 0,
+      // Each list opens where the player left it; the list being left keeps its place
+      currentIndex: clampIndex(state.places[id] ?? 0, state.setlistData.lists[id]?.songTitles.length ?? 0),
+      places: { ...state.places, [state.setlistData.activeId]: state.currentIndex },
+      extra: null,
     }))
     persistSetlist(previous, get().setlistData, 'switch setlist')
+    savePlaces(get().places, !readOnly)
   },
 
   createSetlist: (name: string) => {
@@ -537,6 +501,7 @@ export const useStore = create<StoreState>((set, get) => ({
         activeId: id,
       },
       currentIndex: 0,
+      extra: null,
     }))
     persistSetlist(previous, get().setlistData, 'create setlist')
   },
@@ -548,13 +513,12 @@ export const useStore = create<StoreState>((set, get) => ({
     if (remaining.length === 0) return // never leave the app with no setlist at all
     set(state => {
       const { [id]: _, ...rest } = state.setlistData.lists
+      // 'default' may not exist, e.g. after importing someone else's backup
+      const activeId = rest.default ? 'default' : remaining[0]
       return {
-        setlistData: {
-          lists: rest,
-          // 'default' may not exist, e.g. after importing someone else's backup
-          activeId: rest.default ? 'default' : remaining[0],
-        },
-        currentIndex: 0,
+        setlistData: { lists: rest, activeId },
+        currentIndex: clampIndex(state.places[activeId] ?? 0, rest[activeId].songTitles.length),
+        extra: null,
       }
     })
     persistSetlist(previous, get().setlistData, 'delete setlist')
@@ -642,6 +606,7 @@ export const useStore = create<StoreState>((set, get) => ({
         activeId: newId,
       },
       currentIndex: 0,
+      extra: null,
     }))
     persistSetlist(previous, get().setlistData, 'duplicate setlist')
   },
@@ -662,6 +627,7 @@ export const useStore = create<StoreState>((set, get) => ({
         setlistData: { ...state.setlistData, lists },
         edits: otherEdits,
         currentIndex: clampIndex(state.currentIndex, lists[state.setlistData.activeId]?.songTitles.length ?? 0),
+        extra: state.extra?.title === title ? null : state.extra,
       }
     })
     const { setlistData, customSongs } = get()
@@ -696,10 +662,10 @@ export const useStore = create<StoreState>((set, get) => ({
           ...state.setlistData,
           lists: { ...state.setlistData.lists, [id]: { ...list, songTitles: [...GIG_SETLIST_2026] } },
         },
-        currentIndex: 0,
       }
     })
     persistSetlist(previous, get().setlistData, 'restore GM Tribute order')
+    get().goToSong(0)
   },
 
   showToast: (message: string) => {
@@ -712,16 +678,16 @@ export const useStore = create<StoreState>((set, get) => ({
     let setlistDataResult: SetlistData | undefined
     let customSongsResult: Song[] = []
     let selectedVoicingsResult: Record<string, number> | undefined
-    let positionResult: SavedPosition | undefined
+    let placesResult: Places | undefined
     let ownShapesResult: Record<string, string[]> | undefined
     let viewResult: Awaited<ReturnType<typeof readViewSettings>> = {}
 
     try {
-      ;[setlistDataResult, customSongsResult, selectedVoicingsResult, positionResult, ownShapesResult, viewResult] = await Promise.all([
+      ;[setlistDataResult, customSongsResult, selectedVoicingsResult, placesResult, ownShapesResult, viewResult] = await Promise.all([
         getSetlistData(),
         getCustomSongs(),
         getSelectedVoicings(),
-        getSetting<SavedPosition>('position'),
+        readPlaces(),
         getSetting<Record<string, string[]>>('ownShapes'),
         readViewSettings(),
       ])
@@ -765,10 +731,7 @@ export const useStore = create<StoreState>((set, get) => ({
       const setlists = setlistDataResult ?? state.setlistData
       const listLength = setlists.lists[setlists.activeId]?.songTitles.length ?? 0
       // Reopen on the song the player was on, if it was in this same setlist.
-      const savedIndex =
-        positionResult && positionResult.setlistId === setlists.activeId && Number.isInteger(positionResult.index)
-          ? positionResult.index
-          : state.currentIndex
+      const savedIndex = placesResult?.[setlists.activeId] ?? 0
       return {
         ...(setlistDataResult && { setlistData: setlistDataResult }),
         ...(customSongsResult && customSongsResult.length > 0 && { customSongs: customSongsResult }),
@@ -778,6 +741,8 @@ export const useStore = create<StoreState>((set, get) => ({
         edits,
         loadFailed: false,
         currentIndex: clampIndex(savedIndex, listLength),
+        ...(placesResult && { places: placesResult }),
+        extra: null,
       }
     })
 
