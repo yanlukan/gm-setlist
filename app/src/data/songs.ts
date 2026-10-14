@@ -3,6 +3,7 @@ import type { Song } from '../types'
 export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Faith',
+    songbook: 12,
     preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'B',
@@ -27,6 +28,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: "I'm Your Man",
+    songbook: 31,
     shortTitle: 'I\'m Your Man',
     preset: { name: 'FUNK', slot: 'U01-1' },
     lowerKey: true,
@@ -63,6 +65,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Fastlove',
+    songbook: 13,
     preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Am',
@@ -137,6 +140,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Outside',
+    songbook: 47,
     preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Gm',
@@ -159,6 +163,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Papa Was a Rolling Stone',
+    songbook: 36,
     shortTitle: 'Papa Rolling Stone',
     preset: { name: 'FUNK', slot: 'U01-1' },
     cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
@@ -185,6 +190,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Father Figure',
+    songbook: 15,
     preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'George Michael',
     key: 'Bb',
@@ -211,6 +217,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: "Freedom! '90",
+    songbook: 19,
     shortTitle: "Freedom '90",
     preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
@@ -239,6 +246,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Jesus to a Child',
+    songbook: 35,
     shortTitle: 'Jesus Child',
     preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'George Michael',
@@ -284,6 +292,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'A Different Corner',
+    songbook: 8,
     shortTitle: 'Diff. Corner',
     preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     artist: 'George Michael',
@@ -307,6 +316,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Too Funky',
+    songbook: 61,
     preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Dm',
@@ -330,6 +340,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Everything She Wants',
+    songbook: 11,
     shortTitle: 'Everything',
     preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'Wham!',
@@ -391,6 +402,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Somebody to Love',
+    songbook: 52,
     shortTitle: 'Somebody',
     preset: { name: 'CRUNCH', slot: 'U02-1', solo: 'LEAD' },
     cue: '12/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
@@ -428,6 +440,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Careless Whisper',
+    songbook: 4,
     shortTitle: 'Careless W.',
     preset: { name: '80s CLEAN', slot: 'U01-2' },
     lowerKey: true,
@@ -452,6 +465,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'I Can\'t Make You Love Me',
+    songbook: 25,
     shortTitle: "Can't Make You",
     artist: 'Bonnie Raitt (cover)',
     key: 'G',
@@ -485,6 +499,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Roxanne',
+    songbook: 49,
     artist: 'The Police (GM version)',
     key: 'Bm',
     bpm: 82,
@@ -520,6 +535,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Waiting (Reprise)',
+    songbook: 63,
     shortTitle: 'Waiting',
     artist: 'George Michael',
     key: 'G',
@@ -544,6 +560,7 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Kissing a Fool',
+    songbook: 37,
     lowerKey: true,
     transpose: -1, // band key D (user, 2026-09-28); chart is the book's Eb
     artist: 'George Michael',

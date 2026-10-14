@@ -65,6 +65,8 @@ export interface Song {
   transpose?: number
   /** Length of the reference recording in seconds, for planning set length. */
   duration?: number
+  /** Its number in the George Michael Complete songbook, for the 17 songs in it. */
+  songbook?: number
 }
 
 export interface SongEdits {
