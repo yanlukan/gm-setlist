@@ -6,15 +6,17 @@ interface Props {
   form: readonly string[]
   /** Each section's letter, on a chart in bands: the chips then read "A Intro", "B Verse". */
   letters?: ReadonlyMap<string, string>
+  /** Stage: each chip is just its letter and ×N; the full name stays in its tooltip. */
+  short?: boolean
 }
 
 /**
  * The order the song is played in, as a row of tags: Intro V PC C V PC C Solo.
  * One look says what comes next, without reading down the chart.
  */
-export function FormStrip({ form, letters }: Props) {
+export function FormStrip({ form, letters, short = false }: Props) {
   return (
-    <div className={letters ? 'form-strip is-lettered' : 'form-strip'} role="group" aria-label={`Song order: ${form.join(', ')}`}>
+    <div className={letters ? (short ? 'form-strip is-lettered is-short' : 'form-strip is-lettered') : 'form-strip'} role="group" aria-label={`Song order: ${form.join(', ')}`}>
       {compressForm(form).map((step, i) => (
         <span
           key={i}
@@ -25,7 +27,7 @@ export function FormStrip({ form, letters }: Props) {
           {letters ? (
             <>
               <span className="band-letter" aria-hidden="true">{letters.get(step.name)}</span>
-              <span className="form-name">{step.name}</span>
+              {!short && <span className="form-name">{step.name}</span>}
             </>
           ) : (
             formLabel(step.name)

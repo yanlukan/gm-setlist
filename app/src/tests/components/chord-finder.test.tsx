@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { ChordFinder } from '../../components/finder/ChordFinder'
-import { TopBar } from '../../components/layout/TopBar'
 import { useStore } from '../../store/use-store'
 import { setOwnShapes } from '../../music/voicings'
 
@@ -131,17 +130,5 @@ describe('the chord finder', () => {
     fireEvent.click(within(more('Em11')).getByRole('button', { name: 'Em11 at 2nd fret, x-x-2-4-3-5' }))
     expect(own().Em11).toEqual(['x-x-2-4-3-5'])
     expect(onPick).toHaveBeenCalledWith('Em11', 'x-x-2-4-3-5')
-  })
-})
-
-describe('the chord finder in the menu', () => {
-  it('opens from the menu, on stage too', () => {
-    useStore.setState({ viewMode: 'stage' })
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Chord Finder…' }))
-    expect(screen.getByRole('dialog', { name: 'Chord Finder' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    expect(screen.queryByRole('dialog', { name: 'Chord Finder' })).not.toBeInTheDocument()
   })
 })

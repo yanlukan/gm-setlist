@@ -42,15 +42,49 @@ const LANDSCAPE = '@media (orientation: landscape) and (min-width: 900px)'
 const PHONE = '@media (max-width: 500px)'
 
 describe('the band chart stylesheet', () => {
-  it('has four columns, eight in landscape and two on a phone', () => {
+  it('has four columns, eight in landscape and two on a phone, and chords from 20 to 44 px', () => {
     const bands = css('bands.css')
     const base = between(bands, '.band-chart {', '}')
     expect(base).toContain('--cols: 4;')
-    expect(base).toContain('--chart-base: 32px;')
-    expect(between(bands, LANDSCAPE, PHONE)).toContain('--cols: 8;')
+    expect(base).toContain('--chart-min: 20px;')
+    expect(base).toContain('--chart-max: 44px;')
+    expect(base).toContain('--gutter: 116px;')
+    const landscape = between(bands, LANDSCAPE, PHONE)
+    expect(landscape).toContain('--cols: 8;')
+    expect(landscape).toContain('--chart-max: 36px;')
+    expect(landscape).toContain('.stage-screen .band-chart { --gutter: 44px; }')
     const phone = between(bands, PHONE)
     expect(phone).toContain('--cols: 2;')
     expect(phone).toContain('.band-chart .pad-wide { display: none; }')
+  })
+
+  it('puts a crowded bar on two lines only where the fit says so', () => {
+    const bands = css('bands.css')
+    expect(between(bands, '.band-chart .bar {', '}')).toContain('flex-wrap: nowrap;')
+    expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('flex-wrap: wrap;')
+  })
+
+  it('makes Stage bands compact and leaves Practice at 44 px', () => {
+    const bands = css('bands.css')
+    expect(between(bands, '.stage-screen .band-chart {', '}')).toContain('--band-gap: 6px; --row-gap: 3px; --gutter: 124px;')
+    expect(between(bands, '.stage-screen .band {', '}')).toContain('padding: 3px 6px 3px 0;')
+    expect(between(bands, '.stage-screen .band-chart .bar-plain {', '}')).toContain('min-height: 1.45em;')
+    expect(between(bands, '.stage-screen .band-chart .bar {', '}')).toContain('line-height: 1.2;')
+    expect(between(bands, '.stage-screen .band-head {', '}')).toContain('flex-direction: row;')
+    expect(between(bands, '.stage-screen .band-head {', '}')).toContain('gap: 5px; padding: 4px 4px 0 6px;')
+    const label = between(bands, '.stage-screen .band-head .chart-label {', '}')
+    expect(label).toContain('white-space: normal;')
+    expect(label).toContain('font-size: 13px;')
+    expect(label).toContain('overflow-wrap: normal;')
+    // The gutter is 44 px on its side and on a phone, which come later and win
+    expect(between(bands, LANDSCAPE, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; }')
+    expect(between(bands, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; }')
+    expect(between(bands, '.band-chart .bar-plain {', '}')).toContain('min-height: 44px;')
+    expect(between(bands, '.band-chart .bar,', '}')).toContain('min-height: 44px;')
+  })
+
+  it('keeps Practice at four bars a row on its side', () => {
+    expect(between(css('practice.css'), LANDSCAPE)).toContain('.practice-screen .band-chart { --cols: 4; }')
   })
 
   it('is loaded, and the old bar view is gone', () => {
@@ -64,10 +98,6 @@ describe('the band chart stylesheet', () => {
     expect(layout).toContain('font-size: max(26px, 0.6em);')
     expect(layout.split('max(16px, 0.36em)')).toHaveLength(3)
     expect(layout).toContain('font-size: max(16px, 0.4em);')
-  })
-
-  it('makes the shapes handle readable on stage', () => {
-    expect(between(css('bands.css'), 'body.stage .diagrams-collapsed {', '}')).toContain('font-size: 16px;')
   })
 
   it('scales a bar down by the fit the chart gives it, so a long chord stays inside its bar', () => {

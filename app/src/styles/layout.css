@@ -3,30 +3,6 @@
    needs on stage is smaller than a 40px target.
    ================================================================ */
 
-/* ---------- Top bar ---------- */
-.topbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: calc(6px + var(--safe-top)) 12px 6px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.tb-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-/* The ⋮ keeps to the right end of its row: when the bar wraps (an iPad held
-   upright) the menu hanging from the button's right edge stays on the screen */
-.tb-menu { margin-left: auto; }
-.tb-break { display: none; }
-.tb-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1 1 auto;
-  min-width: 0;
-  flex-wrap: wrap;
-}
 .tb-btn {
   min-height: 40px;
   min-width: 40px;
@@ -46,53 +22,6 @@
 .tb-btn.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .tb-btn.is-danger { background: #e53e3e; border-color: #e53e3e; color: #fff; }
 .tb-btn.is-warn { background: #f59e0b; border-color: #f59e0b; color: #111; }
-.tb-num { min-width: 44px; font-variant-numeric: tabular-nums; }
-.tb-badge {
-  font-size: 15px;
-  padding: 6px 12px;
-  border-radius: 14px;
-  background: var(--badge-bg);
-  color: var(--text);
-  white-space: nowrap;
-}
-.tb-badge.is-warn { background: #f59e0b; color: #111; font-weight: 700; }
-.tb-badge.is-danger { background: #e53e3e; color: #fff; font-weight: 700; }
-
-.menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 300;
-  min-width: 250px;
-  background: var(--picker-bg);
-  border: 1px solid var(--badge-bg);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-}
-.menu-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 14px 16px;
-  font-size: 16px;
-  color: var(--text);
-  background: transparent;
-  border-bottom: 1px solid var(--badge-bg);
-}
-.menu-item:active { background: var(--badge-bg); }
-.menu-foot { padding: 10px 16px; font-size: 12px; color: var(--text-muted); }
-
-@media (max-width: 700px) {
-  /* Phones, two rows: the buttons and the menu on top, then the song info
-     with the transpose buttons at its end. */
-  .tb-menu { order: 2; }
-  .tb-break { display: block; order: 3; flex-basis: 100%; height: 0; }
-  .tb-meta { order: 4; flex: 1 1 0; }
-  .tb-transpose { order: 5; }
-  .tb-btn { padding: 0 10px; font-size: 14px; }
-  .tb-badge { padding: 6px 9px; font-size: 14px; }
-}
 
 /* ---------- Chord chart ---------- */
 .chart-scroll {
@@ -149,20 +78,6 @@
   color: var(--text);
   white-space: nowrap;
 }
-.chart-cue,
-.chart-capo,
-.chart-warning {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.3;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  color: var(--text);
-}
-.chart-cue { background: rgba(245, 158, 11, 0.16); border-left: 5px solid #f59e0b; }
-.chart-warning { background: rgba(229, 62, 62, 0.18); border-left: 5px solid #e53e3e; }
-.chart-capo { background: rgba(59, 130, 246, 0.16); border-left: 5px solid #3b82f6; }
 .chart-sections {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -192,55 +107,6 @@
 }
 .chart-label-btn.is-focused {
   background: color-mix(in srgb, currentColor 25%, transparent);
-}
-.diagrams-focus {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--badge-bg);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.diagrams-focus-all { font-size: 11px; color: var(--text-muted); }
-/* The handle at the start of the shapes strip that hides it: slim, the tiles' height */
-.diagrams-hide {
-  flex-shrink: 0;
-  width: 22px;
-  align-self: stretch;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--badge-bg);
-  color: var(--text-muted);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0;
-}
-.diagrams-hide:active { color: var(--text); }
-/* What is left when the shapes are hidden: a thin bar that brings them back */
-.diagrams-collapsed {
-  flex-shrink: 0;
-  width: 100%;
-  min-height: 28px;
-  padding: 4px 12px;
-  border: none;
-  border-top: 1px solid var(--border);
-  background: var(--badge-bg);
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  cursor: pointer;
 }
 .chart-chords {
   font-weight: 700;
@@ -284,99 +150,7 @@
   font-size: 16px;
 }
 
-/* ---------- Song navigation (bottom) ---------- */
-.songnav {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 8px 12px calc(8px + var(--safe-bottom));
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.songnav-btn {
-  min-height: 52px;
-  min-width: 0;
-  padding: 0 14px;
-  border-radius: 12px;
-  background: var(--badge-bg);
-  color: var(--text);
-  font-size: 17px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.songnav-btn:active:not(:disabled) { filter: brightness(1.35); }
-.songnav-btn:disabled { opacity: 0.35; cursor: default; }
-.songnav-prev { justify-content: flex-start; }
-.songnav-next { justify-content: flex-end; background: rgba(74, 158, 255, 0.22); }
-.songnav-list { justify-content: center; padding: 0 20px; font-variant-numeric: tabular-nums; }
-.songnav-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.songnav-num { flex-shrink: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.songnav-arrow { flex-shrink: 0; font-size: 18px; }
-.songnav-preset {
-  flex-shrink: 0;
-  padding: 1px 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(127, 127, 127, 0.45);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.songnav-key {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 8px;
-  background: rgba(127, 127, 127, 0.22);
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-@media (max-width: 500px) {
-  /* Phones: give the song titles the room, drop the numbers. */
-  .songnav { gap: 6px; padding-left: 8px; padding-right: 8px; }
-  .songnav-btn { padding: 0 10px; font-size: 15px; gap: 6px; }
-  .songnav-num { display: none; }
-  .songnav-key, .songnav-preset { display: none; }
-  .songnav-list { padding: 0 12px; }
-}
-
 /* ---------- All-songs grid ---------- */
-.songgrid-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 400;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
-}
-.songgrid-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.songgrid-title {
-  flex: 1;
-  min-width: 0;
-  font-size: 20px;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.songgrid-count { color: var(--text-muted); font-size: 15px; flex-shrink: 0; }
-@media (max-width: 500px) {
-  /* Phones: the setlist's name keeps the row; the count goes underneath */
-  .songgrid-header { flex-wrap: wrap; row-gap: 2px; }
-  .songgrid-count { order: 3; flex-basis: 100%; font-size: 14px; }
-}
 .songgrid-close {
   min-height: 44px;
   padding: 0 20px;
@@ -386,18 +160,6 @@
   font-size: 16px;
   font-weight: 700;
   flex-shrink: 0;
-}
-.songgrid-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 12px 16px calc(16px + var(--safe-bottom));
-}
-.songgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
 }
 .songtile {
   display: flex;
@@ -562,35 +324,6 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--accent);
-}
-
-/* ---------- Next-song heads-up ---------- */
-.songnav-headsup {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border-left: 4px solid #f59e0b;
-  background: rgba(245, 158, 11, 0.14);
-  font-size: 15px;
-}
-.songnav-headsup-label {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #f59e0b;
-}
-.songnav-headsup-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
 }
 
 /* ---------- Toast ---------- */
@@ -1128,6 +861,3 @@
 }
 .diagram-play:active { filter: brightness(1.4); }
 .ck-tool.is-on { border-color: var(--accent); color: var(--accent); }
-
-/* A chart whose chords cannot fit even at the smallest text gets smaller chord diagrams */
-.chart-scroll[data-cramped] ~ .diagrams-strip svg { zoom: 0.7; }

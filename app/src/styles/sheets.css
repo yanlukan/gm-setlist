@@ -1,0 +1,87 @@
+/* Sheets open above the bottom bar, over the chart; one at a time */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0 0 calc(64px + var(--safe-bottom)) 0;
+  z-index: 140;
+  background: rgb(0 0 0 / 0.35);
+}
+.sheet {
+  position: fixed;
+  left: calc(8px + var(--safe-left));
+  right: calc(8px + var(--safe-right));
+  bottom: calc(64px + var(--safe-bottom));
+  z-index: 145;
+  max-height: calc(100% - 88px - var(--safe-bottom) - var(--safe-top));
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--picker-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.25);
+}
+.sheet-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.sheet-title { margin: 0; font-size: 20px; font-weight: 700; }
+.sheet-sub { color: var(--text-muted); font-size: 14px; }
+.sheet-hint { margin: 0 0 12px; color: var(--text-muted); font-size: 14px; }
+.sheet-action {
+  margin-left: auto;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+.sheet-action + .sheet-action { margin-left: 0; }
+.set-song-list { display: grid; gap: 6px; }
+.songtile-left { color: var(--accent); font-weight: 600; }
+
+/* Setlists sheet: the lists on the left, the tapped list's songs on the right */
+.setlists-sheet { display: grid; grid-template-columns: minmax(170px, 1fr) 2.2fr; gap: 16px; align-items: start; }
+.lists-col { display: grid; gap: 6px; position: sticky; top: 0; }
+.lists-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.lists-item[aria-pressed='true'] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.lists-name { font-weight: 700; }
+.lists-count { color: var(--text-muted); font-size: 13px; }
+.lists-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--success); }
+.lists-songs { min-width: 0; }
+.sheet-action.is-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+@media (max-width: 599px) {
+  .setlists-sheet { grid-template-columns: 1fr; }
+  .lists-col { position: static; }
+}
+
+/* ---------- Notes (Stage) and More (Practice) ---------- */
+.notes-text { margin: 0; font-size: 17px; line-height: 1.5; white-space: pre-wrap; }
+.more-group { display: grid; gap: 6px; margin-bottom: 16px; }
+.more-title { margin: 0 0 2px; color: var(--text-muted); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.more-item {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+.more-item:disabled { opacity: 0.4; }
+.more-item[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+.more-foot { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; }

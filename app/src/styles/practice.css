@@ -1,0 +1,89 @@
+/* ---------- Practice: the song's setup and facts on top ---------- */
+/* The top bar is gone, so the header takes the safe area at the top */
+.practice-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(8px + var(--safe-top)) 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.ph-line { display: flex; flex-direction: column; gap: 8px; }
+.ph-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ph-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.1; }
+.ph-artist { color: var(--text-muted); font-size: 15px; }
+.ph-badge { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.ph-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.setup-key { display: inline-flex; }
+.setup-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.setup-key .setup-btn { border-radius: 0; }
+.setup-key .setup-btn:first-child { border-radius: 8px 0 0 8px; }
+.setup-key .setup-btn:last-child { border-radius: 0 8px 8px 0; }
+.setup-btn.is-moved { border-color: #f59e0b; color: #f59e0b; }
+.setup-btn.is-active { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+.setup-btn.is-danger { border-color: var(--danger); color: var(--danger); }
+.setup-sub { margin-left: 4px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+
+/* ---------- On its side: two rows ---------- */
+@media (orientation: landscape) and (min-width: 900px) {
+  .ph-line { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
+}
+
+/* ---------- The chart and the panel: panel under the chart upright, beside it on its side ---------- */
+.practice-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.practice-panel {
+  flex: none;
+  height: 430px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.tiles-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+.tiles-title { margin: 0; font-size: 17px; font-weight: 800; }
+.tiles-hint { margin: 4px 0 8px; color: var(--text-muted); font-size: 13px; }
+.tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--diagram-tile);
+  color: var(--text);
+  cursor: pointer;
+}
+.tile.is-chosen { border-color: #facc15; }
+.tile-name { font-size: 14px; font-weight: 800; }
+.tile-where { font-size: 11px; color: var(--text-muted); }
+.tile-frets { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.book-facts dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 15px; }
+.book-facts dt { color: var(--text-muted); font-weight: 700; }
+.book-facts dd { margin: 0; }
+.facts-capo { margin-top: 2px; color: #f59e0b; font-weight: 700; }
+
+/* A chord with shapes is a button on Practice: tap to pick it, tap again to let go */
+button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration-style: dotted; }
+.chart-chord-tap.is-picked { color: #facc15; text-decoration-color: #facc15; }
+
+@media (orientation: landscape) and (min-width: 900px) {
+  .practice-body { flex-direction: row; }
+  .practice-panel { width: 420px; height: auto; border-top: none; border-left: 1px solid var(--border); }
+  /* Practice keeps four bars a row on its side: the panel takes the room */
+  .practice-screen .band-chart { --cols: 4; }
+}

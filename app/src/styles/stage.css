@@ -1,0 +1,57 @@
+/* ---------- The two screens fill the space above the bar ---------- */
+.stage-screen,
+.practice-screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* ---------- Facts and tags, shared by both headers ---------- */
+.fact {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--badge-bg);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.fact.is-warn { background: #f59e0b; color: #111; }
+.fact.is-danger { background: #ea580c; color: #fff; }
+.tag-extra { padding: 3px 10px; border-radius: 6px; background: #facc15; color: #111; font-size: 14px; font-weight: 800; white-space: nowrap; }
+
+/* ---------- Stage: only what is needed while playing ---------- */
+/* The top bar is gone, so the header takes the safe area at the top */
+.stage-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: calc(8px + var(--safe-top)) 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.stage-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.stage-title { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.1; }
+.stage-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.stage-cue { color: #facc15; font-size: 17px; font-weight: 700; }
+.form-strip.is-short .form-chip { padding: 2px 6px 2px 3px; }
+
+/* One line above the bar; a long cue is cut with … */
+.next-up {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--picker-bg);
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.next-up-label { flex: none; color: #facc15; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.next-up-text { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- On its side: the header on one row ---------- */
+@media (orientation: landscape) and (min-width: 900px) {
+  .stage-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px; padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }
+  .stage-row { display: contents; }
+  .stage-title { font-size: 24px; }
+  .stage-cue { flex-basis: 100%; }
+}

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SavedChartsModal } from '../../components/edit/SavedChartsModal'
-import { TopBar } from '../../components/layout/TopBar'
+import { BottomBar } from '../../components/layout/BottomBar'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 import { db, resetDb } from '../../store/persistence'
@@ -158,25 +158,15 @@ describe('going back for every song at once', () => {
   })
 })
 
-describe('the saved charts in the menu', () => {
+// The version line naming this copy of the app, and the entry with no number,
+// are in bar-sheets.test.tsx with the rest of the More sheet.
+describe('the saved charts in the More sheet', () => {
   it('shows how many songs have chords of their own, and opens the list', () => {
     useStore.setState({ edits: { Faith: { sections: mine('B  A') } } })
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    fireEvent.click(screen.getByRole('button', { name: /Back to the original charts \(1\)/ }))
+    render(<BottomBar />)
+    fireEvent.click(screen.getByRole('button', { name: 'More' }))
+    fireEvent.click(screen.getByRole('button', { name: /Back to all the original charts \(1\)/ }))
     expect(screen.getByRole('dialog', { name: 'Back to the original charts' })).toBeInTheDocument()
-    expect(within(screen.getByRole('dialog')).getAllByRole('button', { expanded: false })).toHaveLength(1)
-  })
-
-  it('says which copy of the app this is, as an iPad keeps the home-screen app and Safari apart', () => {
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    expect(screen.getByText(/browser copy/)).toBeInTheDocument()
-  })
-
-  it('has no number when every song shows its built-in chart', () => {
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    expect(screen.getByRole('button', { name: 'Back to the original charts' })).toBeInTheDocument()
+    expect(within(screen.getByRole('dialog', { name: 'Back to the original charts' })).getAllByRole('button', { expanded: false })).toHaveLength(1)
   })
 })

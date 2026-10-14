@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { FAITH_ONE_LINE, faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
 
@@ -259,7 +260,7 @@ describe('undo and redo', () => {
 describe('moving to another song while editing', () => {
   it('starts afresh: undo never writes one song\'s chart into another', () => {
     // Regression guard: Next works in edit mode, and the undo history belongs to one song
-    render(<SongSheet />)
+    render(<PracticeScreen />) // the title is in the header
     gap('Intro', 'Cursor at the end of line 1')
     tap('E')
     expect(key('Undo')).toBeEnabled()

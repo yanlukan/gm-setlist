@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useStore } from '../../store/use-store'
 import {
   db, resetDb, saveSetlistData, getSetlistData, listSnapshots, restoreSnapshot,
-  getCustomSongs, getSongEdits, getSetting,
+  getCustomSongs, getSongEdits, getSetting, saveSetting,
 } from '../../store/persistence'
 import type { SetlistData } from '../../types'
-import { REHEARSAL_SETLIST } from '../../data/songs'
+import { REHEARSAL_SETLIST, GIG_SETLIST_2026 as G } from '../../data/songs'
 
 beforeEach(async () => {
   resetDb()
@@ -90,7 +90,7 @@ describe('hydrate does not destroy saved data', () => {
       lists: { default: { id: 'default', name: 'Short', songTitles: ['Faith', 'Outside'] } },
       activeId: 'default',
     })
-    useStore.setState({ currentIndex: 18 })
+    await saveSetting('places', { default: 18 })
 
     await useStore.getState().hydrate()
 
@@ -152,12 +152,12 @@ describe('restoring a snapshot', () => {
 })
 
 describe('relaunching mid-set', () => {
-  const positionSaved = (index: number) =>
-    toLand(async () => expect((await getSetting<{ index: number }>('position'))?.index).toBe(index))
+  const placesSaved = (index: number) =>
+    toLand(async () => expect((await getSetting<Record<string, number>>('places'))?.default).toBe(index))
 
   it('reopens on the song the player was on', async () => {
     useStore.getState().goToSong(7)
-    await positionSaved(7)
+    await placesSaved(7)
 
     useStore.setState(useStore.getInitialState()) // app closed and reopened
     await useStore.getState().hydrate()
@@ -170,7 +170,7 @@ describe('relaunching mid-set', () => {
     useStore.getState().nextSong()
     useStore.getState().nextSong()
     useStore.getState().prevSong()
-    await positionSaved(2)
+    await placesSaved(2)
 
     useStore.setState(useStore.getInitialState())
     await useStore.getState().hydrate()
@@ -180,7 +180,7 @@ describe('relaunching mid-set', () => {
 
   it('starts at the top when the saved position was in a different setlist', async () => {
     useStore.getState().goToSong(7)
-    await positionSaved(7)
+    await placesSaved(7)
     await saveSetlistData({
       lists: { other: { id: 'other', name: 'Other', songTitles: ['Faith', 'Outside', 'Roxanne'] } },
       activeId: 'other',
@@ -200,6 +200,31 @@ describe('relaunching mid-set', () => {
     await useStore.getState().hydrate()
 
     expect(useStore.getState().viewMode).toBe('stage')
+  })
+
+  it('reopens on the saved place of the playing list', async () => {
+    await saveSetting('places', { default: 7, other: 3 })
+    await useStore.getState().hydrate()
+    expect(useStore.getState().currentIndex).toBe(7)
+    expect(useStore.getState().places).toEqual({ default: 7, other: 3 })
+  })
+
+  it('reads the single position saved before 4.0.0', async () => {
+    await saveSetting('position', { setlistId: 'default', index: 6 })
+    await useStore.getState().hydrate()
+    expect(useStore.getState().currentIndex).toBe(6)
+  })
+
+  it('pulls a saved place beyond the end of the list back to the last song', async () => {
+    await saveSetting('places', { default: 40 })
+    await useStore.getState().hydrate()
+    expect(useStore.getState().currentIndex).toBe(20)
+  })
+
+  it('never reopens on an extra song', async () => {
+    useStore.getState().playExtra(G[3], 'default')
+    await useStore.getState().hydrate()
+    expect(useStore.getState().extra).toBeNull()
   })
 })
 

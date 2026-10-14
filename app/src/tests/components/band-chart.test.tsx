@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { BandChart } from '../../components/song/BandChart'
 import { hasShapes } from '../../music/voicings'
 import { faithOneLine } from '../faith-one-line'
@@ -42,7 +43,7 @@ describe('a chart in bands', () => {
   })
 
   it('letters the song order the same way, with the full names', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(screen.getByRole('group', { name: /^Song order:/ }).classList.contains('is-lettered')).toBe(true)
     expect(lettered()).toEqual([
       'A Intro', 'B Verse', 'C Pre-Chorus', 'D Chorus', 'B Verse', 'C Pre-Chorus', 'D Chorus',
@@ -60,7 +61,7 @@ describe('a chart in bands', () => {
 
   it('shows a part played twice running once, with its count', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus', 'Chorus'])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(lettered()).toEqual(['A Intro', 'B Verse', 'D Chorus×2'])
   })
 
@@ -71,12 +72,6 @@ describe('a chart in bands', () => {
     fireEvent.click(verse)
     expect(useStore.getState().focusSection).toEqual({ title: 'Faith', index: 1 })
     expect(verse.getAttribute('aria-pressed')).toBe('true')
-  })
-
-  it('has plain headers while the shapes are hidden', () => {
-    useStore.setState({ diagramsVisible: false })
-    render(<SongSheet />)
-    expect(document.querySelector('.band-head .chart-label-btn')).toBeNull()
   })
 
   it('keeps the letters for the keyboard player, with plain headers and no chord taps', () => {
@@ -95,14 +90,14 @@ describe('a chart in bands', () => {
     expect(document.querySelector('.form-strip.is-lettered')).toBeNull()
   })
 
-  it('draws an alteration a little smaller, and a tap on it still opens the whole chord', () => {
+  it('draws an alteration a little smaller, and a tap on it still picks the whole chord', () => {
     expect(hasShapes('Bb7(b9)')).toBe(true)
     useStore.getState().saveSections('Faith', [{ name: 'Verse', chords: '|  Bb7(b9)  |  A  |' }])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     const alteration = screen.getByText('(b9)')
     expect(alteration.classList.contains('chord-alt')).toBe(true)
     fireEvent.click(alteration)
-    expect(screen.getByRole('heading', { name: 'Bb7(b9)' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /^Shapes for Bb7\(b9\) · \d+ of them$/ })).toBeInTheDocument()
   })
 })
 
@@ -128,9 +123,9 @@ describe('a band on its own', () => {
 
 describe('the size of a band chart', () => {
   // jsdom has no layout, so every chart fits: each grows to its largest size
-  it('grows to the largest band size', () => {
+  it('grows to the largest size, 44 px', () => {
     render(<SongSheet />) // Faith, in bars
-    expect(chart().style.fontSize).toBe('45px')
+    expect(chart().style.fontSize).toBe('44px')
   })
 
   it('keeps the usual sizes for a chart without bars', () => {

@@ -3,10 +3,9 @@ import { APP_VERSION, BUILD_TIME } from './version'
 import { useStore } from './store/use-store'
 import { exportAllData } from './store/persistence'
 import { migrateFromLocalStorage } from './store/migrate'
-import { TopBar } from './components/layout/TopBar'
 import { BottomBar } from './components/layout/BottomBar'
-import { SongSheet } from './components/song/SongSheet'
-import { DiagramsBar } from './components/diagrams/DiagramsBar'
+import { StageScreen } from './components/stage/StageScreen'
+import { PracticeScreen } from './components/practice/PracticeScreen'
 import { usePedalKeys } from './hooks/use-pedal-keys'
 import { pageChart } from './hooks/page-chart'
 import { useWakeLock } from './hooks/use-wake-lock'
@@ -81,6 +80,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+/** Stage or Practice: two screens with different jobs, never one screen with things hidden. */
+export function CurrentScreen() {
+  const onStage = useStore(s => s.viewMode === 'stage')
+  return onStage ? <StageScreen /> : <PracticeScreen />
+}
+
 function AppInner() {
   const hydrate = useStore(s => s.hydrate)
   const theme = useStore(s => s.theme)
@@ -88,6 +93,7 @@ function AppInner() {
   const editMode = useStore(s => s.editMode)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
+  const closeSheet = useStore(s => s.closeSheet)
   const loadFailed = useStore(s => s.loadFailed)
   const toast = useStore(s => s.toast)
   const [ready, setReady] = useState(false)
@@ -124,11 +130,12 @@ function AppInner() {
     ].filter(Boolean).join(' ')
   }, [theme, viewMode])
 
-  // Page-turner pedal / keyboard. Swipe lives on the chart itself (SongSheet).
-  // On a chart too long for the screen, the pedal pages through it before turning the song
+  // Page-turner pedal / keyboard. Swipe lives on each screen's chart.
+  // On a chart too long for the screen, the pedal pages through it before turning the song.
+  // Like the bar's Previous and Next, it closes any open sheet first.
   usePedalKeys({
-    onNext: () => { if (!pageChart(1)) nextSong() },
-    onPrev: () => { if (!pageChart(-1)) prevSong() },
+    onNext: () => { closeSheet(); if (!pageChart(1)) nextSong() },
+    onPrev: () => { closeSheet(); if (!pageChart(-1)) prevSong() },
   }, !editMode)
 
   // Show loading briefly while IndexedDB hydrates
@@ -145,7 +152,6 @@ function AppInner() {
 
   return (
     <>
-      <TopBar />
       {loadFailed && (
         <div style={{
           padding: '8px 12px', background: '#7f1d1d', color: '#fff',
@@ -154,10 +160,7 @@ function AppInner() {
           Could not read saved data. Running read-only so nothing is overwritten — reload before editing.
         </div>
       )}
-      <SongSheet />
-      {/* While editing, the chord keyboard takes the diagrams' place. The strip
-          itself handles being hidden (a thin bar is left) and the keyboard view (nothing). */}
-      {!editMode && <DiagramsBar />}
+      <CurrentScreen />
       <BottomBar />
       {toast && <div className="toast" role="status">{toast}</div>}
     </>

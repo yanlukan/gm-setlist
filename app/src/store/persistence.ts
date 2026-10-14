@@ -111,16 +111,6 @@ export async function getSetting<T>(key: string): Promise<T | undefined> {
   return d.get('settings', key)
 }
 
-export async function saveDiagramsVisible(visible: boolean): Promise<void> {
-  const d = await db()
-  await d.put('settings', visible, 'diagramsVisible')
-}
-
-export async function getDiagramsVisible(): Promise<boolean | undefined> {
-  const d = await db()
-  return d.get('settings', 'diagramsVisible')
-}
-
 export async function saveSelectedVoicings(voicings: Record<string, number>): Promise<void> {
   const d = await db()
   await d.put('settings', voicings, 'selectedVoicings')
