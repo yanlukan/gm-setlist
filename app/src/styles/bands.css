@@ -168,8 +168,10 @@
   /* Two four-bar phrases a row: the line between them is the stronger one */
   .band-chart .bar.phrase-start { border-left-color: var(--text); }
   .band-chart .bar.phrase-end { border-right: none; }
-  /* Stage on its side: the letter alone beside each part */
-  .stage-screen .band-chart { --gutter: 44px; }
+  /* Stage on its side: the letter alone beside each part, and every row it
+     can get (the iPad's status bar and home bar take 44 px in the home-screen app) */
+  .stage-screen .band-chart { --gutter: 44px; --band-gap: 4px; }
+  .stage-screen .chart-scroll { padding-top: 4px; padding-bottom: 4px; }
   .stage-screen .band-head .chart-label { display: none; }
 }
 

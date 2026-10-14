@@ -19,10 +19,19 @@
    * as well, which pushed the song bar off the bottom of the screen in the
    * home-screen app.
    */
-  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-top: calc(env(safe-area-inset-top, 0px) + var(--status-clear));
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+  /* Extra room under the status bar: none in Safari (no inset there) */
+  --status-clear: 0px;
+}
+/*
+ * The home-screen app runs under a see-through status bar, and iPadOS blurs
+ * the app's content a little below it too. The top keeps clear of that blur.
+ */
+@media (display-mode: standalone) {
+  :root { --status-clear: 16px; }
 }
 
 html, body { height: 100%; }

@@ -52,7 +52,7 @@ describe('the band chart stylesheet', () => {
     const landscape = between(bands, LANDSCAPE, PHONE)
     expect(landscape).toContain('--cols: 8;')
     expect(landscape).toContain('--chart-max: 36px;')
-    expect(landscape).toContain('.stage-screen .band-chart { --gutter: 44px; }')
+    expect(landscape).toContain('.stage-screen .band-chart { --gutter: 44px; --band-gap: 4px; }')
     const phone = between(bands, PHONE)
     expect(phone).toContain('--cols: 2;')
     expect(phone).toContain('.band-chart .pad-wide { display: none; }')
@@ -81,7 +81,7 @@ describe('the band chart stylesheet', () => {
     // The name on Practice is a button, but no taller than the name
     expect(between(bands, '.practice-screen .band-head .chart-label-btn {', '}')).toContain('min-height: 0;')
     // The gutter is 44 px on Stage on its side and on a phone, which come later and win
-    expect(between(bands, LANDSCAPE, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; }')
+    expect(between(bands, LANDSCAPE, PHONE)).toContain('.stage-screen .band-chart { --gutter: 44px; --band-gap: 4px; }')
     expect(between(bands, PHONE)).toContain('.practice-screen .band-chart { --gutter: 44px; }')
     // Other chart views (the editor's preview) keep 44 px bars
     expect(between(bands, '.band-chart .bar-plain {', '}')).toContain('min-height: 44px;')
