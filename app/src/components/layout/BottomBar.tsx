@@ -16,9 +16,8 @@ import { ChordFinder } from '../finder/ChordFinder'
  * after an extra it reads Back to the set.
  */
 export function BottomBar() {
-  const { song, previous, next, returning, setSongs } = useShownSong()
+  const { song, previous, next, returning, setSongs, place: index } = useShownSong()
   const view = useChartView()
-  const currentIndex = useStore(s => s.currentIndex)
   const edits = useStore(s => s.edits)
   const instrument = useStore(s => s.instrument)
   const onStage = useStore(s => s.viewMode === 'stage')
@@ -30,7 +29,7 @@ export function BottomBar() {
   const toggle = useStore(s => s.toggleSheet)
   const close = useStore(s => s.closeSheet)
   const total = setSongs.length
-  const place = total ? currentIndex + 1 : 0
+  const place = total ? index + 1 : 0
   const nextKey = next ? playedKey(next, edits[next.title]).key : ''
   const nextLabel = !next ? 'End of set' : returning ? `Back to the set: ${next.title}` : `Next song: ${next.title}`
 

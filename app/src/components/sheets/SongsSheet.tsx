@@ -8,8 +8,8 @@ import { SetSongList } from './SetSongList'
 
 /** Every song in the playing list. Stage only moves around it; Practice can also edit the list. */
 export function SongsSheet({ onStage, onClose }: { onStage: boolean; onClose: () => void }) {
-  const { setSongs, extraFrom } = useShownSong()
-  const currentIndex = useStore(s => s.currentIndex)
+  // The place inside the songs found on this device, like the bar's count
+  const { setSongs, extraFrom, place: currentIndex } = useShownSong()
   const goToSong = useStore(s => s.goToSong)
   const listName = useStore(s => s.setlistData.lists[s.setlistData.activeId]?.name ?? 'Setlist')
   const [editing, setEditing] = useState(false)

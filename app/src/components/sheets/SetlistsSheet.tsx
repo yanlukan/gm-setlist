@@ -15,11 +15,11 @@ import { SetSongList } from './SetSongList'
 export function SetlistsSheet({ onStage, onClose }: { onStage: boolean; onClose: () => void }) {
   const lists = useStore(s => s.setlistData.lists)
   const activeId = useStore(s => s.setlistData.activeId)
-  const currentIndex = useStore(s => s.currentIndex)
   const goToSong = useStore(s => s.goToSong)
   const playExtra = useStore(s => s.playExtra)
   const setActiveSetlist = useStore(s => s.setActiveSetlist)
-  const { setSongs: playing, extraFrom } = useShownSong()
+  // The place inside the songs found on this device, like the bar's count
+  const { setSongs: playing, extraFrom, place: currentIndex } = useShownSong()
   const [chosenId, setChosenId] = useState(activeId)
   const [editing, setEditing] = useState(false)
   // A list deleted while the sheet is open falls back to the one being played

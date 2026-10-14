@@ -1,9 +1,13 @@
 import { useMemo } from 'react'
 import { useStore } from '../store/use-store'
-import { neighboursOf, setSongsOf, shownSongOf, type Neighbours, type ShownSong, type SongState } from '../store/shown-song'
+import { neighboursOf, placeOf, setSongsOf, shownSongOf, type Neighbours, type ShownSong, type SongState } from '../store/shown-song'
 import type { Song } from '../types'
 
-export interface ShownSongView extends ShownSong, Neighbours { setSongs: Song[] }
+export interface ShownSongView extends ShownSong, Neighbours {
+  setSongs: Song[]
+  /** The set's current place (0-based), inside the songs found on this device. */
+  place: number
+}
 
 // zustand 5 needs stable selector results: select the pieces, derive with useMemo
 export function useShownSong(): ShownSongView {
@@ -14,7 +18,8 @@ export function useShownSong(): ShownSongView {
   const extra = useStore(s => s.extra)
   return useMemo(() => {
     const state: SongState = { songs, customSongs, setlistData, currentIndex, extra }
-    return { ...shownSongOf(state), ...neighboursOf(state), setSongs: setSongsOf(state) }
+    const setSongs = setSongsOf(state)
+    return { ...shownSongOf(state), ...neighboursOf(state), setSongs, place: placeOf(state, setSongs) }
   }, [songs, customSongs, setlistData, currentIndex, extra])
 }
 

@@ -15,6 +15,15 @@ export function setSongsOf(state: SongState, listId: string = state.setlistData.
     .filter((song): song is Song => song !== undefined)
 }
 
+/**
+ * The set's current place, kept inside the songs found on this device. The
+ * store keeps the place against the list's names, so a list naming a missing
+ * song could otherwise point past the last song shown.
+ */
+export function placeOf(state: SongState, songs: Song[] = setSongsOf(state)): number {
+  return Math.max(0, Math.min(state.currentIndex, songs.length - 1))
+}
+
 export interface ShownSong { song: Song | undefined; extraFrom: string | null }
 
 /** The song on screen: the extra while one plays, otherwise the set's current song. */
@@ -24,7 +33,8 @@ export function shownSongOf(state: SongState): ShownSong {
   if (extra && extraSong) {
     return { song: extraSong, extraFrom: state.setlistData.lists[extra.fromListId]?.name ?? 'another list' }
   }
-  return { song: setSongsOf(state)[state.currentIndex], extraFrom: null }
+  const songs = setSongsOf(state)
+  return { song: songs[placeOf(state, songs)], extraFrom: null }
 }
 
 export interface Neighbours { previous: Song | undefined; next: Song | undefined; returning: boolean }
@@ -33,6 +43,6 @@ export interface Neighbours { previous: Song | undefined; next: Song | undefined
 export function neighboursOf(state: SongState): Neighbours {
   const songs = setSongsOf(state)
   const returning = shownSongOf(state).extraFrom !== null
-  const i = state.currentIndex
+  const i = placeOf(state, songs)
   return { previous: songs[i - 1], next: returning ? songs[i] : songs[i + 1], returning }
 }
