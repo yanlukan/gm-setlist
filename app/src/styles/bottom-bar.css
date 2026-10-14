@@ -42,3 +42,27 @@
   .bb-title, .bb-key, .bb-preset { display: none; }
   .bb-btn { padding: 0 8px; }
 }
+
+/* A newer version is published: one tap starts it (Practice only) */
+.update-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--badge-bg);
+  font-size: 14px;
+  font-weight: 700;
+}
+.update-btn {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  font: inherit;
+  font-weight: 700;
+}

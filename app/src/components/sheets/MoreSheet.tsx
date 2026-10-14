@@ -4,6 +4,7 @@ import { useShownSong } from '../../hooks/use-shown-song'
 import { useBackup } from '../../hooks/use-backup'
 import { hasEditedChart } from '../../music/chart-edits'
 import { APP_VERSION, BUILD_TIME } from '../../version'
+import { updateNow, useUpdateCheck } from '../../hooks/use-update-check'
 import { RestoreModal } from '../shared/RestoreModal'
 import { SavedChartsModal } from '../edit/SavedChartsModal'
 import { Sheet } from './Sheet'
@@ -19,9 +20,18 @@ function copyName(): string {
   return installed ? 'home-screen app' : 'browser copy'
 }
 
+/** When this version was built, in the iPad's own time (the build records it in UTC). */
+function builtAt(): string {
+  const at = new Date(BUILD_TIME)
+  if (Number.isNaN(at.getTime())) return BUILD_TIME
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
+}
+
 /** The app's settings, on Practice only. The one thing about a single song is going back to its original chart. */
 export function MoreSheet({ onClose }: { onClose: () => void }) {
   const { song } = useShownSong()
+  const update = useUpdateCheck()
   const edits = useStore(s => s.edits)
   const instrument = useStore(s => s.instrument)
   const setInstrument = useStore(s => s.setInstrument)
@@ -96,7 +106,12 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
         </section>
 
         <p className="more-foot">
-          PlayBook v{APP_VERSION} &middot; {copyName()} &middot; built {BUILD_TIME.slice(0, 16).replace('T', ' ')}
+          PlayBook v{APP_VERSION} &middot; {copyName()} &middot; built {builtAt()}
+          {update.available ? (
+            <> &middot; <button type="button" className="more-update" onClick={updateNow}>Update to v{update.latest}</button></>
+          ) : update.checked ? (
+            <> &middot; up to date</>
+          ) : null}
         </p>
         <input
           ref={fileInputRef}

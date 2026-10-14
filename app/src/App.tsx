@@ -4,6 +4,8 @@ import { useStore } from './store/use-store'
 import { exportAllData } from './store/persistence'
 import { migrateFromLocalStorage } from './store/migrate'
 import { BottomBar } from './components/layout/BottomBar'
+import { UpdateBar } from './components/layout/UpdateBar'
+import { startUpdateChecks } from './hooks/use-update-check'
 import { StageScreen } from './components/stage/StageScreen'
 import { PracticeScreen } from './components/practice/PracticeScreen'
 import { usePedalKeys } from './hooks/use-pedal-keys'
@@ -123,6 +125,9 @@ function AppInner() {
     }
   }, [hydrate])
 
+  // Whether a newer version is published: the iPad may still be running an old one
+  useEffect(() => startUpdateChecks(), [])
+
   useEffect(() => {
     document.body.className = [
       theme === 'light' ? 'light' : '',
@@ -161,6 +166,7 @@ function AppInner() {
         </div>
       )}
       <CurrentScreen />
+      {viewMode !== 'stage' && <UpdateBar />}
       <BottomBar />
       {toast && <div className="toast" role="status">{toast}</div>}
     </>

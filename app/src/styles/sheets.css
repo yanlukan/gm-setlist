@@ -85,3 +85,4 @@
 .more-item:disabled { opacity: 0.4; }
 .more-item[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
 .more-foot { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; }
+.more-update { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; }
