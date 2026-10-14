@@ -109,6 +109,12 @@
 .book-facts dd { margin: 0; }
 .facts-capo { margin-top: 2px; color: #f59e0b; font-weight: 700; }
 
+/* Practice's song order is in words, so the chart's parts need no letters (Stage keeps them for
+   its chips). A phone still shows the letter: it has no room for the part's name */
+@media (min-width: 501px) {
+  .practice-screen .band-head .band-letter { display: none; }
+}
+
 /* A chord with shapes is a button on Practice: tap to pick it, tap again to let go */
 button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration-style: dotted; }
 .chart-chord-tap.is-picked { color: #facc15; text-decoration-color: #facc15; }

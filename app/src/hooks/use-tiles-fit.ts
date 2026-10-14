@@ -19,22 +19,26 @@ export function largestZoom(fits: (zoom: number) => boolean, min = MIN_TILES_ZOO
 }
 
 /**
- * Scales the shape tiles so they fill the panel the player sized: bigger in
- * a big panel, smaller in a small one, never below half size. The book and
- * the notes under them scroll. Waits while the panel is dragged and fits
+ * Scales the shape tiles so they and the song order fill the panel the player
+ * sized: bigger in a big panel, smaller in a small one, never below half
+ * size. The book and the notes under them scroll. Waits while the panel is dragged and fits
  * once when the drag ends.
  */
 export function useTilesFit(panelRef: RefObject<HTMLElement | null>, contentKey: string): void {
   useLayoutEffect(() => {
     const panel = panelRef.current
     if (!panel) return
+    // A new song starts with its shapes in view, not where the last one was scrolled to
+    panel.scrollTop = 0
     const fit = () => {
       const tiles = panel.querySelector<HTMLElement>('.tiles')
       const section = panel.querySelector<HTMLElement>('.shape-tiles')
       if (!tiles || !section) return
-      // The shapes fill the panel's height; the book and notes scroll below them
+      // The shapes and the song order fill the panel's height; the book and notes scroll below them
       const style = getComputedStyle(panel)
-      const room = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      const order = panel.querySelector<HTMLElement>('.song-order')
+      const orderRoom = order ? order.offsetHeight + (parseFloat(style.rowGap) || 0) : 0
+      const room = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - orderRoom
       const fits = (zoom: number) => {
         tiles.style.zoom = String(zoom)
         return section.offsetHeight <= room && panel.scrollWidth <= panel.clientWidth

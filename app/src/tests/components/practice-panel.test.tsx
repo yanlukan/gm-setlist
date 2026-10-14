@@ -140,6 +140,16 @@ describe('your own shapes', () => {
   })
 })
 
+describe('a new song', () => {
+  it('starts the panel at the top, with its shapes in view', () => {
+    render(<Panel />)
+    const panel = screen.getByRole('complementary', { name: 'Shapes and the book' })
+    panel.scrollTop = 200
+    goTo('Amazing')
+    expect(panel.scrollTop).toBe(0)
+  })
+})
+
 describe('from the book and the notes', () => {
   const facts = () => screen.getByRole('region', { name: 'From the book and the notes' })
 
