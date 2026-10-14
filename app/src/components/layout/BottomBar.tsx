@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { useStore } from '../../store/use-store'
+import { useStore, useChartView } from '../../store/use-store'
 import { useShownSong } from '../../hooks/use-shown-song'
 import { playedKey } from '../../music/setlist-text'
 import { SongsSheet } from '../sheets/SongsSheet'
 import { SetlistsSheet } from '../sheets/SetlistsSheet'
+import { capoFor, songChordsOf } from '../../music/chart-view'
+import { NotesSheet } from '../sheets/NotesSheet'
+import { MoreSheet } from '../sheets/MoreSheet'
+import { ChordFinder } from '../finder/ChordFinder'
 
 /** The sheets the bar opens; only one is open at a time. */
 export type SheetName = 'setlists' | 'songs' | 'notes' | 'more' | 'finder'
@@ -15,7 +19,8 @@ export type SheetName = 'setlists' | 'songs' | 'notes' | 'more' | 'finder'
  * after an extra it reads Back to the set.
  */
 export function BottomBar() {
-  const { previous, next, returning, setSongs } = useShownSong()
+  const { song, previous, next, returning, setSongs } = useShownSong()
+  const view = useChartView()
   const currentIndex = useStore(s => s.currentIndex)
   const edits = useStore(s => s.edits)
   const instrument = useStore(s => s.instrument)
@@ -102,18 +107,40 @@ export function BottomBar() {
         <span className="bb-spacer" />
 
         {onStage ? (
-          <button className="bb-btn" aria-label="Switch to Practice" onClick={() => { close(); toggleViewMode() }}>
-            Practice
-          </button>
+          <>
+            <button className="bb-btn" aria-label="Notes" aria-expanded={open === 'notes'} onClick={() => toggle('notes')}>
+              Notes
+            </button>
+            <button className="bb-btn" aria-label="Switch to Practice" onClick={() => { close(); toggleViewMode() }}>
+              Practice
+            </button>
+          </>
         ) : (
-          <button className="bb-btn" aria-label="Switch to Stage" onClick={() => { close(); toggleViewMode() }}>
-            Stage
-          </button>
+          <>
+            <button className="bb-btn" aria-label="Chord Finder" aria-expanded={open === 'finder'} onClick={() => toggle('finder')}>
+              Finder
+            </button>
+            <button className="bb-btn" aria-label="More" aria-expanded={open === 'more'} onClick={() => toggle('more')}>
+              More
+            </button>
+            <button className="bb-btn" aria-label="Switch to Stage" onClick={() => { close(); toggleViewMode() }}>
+              Stage
+            </button>
+          </>
         )}
       </nav>
 
       {open === 'songs' && <SongsSheet onStage={onStage} onClose={close} />}
       {open === 'setlists' && <SetlistsSheet onStage={onStage} onClose={close} />}
+      {open === 'notes' && onStage && <NotesSheet onClose={close} />}
+      {open === 'more' && !onStage && <MoreSheet onClose={close} />}
+      {open === 'finder' && !onStage && (
+        <ChordFinder
+          songChords={song ? songChordsOf(song, edits[song.title], view) : []}
+          capo={song ? capoFor(song, edits[song.title], view) : 0}
+          onClose={close}
+        />
+      )}
     </>
   )
 }

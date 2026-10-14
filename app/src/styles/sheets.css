@@ -66,3 +66,22 @@
   .setlists-sheet { grid-template-columns: 1fr; }
   .lists-col { position: static; }
 }
+
+/* ---------- Notes (Stage) and More (Practice) ---------- */
+.notes-text { margin: 0; font-size: 17px; line-height: 1.5; white-space: pre-wrap; }
+.more-group { display: grid; gap: 6px; margin-bottom: 16px; }
+.more-title { margin: 0 0 2px; color: var(--text-muted); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.more-item {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+.more-item:disabled { opacity: 0.4; }
+.more-item[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+.more-foot { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; }

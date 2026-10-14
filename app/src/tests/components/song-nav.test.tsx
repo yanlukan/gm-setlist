@@ -157,3 +157,18 @@ describe('on a phone', () => {
     expect(css).toMatch(/@media \(max-width: 599px\) \{\s*\.bb-title, \.bb-key, \.bb-preset \{ display: none; \}/)
   })
 })
+
+describe('the right side of the bar', () => {
+  const names = () => within(bar()).getAllByRole('button').map(b => b.getAttribute('aria-label'))
+
+  it('on Stage: Notes, then the way to Practice', () => {
+    useStore.setState({ viewMode: 'stage' })
+    render(<BottomBar />)
+    expect(names().slice(4)).toEqual(['Notes', 'Switch to Practice'])
+  })
+
+  it('on Practice: the Finder, More, then the way to Stage', () => {
+    render(<BottomBar />)
+    expect(names().slice(4)).toEqual(['Chord Finder', 'More', 'Switch to Stage'])
+  })
+})
