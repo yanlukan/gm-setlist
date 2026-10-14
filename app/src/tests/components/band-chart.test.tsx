@@ -54,6 +54,17 @@ describe('a chart in bands', () => {
     ])
   })
 
+  it('draws a chord in its parts on Practice: the root, its ending and its bass', () => {
+    open("I Can't Make You Love Me")
+    render(<PracticeScreen />)
+    const cadd9 = screen.getAllByRole('button', { name: 'Cadd9' })[0]
+    expect(cadd9.querySelector('.ch-root')).toHaveTextContent('C')
+    expect(cadd9.querySelector('.ch-end')).toHaveTextContent('add9')
+    const gOverB = screen.getAllByRole('button', { name: 'G/B' })[0]
+    expect(gOverB.querySelector('.ch-root')).toHaveTextContent('G')
+    expect(gOverB.querySelector('.ch-bass')).toHaveTextContent('/B')
+  })
+
   it('colours a last verse as a verse and a second bridge as a bridge', () => {
     render(<SongSheet />)
     open('Kissing a Fool')

@@ -19,9 +19,9 @@ export function useChartFit(
   fitRef: RefObject<HTMLElement | null>,
   sectionsRef: RefObject<HTMLElement | null>,
   fitKey: string,
-  { bands, enabled }: { bands: boolean; enabled: boolean },
+  { bands, enabled, oneSize = false }: { bands: boolean; enabled: boolean; oneSize?: boolean },
 ): void {
-  useBandFit(scrollRef, fitRef, fitKey, enabled && bands)
+  useBandFit(scrollRef, fitRef, fitKey, enabled && bands, oneSize)
   useFitText(scrollRef, fitRef, fitKey, {
     min: MIN_CHART_PX,
     max: MAX_CHART_PX,

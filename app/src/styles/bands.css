@@ -100,6 +100,8 @@
   row-gap: 0;
 }
 .band-chart .bar[data-lines='2'] .bar-chord { flex: 0 0 calc(50% - 0.3em); min-width: 0; }
+/* Practice: a bar of two chords on two lines has one chord a line (fit-chart.ts) */
+.band-chart .bar[data-lines='2'][data-one-a-line] .bar-chord { flex-basis: 100%; }
 .band-chart .bar-last { border-right: 2px solid var(--text-muted); }
 /* The double bar where a section starts, in the band's colour */
 .band-chart .bar-double {

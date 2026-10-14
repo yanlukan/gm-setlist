@@ -58,32 +58,57 @@ export function needsTwoLines(chords: number, px: number, scale: number): boolea
 }
 
 /** How much a cell must shrink for its content to fit it, 1 when it fits. */
-function scaleOf(cell: HTMLElement): number {
+function ratioOf(cell: HTMLElement): number {
   return cell.clientWidth > 0 && cell.scrollWidth > cell.clientWidth + 1
     ? Math.floor((cell.clientWidth / cell.scrollWidth) * 100) / 100
     : 1
 }
 
 /**
+ * How much a bar must shrink for its chords to fit, 1 when they do. With one
+ * size (Practice) each chord has an equal slot of the bar, its beat, so a
+ * chord too wide for its slot counts too, not only a bar too wide as a whole.
+ */
+function scaleOf(bar: HTMLElement, slots: boolean): number {
+  let scale = ratioOf(bar)
+  if (slots) for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord')) scale = Math.min(scale, ratioOf(chord))
+  return scale
+}
+
+/**
  * Lays out every bar for the size set: first each on one line, then the
  * crowded ones on two lines, then any bar still too narrow for its chords
  * scaled down in that bar alone (`--fit`, which the stylesheet turns into
- * zoom). Reads every bar before writing any, so the page is laid out once a pass.
+ * zoom), unless `shrink` is false. With `oneSize` (Practice) a shared bar goes
+ * on two lines as soon as its chords do not fit their slots, and no bar
+ * shrinks unless asked. Reads every bar before writing any, so the page is
+ * laid out once a pass. Returns how many bars are still too narrow.
  */
-export function layOutBars(content: HTMLElement, px: number): void {
+export function layOutBars(content: HTMLElement, px: number, { oneSize = false, shrink = true }: { oneSize?: boolean; shrink?: boolean } = {}): number {
   const bars = [...content.querySelectorAll<HTMLElement>('.bar')]
   for (const bar of bars) {
     bar.style.removeProperty('--fit')
+    delete bar.dataset.oneALine
     delete bar.dataset.lines
   }
-  const oneLine = bars.map(scaleOf)
+  const oneLine = bars.map(bar => scaleOf(bar, oneSize))
   bars.forEach((bar, i) => {
-    if (needsTwoLines(bar.querySelectorAll('.bar-chord').length, px, oneLine[i])) bar.dataset.lines = '2'
+    const chords = bar.querySelectorAll('.bar-chord').length
+    // One size: a shared bar whose chords do not fit their slots goes on two lines,
+    // since it may not shrink instead
+    const two = oneSize ? chords >= 2 && oneLine[i] < 1 : needsTwoLines(chords, px, oneLine[i])
+    if (!two) return
+    bar.dataset.lines = '2'
+    // One size: two chords get a line each (Stage keeps two a line, for its four-chord bars)
+    if (oneSize && chords === 2) bar.dataset.oneALine = 'true'
   })
-  const after = bars.map(scaleOf)
-  bars.forEach((bar, i) => {
-    if (after[i] < 1) bar.style.setProperty('--fit', String(after[i]))
-  })
+  const after = bars.map(bar => scaleOf(bar, oneSize))
+  if (shrink) {
+    bars.forEach((bar, i) => {
+      if (after[i] < 1) bar.style.setProperty('--fit', String(after[i]))
+    })
+  }
+  return after.filter(scale => scale < 1).length
 }
 
 /** A px custom property from the content's style, or `otherwise` where it is not set. */
@@ -104,13 +129,15 @@ export function refitCharts(): void {
  * its container, from `--chart-min` to `--chart-max`, with crowded bars on
  * two lines. A chart that cannot fit at the smallest size stays there and
  * scrolls. Rotating the iPad (a new container size, a new range from the
- * stylesheet) refits through a ResizeObserver.
+ * stylesheet) refits through a ResizeObserver. With `oneSize` (Practice) no
+ * bar is scaled down alone: every chord is drawn at the chart's size.
  */
 export function useBandFit(
   containerRef: RefObject<HTMLElement | null>,
   contentRef: RefObject<HTMLElement | null>,
   contentKey: string,
   enabled: boolean,
+  oneSize = false,
 ): void {
   useLayoutEffect(() => {
     const container = containerRef.current
@@ -120,16 +147,22 @@ export function useBandFit(
     const fits = () =>
       container.scrollHeight <= container.clientHeight &&
       container.scrollWidth <= container.clientWidth
-    const apply = (px: number) => {
+    // Bars still too narrow for their chords at the size tried (one size only)
+    let tooNarrow = 0
+    const apply = (px: number, shrink: boolean) => {
       content.style.fontSize = `${px}px`
-      layOutBars(content, px)
+      tooNarrow = layOutBars(content, px, { oneSize, shrink })
     }
     const fit = () => {
       const min = cssPx(content, '--chart-min', MIN_CHORD_PX)
       const max = cssPx(content, '--chart-max', MAX_CHORD_PX)
       // At `max` the chart overflows: its chords shrink about as much as its height must
       const guess = () => max * Math.min(container.clientHeight / container.scrollHeight, container.clientWidth / container.scrollWidth)
-      apply(largestFit(px => { apply(px); return fits() }, min, max, guess))
+      // One size: no bar shrinks alone, so a size fits only when every bar's chords fit too.
+      // The size found then has none too narrow, except at the smallest, where one still
+      // too narrow does shrink rather than spill over
+      const px = largestFit(size => { apply(size, !oneSize); return fits() && (!oneSize || tooNarrow === 0) }, min, max, guess)
+      apply(px, true)
     }
 
     // Left from a chart not in bars, it would keep this one's lines from wrapping
@@ -150,5 +183,5 @@ export function useBandFit(
       observer.disconnect()
       window.removeEventListener(REFIT_EVENT, fit)
     }
-  }, [containerRef, contentRef, contentKey, enabled])
+  }, [containerRef, contentRef, contentKey, enabled, oneSize])
 }

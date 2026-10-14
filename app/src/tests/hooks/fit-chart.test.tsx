@@ -107,6 +107,54 @@ describe('layOutBars', () => {
   })
 })
 
+/** A bar whose chords each need `need` px, in slots `slot` px wide on one line and `slotTwo` on two. */
+function slottedBar(chords: number, slot: number, slotTwo: number, need: number) {
+  const bar = fakeBar(chords, 200, 200, 200)
+  for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord')) {
+    Object.defineProperty(chord, 'clientWidth', { get: () => (bar.dataset.lines === '2' ? slotTwo : slot) })
+    Object.defineProperty(chord, 'scrollWidth', { get: () => need })
+  }
+  return bar
+}
+
+describe('layOutBars with one size (Practice)', () => {
+  it('puts a shared bar on two lines, a chord a line, as soon as a chord is too wide for its beat', () => {
+    const content = document.createElement('div')
+    const bar = slottedBar(2, 90, 190, 99) // G#m needs 99 px of a 90 px half
+    content.append(bar)
+    expect(layOutBars(content, 44, { oneSize: true, shrink: false })).toBe(0)
+    expect(bar.dataset.lines).toBe('2')
+    expect(bar.dataset.oneALine).toBe('true')
+    expect(bar.style.getPropertyValue('--fit')).toBe('')
+  })
+
+  it('never shrinks a bar alone, but says how many are still too narrow', () => {
+    const content = document.createElement('div')
+    const bar = slottedBar(1, 90, 90, 120) // one long chord: two lines cannot help
+    content.append(bar)
+    expect(layOutBars(content, 44, { oneSize: true, shrink: false })).toBe(1)
+    expect(bar.dataset.lines).toBeUndefined()
+    expect(bar.style.getPropertyValue('--fit')).toBe('')
+  })
+
+  it('shrinks it when asked, at the smallest size, rather than spill over', () => {
+    const content = document.createElement('div')
+    const bar = slottedBar(1, 90, 90, 120)
+    content.append(bar)
+    layOutBars(content, 20, { oneSize: true, shrink: true })
+    expect(bar.style.getPropertyValue('--fit')).toBe('0.75')
+  })
+
+  it('leaves Stage as it was: a chord too wide for its beat does not count there', () => {
+    const content = document.createElement('div')
+    const bar = slottedBar(2, 90, 190, 99)
+    content.append(bar)
+    expect(layOutBars(content, 44)).toBe(0)
+    expect(bar.dataset.lines).toBeUndefined()
+    expect(bar.dataset.oneALine).toBeUndefined()
+  })
+})
+
 /** jsdom has no layout: a 400 px tall screen and a chart `lines` lines tall. */
 function fakeChart(lines: number) {
   const container = document.createElement('div')

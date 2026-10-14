@@ -118,6 +118,15 @@
   .practice-screen .band-head .band-letter { display: none; }
 }
 
+/* Every chord at the chart's one size, as printed charts draw them: the root full size,
+   its ending small and raised, the bass a little smaller (ChartBody.tsx) */
+.practice-screen .band-chart .ch-end { position: relative; top: -0.42em; margin-left: 0.03em; font-size: 0.62em; }
+.practice-screen .band-chart .ch-end .chord-alt { font-size: 1em; }
+.practice-screen .band-chart .ch-bass { font-size: 0.8em; }
+/* Chords sharing a bar each get an equal slot, their beat: two chords are on beats 1 and 3
+   in every bar. A chord too wide for its slot puts the bar on two lines (fit-chart.ts) */
+.practice-screen .band-chart .bar-chord { min-width: 0; }
+
 /* A chord with shapes is a button on Practice: tap to pick it, tap again to let go */
 button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration-style: dotted; }
 .chart-chord-tap.is-picked { color: #facc15; text-decoration-color: #facc15; }

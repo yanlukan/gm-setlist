@@ -160,3 +160,22 @@ export function splitAlteration(token: string): [string, string] | null {
   const match = /^(.+?)(\([^()]+\))$/.exec(token)
   return match ? [match[1], match[2]] : null
 }
+
+/** A chord name in its three parts, as a printed chart draws them. */
+export interface ChordParts {
+  /** The letter, its sharp or flat, and m for a minor chord: drawn full size. */
+  root: string
+  /** Everything after: 7, maj9, add9, sus4, 7(b9). Drawn small and raised. */
+  ending: string
+  /** The bass note after the slash, with the slash: /F#. */
+  bass: string
+}
+
+/**
+ * Cadd9 is C and add9; Em7 is Em and 7; D/F# is D and /F#; C6/9 is C and
+ * 6/9 (a 9 is no bass note). Null for what is not a chord name: N.C., (x2), %.
+ */
+export function chordParts(token: string): ChordParts | null {
+  const match = /^([A-G][#b]?(?:m(?!aj))?)(.*?)(\/[A-G][#b]?)?$/.exec(token)
+  return match ? { root: match[1], ending: match[2], bass: match[3] ?? '' } : null
+}

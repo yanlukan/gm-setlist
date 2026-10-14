@@ -1,7 +1,7 @@
 import { Fragment, type Ref } from 'react'
 import { isChartMark, sectionColor } from '../../music/theory'
 import { hasShapes } from '../../music/voicings'
-import { splitAlteration } from '../../music/chord-text'
+import { chordParts } from '../../music/chord-text'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { BandChart } from './BandChart'
 
@@ -21,11 +21,25 @@ export function ChartBody({ chart, onChord, picked = null, focus, sectionsRef }:
   const { readSections, bands, keyboard, song } = chart
   const focusable = !!focus && !keyboard
 
-  // In bands, a chord's alteration in brackets is drawn a little smaller: Bb7(b9).
+  // In bands a chord is drawn in its parts: Practice draws the ending small and
+  // raised and the bass a little smaller (practice.css); Stage draws them as one
+  // name, with only an alteration in brackets a little smaller: Bb7(b9).
   // The tap still picks the whole chord.
   const chordText = (token: string) => {
-    const parts = bands ? splitAlteration(token) : null
-    return parts ? <>{parts[0]}<span className="chord-alt">{parts[1]}</span></> : token
+    const parts = bands ? chordParts(token) : null
+    if (!parts) return token
+    const alteration = /^(.*?)(\([^()]+\))$/.exec(parts.ending)
+    return (
+      <>
+        <span className="ch-root">{parts.root}</span>
+        {parts.ending && (
+          <span className="ch-end">
+            {alteration ? <>{alteration[1]}<span className="chord-alt">{alteration[2]}</span></> : parts.ending}
+          </span>
+        )}
+        {parts.bass && <span className="ch-bass">{parts.bass}</span>}
+      </>
+    )
   }
 
   const renderTokens = (text: string) =>

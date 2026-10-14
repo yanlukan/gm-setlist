@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseChordText, formatChordText, normalizeChordText, unknownChords, isChordToken,
-  insertChord, replaceChord, deleteChord, backspace, breakLine, typeAt, splitAlteration,
+  insertChord, replaceChord, deleteChord, backspace, breakLine, typeAt, splitAlteration, chordParts,
 } from '../../music/chord-text'
 
 describe('chord text', () => {
@@ -174,5 +174,42 @@ describe('splitAlteration', () => {
     expect(splitAlteration('C(add9)/E')).toBeNull()
     expect(splitAlteration('G')).toBeNull()
     expect(splitAlteration('(x2)')).toBeNull()
+  })
+})
+
+describe('chordParts', () => {
+  const parts = (token: string) => {
+    const p = chordParts(token)
+    return p && [p.root, p.ending, p.bass]
+  }
+
+  it('keeps the letter, its sharp or flat and the minor m full size', () => {
+    expect(parts('Cadd9')).toEqual(['C', 'add9', ''])
+    expect(parts('Em7')).toEqual(['Em', '7', ''])
+    expect(parts('A#m11')).toEqual(['A#m', '11', ''])
+    expect(parts('Abm6')).toEqual(['Abm', '6', ''])
+    expect(parts('F#7#5')).toEqual(['F#', '7#5', ''])
+  })
+
+  it('does not take the m of maj as a minor', () => {
+    expect(parts('Cmaj9')).toEqual(['C', 'maj9', ''])
+    expect(parts('Ebmaj9')).toEqual(['Eb', 'maj9', ''])
+  })
+
+  it('takes the bass note after the slash apart, but not a 9', () => {
+    expect(parts('D/F#')).toEqual(['D', '', '/F#'])
+    expect(parts('Fdim7/Eb')).toEqual(['F', 'dim7', '/Eb'])
+    expect(parts('C6/9')).toEqual(['C', '6/9', ''])
+  })
+
+  it('keeps an alteration in brackets with the ending', () => {
+    expect(parts('Bb7(b9)')).toEqual(['Bb', '7(b9)', ''])
+    expect(parts('Cb(b5)')).toEqual(['Cb', '(b5)', ''])
+  })
+
+  it('is null for what is not a chord name', () => {
+    expect(chordParts('N.C.')).toBeNull()
+    expect(chordParts('(x2)')).toBeNull()
+    expect(chordParts('%')).toBeNull()
   })
 })

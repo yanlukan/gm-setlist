@@ -39,7 +39,8 @@ export function SongSheet({ picked = null, onPick }: Props) {
   const sectionsRef = useRef<HTMLDivElement>(null)
 
   const fitKey = chart ? JSON.stringify([chart.fitKey, 'practice']) : ''
-  useChartFit(scrollRef, fitRef, sectionsRef, fitKey, { bands: chart?.bands ?? false, enabled: !!chart && !editMode })
+  // Practice draws every chord at one size: no bar shrinks alone
+  useChartFit(scrollRef, fitRef, sectionsRef, fitKey, { bands: chart?.bands ?? false, enabled: !!chart && !editMode, oneSize: true })
 
   // Every song opens at its top, not as far down as the last one was scrolled
   const songTitle = song?.title
