@@ -97,6 +97,8 @@
   cursor: pointer;
 }
 .tile.is-chosen { border-color: #facc15; }
+.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; align-self: stretch; }
+.tile-top .diagram-play { margin-top: 0; }
 .tile-name { font-size: 14px; font-weight: 800; }
 .tile-where { font-size: 11px; color: var(--text-muted); }
 .tile-frets { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }

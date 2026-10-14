@@ -138,7 +138,21 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
           if (!voicing) return null
           return (
             <div key={name} role="listitem" aria-label={name} className="tile" onClick={() => onPick(name)}>
-              <span className="tile-name">{name}</span>
+              {/* The play button beside the name: under the frets it made each tile a row taller */}
+              <div className="tile-top">
+                <span className="tile-name">{name}</span>
+                <button
+                  type="button"
+                  className="diagram-play"
+                  aria-label={`Play ${name}`}
+                  onClick={e => {
+                    e.stopPropagation()
+                    strum(voicing, capo)
+                  }}
+                >
+                  &#9654;
+                </button>
+              </div>
               <ChordDiagram voicing={voicing} size={112} />
               <span className="tile-where">{voicing.l}</span>
               <span className="tile-frets">{shapeText(voicing)}</span>
@@ -153,17 +167,6 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
               ) : choice(name).mine ? (
                 <span className="diagram-mark is-own">Your pick</span>
               ) : null}
-              <button
-                type="button"
-                className="diagram-play"
-                aria-label={`Play ${name}`}
-                onClick={e => {
-                  e.stopPropagation()
-                  strum(voicing, capo)
-                }}
-              >
-                &#9654;
-              </button>
             </div>
           )
         })}

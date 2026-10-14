@@ -26,7 +26,7 @@ export function PracticePanel({ chart, picked, onPick, size, side = false, panel
   const editMode = useStore(s => s.editMode)
   const ref = panelRef ?? ownRef
   // A new song, a picked chord or a turned iPad: the shapes refit
-  useTilesFit(ref, `${chart.fitKey}|${picked ?? ''}|${side}|${size ?? ''}`)
+  useTilesFit(ref, `${chart.fitKey}|${picked ?? ''}|${side}|${size ?? ''}`, side)
   const style = size === undefined ? undefined : side ? { width: size } : { height: size }
   return (
     <aside ref={ref} className="practice-panel" aria-label="Shapes and the book" style={style}>

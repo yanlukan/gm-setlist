@@ -19,12 +19,12 @@ export function largestZoom(fits: (zoom: number) => boolean, min = MIN_TILES_ZOO
 }
 
 /**
- * Scales the shape tiles so they and the song order fill the panel the player
- * sized: bigger in a big panel, smaller in a small one, never below half
- * size. The book and the notes under them scroll. Waits while the panel is dragged and fits
+ * Scales the shape tiles so they fill the panel the player sized (on its
+ * side, with the song order under them): bigger in a big panel, smaller in a
+ * small one, never below half size. What is under them scrolls. Waits while the panel is dragged and fits
  * once when the drag ends.
  */
-export function useTilesFit(panelRef: RefObject<HTMLElement | null>, contentKey: string): void {
+export function useTilesFit(panelRef: RefObject<HTMLElement | null>, contentKey: string, side = false): void {
   useLayoutEffect(() => {
     const panel = panelRef.current
     if (!panel) return
@@ -36,7 +36,9 @@ export function useTilesFit(panelRef: RefObject<HTMLElement | null>, contentKey:
       if (!tiles || !section) return
       // The shapes and the song order fill the panel's height; the book and notes scroll below them
       const style = getComputedStyle(panel)
-      const order = panel.querySelector<HTMLElement>('.song-order')
+      // On its side the panel is tall: the song order shares it. Upright it is short and wide,
+      // so the shapes take it all and the order is one scroll down
+      const order = side ? panel.querySelector<HTMLElement>('.song-order') : null
       const orderRoom = order ? order.offsetHeight + (parseFloat(style.rowGap) || 0) : 0
       const room = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - orderRoom
       const fits = (zoom: number) => {
@@ -56,5 +58,5 @@ export function useTilesFit(panelRef: RefObject<HTMLElement | null>, contentKey:
       observer.disconnect()
       window.removeEventListener(REFIT_EVENT, fit)
     }
-  }, [panelRef, contentKey])
+  }, [panelRef, contentKey, side])
 }
