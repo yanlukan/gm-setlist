@@ -124,7 +124,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The band checked the chords in its own key on 2026-10-09: the first chord of the pre-chorus is the one they play, a third below the published charts'. Form: Intro, Verse, Pre-Chorus, Chorus twice; the intro again; Verse, Pre-Chorus, then the Chorus six times into the fade. The bars are counted from the recording at 128, from where the band comes in after the quiet opening. Keyboard-driven production; guitar doubles synth lines.",
+    notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The pre-chorus starts on the minor seventh a fourth above the home chord, as on the recording and the published charts (3.53.1 to 4.0.1 wrongly started it a third lower). Form: Intro, Verse, Pre-Chorus, Chorus twice; the intro again; Verse, Pre-Chorus, then the Chorus six times into the fade. The bars are counted from the recording at 128, from where the band comes in after the quiet opening. Keyboard-driven production; guitar doubles synth lines.",
     form: [
       'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus',
       'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus', 'Chorus',
@@ -134,7 +134,7 @@ export const DEFAULT_SONGS: Song[] = [
     sections: [
       { name: 'Intro', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |  (x2)' },
       { name: 'Verse', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |  (x4)' },
-      { name: 'Pre-Chorus', chords: '|  Cm7  |  %  |  Bbm7  |  Ab  |\n|  Ebm7  |  %  |  Gb  |  Ab  |' }, // first chord as the band plays it, not the published charts'
+      { name: 'Pre-Chorus', chords: '|  Ebm7  |  %  |  Bbm7  |  Ab  |\n|  Ebm7  |  %  |  Gb  |  Ab  |' }, // Ebm7 both times, as the recording plays it
       { name: 'Chorus', chords: '|  Bbm7  |  %  |  Gbmaj7  |  %  |\n|  Fm7  |  %  |  Ebm7  |  Fm7  |' },
     ],
   },

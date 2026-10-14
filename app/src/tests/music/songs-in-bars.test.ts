@@ -156,10 +156,10 @@ describe('Amazing in bars (from the recording, chords as the band plays them)', 
     expect(Math.abs(formBars('Amazing') - recordingBars('Amazing', 15, 255))).toBeLessThanOrEqual(1)
   })
 
-  it('stays in Bbm, a semitone above the band, with the pre-chorus starting on the band\'s chord', () => {
+  it('stays in Bbm, a semitone above the band, with the pre-chorus starting on Ebm7 (Dm7 in Am), as recorded', () => {
     expect(by('Amazing').key).toBe('Bbm')
     expect(by('Amazing').transpose).toBe(-1)
-    expect(by('Amazing').sections.find(s => s.name === 'Pre-Chorus')!.chords.startsWith('|  Cm7  |')).toBe(true)
+    expect(by('Amazing').sections.find(s => s.name === 'Pre-Chorus')!.chords.startsWith('|  Ebm7  |')).toBe(true)
   })
 })
 

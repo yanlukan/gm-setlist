@@ -35,7 +35,7 @@ describe('song notes and cues', () => {
   })
 })
 
-describe('Amazing, as the band plays it in Am (2026-10-09)', () => {
+describe('Amazing, as the band plays it in Am (2026-10-14)', () => {
   const song = DEFAULT_SONGS.find(s => s.title === 'Amazing')!
   const inAm = (chords: string) => transposeInKey(chords, song.key, song.transpose ?? 0)
 
@@ -44,10 +44,10 @@ describe('Amazing, as the band plays it in Am (2026-10-09)', () => {
     expect(song.transpose).toBe(-1)
   })
 
-  it('reads Am7 Fmaj7 in the verse, Bm7 Am7 G Dm7 F G in the pre-chorus, Am7 Fmaj7 Em7 Dm7 Em7 in the chorus', () => {
+  it('reads Am7 Fmaj7 in the verse, Dm7 Am7 G Dm7 F G in the pre-chorus (as recorded), Am7 Fmaj7 Em7 Dm7 Em7 in the chorus', () => {
     const by = Object.fromEntries(song.sections.map(s => [s.name, inAm(s.chords)]))
     expect(by['Verse']).toBe('|  Am7  |  %  |  Fmaj7  |  %  |  (x4)')
-    expect(by['Pre-Chorus']).toBe('|  Bm7  |  %  |  Am7  |  G  |\n|  Dm7  |  %  |  F  |  G  |')
+    expect(by['Pre-Chorus']).toBe('|  Dm7  |  %  |  Am7  |  G  |\n|  Dm7  |  %  |  F  |  G  |')
     expect(by['Chorus']).toBe('|  Am7  |  %  |  Fmaj7  |  %  |\n|  Em7  |  %  |  Dm7  |  Em7  |')
   })
 })
