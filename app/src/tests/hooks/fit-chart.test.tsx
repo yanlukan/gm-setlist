@@ -120,6 +120,14 @@ describe('useBandFit', () => {
     expect(chart.size()).toBe(36)
   })
 
+  it('does not count content one pixel taller than the container as fitting', () => {
+    const chart = fakeChart(1)
+    // Always 1 px too tall at any size: nothing fits, so it stays at the smallest size
+    Object.defineProperty(chart.container.current, 'scrollHeight', { get: () => 401 })
+    renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
+    expect(chart.size()).toBe(20)
+  })
+
   it('does nothing when switched off', () => {
     const chart = fakeChart(12)
     renderHook(() => useBandFit(chart.container, chart.content, 'a', false))

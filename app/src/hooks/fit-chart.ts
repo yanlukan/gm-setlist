@@ -88,8 +88,8 @@ export function useBandFit(
     if (!enabled || !container || !content) return
 
     const fits = () =>
-      container.scrollHeight <= container.clientHeight + 1 &&
-      container.scrollWidth <= container.clientWidth + 1
+      container.scrollHeight <= container.clientHeight &&
+      container.scrollWidth <= container.clientWidth
     const apply = (px: number) => {
       content.style.fontSize = `${px}px`
       layOutBars(content, px)
