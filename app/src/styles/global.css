@@ -5,6 +5,8 @@
 @import './chart-lines.css';
 @import './bars.css';
 @import './bands.css';
+@import './bottom-bar.css';
+@import './sheets.css';
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

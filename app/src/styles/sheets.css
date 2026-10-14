@@ -1,0 +1,40 @@
+/* Sheets open above the bottom bar, over the chart; one at a time */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0 0 calc(64px + var(--safe-bottom)) 0;
+  z-index: 140;
+  background: rgb(0 0 0 / 0.35);
+}
+.sheet {
+  position: fixed;
+  left: calc(8px + var(--safe-left));
+  right: calc(8px + var(--safe-right));
+  bottom: calc(64px + var(--safe-bottom));
+  z-index: 145;
+  max-height: calc(100% - 88px - var(--safe-bottom) - var(--safe-top));
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--picker-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.25);
+}
+.sheet-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.sheet-title { margin: 0; font-size: 20px; font-weight: 700; }
+.sheet-sub { color: var(--text-muted); font-size: 14px; }
+.sheet-hint { margin: 0 0 12px; color: var(--text-muted); font-size: 14px; }
+.sheet-action {
+  margin-left: auto;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+.sheet-action + .sheet-action { margin-left: 0; }
+.set-song-list { display: grid; gap: 6px; }
+.songtile-left { color: var(--accent); font-weight: 600; }

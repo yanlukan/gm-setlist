@@ -85,14 +85,14 @@ describe('next song', () => {
     render(<BottomBar />)
     // Song 2 is I'm Your Man: charted in D, played in C
     const next = screen.getByRole('button', { name: /^Next song/ })
-    expect(next.querySelector('.songnav-key')).toHaveTextContent(/^C$/)
+    expect(next.querySelector('.bb-key')).toHaveTextContent(/^C$/)
   })
 
   it('follows a transpose set on the device', () => {
     useStore.getState().setTranspose("I'm Your Man", -3)
     render(<BottomBar />)
     const next = screen.getByRole('button', { name: /^Next song/ })
-    expect(next.querySelector('.songnav-key')).toHaveTextContent(/^B$/)
+    expect(next.querySelector('.bb-key')).toHaveTextContent(/^B$/)
   })
 })
 
