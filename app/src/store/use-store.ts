@@ -11,6 +11,7 @@ import { setOwnShapes, type Guitar } from '../music/voicings'
 import { keepVersion } from './song-history'
 import { readViewSettings, viewSettings, type ViewSettings } from './view-settings'
 import { shapeSettings, type ShapeSettings } from './own-shapes'
+import { setSongsOf, shownSongOf } from './shown-song'
 import { clampIndex, readPlaces, savePlaces, setNavigation, type Places, type SetNavigation } from './set-navigation'
 import {
   saveSongEdits,
@@ -264,20 +265,8 @@ export const useStore = create<StoreState>((set, get) => ({
     return [...songs, ...customSongs]
   },
 
-  setlistSongs: () => {
-    const { setlistData, allSongs } = get()
-    const active = setlistData.lists[setlistData.activeId]
-    if (!active) return []
-    const all = allSongs()
-    return active.songTitles
-      .map(title => all.find(s => s.title === title))
-      .filter((s): s is Song => s !== undefined)
-  },
-
-  currentSong: () => {
-    const { setlistSongs, currentIndex } = get()
-    return setlistSongs()[currentIndex]
-  },
+  setlistSongs: () => setSongsOf(get()),
+  currentSong: () => shownSongOf(get()).song,
 
   getEditedSections: (title: string) => {
     const { edits, allSongs } = get()
