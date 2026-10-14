@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { HIDE_BELOW_PX, MIN_CHART_PX, MIN_PANEL_PX } from '../../hooks/use-panel-size'
 import { refitCharts } from '../../hooks/fit-chart'
-import { MAX_TILES_ZOOM, MIN_TILES_ZOOM } from '../../hooks/use-tiles-fit'
+import { fitTiles } from '../../hooks/use-tiles-fit'
 
 interface Props {
   /** The element holding the chart and the panel, to measure the drag against. */
@@ -27,8 +27,6 @@ export function PanelHandle({ bodyRef, panelRef, side, hidden, onDone, onToggle 
   const dragging = useRef(false)
   const last = useRef<number | null | undefined>(undefined)
   const frame = useRef(0)
-  // The panel's size and the shapes' zoom when the drag began
-  const start = useRef({ size: 0, zoom: 1 })
 
   const sizeAt = (e: ReactPointerEvent): number | null => {
     const body = bodyRef.current?.getBoundingClientRect()
@@ -45,24 +43,16 @@ export function PanelHandle({ bodyRef, panelRef, side, hidden, onDone, onToggle 
     panel.style.display = px === null ? 'none' : ''
     if (px === null) return
     panel.style[side ? 'width' : 'height'] = `${px}px`
-    // The shapes grow and shrink with the panel as it moves; the exact fit
-    // comes when the drag ends
-    const tiles = panel.querySelector<HTMLElement>('.tiles')
-    if (tiles && start.current.size > 0) {
-      const zoom = (start.current.zoom * px) / start.current.size
-      tiles.style.zoom = String(Math.min(Math.max(zoom, MIN_TILES_ZOOM), MAX_TILES_ZOOM))
-    }
+    // The shapes fit the panel as it moves, the same fit as when the drag
+    // ends, so nothing jumps when it is let go
+    const zoom = parseFloat(panel.querySelector<HTMLElement>('.tiles')?.style.zoom || '1') || 1
+    fitTiles(panel, side, zoom)
   }
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('button')) return
     dragging.current = true
     last.current = undefined
-    const panel = panelRef.current
-    start.current = {
-      size: panel ? (side ? panel.offsetWidth : panel.offsetHeight) : 0,
-      zoom: parseFloat(panel?.querySelector<HTMLElement>('.tiles')?.style.zoom || '1') || 1,
-    }
     // The chart's fit waits while this is set (hooks/fit-chart.ts)
     if (bodyRef.current) bodyRef.current.dataset.resizing = 'true'
     e.currentTarget.setPointerCapture(e.pointerId)

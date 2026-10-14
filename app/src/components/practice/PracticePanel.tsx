@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { RefObject } from 'react'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { ShapeTiles } from './ShapeTiles'
@@ -27,6 +27,11 @@ export function PracticePanel({ chart, picked, onPick, size, side = false, panel
   const ref = panelRef ?? ownRef
   // A new song, a picked chord or a turned iPad: the shapes refit
   useTilesFit(ref, `${chart.fitKey}|${picked ?? ''}|${side}|${size ?? ''}`, side)
+  // A new song starts with its shapes in view, not where the last one was scrolled to
+  const title = chart.song.title
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.scrollTop = 0
+  }, [ref, title])
   const style = size === undefined ? undefined : side ? { width: size } : { height: size }
   return (
     <aside ref={ref} className="practice-panel" aria-label="Shapes and the book" style={style}>
