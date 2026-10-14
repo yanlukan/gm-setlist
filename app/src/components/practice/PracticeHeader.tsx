@@ -11,8 +11,8 @@ interface Props {
 }
 
 /**
- * Practice's header. Upright, four rows: the title, the setup, the facts, the
- * song order. On its side two (practice.css): title and setup, then facts and order.
+ * Practice's header. Upright, three rows: the title, the setup, then the
+ * facts with the song order in letters. On its side two (practice.css).
  */
 export function PracticeHeader({ chart, extraFrom }: Props) {
   const { song, keyboard } = chart
@@ -63,9 +63,10 @@ export function PracticeHeader({ chart, extraFrom }: Props) {
             </span>
           )}
           {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
+          {/* The song order as letters, on the facts' line: the chart beside it names each part.
+              While editing, the editor has the song order: two would read as a mistake */}
+          {chart.showForm && !editMode && <FormStrip form={chart.form} letters={chart.letters} short={!!chart.letters} />}
         </div>
-        {/* While editing, the editor has the song order: two would read as a mistake */}
-        {chart.showForm && !editMode && <FormStrip form={chart.form} letters={chart.letters} />}
       </div>
     </header>
   )

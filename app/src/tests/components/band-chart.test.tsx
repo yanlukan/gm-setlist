@@ -27,7 +27,8 @@ const heads = () =>
 const lettered = () =>
   Array.from(document.querySelectorAll('.form-strip .form-chip')).map(
     chip =>
-      `${chip.querySelector('.band-letter')!.textContent} ${chip.querySelector('.form-name')!.textContent}` +
+      // The letter on screen, the full name in the chip's tooltip (Practice and Stage show letters only)
+      `${chip.querySelector('.band-letter')!.textContent} ${chip.getAttribute('title')}` +
       (chip.querySelector('.form-times')?.textContent ?? ''),
   )
 /** The band with this section name. */
@@ -42,7 +43,7 @@ describe('a chart in bands', () => {
     expect(band('Solo').style.getPropertyValue('--band')).toBe('var(--section-solo)')
   })
 
-  it('letters the song order the same way, with the full names', () => {
+  it('letters the song order the same way, each name in its tooltip', () => {
     render(<PracticeScreen />)
     expect(screen.getByRole('group', { name: /^Song order:/ }).classList.contains('is-lettered')).toBe(true)
     expect(lettered()).toEqual([

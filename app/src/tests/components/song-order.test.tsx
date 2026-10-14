@@ -200,10 +200,10 @@ describe('editing the song order', () => {
     expect(PAPA.sections.map(s => s.name)).toEqual(expect.arrayContaining(['Intro', 'Killer', 'Outro']))
 
     act(() => useStore.setState({ editMode: false }))
-    // Papa is written in bars: its chips carry the section letters and full names
+    // Papa is written in bars: its chips carry the section letters, the names in their tooltips
     expect(
       Array.from(strip()!.querySelectorAll('.form-chip')).map(
-        chip => `${chip.querySelector('.band-letter')!.textContent} ${chip.querySelector('.form-name')!.textContent}`,
+        chip => `${chip.querySelector('.band-letter')!.textContent} ${chip.getAttribute('title')}`,
       ),
     ).toEqual(['A Intro', 'E Killer', 'I Outro'])
   })

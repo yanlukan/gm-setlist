@@ -166,11 +166,12 @@ describe('the facts and the song order', () => {
     expect(screen.getByText('LOWER KEY')).toBeInTheDocument()
   })
 
-  it('shows the song order as named chips', () => {
+  it('shows the song order as letters, each name in its tooltip, to keep the header short', () => {
     render(<Header />)
     const order = screen.getByRole('group', { name: /^Song order: / })
-    expect(order.classList.contains('is-short')).toBe(false)
-    expect(order.querySelector('.form-name')).toHaveTextContent('Intro')
+    expect(order.classList.contains('is-short')).toBe(true)
+    expect(order.querySelector('.form-name')).toBeNull()
+    expect(order.querySelector('.form-chip')).toHaveAttribute('title', 'Intro')
   })
 })
 

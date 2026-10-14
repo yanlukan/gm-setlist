@@ -35,6 +35,10 @@
 .setup-btn.is-danger { border-color: var(--danger); color: var(--danger); }
 .setup-sub { margin-left: 4px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
 
+/* The song order as bare letter boxes on the facts' line: a long song still fits one line */
+.practice-head .form-strip.is-short { gap: 3px; margin: 0; }
+.practice-head .form-strip.is-short .form-chip { gap: 2px; padding: 0; border: none; background: none; }
+
 /* ---------- On its side: two rows ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
   .ph-line { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
