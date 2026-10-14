@@ -34,6 +34,7 @@ describe('Previous and Next', () => {
   it('cannot go before the start or past the end', () => {
     render(<BottomBar />)
     expect(isDisabled(button('Start of set'))).toBe(true)
+    expect(button('Start of set').textContent).toContain('Start of set')
     act(() => useStore.getState().goToSong(20))
     expect(isDisabled(button('End of set'))).toBe(true)
   })

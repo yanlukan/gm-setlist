@@ -54,10 +54,14 @@ export function BottomBar() {
           }}
         >
           <span className="bb-arrow" aria-hidden="true">&#9664;</span>
-          {previous && (
+          {previous ? (
             <span className="bb-text">
               <span className="bb-kicker">Previous</span>
               <span className="bb-title">{previous.title}</span>
+            </span>
+          ) : (
+            <span className="bb-text">
+              <span className="bb-kicker">Start of set</span>
             </span>
           )}
         </button>
