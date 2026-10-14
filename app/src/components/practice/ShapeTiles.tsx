@@ -119,9 +119,10 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
   const guitar = guitarFor(song, songEdits, view)
   return (
     <section className="shape-tiles">
-      <div className="tiles-head">
-        <h2 className="tiles-title">{focus ? `Shapes in ${focus.name}` : 'Shapes in this song'}</h2>
-        {focus && (
+      {/* The whole song's shapes need no title; one part's say which part, with a way back */}
+      {focus && (
+        <div className="tiles-head">
+          <h2 className="tiles-title">Shapes in {focus.name}</h2>
           <button
             className="sheet-action"
             onClick={() => setFocusSection(null)}
@@ -129,8 +130,8 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
           >
             All
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <div className="tiles" role="list" aria-label={focus ? `Chord shapes for ${focus.name}` : 'Chord shapes'}>
         {chords.map(name => {
           const { index } = choice(name)

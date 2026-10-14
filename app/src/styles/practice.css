@@ -84,6 +84,7 @@
 .tiles-title { margin: 0; font-size: 17px; font-weight: 800; }
 .tiles-hint { margin: 4px 0 8px; color: var(--text-muted); font-size: 13px; }
 .tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tiles:first-child { margin-top: 0; }
 .tile {
   display: flex;
   flex-direction: column;

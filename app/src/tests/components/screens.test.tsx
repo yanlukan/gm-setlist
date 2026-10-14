@@ -72,7 +72,7 @@ describe('picking a chord on Practice', () => {
     expect(screen.getByRole('heading', { name: /^Shapes for B · \d+ of them$/ })).toBeInTheDocument()
     fireEvent.click(chartChord('B'))
     expect(chartChord('B')).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('heading', { name: 'Shapes in this song' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Chord shapes' })).toBeInTheDocument()
   })
 
   it('a shape of your own picked from a chord on the chart becomes the song’s shape', () => {
@@ -88,7 +88,7 @@ describe('picking a chord on Practice', () => {
     render(<PracticeScreen />)
     fireEvent.click(chartChord('B'))
     act(() => useStore.getState().nextSong())
-    expect(screen.getByRole('heading', { name: 'Shapes in this song' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Chord shapes' })).toBeInTheDocument()
   })
 
   it('has no panel while editing: the chord keyboard takes its place', () => {

@@ -35,7 +35,8 @@ const FAITH_ALL = ['B', 'E', 'G#m', 'C#m', 'F#']
 describe('shapes in this song', () => {
   it("show Faith's shapes from the songbook, marked with where they come from", () => {
     render(<Panel />)
-    expect(screen.getByRole('heading', { name: 'Shapes in this song' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Chord shapes' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /^Shapes/ })).toBeNull() // no title over the whole song's shapes
     expect(shapes()).toEqual(FAITH_ALL)
     expect(within(tile('B')).getByText('7th fret')).toBeInTheDocument()
     expect(within(tile('B')).getByText('7-9-9-8-7-7')).toBeInTheDocument()
