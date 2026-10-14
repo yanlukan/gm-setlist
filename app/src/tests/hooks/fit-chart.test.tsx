@@ -96,7 +96,7 @@ function fakeChart(lines: number) {
   Object.defineProperty(container, 'clientHeight', { get: () => 400 })
   Object.defineProperty(container, 'clientWidth', { get: () => 300 })
   Object.defineProperty(container, 'scrollWidth', { get: () => 300 })
-  Object.defineProperty(container, 'scrollHeight', { get: () => Math.max(400, px() * lines) })
+  Object.defineProperty(container, 'scrollHeight', { get: () => Math.max(400, px() * lines), configurable: true })
   return { container: { current: container }, content: { current: content }, size: px }
 }
 
