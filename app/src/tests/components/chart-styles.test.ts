@@ -64,6 +64,18 @@ describe('the band chart stylesheet', () => {
     expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('flex-wrap: wrap;')
   })
 
+  it('makes Stage bands compact and leaves Practice at 44 px', () => {
+    const bands = css('bands.css')
+    expect(between(bands, '.stage-screen .band-chart {', '}')).toContain('--band-gap: 6px; --row-gap: 3px;')
+    expect(between(bands, '.stage-screen .band {', '}')).toContain('padding: 3px 6px 3px 0;')
+    expect(between(bands, '.stage-screen .band-chart .bar-plain {', '}')).toContain('min-height: 1.45em;')
+    expect(between(bands, '.stage-screen .band-chart .bar {', '}')).toContain('line-height: 1.2;')
+    expect(between(bands, '.stage-screen .band-head {', '}')).toContain('flex-direction: row;')
+    expect(between(bands, '.stage-screen .band-head .chart-label {', '}')).toContain('padding-top: 2px;')
+    expect(between(bands, '.band-chart .bar-plain {', '}')).toContain('min-height: 44px;')
+    expect(between(bands, '.band-chart .bar,', '}')).toContain('min-height: 44px;')
+  })
+
   it('keeps Practice at four bars a row on its side', () => {
     expect(between(css('practice.css'), LANDSCAPE)).toContain('.practice-screen .band-chart { --cols: 4; }')
   })

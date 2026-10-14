@@ -138,6 +138,19 @@
   font-weight: 800;
 }
 
+/* ---------- Stage: more compact, nothing in the chart is tappable ----------
+   Tighter gaps, bars as tall as their chords, the letter beside the name.
+   Practice keeps its 44 px touch targets. (.stage-screen .band-chart outranks
+   the .band-chart overrides in the media blocks below, so it holds on its side.) */
+.stage-screen .band-chart { --band-gap: 6px; --row-gap: 3px; }
+.stage-screen .band { padding: 3px 6px 3px 0; }
+.stage-screen .band-chart .bar,
+.stage-screen .band-chart .bar-pad,
+.stage-screen .band-chart .bar-plain { min-height: 1.45em; }
+.stage-screen .band-chart .bar { line-height: 1.2; }
+.stage-screen .band-head { flex-direction: row; align-items: flex-start; gap: 6px; padding: 4px 6px 0 7px; }
+.stage-screen .band-head .chart-label { line-height: 1.1; padding-top: 2px; overflow-wrap: break-word; min-width: 0; }
+
 /* ---------- An iPad on its side: eight bars a row on Stage ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
   .band-chart {
