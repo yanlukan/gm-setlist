@@ -6,7 +6,8 @@ import { APP_VERSION } from '../../version'
 
 /** The site says this version is published. */
 function published(version: string) {
-  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ version, built: '2026-10-14T21:20:00Z' })))
+  // A new answer each time: a response can be read only once
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ version, built: '2026-10-14T21:20:00Z' })))
 }
 
 beforeEach(() => resetUpdateCheck())
@@ -55,7 +56,7 @@ describe('the update bar', () => {
     render(<UpdateBar />)
     await act(() => checkForUpdate())
     fireEvent.click(screen.getByRole('button', { name: 'Update' }))
-    expect(reload).toHaveBeenCalled()
+    await vi.waitFor(() => expect(reload).toHaveBeenCalled())
   })
 })
 
@@ -74,5 +75,40 @@ describe('in the app', () => {
 
     act(() => useStore.setState({ viewMode: 'stage' }))
     expect(screen.queryByText('PlayBook 99.0.0 is ready')).toBeNull()
+  })
+})
+
+describe('Check for updates, in More', () => {
+  async function openMore() {
+    const { App } = await import('../../App')
+    const { useStore } = await import('../../store/use-store')
+    useStore.setState(useStore.getInitialState())
+    act(() => useStore.setState({ viewMode: 'normal' }))
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'More' }))
+    return useStore
+  }
+
+  it('says when this is the newest', async () => {
+    published(APP_VERSION)
+    const store = await openMore()
+    fireEvent.click(screen.getByRole('button', { name: 'Check for updates' }))
+    await vi.waitFor(() => expect(store.getState().toast).toBe(`PlayBook v${APP_VERSION} is the newest`))
+  })
+
+  it('says when the site cannot be reached', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('offline'))
+    const store = await openMore()
+    fireEvent.click(screen.getByRole('button', { name: 'Check for updates' }))
+    await vi.waitFor(() => expect(store.getState().toast).toBe('Could not reach the site. Try again when online'))
+  })
+
+  it('starts a newer version at once', async () => {
+    published('99.0.0')
+    const reload = vi.fn()
+    vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, reload } as Location)
+    await openMore()
+    fireEvent.click(screen.getByRole('button', { name: 'Check for updates' }))
+    await vi.waitFor(() => expect(reload).toHaveBeenCalled())
   })
 })

@@ -4,7 +4,7 @@ import { useShownSong } from '../../hooks/use-shown-song'
 import { useBackup } from '../../hooks/use-backup'
 import { hasEditedChart } from '../../music/chart-edits'
 import { APP_VERSION, BUILD_TIME } from '../../version'
-import { updateNow, useUpdateCheck } from '../../hooks/use-update-check'
+import { checkForUpdate, updateNow, useUpdateCheck } from '../../hooks/use-update-check'
 import { RestoreModal } from '../shared/RestoreModal'
 import { SavedChartsModal } from '../edit/SavedChartsModal'
 import { Sheet } from './Sheet'
@@ -32,6 +32,12 @@ function builtAt(): string {
 export function MoreSheet({ onClose }: { onClose: () => void }) {
   const { song } = useShownSong()
   const update = useUpdateCheck()
+  const checkNow = async () => {
+    const found = await checkForUpdate()
+    if (found === 'newer') await updateNow()
+    else if (found === 'newest') showToast(`PlayBook v${APP_VERSION} is the newest`)
+    else showToast('Could not reach the site. Try again when online')
+  }
   const edits = useStore(s => s.edits)
   const instrument = useStore(s => s.instrument)
   const setInstrument = useStore(s => s.setInstrument)
@@ -103,12 +109,14 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
           <button className="more-item" onClick={() => setDialog('saved')}>
             Back to all the original charts{savedCharts > 0 ? ` (${savedCharts})` : ''}
           </button>
+          {/* The home-screen app has no reload button of its own, and can stay open for days */}
+          <button className="more-item" onClick={checkNow}>Check for updates</button>
         </section>
 
         <p className="more-foot">
           PlayBook v{APP_VERSION} &middot; {copyName()} &middot; built {builtAt()}
           {update.available ? (
-            <> &middot; <button type="button" className="more-update" onClick={updateNow}>Update to v{update.latest}</button></>
+            <> &middot; <button type="button" className="more-update" onClick={() => void updateNow()}>Update to v{update.latest}</button></>
           ) : update.checked ? (
             <> &middot; up to date</>
           ) : null}

@@ -10,7 +10,7 @@ export function UpdateBar() {
   return (
     <div className="update-bar" role="status">
       <span>PlayBook {latest} is ready</span>
-      <button type="button" className="update-btn" onClick={updateNow}>Update</button>
+      <button type="button" className="update-btn" onClick={() => void updateNow()}>Update</button>
     </div>
   )
 }

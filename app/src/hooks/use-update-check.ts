@@ -30,18 +30,24 @@ export function isNewer(a: string, b: string): boolean {
   return false
 }
 
+/** What a check found: a newer version, none newer, or no answer from the site. */
+export type CheckResult = 'newer' | 'newest' | 'unreachable'
+
 /**
  * Asks the site which version is published (version.json, written by every
- * build). Offline or failing, it just says nothing: the app keeps working.
+ * build). Offline or failing, it changes nothing: the app keeps working.
  */
-export async function checkForUpdate(): Promise<void> {
+export async function checkForUpdate(): Promise<CheckResult> {
   try {
     const response = await fetch(`${import.meta.env.BASE_URL}version.json`, { cache: 'no-store' })
-    if (!response.ok) return
+    if (!response.ok) return 'unreachable'
     const { version } = (await response.json()) as { version?: unknown }
-    if (typeof version === 'string') setState({ latest: version, checked: true })
+    if (typeof version !== 'string') return 'unreachable'
+    setState({ latest: version, checked: true })
+    return isNewer(version, APP_VERSION) ? 'newer' : 'newest'
   } catch {
     // Offline or the site is down: try again later
+    return 'unreachable'
   }
 }
 
@@ -75,8 +81,17 @@ export function useUpdateCheck(): UpdateState & { available: boolean } {
   return { ...current, available: !!current.latest && isNewer(current.latest, APP_VERSION) }
 }
 
-/** Starts the new version: the page comes fresh from the site when online (public/sw.js). */
-export function updateNow(): void {
+/**
+ * Starts the new version: the page comes fresh from the site when online
+ * (public/sw.js). The service worker is asked to look for a new copy of
+ * itself first, in case that changed too.
+ */
+export async function updateNow(): Promise<void> {
+  try {
+    await (await navigator.serviceWorker?.getRegistration())?.update()
+  } catch {
+    // No worker, or the site is slow: the reload still fetches the page fresh
+  }
   window.location.reload()
 }
 
