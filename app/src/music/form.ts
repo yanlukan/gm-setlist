@@ -30,6 +30,20 @@ export function compressForm(form: readonly string[]): FormStep[] {
   return steps
 }
 
+/**
+ * The order as lines to read, one run through the song each: a line ends
+ * where a part comes back that is already on it (Verse after Instrumental).
+ */
+export function formRuns(form: readonly string[]): FormStep[][] {
+  const runs: FormStep[][] = []
+  for (const step of compressForm(form)) {
+    const run = runs[runs.length - 1]
+    if (run && !run.some(s => s.name === step.name)) run.push(step)
+    else runs.push([step])
+  }
+  return runs
+}
+
 /** Whether the order can be shown for this chart: it has steps, and every step is a section of it. */
 export function formMatches(form: readonly string[], sections: readonly Section[]): boolean {
   return form.length > 0 && form.every(name => sections.some(s => s.name === name))

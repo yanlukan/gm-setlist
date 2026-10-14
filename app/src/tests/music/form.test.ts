@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formLabel, compressForm, formMatches, formAfterRename, formAfterDelete, sameForm } from '../../music/form'
+import { formLabel, compressForm, formRuns, formMatches, formAfterRename, formAfterDelete, sameForm } from '../../music/form'
 import { DEFAULT_SONGS } from '../../data/songs'
 
 describe('the short name of a section in the song order', () => {
@@ -110,5 +110,28 @@ describe('the song orders the app ships', () => {
       for (const section of song.sections) if (!song.form!.includes(section.name)) missing.push(`${song.title}: ${section.name}`)
     }
     expect(missing).toEqual([])
+  })
+})
+
+describe('the song order as lines to read', () => {
+  const words = (form: string[]) =>
+    formRuns(form).map(run => run.map(s => (s.times > 1 ? `${s.name}×${s.times}` : s.name)).join(' → '))
+
+  it('starts a new line where a part comes back that is already on the line', () => {
+    const esw = DEFAULT_SONGS.find(s => s.title === 'Everything She Wants')!
+    expect(words(esw.form!)).toEqual([
+      'Intro → Verse → Post-Verse → Pre-Chorus → Chorus → Instrumental',
+      'Verse → Post-Verse → Pre-Chorus → Chorus → Instrumental → Bridge',
+      'Pre-Chorus → Chorus → Instrumental',
+      'Pre-Chorus → Chorus → Outro',
+    ])
+  })
+
+  it('counts a part played twice in a row on the same line', () => {
+    expect(words(['Intro', 'Verse', 'Chorus', 'Chorus', 'Verse'])).toEqual(['Intro → Verse → Chorus×2', 'Verse'])
+  })
+
+  it('has no lines for no order', () => {
+    expect(formRuns([])).toEqual([])
   })
 })

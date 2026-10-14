@@ -1,7 +1,6 @@
 import { useStore } from '../../store/use-store'
 import { songbookOf } from '../../music/songbook'
 import type { SongChart } from '../../hooks/use-song-chart'
-import { FormStrip } from '../song/FormStrip'
 import { PracticeSetup } from './PracticeSetup'
 
 interface Props {
@@ -11,8 +10,8 @@ interface Props {
 }
 
 /**
- * Practice's header, two rows: the title with the facts, then the setup
- * with the song order in letters. On its side they share a line when they fit.
+ * Practice's header, two rows: the title with the facts, then the setup.
+ * On its side they share a line when they fit. The song order is in the panel.
  */
 export function PracticeHeader({ chart, extraFrom }: Props) {
   const { song, keyboard } = chart
@@ -58,12 +57,7 @@ export function PracticeHeader({ chart, extraFrom }: Props) {
         )}
         {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
       </div>
-      <div className="ph-row">
-        <PracticeSetup chart={chart} />
-        {/* The song order as letters, beside the setup: the chart below names each part.
-            While editing, the editor has the song order: two would read as a mistake */}
-        {chart.showForm && !editMode && <FormStrip form={chart.form} letters={chart.letters} short={!!chart.letters} />}
-      </div>
+      <PracticeSetup chart={chart} />
     </header>
   )
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { StageScreen } from '../../components/stage/StageScreen'
 import { BandChart } from '../../components/song/BandChart'
 import { hasShapes } from '../../music/voicings'
 import { faithOneLine } from '../faith-one-line'
@@ -43,8 +44,9 @@ describe('a chart in bands', () => {
     expect(band('Solo').style.getPropertyValue('--band')).toBe('var(--section-solo)')
   })
 
-  it('letters the song order the same way, each name in its tooltip', () => {
-    render(<PracticeScreen />)
+  it('letters the song order the same way on Stage, each name in its tooltip', () => {
+    useStore.setState({ viewMode: 'stage' })
+    render(<StageScreen />)
     expect(screen.getByRole('group', { name: /^Song order:/ }).classList.contains('is-lettered')).toBe(true)
     expect(lettered()).toEqual([
       'A Intro', 'B Verse', 'C Pre-Chorus', 'D Chorus', 'B Verse', 'C Pre-Chorus', 'D Chorus',
@@ -62,7 +64,8 @@ describe('a chart in bands', () => {
 
   it('shows a part played twice running once, with its count', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus', 'Chorus'])
-    render(<PracticeScreen />)
+    useStore.setState({ viewMode: 'stage' })
+    render(<StageScreen />)
     expect(lettered()).toEqual(['A Intro', 'B Verse', 'D Chorus×2'])
   })
 

@@ -27,7 +27,8 @@ function open(title: string) {
 }
 
 const strip = () => screen.queryByRole('group', { name: /^Song order:/ })
-const tags = () => Array.from(strip()!.querySelectorAll('.form-chip')).map(chip => chip.textContent)
+/** The steps shown: chips on Stage, words in Practice's panel. */
+const tags = () => Array.from(strip()!.querySelectorAll('.form-chip, .so-step')).map(chip => chip.textContent)
 const editor = () => screen.getByRole('group', { name: 'Song order' })
 /** The steps by section name (the tags on screen are short, their labels are not). */
 const steps = () =>
@@ -43,17 +44,17 @@ const add = (name: string) => {
 const undo = () => fireEvent.click(within(screen.getByRole('group', { name: 'Chord keyboard' })).getByRole('button', { name: 'Undo' }))
 const savedForm = () => useStore.getState().edits['Faith']?.form
 
-describe('the song order in the header', () => {
-  it('shows the order a song is played in, each section as a short tag', () => {
+describe('the song order on the screen', () => {
+  it('shows the order a song is played in, each section by its name', () => {
     render(<PracticeScreen />)
     expect(strip()).toHaveAccessibleName(`Song order: ${FAITH.form!.join(', ')}`)
-    expect(tags()).toEqual(['Intro', 'V', 'PC', 'C', 'V', 'PC', 'C', 'Solo', 'PC', 'C'])
+    expect(tags()).toEqual(['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Chorus'])
   })
 
   it('counts a section played twice in a row instead of repeating its tag', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus', 'Chorus'])
     render(<PracticeScreen />)
-    expect(tags()).toEqual(['Intro', 'V', 'C×2'])
+    expect(tags()).toEqual(['Intro', 'Verse', 'Chorus×2'])
   })
 
   it('is on the stage chart too', () => {
@@ -83,7 +84,7 @@ describe('the song order in the header', () => {
   it('follows the order saved by the player, not the built-in one', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus'])
     render(<PracticeScreen />)
-    expect(tags()).toEqual(['Intro', 'V', 'C'])
+    expect(tags()).toEqual(['Intro', 'Verse', 'Chorus'])
   })
 })
 
@@ -186,7 +187,7 @@ describe('editing the song order', () => {
     expect(savedForm()).toBeUndefined()
   })
 
-  it('starts an order for a song that had none, and it shows in the header afterwards', () => {
+  it('starts an order for a song that had none, and it shows in the panel afterwards', () => {
     open('Papa Was a Rolling Stone')
     act(() => useStore.setState({ editMode: true }))
     render(<PracticeScreen />)
@@ -200,12 +201,7 @@ describe('editing the song order', () => {
     expect(PAPA.sections.map(s => s.name)).toEqual(expect.arrayContaining(['Intro', 'Killer', 'Outro']))
 
     act(() => useStore.setState({ editMode: false }))
-    // Papa is written in bars: its chips carry the section letters, the names in their tooltips
-    expect(
-      Array.from(strip()!.querySelectorAll('.form-chip')).map(
-        chip => `${chip.querySelector('.band-letter')!.textContent} ${chip.getAttribute('title')}`,
-      ),
-    ).toEqual(['A Intro', 'E Killer', 'I Outro'])
+    expect(tags()).toEqual(['Intro', 'Killer', 'Outro'])
   })
 
   it('marks a step that is not in the chart, and says why the chart does not show the order', () => {
