@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { SongSheet } from '../../components/song/SongSheet'
-import { DiagramsBar } from '../../components/diagrams/DiagramsBar'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { StageScreen } from '../../components/stage/StageScreen'
 import { useStore } from '../../store/use-store'
 import { moveChords } from '../../store/song-shapes'
 
@@ -14,9 +14,9 @@ const position = () => screen.getByRole('button', { name: 'Recommended position:
 const sheet = () => screen.getByRole('dialog', { name: 'Move chords' })
 const neck = () => useStore.getState().edits.Faith?.neck
 
-describe('moving the chords from the title line', () => {
+describe('moving the chords from the setup row', () => {
   it('opens from the position on the title line and says where the shapes come from', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     fireEvent.click(position())
     expect(sheet()).toHaveTextContent('Frets 2–9')
     expect(within(sheet()).getByText('Songbook')).toBeInTheDocument()
@@ -26,7 +26,7 @@ describe('moving the chords from the title line', () => {
   })
 
   it('moves every chord off the songbook, then lower or higher, and back in one tap', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     fireEvent.click(position())
     fireEvent.click(within(sheet()).getByRole('button', { name: 'Move the chords' }))
     const moved = neck()!
@@ -48,23 +48,17 @@ describe('moving the chords from the title line', () => {
     expect(screen.queryByRole('dialog', { name: 'Move chords' })).not.toBeInTheDocument()
   })
 
-  it('shows a moved song as yours on the title line', () => {
+  it('shows a moved song as yours', () => {
     moveChords('Faith', 7)
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(screen.getByRole('button', { name: /^Your position: frets \d+ to \d+\. Move the chords$/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Recommended position/ })).not.toBeInTheDocument()
   })
 
-  it('is not a button on stage, where nothing on the chart changes', () => {
+  it('is not on Stage at all, where nothing about the song changes', () => {
     useStore.setState({ viewMode: 'stage' })
-    render(<SongSheet />)
+    render(<StageScreen />)
     expect(screen.queryByRole('button', { name: /Move the chords/ })).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Recommended position: frets 2 to 9')).toHaveTextContent('Frets 2–9')
-  })
-
-  it('has left the chord diagrams, which keep their whole strip for the shapes', () => {
-    render(<DiagramsBar />)
-    expect(screen.queryByText('Move chords')).not.toBeInTheDocument()
-    expect(screen.queryByRole('group', { name: 'Move the chords on the neck' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/position/)).not.toBeInTheDocument()
   })
 })

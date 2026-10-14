@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { StageScreen } from '../../components/stage/StageScreen'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { FAITH_ONE_LINE, faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
@@ -41,46 +43,46 @@ const add = (name: string) => {
 const undo = () => fireEvent.click(within(screen.getByRole('group', { name: 'Chord keyboard' })).getByRole('button', { name: 'Undo' }))
 const savedForm = () => useStore.getState().edits['Faith']?.form
 
-describe('the song order on the chart', () => {
+describe('the song order in the header', () => {
   it('shows the order a song is played in, each section as a short tag', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(strip()).toHaveAccessibleName(`Song order: ${FAITH.form!.join(', ')}`)
     expect(tags()).toEqual(['Intro', 'V', 'PC', 'C', 'V', 'PC', 'C', 'Solo', 'PC', 'C'])
   })
 
   it('counts a section played twice in a row instead of repeating its tag', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus', 'Chorus'])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tags()).toEqual(['Intro', 'V', 'C×2'])
   })
 
   it('is on the stage chart too', () => {
     useStore.setState({ viewMode: 'stage' })
-    render(<SongSheet />)
+    render(<StageScreen />)
     expect(tags()).toHaveLength(10)
   })
 
   it('is not there for a song that has no order', () => {
     open('Papa Was a Rolling Stone')
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(strip()).not.toBeInTheDocument()
   })
 
   it('is not there when the order was cleared', () => {
     useStore.getState().saveForm('Faith', [])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(strip()).not.toBeInTheDocument()
   })
 
   it('is left off rather than shown wrong when a step is not a section of the chart', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Bridge'])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(strip()).not.toBeInTheDocument()
   })
 
   it('follows the order saved by the player, not the built-in one', () => {
     useStore.getState().saveForm('Faith', ['Intro', 'Verse', 'Chorus'])
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tags()).toEqual(['Intro', 'V', 'C'])
   })
 })
@@ -184,10 +186,10 @@ describe('editing the song order', () => {
     expect(savedForm()).toBeUndefined()
   })
 
-  it('starts an order for a song that had none, and it shows on the chart afterwards', () => {
+  it('starts an order for a song that had none, and it shows in the header afterwards', () => {
     open('Papa Was a Rolling Stone')
     act(() => useStore.setState({ editMode: true }))
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(within(editor()).getByText(/No order yet/)).toBeInTheDocument()
     // With nothing to look at yet, the add buttons are already open
     expect(within(editor()).queryByRole('button', { name: 'Add a section to the song order' })).not.toBeInTheDocument()

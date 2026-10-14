@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, renderHook, screen, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { ChartBody } from '../../components/song/ChartBody'
 import { useSongChart } from '../../hooks/use-song-chart'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 as G } from '../../data/songs'
@@ -14,7 +15,7 @@ beforeEach(() => {
 
 describe('the chart on screen', () => {
   it('shows an extra song, and the set song again after it', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />) // the title is in the header
     act(() => useStore.getState().playExtra(G[20], 'default'))
     expect(screen.getByRole('heading', { name: G[20] })).toBeInTheDocument()
     act(() => useStore.getState().nextSong())

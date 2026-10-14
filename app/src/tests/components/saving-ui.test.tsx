@@ -1,13 +1,22 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { TopBar } from '../../components/layout/TopBar'
 import { SongSheet } from '../../components/song/SongSheet'
-import { SongGrid } from '../../components/layout/SongGrid'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { BottomBar } from '../../components/layout/BottomBar'
 import { SongHistoryModal } from '../../components/edit/SongHistoryModal'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 import { db, resetDb } from '../../store/persistence'
 import { keepVersion, whenHistorySaved } from '../../store/song-history'
+
+/** The setup row, where the save status sits beside Done. */
+const setup = () => screen.getByRole('group', { name: 'Song setup' })
+/** The Songs sheet, opened from the bar. */
+const openSongs = () => {
+  render(<BottomBar />)
+  fireEvent.click(screen.getByRole('button', { name: /^Songs, / }))
+  return screen.getByRole('dialog', { name: 'All songs' })
+}
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const start = new Date('2026-09-30T12:00:00Z').getTime()
@@ -37,12 +46,12 @@ const version = (chords: string, reason: string, at = start) => {
 
 describe('the save status while editing', () => {
   it('is beside Done, and only while editing', () => {
-    const reading = render(<TopBar />)
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    const reading = render(<PracticeScreen />)
+    expect(within(setup()).queryByRole('status')).not.toBeInTheDocument()
     reading.unmount()
     useStore.setState({ editMode: true })
-    render(<TopBar />)
-    expect(screen.getByRole('status')).toHaveTextContent('Saved')
+    render(<PracticeScreen />)
+    expect(within(setup()).getByRole('status')).toHaveTextContent('Saved')
   })
 
   it.each([
@@ -52,36 +61,34 @@ describe('the save status while editing', () => {
     ['readonly', 'Not saving'],
   ] as const)('says %s', (status, text) => {
     useStore.setState({ editMode: true, saveStatus: status })
-    render(<TopBar />)
-    expect(screen.getByRole('status')).toHaveTextContent(text)
+    render(<PracticeScreen />)
+    expect(within(setup()).getByRole('status')).toHaveTextContent(text)
   })
 
   it('warns in words, not just colour, that nothing is being saved', () => {
     useStore.setState({ editMode: true, saveStatus: 'failed' })
-    render(<TopBar />)
-    expect(screen.getByRole('status')).toHaveAttribute('title', expect.stringContaining('NOT being saved'))
+    render(<PracticeScreen />)
+    expect(within(setup()).getByRole('status')).toHaveAttribute('title', expect.stringContaining('NOT being saved'))
   })
 })
 
 describe('EDITED in the song lists', () => {
-  const songs = DEFAULT_SONGS.filter(s => ['Faith', 'Roxanne'].includes(s.title))
-
   it('marks a song that shows the player\'s own chords, and only that song', () => {
     useStore.setState({ edits: { Faith: { sections: [{ name: 'Verse', chords: 'B  A' }] } } })
-    render(<SongGrid songs={songs} onClose={() => {}} />)
-    expect(within(screen.getByRole('button', { name: /Faith/ })).getByText('EDITED')).toBeInTheDocument()
-    expect(within(screen.getByRole('button', { name: /Roxanne/ })).queryByText('EDITED')).not.toBeInTheDocument()
+    const sheet = openSongs()
+    expect(within(within(sheet).getByText('Faith').closest('button')!).getByText('EDITED')).toBeInTheDocument()
+    expect(within(within(sheet).getByText('Roxanne').closest('button')!).queryByText('EDITED')).not.toBeInTheDocument()
   })
 
   it('does not mark a song that only has its own tempo or notes', () => {
     useStore.setState({ edits: { Faith: { notes: 'Mine', bpm: 101 } } })
-    render(<SongGrid songs={songs} onClose={() => {}} />)
+    openSongs()
     expect(screen.queryByText('EDITED')).not.toBeInTheDocument()
   })
 
   it('does not mark a saved copy that is the built-in chart', () => {
     useStore.setState({ edits: { Faith: { sections: faith.sections.map(s => ({ ...s })) } } })
-    render(<SongGrid songs={songs} onClose={() => {}} />)
+    openSongs()
     expect(screen.queryByText('EDITED')).not.toBeInTheDocument()
   })
 })

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
-import { TopBar } from '../../components/layout/TopBar'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { useStore } from '../../store/use-store'
 import { faithOneLine } from '../faith-one-line'
 
@@ -15,19 +15,9 @@ const verse = () => screen.getAllByText((_, el) => el?.className === 'chart-chor
 describe('capo', () => {
   it('shows the shapes to play: Faith in B with a capo on 2 is played in A shapes', () => {
     useStore.getState().setCapo('Faith', 2)
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(screen.getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()
     expect(verse().textContent).toBe('A  D  A  D  A')
-  })
-
-  it('is picked from the top bar, which marks the easiest one', () => {
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Add a capo' }))
-    const picker = screen.getByRole('dialog', { name: 'Capo' })
-    expect(within(picker).getByText('Easiest')).toBeInTheDocument()
-    fireEvent.click(within(picker).getByRole('button', { name: /Fret 4/ }))
-    expect(useStore.getState().edits['Faith'].capo).toBe(4)
-    expect(screen.getByRole('button', { name: 'Capo on fret 4. Change capo' })).toBeInTheDocument()
   })
 
   it('edits at the shapes shown and stores the chart at its own pitch', () => {
@@ -39,24 +29,6 @@ describe('capo', () => {
     fireEvent.click(within(verseGroup).getAllByRole('button', { name: 'A' })[0])
     fireEvent.click(within(screen.getByRole('group', { name: 'Chord keyboard' })).getByRole('button', { name: 'D' }))
     expect(useStore.getState().edits['Faith'].sections![1].chords).toBe('E  E  B  E  B')
-  })
-})
-
-describe('acoustic or electric', () => {
-  it("follows the song's sound, and switches for one song from the top bar", () => {
-    render(<TopBar />)
-    // Faith's sound is FUNK on the GX-10: electric
-    const button = screen.getByRole('button', { name: /^Played on electric guitar/ })
-    fireEvent.click(button)
-    expect(useStore.getState().edits['Faith'].guitar).toBe('acoustic')
-    expect(screen.getByRole('button', { name: /^Played on acoustic guitar/ })).toBeInTheDocument()
-  })
-
-  it('can be set for every song from the menu', () => {
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Guitar: each song its own' }))
-    expect(useStore.getState().guitar).toBe('electric')
   })
 })
 
@@ -81,12 +53,5 @@ describe('simplified chords', () => {
     render(<SongSheet />)
     const verseGroup = screen.getByRole('group', { name: 'Verse' })
     expect(within(verseGroup).getByRole('button', { name: 'Bmaj7' })).toBeInTheDocument()
-  })
-
-  it('is switched on from the menu', () => {
-    render(<TopBar />)
-    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
-    fireEvent.click(screen.getByRole('button', { name: /Simplify Chords/ }))
-    expect(useStore.getState().simpleChords).toBe(true)
   })
 })

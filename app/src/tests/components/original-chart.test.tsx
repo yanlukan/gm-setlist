@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { SongSheet } from '../../components/song/SongSheet'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { StageScreen } from '../../components/stage/StageScreen'
 import { DEFAULT_SONGS } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 
@@ -19,7 +20,7 @@ describe('a chart that has your own chords', () => {
   it('says so on the chart, and one tap goes back to the original', () => {
     const ask = vi.spyOn(window, 'confirm').mockReturnValue(true)
     useStore.setState({ edits: { Faith: { sections: mine } } })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tag()).toHaveTextContent('EDITED')
 
     fireEvent.click(tag()!)
@@ -32,7 +33,7 @@ describe('a chart that has your own chords', () => {
   it('asks first, and keeps your chords when you say no', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
     useStore.setState({ edits: { Faith: { sections: mine } } })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     fireEvent.click(tag()!)
     expect(useStore.getState().edits['Faith'].sections).toEqual(mine)
     expect(tag()).toBeInTheDocument()
@@ -41,7 +42,7 @@ describe('a chart that has your own chords', () => {
   it('goes back with the chords only: notes and tempo stay', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     useStore.setState({ edits: { Faith: { sections: mine, notes: 'Watch the pause', bpm: 100 } } })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     fireEvent.click(tag()!)
     expect(useStore.getState().edits['Faith']).toEqual({ notes: 'Watch the pause', bpm: 100 })
   })
@@ -49,19 +50,19 @@ describe('a chart that has your own chords', () => {
 
 describe('a chart that is the original one', () => {
   it('has no tag', () => {
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tag()).not.toBeInTheDocument()
   })
 
   it('has no tag when only a note or the tempo was changed', () => {
     useStore.setState({ edits: { Faith: { notes: 'Watch the pause', bpm: 100 } } })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tag()).not.toBeInTheDocument()
   })
 
   it('has no tag when what was saved is the original chart', () => {
     useStore.setState({ edits: { Faith: { sections: faith.sections.map(s => ({ ...s })) } } })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tag()).not.toBeInTheDocument()
   })
 })
@@ -69,13 +70,13 @@ describe('a chart that is the original one', () => {
 describe('where the tag is not shown', () => {
   it('on stage, where nothing on the chart should change', () => {
     useStore.setState({ edits: { Faith: { sections: mine } }, viewMode: 'stage' })
-    render(<SongSheet />)
+    render(<StageScreen />)
     expect(tag()).not.toBeInTheDocument()
   })
 
   it('while editing, where Reset and the earlier versions are', () => {
     useStore.setState({ edits: { Faith: { sections: mine } }, editMode: true })
-    render(<SongSheet />)
+    render(<PracticeScreen />)
     expect(tag()).not.toBeInTheDocument()
   })
 })

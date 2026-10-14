@@ -34,16 +34,18 @@ export function ChartBody({ chart, onChord, picked = null, focus, sectionsRef }:
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
       if (!onChord || keyboard || !hasShapes(token)) return <span key={i}>{chordText(token)}</span>
       return (
-        <span
+        <button
           key={i}
+          type="button"
           className={token === picked ? 'chart-chord-tap is-picked' : 'chart-chord-tap'}
+          aria-pressed={token === picked}
           onClick={e => {
             e.stopPropagation()
             onChord(token)
           }}
         >
           {chordText(token)}
-        </span>
+        </button>
       )
     })
 

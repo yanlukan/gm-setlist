@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within, act } from '@testing-library/react'
-import { SongSheet } from '../../components/song/SongSheet'
-import { DiagramsBar } from '../../components/diagrams/DiagramsBar'
+import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { useStore } from '../../store/use-store'
 
 beforeEach(() => {
@@ -12,8 +11,8 @@ const open = (title: string) => {
   const { setlistData } = useStore.getState()
   useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf(title))
 }
-const renderChart = () => render(<><SongSheet /><DiagramsBar /></>)
-/** The chord shapes in the diagrams bar, in order. */
+const renderChart = () => render(<PracticeScreen />)
+/** The chord shapes in the panel, in order. */
 const shapes = () =>
   within(screen.getByRole('list', { name: /^Chord shapes/ }))
     .getAllByRole('listitem')
@@ -37,7 +36,7 @@ describe('tapping a section on the chart', () => {
     expect(shapes()).toEqual(FAITH_ALL)
   })
 
-  it('can be undone from the diagrams bar too', () => {
+  it('can be undone from the panel too', () => {
     renderChart()
     fireEvent.click(screen.getByRole('button', { name: 'Intro' }))
     fireEvent.click(screen.getByRole('button', { name: /Show the whole song/ }))
@@ -57,14 +56,5 @@ describe('tapping a section on the chart', () => {
     renderChart()
     fireEvent.click(screen.getByRole('button', { name: 'Last verse' }))
     expect(shapes()).toEqual(['D6', 'D#dim7', 'Em7', 'Bb(b5)', 'A7'])
-  })
-
-  it('leaves plain labels when the diagrams are hidden', () => {
-    useStore.setState({ diagramsVisible: false })
-    render(<SongSheet />)
-    expect(screen.queryByRole('button', { name: 'Intro' })).toBeNull()
-    // The song order under the title also says Intro: look at the chart's own labels
-    const labels = document.querySelector('.chart-sections') as HTMLElement
-    expect(within(labels).getByText('Intro')).toBeInTheDocument()
   })
 })
