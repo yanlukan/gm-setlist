@@ -18,6 +18,25 @@ describe('largestFit', () => {
     expect(largestFit(px => px <= 27.8, 20, 44)).toBe(27.5)
   })
 
+  it('searches near a guess, in fewer tries, to the same size', () => {
+    const tries: number[] = []
+    const fits = (px: number) => (tries.push(px), px <= 31.3)
+    expect(largestFit(fits, 20, 44, () => 32)).toBe(31)
+    expect(tries.length).toBeLessThanOrEqual(7)
+  })
+
+  it('searches up from a guess that fits', () => {
+    expect(largestFit(px => px <= 31.3, 20, 44, () => 30)).toBe(31)
+  })
+
+  it('falls back to the whole range when the guess is far off', () => {
+    expect(largestFit(px => px <= 24.2, 20, 44, () => 40)).toBe(24)
+  })
+
+  it('stays at the smallest size from a guess when nothing fits', () => {
+    expect(largestFit(() => false, 20, 44, () => 30)).toBe(20)
+  })
+
   it('works on the smaller range on its side', () => {
     expect(largestFit(px => px <= 30, 20, 36)).toBeLessThanOrEqual(30)
     expect(largestFit(px => px <= 30, 20, 36)).toBeGreaterThanOrEqual(29.5)

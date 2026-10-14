@@ -1,4 +1,4 @@
 declare const __BUILD_TIME__: string
 
-export const APP_VERSION = '4.0.12'
+export const APP_VERSION = '4.0.13'
 export const BUILD_TIME: string = __BUILD_TIME__

@@ -6,18 +6,41 @@ export const MIN_CHORD_PX = 20
 const MAX_CHORD_PX = 44
 /** Halvings of the size range: about a tenth of a pixel on 20 to 44. */
 const STEPS = 8
+/** A guessed size is searched a tenth either side, in this many halvings. */
+const GUESS_RANGE = 1.1
+const GUESS_STEPS = 4
 
 /**
  * The largest size from `min` to `max` at which `fits` holds: `max` if it
  * fits, `min` if not even that fits (the chart then scrolls), otherwise found
  * by halving the range eight times and rounded down to half a pixel.
+ *
+ * With a `guess` (asked for once `max` has failed), the halving starts from
+ * a range a tenth either side of it: about six tries instead of ten, each a
+ * layout of the whole chart. A guess that misses the range falls back to the
+ * whole of it.
  */
-export function largestFit(fits: (px: number) => boolean, min: number, max: number): number {
+export function largestFit(fits: (px: number) => boolean, min: number, max: number, guess?: () => number): number {
   if (fits(max)) return max
-  if (!fits(min)) return min
   let lo = min
   let hi = max
-  for (let i = 0; i < STEPS; i++) {
+  let steps = STEPS
+  const g = guess ? Math.min(max, Math.max(min, guess())) : NaN
+  if (!Number.isNaN(g) && g > min && g < max) {
+    if (fits(g)) {
+      const up = Math.min(max, g * GUESS_RANGE)
+      lo = g
+      hi = up
+    } else {
+      const down = Math.max(min, g / GUESS_RANGE)
+      hi = g
+      if (down > min && fits(down)) lo = down
+    }
+    // A range a tenth wide needs fewer halvings for the same half pixel
+    if (lo > min) steps = GUESS_STEPS
+  }
+  if (lo === min && !fits(min)) return min
+  for (let i = 0; i < steps; i++) {
     const mid = (lo + hi) / 2
     if (fits(mid)) lo = mid
     else hi = mid
@@ -104,7 +127,9 @@ export function useBandFit(
     const fit = () => {
       const min = cssPx(content, '--chart-min', MIN_CHORD_PX)
       const max = cssPx(content, '--chart-max', MAX_CHORD_PX)
-      apply(largestFit(px => { apply(px); return fits() }, min, max))
+      // At `max` the chart overflows: its chords shrink about as much as its height must
+      const guess = () => max * Math.min(container.clientHeight / container.scrollHeight, container.clientWidth / container.scrollWidth)
+      apply(largestFit(px => { apply(px); return fits() }, min, max, guess))
     }
 
     // Left from a chart not in bars, it would keep this one's lines from wrapping

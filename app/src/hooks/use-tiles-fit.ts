@@ -21,8 +21,9 @@ export function largestZoom(fits: (zoom: number) => boolean, min = MIN_TILES_ZOO
 /**
  * Fits the shapes to the panel as it is now: the largest zoom at which they
  * fill it (on its side, with the song order under them), never above the one
- * at which a single row of tiles would already fill the height. While the
- * panel is dragged, `near` is the zoom they have, and the search starts there.
+ * at which a single row of tiles would already fill the height. The search
+ * starts from the zoom worked out from the tiles' size or, while the panel
+ * is dragged, from `near`, the zoom they have.
  */
 export function fitTiles(panel: HTMLElement, side: boolean, near?: number): void {
   const tiles = panel.querySelector<HTMLElement>('.tiles')
@@ -34,24 +35,54 @@ export function fitTiles(panel: HTMLElement, side: boolean, near?: number): void
   const order = side ? panel.querySelector<HTMLElement>('.song-order') : null
   const orderRoom = order ? order.offsetHeight + (parseFloat(style.rowGap) || 0) : 0
   const room = panel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - orderRoom
-  // One row of tiles at full size, and what sits above them, give the most the zoom can be
+  // The tiles at full size, and what sits above them, give the most the zoom can be
   tiles.style.zoom = '1'
-  const tile = tiles.firstElementChild as HTMLElement | null
   const above = section.offsetHeight - tiles.offsetHeight
-  const oneRow = tile ? tile.getBoundingClientRect().height : 0
-  const most = oneRow > 0 ? Math.min(MAX_TILES_ZOOM, Math.max(MIN_TILES_ZOOM, (room - above) / oneRow)) : MAX_TILES_ZOOM
+  const sizes = [...tiles.children].map(tile => tile.getBoundingClientRect())
+  const grid: TileGrid = {
+    count: sizes.length,
+    width: Math.max(0, ...sizes.map(r => r.width)),
+    height: Math.max(0, ...sizes.map(r => r.height)),
+    gap: parseFloat(getComputedStyle(tiles).columnGap) || 0,
+    across: tiles.getBoundingClientRect().width,
+    down: room - above,
+  }
+  const most = grid.height > 0 ? Math.min(MAX_TILES_ZOOM, Math.max(MIN_TILES_ZOOM, grid.down / grid.height)) : MAX_TILES_ZOOM
+  const top = Math.floor(most * 20 + 1e-9) / 20
   const fits = (zoom: number) => {
     tiles.style.zoom = String(zoom)
     return section.offsetHeight <= room && panel.scrollWidth <= panel.clientWidth
   }
-  const top = Math.floor(most * 20 + 1e-9) / 20
-  tiles.style.zoom = String(near === undefined ? largestZoom(fits, MIN_TILES_ZOOM, top) : nearestZoom(fits, near, top))
+  // Worked out from the tiles' size first, then checked on the page from there:
+  // a few layouts instead of one for every zoom from the top down
+  const from = near ?? largestZoom(zoom => gridFits(grid, zoom), MIN_TILES_ZOOM, top)
+  tiles.style.zoom = String(nearestZoom(fits, from, top))
+}
+
+/** The shape tiles as measured at full size, and the room they have. */
+export interface TileGrid {
+  count: number
+  /** The widest and the tallest tile. */
+  width: number
+  height: number
+  gap: number
+  /** The room across and down for the tiles, in panel pixels. */
+  across: number
+  down: number
+}
+
+/** Whether the tiles, wrapped into rows, would fit their room at this zoom: worked out, not laid out. */
+export function gridFits(grid: TileGrid, zoom: number): boolean {
+  if (grid.count === 0) return true
+  if (grid.width * zoom > grid.across) return false
+  const perRow = Math.max(1, Math.floor((grid.across / zoom + grid.gap) / (grid.width + grid.gap)))
+  const rows = Math.ceil(grid.count / perRow)
+  return zoom * (rows * grid.height + (rows - 1) * grid.gap) <= grid.down
 }
 
 /**
- * While the panel is dragged: from the zoom the shapes have now, up while a
- * bigger one fits or down until one does. Two or three tries a frame keep the
- * drag smooth; the fit when it is let go searches them all.
+ * From a zoom close to the answer, up while a bigger one fits or down until
+ * one does: two or three tries, which keeps a drag smooth and a new song quick.
  */
 export function nearestZoom(fits: (zoom: number) => boolean, from: number, max = MAX_TILES_ZOOM, min = MIN_TILES_ZOOM): number {
   let step = Math.min(Math.round(from * 20), Math.round(max * 20))
