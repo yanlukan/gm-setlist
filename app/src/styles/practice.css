@@ -1,0 +1,41 @@
+/* ---------- Practice: the song's setup and facts on top ---------- */
+/* The top bar is gone, so the header takes the safe area at the top */
+.practice-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(8px + var(--safe-top)) 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.ph-line { display: flex; flex-direction: column; gap: 8px; }
+.ph-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ph-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.1; }
+.ph-artist { color: var(--text-muted); font-size: 15px; }
+.ph-badge { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.ph-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.setup-key { display: inline-flex; }
+.setup-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.setup-key .setup-btn { border-radius: 0; }
+.setup-key .setup-btn:first-child { border-radius: 8px 0 0 8px; }
+.setup-key .setup-btn:last-child { border-radius: 0 8px 8px 0; }
+.setup-btn.is-moved { border-color: #f59e0b; color: #f59e0b; }
+.setup-btn.is-active { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+.setup-btn.is-danger { border-color: var(--danger); color: var(--danger); }
+.setup-sub { margin-left: 4px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+
+/* ---------- On its side: two rows ---------- */
+@media (orientation: landscape) and (min-width: 900px) {
+  .ph-line { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
+}
