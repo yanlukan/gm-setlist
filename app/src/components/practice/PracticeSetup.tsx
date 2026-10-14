@@ -82,7 +82,8 @@ export function PracticeSetup({ chart }: { chart: SongChart }) {
               aria-label={`${where}. Move the chords`}
               onClick={() => setMoving(true)}
             >
-              Move chords <span className="setup-sub">{positionLabel(span)}</span> &#9662;
+              {/* The fret position is the label: the screen reader hears "Move the chords" */}
+              {positionLabel(span)} &#9662;
             </button>
           )}
         </>

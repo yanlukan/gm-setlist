@@ -11,8 +11,8 @@ interface Props {
 }
 
 /**
- * Practice's header. Upright, three rows: the title, the setup, then the
- * facts with the song order in letters. On its side two (practice.css).
+ * Practice's header, two rows: the title with the facts, then the setup
+ * with the song order in letters. On its side they share a line when they fit.
  */
 export function PracticeHeader({ chart, extraFrom }: Props) {
   const { song, keyboard } = chart
@@ -29,44 +29,40 @@ export function PracticeHeader({ chart, extraFrom }: Props) {
 
   return (
     <header className="practice-head">
-      <div className="ph-line">
-        <div className="ph-row">
-          <h1 className="ph-title">{song.title}</h1>
-          <span className="ph-artist">{song.artist}</span>
-          {extraFrom && <span className="tag-extra">Extra &middot; from {extraFrom}</span>}
-          {book !== undefined && <span className="ph-badge">Songbook no. {book}</span>}
-          {/* While editing, Reset and the earlier versions are where to go back from */}
-          {chart.edited && !editMode && (
-            <button
-              type="button"
-              className="chart-edited"
-              aria-label="This chart has your own edits. Go back to the original chart"
-              onClick={goBackToOriginal}
-            >
-              EDITED &middot; back to original
-            </button>
-          )}
-        </div>
-        <PracticeSetup chart={chart} />
+      <div className="ph-row">
+        <h1 className="ph-title">{song.title}</h1>
+        <span className="ph-artist">{song.artist}</span>
+        {extraFrom && <span className="tag-extra">Extra &middot; from {extraFrom}</span>}
+        {book !== undefined && <span className="ph-badge" aria-label={`Songbook no. ${book}`}>Book {book}</span>}
+        {/* While editing, Reset and the earlier versions are where to go back from */}
+        {chart.edited && !editMode && (
+          <button
+            type="button"
+            className="chart-edited"
+            aria-label="This chart has your own edits. Go back to the original chart"
+            onClick={goBackToOriginal}
+          >
+            EDITED &middot; back to original
+          </button>
+        )}
+        <span className="fact">{chart.bpm} BPM</span>
+        <span className="fact">{song.timeSignature}</span>
+        {song.preset && !keyboard && (
+          <span
+            className="fact"
+            aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
+          >
+            {song.preset.slot} {song.preset.name}
+            {song.preset.solo && ` → ${song.preset.solo} solo`}
+          </span>
+        )}
+        {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
       </div>
-      <div className="ph-line">
-        <div className="ph-row">
-          <span className="fact">{chart.bpm} BPM</span>
-          <span className="fact">{song.timeSignature}</span>
-          {song.preset && !keyboard && (
-            <span
-              className="fact"
-              aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
-            >
-              {song.preset.slot} {song.preset.name}
-              {song.preset.solo && ` → ${song.preset.solo} solo`}
-            </span>
-          )}
-          {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
-          {/* The song order as letters, on the facts' line: the chart beside it names each part.
-              While editing, the editor has the song order: two would read as a mistake */}
-          {chart.showForm && !editMode && <FormStrip form={chart.form} letters={chart.letters} short={!!chart.letters} />}
-        </div>
+      <div className="ph-row">
+        <PracticeSetup chart={chart} />
+        {/* The song order as letters, beside the setup: the chart below names each part.
+            While editing, the editor has the song order: two would read as a mistake */}
+        {chart.showForm && !editMode && <FormStrip form={chart.form} letters={chart.letters} short={!!chart.letters} />}
       </div>
     </header>
   )

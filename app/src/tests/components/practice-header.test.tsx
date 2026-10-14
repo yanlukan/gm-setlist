@@ -33,13 +33,13 @@ describe('the title row', () => {
     render(<Header />)
     expect(screen.getByRole('heading', { name: 'Faith' })).toBeInTheDocument()
     expect(screen.getByText(faith.artist)).toBeInTheDocument()
-    expect(screen.getByText('Songbook no. 12')).toBeInTheDocument()
+    expect(screen.getByLabelText('Songbook no. 12')).toHaveTextContent('Book 12')
   })
 
   it('has no songbook badge for a song not in the book', () => {
     goTo('Amazing')
     render(<Header />)
-    expect(screen.queryByText(/^Songbook no\./)).toBeNull()
+    expect(screen.queryByLabelText(/^Songbook no\./)).toBeNull()
   })
 
   it('tags an extra song', () => {

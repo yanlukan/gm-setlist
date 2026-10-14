@@ -4,26 +4,26 @@
   flex: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: calc(8px + var(--safe-top)) 16px 8px;
+  gap: 6px;
+  padding: calc(6px + var(--safe-top)) 16px 6px;
   border-bottom: 1px solid var(--border);
 }
-.ph-line { display: flex; flex-direction: column; gap: 8px; }
-.ph-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.ph-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.1; }
-.ph-artist { color: var(--text-muted); font-size: 15px; }
+.ph-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ph-title { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.1; }
+.ph-artist { color: var(--text-muted); font-size: 14px; }
+.practice-head .fact { padding: 2px 8px; font-size: 14px; }
 .ph-badge { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
-.ph-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ph-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .setup-key { display: inline-flex; }
 .setup-btn {
-  min-height: 44px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -33,15 +33,15 @@
 .setup-btn.is-moved { border-color: #f59e0b; color: #f59e0b; }
 .setup-btn.is-active { border-color: var(--accent); background: var(--accent); color: var(--bg); }
 .setup-btn.is-danger { border-color: var(--danger); color: var(--danger); }
-.setup-sub { margin-left: 4px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
 
 /* The song order as bare letter boxes on the facts' line: a long song still fits one line */
 .practice-head .form-strip.is-short { gap: 3px; margin: 0; }
-.practice-head .form-strip.is-short .form-chip { gap: 2px; padding: 0; border: none; background: none; }
+.practice-head .form-strip.is-short .form-chip { gap: 1px; padding: 0; border: none; background: none; font-size: 14px; }
+.practice-head .form-strip.is-short .band-letter { width: 19px; height: 19px; font-size: 13px; }
 
-/* ---------- On its side: two rows ---------- */
+/* ---------- On its side: the title and the setup share a line when they fit ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
-  .ph-line { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
+  .practice-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
 }
 
 /* ---------- The chart and the panel: panel under the chart upright, beside it on its side ---------- */
