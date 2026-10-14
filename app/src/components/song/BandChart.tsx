@@ -15,8 +15,8 @@ interface Props {
 }
 
 /**
- * A chart in bands: each section a band tinted in its colour, headed by its
- * letter (A, B, C in chart order) and name, with its bars in a grid below.
+ * A chart in bands: each section a band tinted in its colour, its letter
+ * (A, B, C in chart order) and name in a gutter beside its bars.
  */
 export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTokens }: Props) {
   const letters = sectionLetters(sections.map(s => s.name))
@@ -40,7 +40,6 @@ export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTo
               ) : (
                 <div className="chart-label">{section.name}</div>
               )}
-              <span className="band-rule" aria-hidden="true" />
             </div>
             <div className="chart-chords">
               <BandBars lines={section.chords.trim() ? section.chords.split('\n') : []} renderTokens={renderTokens} />

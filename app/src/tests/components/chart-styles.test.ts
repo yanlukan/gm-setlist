@@ -42,15 +42,30 @@ const LANDSCAPE = '@media (orientation: landscape) and (min-width: 900px)'
 const PHONE = '@media (max-width: 500px)'
 
 describe('the band chart stylesheet', () => {
-  it('has four columns, eight in landscape and two on a phone', () => {
+  it('has four columns, eight in landscape and two on a phone, and chords from 20 to 44 px', () => {
     const bands = css('bands.css')
     const base = between(bands, '.band-chart {', '}')
     expect(base).toContain('--cols: 4;')
-    expect(base).toContain('--chart-base: 32px;')
-    expect(between(bands, LANDSCAPE, PHONE)).toContain('--cols: 8;')
+    expect(base).toContain('--chart-min: 20px;')
+    expect(base).toContain('--chart-max: 44px;')
+    expect(base).toContain('--gutter: 116px;')
+    const landscape = between(bands, LANDSCAPE, PHONE)
+    expect(landscape).toContain('--cols: 8;')
+    expect(landscape).toContain('--chart-max: 36px;')
+    expect(landscape).toContain('.stage-screen .band-chart { --gutter: 44px; }')
     const phone = between(bands, PHONE)
     expect(phone).toContain('--cols: 2;')
     expect(phone).toContain('.band-chart .pad-wide { display: none; }')
+  })
+
+  it('puts a crowded bar on two lines only where the fit says so', () => {
+    const bands = css('bands.css')
+    expect(between(bands, '.band-chart .bar {', '}')).toContain('flex-wrap: nowrap;')
+    expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('flex-wrap: wrap;')
+  })
+
+  it('keeps Practice at four bars a row on its side', () => {
+    expect(between(css('practice.css'), LANDSCAPE)).toContain('.practice-screen .band-chart { --cols: 4; }')
   })
 
   it('is loaded, and the old bar view is gone', () => {

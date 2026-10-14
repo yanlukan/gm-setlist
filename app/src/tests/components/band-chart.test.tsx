@@ -123,9 +123,9 @@ describe('a band on its own', () => {
 
 describe('the size of a band chart', () => {
   // jsdom has no layout, so every chart fits: each grows to its largest size
-  it('grows to the largest band size', () => {
+  it('grows to the largest size, 44 px', () => {
     render(<SongSheet />) // Faith, in bars
-    expect(chart().style.fontSize).toBe('45px')
+    expect(chart().style.fontSize).toBe('44px')
   })
 
   it('keeps the usual sizes for a chart without bars', () => {
