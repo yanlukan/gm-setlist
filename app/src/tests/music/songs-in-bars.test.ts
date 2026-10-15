@@ -195,7 +195,6 @@ describe('Roxanne in bars (songbook no. 49)', () => {
     expect(song.key).toBe('Bm')
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(ROX).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: 'WARM JAZZ', slot: 'U01-3' })
   })
 })
 
@@ -226,7 +225,6 @@ describe('A Different Corner in bars (songbook, in Gb as the band plays it)', ()
     expect(song.key).toBe('Gb')
     expect(song.transpose).toBeUndefined()
     expect(song.shapes).toEqual({ Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2' })
-    expect(song.preset).toEqual({ name: 'WARM JAZZ', slot: 'U01-3' })
   })
 })
 
@@ -256,7 +254,6 @@ describe("Freedom! '90 in bars (songbook no. 19)", () => {
     expect(song.key).toBe('C')
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(FREEDOM).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
 
@@ -287,7 +284,6 @@ describe('Papa Was a Rolling Stone in bars (songbook no. 36, the Killer / Papa m
     expect(song.key).toBe('Bbm')
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(PAPA).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
     expect(song.cue).toBe('Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.')
   })
 })
@@ -323,7 +319,6 @@ describe('Too Funky in bars (songbook no. 61)', () => {
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(FUNKY).filter(c => !song.shapes?.[c])).toEqual([])
     expect(song.shapes).toEqual({ Dm: 'x-x-0-2-3-1', 'G/D': 'x-x-0-4-3-3', 'Am/D': 'x-x-0-5-5-5' })
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
 
@@ -361,7 +356,6 @@ describe('Jesus to a Child in bars (songbook no. 35)', () => {
     expect(song.transpose).toBeUndefined()
     expect(song.capo).toBeNull()
     expect(chordsOf(JESUS).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
   })
 })
 
@@ -403,7 +397,6 @@ describe("Everything She Wants in bars (songbook no. 11, the 12-inch version)", 
     expect(song.key).toBe('F#m')
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(ESW).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
   })
 })
 
@@ -442,7 +435,6 @@ describe('Fastlove in bars (songbook no. 13)', () => {
     expect(song.key).toBe('Am')
     expect(song.transpose).toBeUndefined()
     expect(chordsOf(FAST).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
 
@@ -485,7 +477,6 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     expect(song.lowerKey).toBe(true)
     expect(song.shapes?.['Edim7/D']).toBe('x-x-0-3-2-3')
     expect(chordsOf(KISS).map(c => transposeInKey(c, 'Eb', -1)).filter(c => !song.shapes?.[c])).toEqual([])
-    expect(song.preset).toEqual({ name: 'WARM JAZZ', slot: 'U01-3' })
   })
 })
 
@@ -518,7 +509,6 @@ describe('Waiting (Reprise) in bars (songbook no. 63)', () => {
     expect(song.key).toBe('G')
     expect(song.transpose).toBeUndefined()
     expect(song.shapes).toEqual({ G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' })
-    expect(song.preset).toEqual({ name: 'ACOUSTIC', slot: 'U02-3' })
   })
 })
 
@@ -552,6 +542,5 @@ describe('Last Christmas in bars (published chords, form from the recording)', (
     expect(song.key).toBe('D')
     expect(song.transpose).toBeUndefined()
     expect(song.shapes).toBeUndefined()
-    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
   })
 })

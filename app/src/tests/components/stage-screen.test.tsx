@@ -24,7 +24,7 @@ describe('the Stage header', () => {
     expect(within(header()).getByText(`Key ${playedKey(faith).key}`)).toBeInTheDocument()
     expect(within(header()).getByText(`${faith.bpm} BPM`)).toBeInTheDocument()
     expect(within(header()).getByText(faith.timeSignature)).toBeInTheDocument()
-    expect(within(header()).getByLabelText(new RegExp(`^GX-10 sound: ${faith.preset!.name}`))).toHaveTextContent(faith.preset!.slot)
+    expect(within(header()).getByLabelText('GX-10 sound: U01-1 ACOUSTIC')).toHaveTextContent('U01-1 ACOUSTIC')
   })
 
   it('has no tap tempo and no buttons at all', () => {

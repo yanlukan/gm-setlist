@@ -49,7 +49,8 @@ describe('shapes in this song', () => {
     render(<Panel />)
     // The book facts still say where the book's shapes come from; the tiles no longer use them
     expect(within(screen.getByRole('list', { name: /^Chord shapes/ })).queryByText('Songbook')).toBeNull()
-    expect(within(tile('A')).getByText('Electric')).toBeInTheDocument()
+    // Faith's sound is ACOUSTIC, so the app's own pick is for acoustic
+    expect(within(tile('A')).getByText('Acoustic')).toBeInTheDocument()
   })
 
   it('keep a pick saved before recommendations existed on the shape it meant', () => {

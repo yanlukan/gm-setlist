@@ -3,6 +3,7 @@ import { isChartMark, keySpelling, shouldUseFlats, transposeChord, transposeInKe
 import { transposeFor } from './setlist-text'
 import { parseChordText } from './chord-text'
 import type { Guitar } from './voicings'
+import { soundFor } from './gx10'
 
 /** What the player plays: the keyboard player needs chords, not shapes. */
 export type Instrument = 'guitar' | 'keyboard'
@@ -26,14 +27,15 @@ export const DEFAULT_VIEW: ChartView = { simple: false, guitar: 'auto', instrume
 /**
  * The guitar a song is played on: the player's choice for the song, else
  * their choice for every song, else the song's sound. The GX-10 is an
- * electric multi-effects unit, so a song with a preset is electric unless
- * that preset is the acoustic one; a song with none is acoustic.
+ * electric multi-effects unit, so a song with a GX-10 sound (music/gx10.ts)
+ * is electric unless that sound is the acoustic one; a song with none is acoustic.
  */
 export function guitarFor(song: Song | undefined, edits: SongEdits | undefined, view: ChartView): Guitar {
   if (edits?.guitar) return edits.guitar
   if (view.guitar !== 'auto') return view.guitar
-  if (!song?.preset) return 'acoustic'
-  return song.preset.name === 'ACOUSTIC' ? 'acoustic' : 'electric'
+  const sound = soundFor(song?.title)
+  if (!sound) return 'acoustic'
+  return sound.sound === 'ACOUSTIC' ? 'acoustic' : 'electric'
 }
 
 /** The highest capo offered: past the 7th fret the neck runs out of chords. */

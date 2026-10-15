@@ -208,8 +208,8 @@ describe('band positions', () => {
   })
 
   it('keep open chords for the acoustic song', () => {
-    const { song, chords } = gigChords().find(g => g.song.preset?.name === 'ACOUSTIC')!
-    const picks = bandPositions(chords, song.preset?.name === 'ACOUSTIC' ? 'acoustic' : 'electric')
+    const { chords } = gigChords().find(g => g.song.title === 'Waiting (Reprise)')!
+    const picks = bandPositions(chords, 'acoustic')
     for (const { name } of chords) expect(sounding(voicingsFor(name)[picks[name]]).some(n => n.fret === 0), name).toBe(true)
   })
 })

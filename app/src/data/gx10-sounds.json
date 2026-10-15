@@ -1,0 +1,249 @@
+{
+  "version": 2,
+  "updated": "2026-10-15",
+  "mode": "up/down",
+  "switches": {
+    "up": "next song",
+    "down": "previous song",
+    "ctl1": "song's special part on/off"
+  },
+  "pedal": "volume, tuner when fully back",
+  "songs": [
+    {
+      "title": "Faith",
+      "memory": "U01-1",
+      "sound": "ACOUSTIC",
+      "ctl1": {
+        "name": "SOLO",
+        "what": "drive + delay, acoustic sim off"
+      },
+      "changes": [
+        {
+          "section": "Solo",
+          "ctl1": "on"
+        },
+        {
+          "section": "Pre-Chorus",
+          "ctl1": "off"
+        }
+      ],
+      "playing": null
+    },
+    {
+      "title": "I'm Your Man",
+      "memory": "U01-2",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Club Tropicana",
+      "memory": "U01-3",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Amazing",
+      "memory": "U02-1",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "A Different Corner",
+      "memory": "U02-2",
+      "sound": "BASS SWELL",
+      "ctl1": {
+        "name": "NYLON",
+        "what": "nylon acoustic"
+      },
+      "changes": [
+        {
+          "section": "Instrumental",
+          "ctl1": "on"
+        },
+        {
+          "section": "Bridge",
+          "ctl1": "off"
+        },
+        {
+          "section": "Outro",
+          "ctl1": "on"
+        }
+      ],
+      "playing": "nylon: pickup position 4, tone 5"
+    },
+    {
+      "title": "Freedom! '90",
+      "memory": "U02-3",
+      "sound": "ACOUSTIC",
+      "ctl1": {
+        "name": "TOUCH WAH",
+        "what": "touch wah"
+      },
+      "changes": [
+        {
+          "section": "Pre-Chorus",
+          "ctl1": "on"
+        },
+        {
+          "section": "Pre-Chorus 2",
+          "ctl1": "off"
+        },
+        {
+          "section": "Interlude",
+          "ctl1": "on"
+        },
+        {
+          "section": "Bridge",
+          "ctl1": "off"
+        }
+      ],
+      "playing": null
+    },
+    {
+      "title": "Papa Was a Rolling Stone",
+      "memory": "U03-1",
+      "sound": "SYNTH",
+      "ctl1": {
+        "name": "WAH",
+        "what": "synth off, touch wah on"
+      },
+      "changes": [
+        {
+          "section": "Papa",
+          "ctl1": "on"
+        }
+      ],
+      "playing": "switch by ear at the big change"
+    },
+    {
+      "title": "Too Funky",
+      "memory": "U03-2",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Jesus to a Child",
+      "memory": "U03-3",
+      "sound": "ACOUSTIC",
+      "ctl1": null,
+      "changes": [],
+      "playing": "nylon: pickup position 4, tone 5"
+    },
+    {
+      "title": "Everything She Wants",
+      "memory": "U04-1",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Fastlove",
+      "memory": "U04-2",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Outside",
+      "memory": "U04-3",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Father Figure",
+      "memory": "U05-1",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Wake Me Up Before You Go-Go",
+      "memory": "U05-2",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Somebody to Love",
+      "memory": "U05-3",
+      "sound": "CRUNCH",
+      "ctl1": {
+        "name": "SOLO",
+        "what": "boost + delay"
+      },
+      "changes": [
+        {
+          "section": "Solo",
+          "ctl1": "on"
+        },
+        {
+          "section": "Turnaround",
+          "ctl1": "off"
+        }
+      ],
+      "playing": null
+    },
+    {
+      "title": "Careless Whisper",
+      "memory": "U06-1",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "I Can't Make You Love Me",
+      "memory": "U06-2",
+      "sound": "WARM JAZZ",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Roxanne",
+      "memory": "U06-3",
+      "sound": "WARM JAZZ",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Waiting (Reprise)",
+      "memory": "U07-1",
+      "sound": "ACOUSTIC",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Kissing a Fool",
+      "memory": "U07-2",
+      "sound": "WARM JAZZ",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Last Christmas",
+      "memory": "U07-3",
+      "sound": "FUNK CHORUS",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    }
+  ]
+}

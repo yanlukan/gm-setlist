@@ -36,9 +36,9 @@ describe('simplified chords', () => {
   it('shows plain chords on the chart, and the real ones while editing', () => {
     useStore.setState({
       simpleChords: true,
-      edits: { Faith: { sections: [{ name: 'Intro', chords: 'B' }, { name: 'Verse', chords: 'Bmaj7  E7/G#  C#m9' }] } },
+      edits: { Faith: { guitar: 'electric', sections: [{ name: 'Intro', chords: 'B' }, { name: 'Verse', chords: 'Bmaj7  E7/G#  C#m9' }] } },
     })
-    // Faith is played on electric (its sound is FUNK): the 7ths and 9ths stay, the slash bass goes
+    // Faith played on electric: the 7ths and 9ths stay, the slash bass goes
     const { unmount } = render(<SongSheet />)
     expect(verse().textContent).toBe('Bmaj7  E7  C#m9')
     unmount()

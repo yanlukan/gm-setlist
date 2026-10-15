@@ -23,11 +23,12 @@ describe('the keyboard view', () => {
   })
 
   it('simplifies to plain chords, whatever sound the song has on the guitar', () => {
-    // Faith is an electric (FUNK) song: on the guitar the 7ths and 9ths would stay
-    expect(simplifyRuleFor(faith, undefined, DEFAULT_VIEW)).toBe('electric')
-    expect(simplifyRuleFor(faith, undefined, KEYBOARD)).toBe('acoustic')
+    // Too Funky is an electric (FUNK) song: on the guitar the 7ths and 9ths would stay
+    const funky = DEFAULT_SONGS.find(s => s.title === 'Too Funky')!
+    expect(simplifyRuleFor(funky, undefined, DEFAULT_VIEW)).toBe('electric')
+    expect(simplifyRuleFor(funky, undefined, KEYBOARD)).toBe('acoustic')
     const edits = { sections: [{ name: 'Verse', chords: 'Bmaj7  E7/G#  C#m9' }] }
-    expect(shownSections(faith, edits, { ...DEFAULT_VIEW, simple: true })[0].chords).toBe('Bmaj7  E7  C#m9')
-    expect(shownSections(faith, edits, { ...KEYBOARD, simple: true })[0].chords).toBe('B  E  C#m')
+    expect(shownSections(funky, edits, { ...DEFAULT_VIEW, simple: true })[0].chords).toBe('Bmaj7  E7  C#m9')
+    expect(shownSections(funky, edits, { ...KEYBOARD, simple: true })[0].chords).toBe('B  E  C#m')
   })
 })

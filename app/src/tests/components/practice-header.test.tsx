@@ -105,10 +105,10 @@ describe('the setup row', () => {
   })
 
   it("follows the song's sound, and switches the guitar for this song only", () => {
-    render(<Header />) // Faith's sound is FUNK on the GX-10: electric
-    fireEvent.click(button(/^Played on electric guitar/))
-    expect(useStore.getState().edits['Faith'].guitar).toBe('acoustic')
-    expect(button(/^Played on acoustic guitar/)).toHaveTextContent('Acoustic')
+    render(<Header />) // Faith's sound is ACOUSTIC on the GX-10 (U01-1)
+    fireEvent.click(button(/^Played on acoustic guitar/))
+    expect(useStore.getState().edits['Faith'].guitar).toBe('electric')
+    expect(button(/^Played on electric guitar/)).toHaveTextContent('Electric')
   })
 
   it('opens Move chords, showing where the shapes sit', () => {
@@ -155,7 +155,7 @@ describe('the facts and the song order', () => {
     render(<Header />)
     expect(screen.getByText(`${faith.bpm} BPM`)).toBeInTheDocument()
     expect(screen.getByText(faith.timeSignature)).toBeInTheDocument()
-    expect(screen.getByLabelText(new RegExp(`^GX-10 sound: ${faith.preset!.name}`))).toBeInTheDocument()
+    expect(screen.getByLabelText('GX-10 sound: U01-1 ACOUSTIC')).toHaveTextContent('U01-1 ACOUSTIC')
     expect(screen.queryByRole('button', { name: /BPM|tempo/i })).toBeNull()
   })
 

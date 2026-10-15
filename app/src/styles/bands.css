@@ -149,11 +149,27 @@
 :is(.stage-screen, .practice-screen) .band { padding: 3px 6px 3px 0; }
 :is(.stage-screen, .practice-screen) .band-chart :is(.bar, .bar-pad, .bar-plain) { min-height: 1.45em; }
 :is(.stage-screen, .practice-screen) .band-chart .bar { line-height: 1.2; }
-:is(.stage-screen, .practice-screen) .band-head { flex-direction: row; align-items: flex-start; gap: 5px; padding: 4px 4px 0 6px; }
+:is(.stage-screen, .practice-screen) .band-head { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 5px; padding: 4px 4px 0 6px; }
 /* Whole names: they break between words and after hyphens, never inside a word (85 px a column) */
 :is(.stage-screen, .practice-screen) .band-head .chart-label { white-space: normal; font-size: 13px; line-height: 1.1; padding-top: 2px; overflow-wrap: normal; min-width: 0; }
 /* On Practice the name is still a button (it narrows the shapes), just no taller than the name */
 .practice-screen .band-head .chart-label-btn { min-height: 0; }
+
+/* Where the GX-10's CTL1 goes on (filled) or off (outlined), on a line of its own under the name */
+.ctl1-tag {
+  flex-basis: 100%;
+  width: fit-content;
+  max-width: 100%;
+  padding: 1px 5px;
+  border: 1.5px solid #facc15;
+  border-radius: 5px;
+  color: #facc15;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+}
+.ctl1-tag.is-on { background: #facc15; color: #111; }
 
 /* ---------- An iPad on its side: eight bars a row on Stage ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
@@ -175,6 +191,11 @@
   .stage-screen .band-chart { --gutter: 44px; --band-gap: 4px; }
   .stage-screen .chart-scroll { padding-top: 4px; padding-bottom: 4px; }
   .stage-screen .band-head .chart-label { display: none; }
+  /* The 44 px gutter has room for ON or OFF only, standing up beside the letter so
+     the part stays as tall as its bars (Somebody to Love only just fits) */
+  .stage-screen .band-head { flex-wrap: nowrap; gap: 2px; padding: 4px 2px 0 4px; }
+  .stage-screen :is(.ctl1-prefix, .ctl1-name) { display: none; }
+  .stage-screen .ctl1-tag { flex-basis: auto; padding: 2px 0; font-size: 9px; line-height: 10px; white-space: nowrap; writing-mode: vertical-rl; transform: rotate(180deg); }
 }
 
 /* ---------- A phone: two bars a row. Last, so it wins on a small screen ---------- */
@@ -194,4 +215,6 @@
   .band-chart .chart-title { font-size: 22px; }
   .band-chart .pad-wide { display: none; }
   .band-head .chart-label { display: none; }
+  :is(.ctl1-prefix, .ctl1-name) { display: none; }
+  .ctl1-tag { padding: 0 3px; font-size: 10px; white-space: nowrap; }
 }

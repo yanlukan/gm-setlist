@@ -5,6 +5,7 @@ import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { useStore } from '../../store/use-store'
 import { faithOneLine } from '../faith-one-line'
+import { soundFor } from '../../music/gx10'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
@@ -57,7 +58,7 @@ describe('the keyboard view', () => {
 
   it('leaves the GX-10 preset off the song list and the Next button', () => {
     const songs = useStore.getState().setlistSongs()
-    const withPreset = songs.findIndex((s, i) => i > 0 && songs[i - 1] && s.preset)
+    const withPreset = songs.findIndex((s, i) => i > 0 && songs[i - 1] && soundFor(s.title))
     useStore.getState().goToSong(withPreset - 1)
     const { container } = render(<BottomBar />)
     expect(container.querySelector('.bb-preset')).toBeNull()

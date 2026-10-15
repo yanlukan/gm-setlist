@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
 import { transposeInKey } from '../../music/theory'
+import { ctl1Tags, soundFor } from '../../music/gx10'
 
 describe('song notes and cues', () => {
   it('never name chords on a song whose chart is shown in another key', () => {
@@ -14,17 +15,22 @@ describe('song notes and cues', () => {
     }
   })
 
-  it('give every song in the gig set its GX-10 sound, one of the six', () => {
-    // Two banks of three, in BANK/NUM mode
-    const slots: Record<string, string> = {
-      FUNK: 'U01-1', '80s CLEAN': 'U01-2', 'WARM JAZZ': 'U01-3',
-      CRUNCH: 'U02-1', LEAD: 'U02-2', ACOUSTIC: 'U02-3',
-    }
+  it('give every song in the gig set its own GX-10 memory, in gig order (UP/DOWN mode)', () => {
+    // Three memories a bank: U01-1 for the first song, U07-3 for the 21st
+    GIG_SETLIST_2026.forEach((title, i) => {
+      const memory = `U${String(Math.floor(i / 3) + 1).padStart(2, '0')}-${(i % 3) + 1}`
+      expect(soundFor(title)?.memory, title).toBe(memory)
+    })
+  })
+
+  it('switch CTL1 only at sections the chart has', () => {
     for (const title of GIG_SETLIST_2026) {
-      const preset = DEFAULT_SONGS.find(s => s.title === title)?.preset
-      expect(preset, title).toBeDefined()
-      expect(slots[preset!.name], title).toBe(preset!.slot)
+      const sections = new Set(DEFAULT_SONGS.find(s => s.title === title)!.sections.map(s => s.name))
+      for (const section of ctl1Tags(title).keys()) expect(sections.has(section), `${title}: ${section}`).toBe(true)
     }
+    expect(ctl1Tags('Faith').get('Solo')).toBe('CTL1 ON · SOLO')
+    expect(ctl1Tags('Faith').get('Pre-Chorus')).toBe('CTL1 OFF')
+    expect(ctl1Tags("I'm Your Man").size).toBe(0)
   })
 
   it('keep the sound out of the cue, which is for stage directions', () => {

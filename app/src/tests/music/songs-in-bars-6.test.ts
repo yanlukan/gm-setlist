@@ -41,7 +41,6 @@ describe('Outside in bars (songbook no. 47)', () => {
     expect(song.shapes).toEqual({
       Gm9: '3-5-3-3-3-5', C6: 'x-3-5-5-5-5', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-7-5-4-3', Gm: '3-5-5-3-3-3', Dsus4: 'x-5-7-7-3-3',
     })
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
 
@@ -82,7 +81,6 @@ describe('Father Figure in bars (songbook no. 15)', () => {
       Bbsus2: 'x-1-3-3-1-1', Absus2: '4-x-1-3-4-x', Gbsus2: '2-4-4-1-x-x', Abadd9: '4-x-1-3-1-x', Bb: 'x-1-3-3-3-1',
       Fsus4: '1-3-3-3-1-1', F: '1-3-3-2-1-1', Bbadd9: 'x-1-3-5-3-1', Gbadd9: '2-x-4-3-2-4',
     })
-    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
   })
 })
 
@@ -118,7 +116,6 @@ describe('Wake Me Up Before You Go-Go in bars (published chords, bars and form f
     expect(song.lowerKey).toBe(true)
     expect(song.capo).toBeNull()
     expect(song.shapes).toBeUndefined()
-    expect(song.preset).toEqual({ name: 'FUNK', slot: 'U01-1' })
   })
 })
 
@@ -174,7 +171,6 @@ describe('Somebody to Love in bars (songbook no. 52)', () => {
     expect(song.bpm).toBe(73)
     expect(song.transpose).toBeUndefined()
     expect(withoutShape(STL)).toEqual([])
-    expect(song.preset).toEqual({ name: 'CRUNCH', slot: 'U02-1', solo: 'LEAD' })
     expect(song.cue).toBe('12/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.')
   })
 })

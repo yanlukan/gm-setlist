@@ -4,6 +4,7 @@ import { playedKey } from '../../music/setlist-text'
 import { SongsSheet } from '../sheets/SongsSheet'
 import { SetlistsSheet } from '../sheets/SetlistsSheet'
 import { capoFor, songChordsOf } from '../../music/chart-view'
+import { soundFor, soundLabel } from '../../music/gx10'
 import { NotesSheet } from '../sheets/NotesSheet'
 import { MoreSheet } from '../sheets/MoreSheet'
 import { ChordFinder } from '../finder/ChordFinder'
@@ -31,6 +32,8 @@ export function BottomBar() {
   const total = setSongs.length
   const place = total ? index + 1 : 0
   const nextKey = next ? playedKey(next, edits[next.title]).key : ''
+  // The memory to step to with ▲ before the next song
+  const nextSound = soundFor(next?.title)
   const nextLabel = !next ? 'End of set' : returning ? `Back to the set: ${next.title}` : `Next song: ${next.title}`
 
   return (
@@ -93,7 +96,7 @@ export function BottomBar() {
               <span className="bb-meta">
                 {nextKey && <span className="bb-key">{nextKey}</span>}
                 {/* The sound to switch to before the next song: the guitarist's GX-10, not the keyboard's */}
-                {next.preset && instrument === 'guitar' && <span className="bb-preset">{next.preset.name}</span>}
+                {nextSound && instrument === 'guitar' && <span className="bb-preset">{soundLabel(nextSound)}</span>}
               </span>
             )}
           </span>

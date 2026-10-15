@@ -4,6 +4,7 @@ import { hasShapes } from '../../music/voicings'
 import { chordParts } from '../../music/chord-text'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { BandChart } from './BandChart'
+import { ctl1Tags } from '../../music/gx10'
 
 interface Props {
   chart: SongChart
@@ -85,6 +86,8 @@ export function ChartBody({ chart, onChord, picked = null, focus, sectionsRef }:
           focusedIndex={focus?.index ?? null}
           onFocus={focus?.onFocus ?? (() => {})}
           renderTokens={renderTokens}
+          // Where the GX-10's CTL1 goes on or off: the guitarist's, not the keyboard's
+          tags={keyboard ? undefined : ctl1Tags(song.title)}
         />
       ) : (
         readSections.map((section, i) => {

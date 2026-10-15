@@ -20,16 +20,18 @@ const sound = () => screen.getByLabelText(/^GX-10 sound: /)
 // practice-header.test.tsx.
 
 describe('GX-10 sound on Stage', () => {
-  it('shows a solo switch on the tag, not in the cue', () => {
+  it("shows the song's memory and sound, and the CTL1 switches at their sections, not in the cue", () => {
     open('Somebody to Love')
     const { container } = render(<StageScreen />)
-    expect(sound()).toHaveTextContent('CRUNCH → LEAD solo')
-    expect(container.querySelector('.stage-cue')).not.toHaveTextContent('LEAD')
+    expect(sound()).toHaveTextContent('U05-3 CRUNCH')
+    expect(screen.getByLabelText('CTL1 ON · SOLO')).toBeInTheDocument()
+    expect(screen.getByLabelText('CTL1 OFF')).toBeInTheDocument()
+    expect(container.querySelector('.stage-cue')).not.toHaveTextContent('CTL1')
   })
 
   it('sits on the title row, and a sound alone adds no cue line', () => {
-    const { container } = render(<StageScreen />) // Faith: FUNK, no stage directions
-    expect(sound()).toHaveTextContent('FUNK')
+    const { container } = render(<StageScreen />) // Faith: U01-1 ACOUSTIC, no stage directions
+    expect(sound()).toHaveTextContent('U01-1 ACOUSTIC')
     expect(sound().closest('.stage-row')).toBe(container.querySelector('.stage-title')!.closest('.stage-row'))
     expect(container.querySelector('.stage-cue')).toBeNull()
   })
@@ -78,6 +80,6 @@ describe('next song', () => {
   it('names the GX-10 sound for the next song on the Next button', () => {
     useStore.setState({ currentIndex: 3 }) // Amazing; next is A Different Corner
     render(<BottomBar />)
-    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('WARM JAZZ')
+    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-2 BASS SWELL')
   })
 })

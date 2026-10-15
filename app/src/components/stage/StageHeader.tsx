@@ -1,4 +1,5 @@
 import type { SongChart } from '../../hooks/use-song-chart'
+import { SoundFact } from '../song/SoundFact'
 import { FormStrip } from '../song/FormStrip'
 
 interface Props {
@@ -24,15 +25,7 @@ export function StageHeader({ chart, extraFrom }: Props) {
           <span className="fact">{chart.bpm} BPM</span>
           <span className="fact">{song.timeSignature}</span>
           {/* The GX-10 sound and the capo are the guitarist's: the keyboard has neither */}
-          {song.preset && !keyboard && (
-            <span
-              className="fact"
-              aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
-            >
-              {song.preset.slot} {song.preset.name}
-              {song.preset.solo && ` → ${song.preset.solo} solo`}
-            </span>
-          )}
+          {!keyboard && <SoundFact title={song.title} />}
           {chart.capo > 0 && !keyboard && <span className="fact is-warn">Capo {chart.capo}</span>}
           {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
         </span>

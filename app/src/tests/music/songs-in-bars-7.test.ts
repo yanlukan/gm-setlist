@@ -39,7 +39,6 @@ describe('Careless Whisper in bars (songbook no. 4)', () => {
     expect(song.lowerKey).toBe(true)
     expect(song.capo).toBeNull()
     expect(song.shapes).toEqual({ Fm7: '1-3-1-1-1-1' })
-    expect(song.preset).toEqual({ name: '80s CLEAN', slot: 'U01-2' })
     expect(chordsOf(CW)).toEqual(['Dm', 'Gm7', 'Am7', 'Bbmaj7', 'Dm7'])
   })
 })

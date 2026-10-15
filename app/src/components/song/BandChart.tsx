@@ -12,13 +12,15 @@ interface Props {
   onFocus: (index: number | null) => void
   /** How chords are drawn: tappable for their shapes, or plain on stage. */
   renderTokens: (text: string) => ReactNode
+  /** A tag under a section's name, by section name: "CTL1 ON · SOLO", "CTL1 OFF". */
+  tags?: ReadonlyMap<string, string>
 }
 
 /**
  * A chart in bands: each section a band tinted in its colour, its letter
  * (A, B, C in chart order) and name in a gutter beside its bars.
  */
-export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTokens }: Props) {
+export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTokens, tags }: Props) {
   const letters = sectionLetters(sections.map(s => s.name))
   return (
     <>
@@ -40,6 +42,7 @@ export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTo
               ) : (
                 <div className="chart-label">{section.name}</div>
               )}
+              {tags?.get(section.name) && <Ctl1Tag text={tags.get(section.name)!} />}
             </div>
             <div className="chart-chords">
               <BandBars lines={section.chords.trim() ? section.chords.split('\n') : []} renderTokens={renderTokens} />
@@ -48,5 +51,21 @@ export function BandChart({ sections, focusable, focusedIndex, onFocus, renderTo
         )
       })}
     </>
+  )
+}
+
+/**
+ * "CTL1 ON · SOLO": where the column is narrow (Stage on its side, a phone)
+ * it reads just ON or OFF, filled or outlined.
+ */
+function Ctl1Tag({ text }: { text: string }) {
+  const [state, name] = text.split(' · ')
+  const on = state.endsWith('ON')
+  return (
+    <span className={on ? 'ctl1-tag is-on' : 'ctl1-tag'} aria-label={text}>
+      <span className="ctl1-prefix">CTL1 </span>
+      {on ? 'ON' : 'OFF'}
+      {name && <span className="ctl1-name"> · {name}</span>}
+    </span>
   )
 }

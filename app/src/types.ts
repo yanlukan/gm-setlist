@@ -21,17 +21,6 @@ export interface Song {
    */
   cue?: string
   /**
-   * The GX-10 memory for this song: its name ("FUNK") and where it is stored
-   * ("U01-1"). Shown as a small tag beside the title, so the sound never
-   * costs a line of the chart.
-   */
-  preset?: {
-    name: string
-    slot: string
-    /** A second memory for the solo, shown on the tag: "CRUNCH → LEAD solo". */
-    solo?: string
-  }
-  /**
    * Guitar shapes researched for this song (lessons and transcriptions of the
    * recording), by chord as the chart shows it, low E to high e:
    * { B: '7-9-9-8-7-7' }. They win over the app's own recommendation.

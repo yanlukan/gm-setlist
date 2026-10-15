@@ -1,6 +1,7 @@
 import { useStore } from '../../store/use-store'
 import { songbookOf } from '../../music/songbook'
 import type { SongChart } from '../../hooks/use-song-chart'
+import { SoundFact } from '../song/SoundFact'
 import { PracticeSetup } from './PracticeSetup'
 
 interface Props {
@@ -46,15 +47,7 @@ export function PracticeHeader({ chart, extraFrom }: Props) {
         )}
         <span className="fact">{chart.bpm} BPM</span>
         <span className="fact">{song.timeSignature}</span>
-        {song.preset && !keyboard && (
-          <span
-            className="fact"
-            aria-label={`GX-10 sound: ${song.preset.name}${song.preset.solo ? `, ${song.preset.solo} for the solo` : ''}`}
-          >
-            {song.preset.slot} {song.preset.name}
-            {song.preset.solo && ` → ${song.preset.solo} solo`}
-          </span>
-        )}
+        {!keyboard && <SoundFact title={song.title} />}
         {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
       </div>
       <PracticeSetup chart={chart} />

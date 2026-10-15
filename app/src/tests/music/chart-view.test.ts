@@ -112,14 +112,14 @@ describe('capo', () => {
 
 describe('guitarFor', () => {
   const auto = { simple: false, guitar: 'auto' as const, instrument: 'guitar' as const }
-  it("follows the song's sound: the acoustic preset is acoustic, any other preset electric, none acoustic", () => {
-    expect(guitarFor(song({ preset: { name: 'ACOUSTIC', slot: 'U02-3' } }), undefined, auto)).toBe('acoustic')
-    expect(guitarFor(song({ preset: { name: 'FUNK', slot: 'U01-1' } }), undefined, auto)).toBe('electric')
-    expect(guitarFor(song(), undefined, auto)).toBe('acoustic')
+  it("follows the song's GX-10 sound: the acoustic one is acoustic, any other electric, none acoustic", () => {
+    expect(guitarFor(song({ title: 'Waiting (Reprise)' }), undefined, auto)).toBe('acoustic')
+    expect(guitarFor(song({ title: 'Too Funky' }), undefined, auto)).toBe('electric')
+    expect(guitarFor(song({ title: 'A song of my own' }), undefined, auto)).toBe('acoustic')
   })
 
   it('takes the choice for every song over the sound, and the choice for the song over both', () => {
-    const funk = song({ preset: { name: 'FUNK', slot: 'U01-1' } })
+    const funk = song({ title: 'Too Funky' })
     expect(guitarFor(funk, undefined, { simple: false, guitar: 'acoustic', instrument: 'guitar' })).toBe('acoustic')
     expect(guitarFor(funk, { guitar: 'electric' }, { simple: false, guitar: 'acoustic', instrument: 'guitar' })).toBe('electric')
   })

@@ -4,7 +4,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Faith',
     songbook: 12,
-    preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'B',
     bpm: 96,
@@ -30,7 +29,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: "I'm Your Man",
     songbook: 31,
     shortTitle: 'I\'m Your Man',
-    preset: { name: 'FUNK', slot: 'U01-1' },
     lowerKey: true,
     transpose: -2, // band key C (confirmed 2026-09-28); chart is at the recording's D
     artist: 'George Michael',
@@ -66,7 +64,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Fastlove',
     songbook: 13,
-    preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Am',
     bpm: 103,
@@ -94,7 +91,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Wake Me Up Before You Go-Go',
     shortTitle: 'Wake Me Up',
-    preset: { name: 'FUNK', slot: 'U01-1' },
     lowerKey: true,
     transpose: -1, // band key B (confirmed 2026-09-28); chart is at the recording's C
     artist: 'Wham!',
@@ -115,7 +111,6 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Amazing',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     lowerKey: true,
     transpose: -1, // band key Am (confirmed 2026-09-28); chart is at the recording's Bbm
     artist: 'George Michael',
@@ -141,7 +136,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Outside',
     songbook: 47,
-    preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Gm',
     bpm: 122,
@@ -165,7 +159,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Papa Was a Rolling Stone',
     songbook: 36,
     shortTitle: 'Papa Rolling Stone',
-    preset: { name: 'FUNK', slot: 'U01-1' },
     cue: 'Killer / Papa medley, Wembley 1991. Killer riff with no chords until Bbm Gb Fm; Papa is Bbm7 throughout. Wah essential.',
     artist: 'The Temptations (cover)',
     key: 'Bbm',
@@ -191,7 +184,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Father Figure',
     songbook: 15,
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'George Michael',
     key: 'Bb',
     bpm: 102,
@@ -219,7 +211,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: "Freedom! '90",
     songbook: 19,
     shortTitle: "Freedom '90",
-    preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'C',
     bpm: 92,
@@ -248,7 +239,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Jesus to a Child',
     songbook: 35,
     shortTitle: 'Jesus Child',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'George Michael',
     key: 'C#m',
     bpm: 87,
@@ -294,7 +284,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'A Different Corner',
     songbook: 8,
     shortTitle: 'Diff. Corner',
-    preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     artist: 'George Michael',
     key: 'Gb',
     bpm: 100,
@@ -317,7 +306,6 @@ export const DEFAULT_SONGS: Song[] = [
   {
     title: 'Too Funky',
     songbook: 61,
-    preset: { name: 'FUNK', slot: 'U01-1' },
     artist: 'George Michael',
     key: 'Dm',
     bpm: 98,
@@ -342,7 +330,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Everything She Wants',
     songbook: 11,
     shortTitle: 'Everything',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'Wham!',
     key: 'F#m',
     bpm: 115,
@@ -373,7 +360,6 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Club Tropicana',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     lowerKey: true,
     transpose: -2, // band key A (confirmed 2026-09-28); chart is at the recording's B
     artist: 'Wham!',
@@ -404,7 +390,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Somebody to Love',
     songbook: 52,
     shortTitle: 'Somebody',
-    preset: { name: 'CRUNCH', slot: 'U02-1', solo: 'LEAD' },
     cue: '12/8 gospel shuffle — NOT straight 4/4. With Queen, Wembley 1992.',
     artist: 'Queen (cover)',
     key: 'G',
@@ -442,7 +427,6 @@ export const DEFAULT_SONGS: Song[] = [
     title: 'Careless Whisper',
     songbook: 4,
     shortTitle: 'Careless W.',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     lowerKey: true,
     transpose: -2, // band key Cm (confirmed 2026-09-28); chart is at the recording's Dm
     artist: 'George Michael',
@@ -473,7 +457,6 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 321, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     // The songbook's own boxes (no. 25): a D and G drone rings on the top two
     // strings through almost every chord.
     shapes: {
@@ -506,7 +489,6 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 251, // recording length, for set timing
     timeSignature: '12/8',
     capo: null,
-    preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
     shapes: {
       Bm: 'x-2-4-4-3-2', 'D/A': 'x-0-4-2-3-2', Gmaj7: 'x-x-5-4-3-2', 'F#m7': 'x-x-4-2-2-0', Em7: '0-5-5-4-3-x',
@@ -543,7 +525,6 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 147, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    preset: { name: 'ACOUSTIC', slot: 'U02-3' },
     cue: 'ACOUSTIC GUITAR + VOCAL ONLY — no band.',
     shapes: { G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' },
     shapesFrom: 'Songbook',
@@ -569,7 +550,6 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 275, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    preset: { name: 'WARM JAZZ', slot: 'U01-3' },
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
     shapes: {
       D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
@@ -603,7 +583,6 @@ export const DEFAULT_SONGS: Song[] = [
   },
   {
     title: 'Last Christmas',
-    preset: { name: '80s CLEAN', slot: 'U01-2' },
     artist: 'Wham!',
     key: 'D',
     bpm: 108,
