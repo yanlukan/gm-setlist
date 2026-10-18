@@ -339,6 +339,12 @@ describe('Jesus to a Child in bars (songbook no. 35)', () => {
     expect(chords['Last Chorus'].split('\n').slice(-2)).toEqual(['|  G#m7  |  F#m7  |  G#aug  |  C#m11  |', '|  %  |'])
   })
 
+  it('starts the chorus on C#m7 both times round, by ear from the record (the book has G#m7)', () => {
+    const chorus = by(JESUS).sections.find(s => s.name === 'Chorus')!.chords.split('\n')
+    expect(chorus[0]).toBe('|  C#m7  |  B  |  Amaj7  |  G#m7  |')
+    expect(chorus[2]).toBe(chorus[0])
+  })
+
   it('plays the verse chords twice before the voice comes in, and again after the first chorus', () => {
     expect(by(JESUS).form).toEqual([
       'Intro', 'Instrumental', 'Instrumental', 'Verse', 'Verse', 'Pre-Chorus', 'Chorus',

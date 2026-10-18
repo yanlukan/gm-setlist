@@ -253,7 +253,7 @@ export const DEFAULT_SONGS: Song[] = [
       'C#m11': '9-x-9-9-7-x',
     },
     shapesFrom: 'Songbook',
-    notes: 'From the songbook (no. 35). The book plays it with a capo on the 4th fret; this chart is at concert pitch. The shapes are the book\'s capo boxes moved to concert pitch: every dot on the 4th fret is where the capo sits, so with a capo there they are the book\'s open shapes (C#m is an Am shape, G# an E shape, B a G shape). Without a capo, barre the 4th fret. The C# box is read from a blurred page (x-4-6-6-6-x). Form: Intro, the verse chords twice with no voice, Verse (twice round), Pre-Chorus, Chorus, Instrumental on the verse chords, back to the Verse, Pre-Chorus, Chorus, then Bridge and Last Chorus. The book starts at the verse; the intro (two bars of C#m, then the verse chords twice) is from the recording. The last C#m11 rings on for a few bars as the record ends. The book marks 86 BPM.',
+    notes: 'From the songbook (no. 35). The book plays it with a capo on the 4th fret; this chart is at concert pitch. The shapes are the book\'s capo boxes moved to concert pitch: every dot on the 4th fret is where the capo sits, so with a capo there they are the book\'s open shapes (C#m is an Am shape, G# an E shape, B a G shape). Without a capo, barre the 4th fret. The C# box is read from a blurred page (x-4-6-6-6-x). Form: Intro, the verse chords twice with no voice, Verse (twice round), Pre-Chorus, Chorus, Instrumental on the verse chords, back to the Verse, Pre-Chorus, Chorus, then Bridge and Last Chorus. The book starts at the verse; the intro (two bars of C#m, then the verse chords twice) is from the recording. The last C#m11 rings on for a few bars as the record ends. The book starts the chorus on G#m7; on the record it starts on C#m7, the same as its second half. The book marks 86 BPM.',
     form: [
       'Intro', 'Instrumental', 'Instrumental', 'Verse', 'Verse', 'Pre-Chorus', 'Chorus',
       'Instrumental', 'Verse', 'Verse', 'Pre-Chorus', 'Chorus', 'Bridge', 'Last Chorus',
@@ -266,7 +266,7 @@ export const DEFAULT_SONGS: Song[] = [
       {
         name: 'Chorus',
         chords:
-          '|  G#m7  |  B  |  Amaj7  |  G#m7  |\n|  F#m7  |  G#aug  |  C#m7  |  %  |\n|  C#m7  |  B  |  Amaj7  |  G#m7  |\n|  F#m7  |  G#aug  |  C#m7  |  %  |',
+          '|  C#m7  |  B  |  Amaj7  |  G#m7  |\n|  F#m7  |  G#aug  |  C#m7  |  %  |\n|  C#m7  |  B  |  Amaj7  |  G#m7  |\n|  F#m7  |  G#aug  |  C#m7  |  %  |',
       },
       {
         name: 'Bridge',
