@@ -95,18 +95,18 @@ describe('shapes for one chord', () => {
     expect(shapes()).toEqual(FAITH_ALL)
   })
 
-  it('keep a shape you pick by hand, and can go back to the recommended one', () => {
+  it('keep a shape you pick by hand, go back to all shapes, and can go back to the recommended one', () => {
     render(<Panel />)
     fireEvent.click(tile('E'))
     fireEvent.click(screen.getByRole('button', { name: 'E at Open' }))
-    expect(screen.getByRole('button', { name: /^E at Open, selected$/ })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'All shapes' }))
+    expect(shapes()).toEqual(FAITH_ALL)
     expect(within(tile('E')).getByText('Open')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Your pick')).toBeInTheDocument()
 
     fireEvent.click(tile('E'))
+    expect(screen.getByRole('button', { name: /^E at Open, selected$/ })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Use the recommended shape' }))
-    fireEvent.click(screen.getByRole('button', { name: 'All shapes' }))
+    expect(shapes()).toEqual(FAITH_ALL)
     expect(within(tile('E')).getByText('7th fret')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Songbook')).toBeInTheDocument()
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
@@ -126,7 +126,6 @@ describe('your own shapes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'E at 4th fret, yours' }))
     expect(useStore.getState().edits.Faith?.shapes?.E).toBe(OWN)
     expect(useStore.getState().selectedVoicings.E).toBeUndefined()
-    fireEvent.click(screen.getByRole('button', { name: 'All shapes' }))
     expect(within(tile('E')).getByText('4th fret')).toBeInTheDocument()
     expect(within(tile('E')).getByText('Yours')).toBeInTheDocument()
   })

@@ -18,7 +18,8 @@ interface Props {
 /**
  * The song's chord shapes. With nothing picked: one tile per chord (of the
  * part tapped, if one is). With a chord picked: every shape of it, the one
- * used in this song marked; a tap makes another one this song's shape.
+ * used in this song marked; a tap makes another one this song's shape and
+ * goes back to every chord.
  */
 export function ShapeTiles({ chart, picked, onPick }: Props) {
   const { song, songEdits, sections, capo } = chart
@@ -64,6 +65,12 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
     const useRecommended = () => {
       if (songEdits?.shapes?.[picked] !== undefined) clearSongShape(song.title, picked)
       else clearVoicing(picked)
+      onPick(null)
+    }
+    // Picking a shape settles it: back to every chord in the song
+    const chooseShape = (shape: number | string) => {
+      pickSongShape(song.title, picked, shape)
+      onPick(null)
     }
     return (
       <section className="shape-tiles">
@@ -90,7 +97,7 @@ export function ShapeTiles({ chart, picked, onPick }: Props) {
                 className={inSong ? 'tile is-chosen' : 'tile'}
                 aria-label={`${picked} at ${voicing.l}${yours ? ', yours' : ''}${index === band[picked] ? ', recommended' : ''}${inSong ? ', selected' : ''}`}
                 // A shape the player wrote is picked by its text: it keeps meaning the same shape as the list changes
-                onClick={() => pickSongShape(song.title, picked, own.includes(text) ? text : index)}
+                onClick={() => chooseShape(own.includes(text) ? text : index)}
               >
                 <ChordDiagram voicing={voicing} size={112} />
                 <span className="tile-where">{voicing.l}</span>
