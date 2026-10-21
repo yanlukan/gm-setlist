@@ -20,7 +20,8 @@ describe('the pedal and arrow keys close an open sheet', () => {
     await renderApp()
     act(() => useStore.setState({ viewMode: 'stage', currentIndex: 0 }))
     fireEvent.click(button('Notes'))
-    expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument()
+    // Waits: the app's own loading draws outside act(), and a click can queue behind it
+    expect(await screen.findByRole('dialog', { name: 'Notes' })).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: 'PageDown' })
 
@@ -33,7 +34,7 @@ describe('the pedal and arrow keys close an open sheet', () => {
     await renderApp()
     act(() => useStore.setState({ viewMode: 'normal', currentIndex: 2 }))
     fireEvent.click(button('More'))
-    expect(screen.getByRole('dialog', { name: 'More' })).toBeInTheDocument()
+    expect(await screen.findByRole('dialog', { name: 'More' })).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: 'ArrowLeft' })
 
@@ -45,6 +46,7 @@ describe('the pedal and arrow keys close an open sheet', () => {
     await renderApp()
     act(() => useStore.setState({ viewMode: 'normal' }))
     fireEvent.click(button('More'))
+    await screen.findByRole('dialog', { name: 'More' })
     act(() => useStore.getState().toggleViewMode())
     act(() => useStore.getState().toggleViewMode())
     expect(screen.queryByRole('dialog', { name: 'More' })).not.toBeInTheDocument()

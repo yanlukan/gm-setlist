@@ -11,6 +11,11 @@ function published(version: string) {
 }
 
 beforeEach(() => resetUpdateCheck())
+
+// The app reads its saved data and the published version outside act(), so
+// React draws those on its own scheduler. Under a busy full-suite run a click
+// can wait behind that drawing: after a click, wait for the screen (findBy,
+// waitFor) instead of reading it at once.
 afterEach(() => vi.restoreAllMocks())
 
 describe('which version is newer', () => {
@@ -71,10 +76,10 @@ describe('in the app', () => {
     expect(await screen.findByText('PlayBook 99.0.0 is ready')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'More' }))
-    expect(screen.getByRole('button', { name: 'Update to v99.0.0' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Update to v99.0.0' })).toBeInTheDocument()
 
     act(() => useStore.setState({ viewMode: 'stage' }))
-    expect(screen.queryByText('PlayBook 99.0.0 is ready')).toBeNull()
+    await vi.waitFor(() => expect(screen.queryByText('PlayBook 99.0.0 is ready')).toBeNull())
   })
 })
 
@@ -86,6 +91,7 @@ describe('Check for updates, in More', () => {
     act(() => useStore.setState({ viewMode: 'normal' }))
     render(<App />)
     fireEvent.click(await screen.findByRole('button', { name: 'More' }))
+    await screen.findByRole('button', { name: 'Check for updates' })
     return useStore
   }
 
