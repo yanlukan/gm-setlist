@@ -271,12 +271,12 @@ export const DEFAULT_SONGS: Song[] = [
       {
         name: 'Bridge',
         chords:
-          '|  A#m7b5  |  A6/9  |  G#m7  |  C#  |  (x2)\n|  F#m7  |  G#aug  |  C#m7  |\n|  A#m7b5  |  A6  |  G#7  |  F#dim7  |\n|  C#m  |  C#m7  |  B  |  Amaj7  |',
+          '|  A#m7b5  |  A6/9  |  G#m7  |  C#  |  (x2)\n|  F#m7  |  G#aug  |  C#m7  |\n|  A#m7b5  |  A6  |  G#7  |  F#dim7  |',
       },
       {
         name: 'Last Chorus',
         chords:
-          '|  G#m7  |  F#m7  |  G#aug  |  C#m7  |\n|  C#m7  |  %  |  B  |  Amaj7  |\n|  G#m7  |  F#m7  |  G#aug  |  C#m7  |\n|  C#m7  |  %  |  B  |  Amaj7  |\n|  G#m7  |  F#m7  |  G#aug  |  C#m11  |\n|  %  |',
+          '|  C#m  |  C#m7  |  B  |  Amaj7  |\n|  G#m7  |  F#m7  |  G#aug  |  C#m7  |\n|  C#m7  |  %  |  B  |  Amaj7  |\n|  G#m7  |  F#m7  |  G#aug  |  C#m7  |\n|  C#m7  |  %  |  B  |  Amaj7  |\n|  G#m7  |  F#m7  |  G#aug  |  C#m11  |\n|  %  |',
       },
     ],
   },

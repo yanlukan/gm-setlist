@@ -329,7 +329,7 @@ describe('Jesus to a Child in bars (songbook no. 35)', () => {
 
   it("has the book's bars, with the intro from the recording", () => {
     expect(sectionBars(JESUS)).toEqual({
-      Intro: 2, Instrumental: 8, Verse: 8, 'Pre-Chorus': 8, Chorus: 16, Bridge: 19, 'Last Chorus': 21,
+      Intro: 2, Instrumental: 8, Verse: 8, 'Pre-Chorus': 8, Chorus: 16, Bridge: 15, 'Last Chorus': 25,
     })
     const chords = Object.fromEntries(by(JESUS).sections.map(s => [s.name, s.chords]))
     expect(chords.Intro).toBe('|  C#m  |  %  |')
