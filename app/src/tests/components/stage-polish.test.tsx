@@ -80,6 +80,6 @@ describe('next song', () => {
   it('names the GX-10 sound for the next song on the Next button', () => {
     useStore.setState({ currentIndex: 3 }) // Amazing; next is A Different Corner
     render(<BottomBar />)
-    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-2 BASS SWELL')
+    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-2 PAD')
   })
 })

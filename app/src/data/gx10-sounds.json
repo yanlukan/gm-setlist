@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-10-15",
+  "updated": "2026-10-22",
   "mode": "up/down",
   "switches": {
     "up": "next song",
@@ -48,7 +48,7 @@
     {
       "title": "Amazing",
       "memory": "U02-1",
-      "sound": "80s CLEAN",
+      "sound": "ACOUSTIC",
       "ctl1": null,
       "changes": [],
       "playing": null
@@ -56,7 +56,7 @@
     {
       "title": "A Different Corner",
       "memory": "U02-2",
-      "sound": "BASS SWELL",
+      "sound": "PAD",
       "ctl1": {
         "name": "NYLON",
         "what": "nylon acoustic"
@@ -149,17 +149,41 @@
       "title": "Fastlove",
       "memory": "U04-2",
       "sound": "FUNK",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
+      "ctl1": {
+        "name": "FUNK",
+        "what": "chorus and compressor off, reverb down"
+      },
+      "changes": [
+        {
+          "section": "Chorus",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        }
+      ],
+      "playing": "verse: chorus sound; tight funk on CTL1"
     },
     {
       "title": "Outside",
       "memory": "U04-3",
       "sound": "FUNK",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
+      "ctl1": {
+        "name": "ROTARY",
+        "what": "wah off, rotary on (piano part)"
+      },
+      "changes": [
+        {
+          "section": "Verse",
+          "ctl1": "on"
+        },
+        {
+          "section": "Chorus",
+          "ctl1": "off"
+        }
+      ],
+      "playing": "neck pickup; wah lick rocks by itself; toe switch = 2:40 part (parked bright wah)"
     },
     {
       "title": "Father Figure",
