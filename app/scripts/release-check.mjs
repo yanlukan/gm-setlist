@@ -6,6 +6,8 @@
 // Exit 0 when everything passes; otherwise 1 with one line per problem:
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
 //   <engine> <size> <screen> <nn> <song> section <n>: runs past its width
+// On the phone, a row that cannot fit even at 20 px (a section too wide, a chord off the screen)
+// is a `phone warning: ...` line instead, and does not fail the check (release-problems.mjs).
 // Pictures: release-shots/<engine>/<size>/<screen>/<nn>-<song>.png, and release-shots/changed.txt
 // lists the pictures whose SHA-256 differs from the run before (hashes in release-shots/hashes.json).
 import { spawn } from 'node:child_process'
@@ -14,6 +16,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, webkit } from 'playwright'
+import { problems, sortOut } from './release-problems.mjs'
 
 const PORT = 4179
 const URL = `http://localhost:${PORT}/gm-setlist/`
@@ -76,45 +79,10 @@ const READ_CHORDS = () => {
   const sections = [...document.querySelectorAll('.band-chart .bar-grid')]
     .map((grid, i) => (grid.scrollWidth > grid.clientWidth + 1 ? i + 1 : 0))
     .filter(Boolean)
-  return { chords, sections }
+  const chart = document.querySelector('.band-chart')
+  return { chords, sections, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
 }
 
-const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
-
-/** The problems in one page, as [where, text]: where is `bar <n>` or `section <n>`, from 1. */
-function problems({ chords, sections }) {
-  const found = sections.map(n => [`section ${n}`, 'runs past its width'])
-  chords.forEach((c, i) => {
-    const n = `bar ${c.bar + 1}`
-    if (c.px < 20) found.push([n, `${c.name} chord under 20 px (${c.px.toFixed(1)} px)`])
-    const b = c.barRect
-    if (b && (c.content.left < b.left - 1 || c.content.right > b.right + 1 || c.content.top < b.top - 1 || c.content.bottom > b.bottom + 1)) {
-      found.push([n, `${c.name} runs past its bar`])
-    }
-    if (c.cutOff) found.push([n, `${c.name} cut off`])
-    if (c.offScreen) found.push([n, `${c.name} off the screen`])
-    // Staggered, the chords read in playing order: each starts at least half the chart's size
-    // after the one before, the first ends before the second starts, and two on one line never
-    // overlap. A chord may run on under the next one on the other line
-    const prev = chords[i - 1]
-    if (c.staggered && prev && prev.bar === c.bar) {
-      if (c.text.left < prev.text.left + 0.5 * c.px - 1) found.push([n, `${c.name} out of order (starts under ${prev.name})`])
-      const first = chords[i - 2]?.bar !== c.bar
-      if (first && prev.text.right > c.text.left + 1) found.push([n, `${c.name} out of order (starts before ${prev.name} ends)`])
-    }
-    if (c.staggered) {
-      for (const o of chords.slice(i + 1)) {
-        if (o.bar === c.bar && o.row === c.row && Math.min(c.text.right, o.text.right) - Math.max(c.text.left, o.text.left) > 1) {
-          found.push([n, `${o.name} out of order (overlaps ${c.name} on its line)`])
-        }
-      }
-    }
-    for (const o of chords.slice(i + 1)) {
-      if (o.bar === c.bar && overlap(c.content, o.content)) found.push([n, `${c.name} overlaps ${o.name}`])
-    }
-  })
-  return found
-}
 
 /** Waits until the chords stop moving (two reads 150 ms apart agree), then two animation frames. */
 async function settle(page, what) {
@@ -174,6 +142,7 @@ async function onScreen(page, screen) {
 const hashes = existsSync(join(SHOTS, 'hashes.json')) ? JSON.parse(readFileSync(join(SHOTS, 'hashes.json'), 'utf8')) : {}
 const changed = []
 const lines = []
+const warnings = []
 let pages = 0
 
 const server = await startServer()
@@ -200,7 +169,9 @@ try {
             continue
           }
           pages++
-          for (const [where, text] of problems(chords)) lines.push(`${engineName} ${label} ${where}: ${text}`)
+          const { failures, warnings: phone } = sortOut(size.name, chords.chartPx, problems(chords))
+          for (const [where, text] of failures) lines.push(`${engineName} ${label} ${where}: ${text}`)
+          for (const [where, text] of phone) warnings.push(`phone warning: ${engineName} ${label} ${where}: ${text}`)
           const file = join(SHOTS, engineName, size.name, screen.toLowerCase(), `${nn}-${slug(title)}.png`)
           mkdirSync(dirname(file), { recursive: true })
           const picture = await page.screenshot({ fullPage: true })
@@ -223,6 +194,6 @@ try {
 mkdirSync(SHOTS, { recursive: true })
 writeFileSync(join(SHOTS, 'hashes.json'), JSON.stringify(hashes, null, 2))
 writeFileSync(join(SHOTS, 'changed.txt'), changed.join('\n') + (changed.length ? '\n' : ''))
-console.log(lines.join('\n'))
-console.log(`\n${pages} pages checked, ${lines.length} problems, ${changed.length} pictures changed`)
+console.log([...lines, ...warnings].join('\n'))
+console.log(`\n${pages} pages checked, ${lines.length} problems, ${warnings.length} phone warnings, ${changed.length} pictures changed`)
 process.exit(lines.length ? 1 : 0)

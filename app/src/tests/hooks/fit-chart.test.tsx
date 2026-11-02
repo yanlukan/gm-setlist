@@ -61,6 +61,7 @@ function beatBar(beats: number, starts: number[], need: Px, staggered: Px = need
   bar.className = 'bar'
   bar.dataset.beats = String(beats)
   bar.style.setProperty('--beats', String(beats))
+  bar.style.fontSize = '40px'
   const chords = starts.map((start, i) => {
     const chord = document.createElement('span')
     chord.className = 'bar-chord'
@@ -112,8 +113,8 @@ describe('layOutBars', () => {
     expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
     expect(prop(chords, '--start')).toEqual(['1', '2', '3'])
     expect(prop(chords, '--run')).toEqual(['2', '3', '2'])
-    // Beats of one width: G#m's 80 px over its two beats
-    expect(bar.style.getPropertyValue('--beat-min')).toBe('40px')
+    // F#/A# after B, G#m half a size later, over F#/A#'s tail (staggered-beats.ts)
+    expect(bar.style.getPropertyValue('--beat-widths')).toBe('minmax(30px, 1fr) minmax(20px, 1fr) minmax(45px, 1fr) minmax(45px, 1fr)')
   })
 
   it('staggers a three-chord bar without dots the same way, so the last chord is on the right of the top line', () => {
@@ -155,42 +156,21 @@ describe('layOutBars', () => {
     expect(noStart.bar.dataset.lines).toBeUndefined()
   })
 
-  it('gives a staggered bar beats of one width, so every chord ends before the next on its own line, gaps counted', () => {
+  it('gives a staggered bar the beats it needs, gaps counted', () => {
     const content = document.createElement('div')
     const { bar } = beatBar(4, [0, 1, 2], 500, 150, [30, 110, 80])
     bar.style.setProperty('column-gap', '10px')
     content.append(fakeGrid(400, 4, [{ bar }]))
     layOutBars(content)
-    // G#m: 80 px and one 10 px gap over two beats
-    expect(bar.style.getPropertyValue('--beat-min')).toBe('35px')
+    expect(bar.style.getPropertyValue('--beat-widths')).toBe('minmax(30px, 1fr) minmax(10px, 1fr) minmax(40px, 1fr) minmax(40px, 1fr)')
   })
 
-  it('keeps the first chord inside its beats, so the second starts after it ends', () => {
+  it('never staggers a bar that would be no narrower staggered', () => {
     const content = document.createElement('div')
-    const { bar } = beatBar(5, [0, 1, 3], 500, 150, [60, 230, 30])
-    content.append(fakeGrid(400, 4, [{ bar }]))
-    layOutBars(content)
-    expect(bar.dataset.lines).toBe('2')
-    expect(bar.style.getPropertyValue('--beat-min')).toBe('60px')
-  })
-
-  it('starts each chord at least half the chart size after the one before', () => {
-    const content = document.createElement('div')
-    const { bar } = beatBar(4, [0, 1, 2], 500, 150, [40, 120, 80])
-    bar.style.fontSize = '100px'
-    content.append(fakeGrid(400, 4, [{ bar }]))
-    layOutBars(content)
-    expect(bar.style.getPropertyValue('--beat-min')).toBe('50px')
-  })
-
-  it('never staggers a bar that would be no narrower on beats of one width', () => {
-    const content = document.createElement('div')
-    const pair = beatBar(4, [0, 2], 500, 100, [40, 100]) // the second chord's two beats need 50 px each
-    const even = beatBar(3, [0, 1, 2], 500, 100, [80, 80, 80])
-    content.append(fakeGrid(400, 4, [pair]), fakeGrid(400, 4, [even]))
-    expect(layOutBars(content)).toBe(2)
+    const pair = beatBar(4, [0, 2], 500, 100, [40, 100]) // the second chord ends the bar either way
+    content.append(fakeGrid(400, 4, [pair]))
+    expect(layOutBars(content)).toBe(1)
     expect(pair.bar.dataset.lines).toBeUndefined()
-    expect(even.bar.dataset.lines).toBeUndefined()
   })
 
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
@@ -250,7 +230,7 @@ describe('layOutBars', () => {
     need = 300
     layOutBars(content)
     expect(bar.dataset.lines).toBeUndefined()
-    expect(bar.style.getPropertyValue('--beat-min')).toBe('')
+    expect(bar.style.getPropertyValue('--beat-widths')).toBe('')
     expect(prop(chords, '--row')).toEqual(['', '', ''])
     expect(prop(chords, '--run')).toEqual(['', '', ''])
   })

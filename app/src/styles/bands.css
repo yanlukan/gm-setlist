@@ -101,10 +101,10 @@
 /* Where a section's bars add up to more than its width, its most crowded bars stagger: their
    chords alternate between two lines, each under its own beat, running on over the empty beats
    of its line. The fit sets --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
-/* Staggered, a bar's beats are all one width, at least --beat-min (the fit's): each chord under
-   its own beat, in playing order, and ending before the next chord on its own line */
+/* Staggered, each beat is at least as wide as the fit says (--beat-widths): each chord under its
+   own beat, in playing order, ending before the next chord on its own line starts */
 .band-chart .bar[data-lines='2'] {
-  grid-template-columns: repeat(var(--beats, 1), minmax(var(--beat-min, min-content), 1fr));
+  grid-template-columns: var(--beat-widths, repeat(var(--beats, 1), minmax(min-content, 1fr)));
   grid-template-rows: auto auto;
   row-gap: 0;
 }

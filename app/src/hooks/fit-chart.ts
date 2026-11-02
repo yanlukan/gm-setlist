@@ -1,4 +1,5 @@
 import { useLayoutEffect, type RefObject } from 'react'
+import { oneLineWidth, staggeredBeats, type StaggeredBeats } from './stagger-beats'
 
 /** No chord is drawn smaller than this, on either screen. */
 export const MIN_CHORD_PX = 20
@@ -103,32 +104,17 @@ function runsOf({ chords, beats, starts }: Crowded): number[] {
 }
 
 /**
- * The width of each beat of a bar staggered: its beats are all one width, so
- * every chord starts under its own beat in playing order. Wide enough that
- * every chord ends before the next chord on its own line, that the first
- * chord ends before the second starts, and that each chord starts at least
- * half the chart's size after the one before. A chord may still run on under
- * the next chord on the other line.
- */
-function beatWidthOf(c: Crowded): number {
-  const { widths, gap, font, starts } = c
-  // n beats and the n - 1 gaps between them hold `width`
-  const per = (width: number, n: number) => (width + gap) / n - gap
-  let beat = font / 2 - gap
-  runsOf(c).forEach((run, i) => (beat = Math.max(beat, per(widths[i], run))))
-  beat = Math.max(beat, per(widths[0], starts[1] - starts[0]))
-  return Math.ceil(beat)
-}
-
-/**
  * Puts a bar's chords on two lines, alternately, each still starting under
  * its own beat (`--start`) and running on over the empty beats of its own
- * line (`--run`), every beat `--beat-min` wide or more. The second chord is
+ * line (`--run`), each beat at least as wide as `staggeredBeats` says
+ * (`--beat-widths`), so the bar reads in playing order. The second chord is
  * never on beat 1, so no line starts with a lone chord at the left.
  */
-function stagger(c: Crowded, beat: number): void {
+function stagger(c: Crowded, beats: StaggeredBeats): void {
   c.bar.dataset.lines = '2'
-  c.bar.style.setProperty('--beat-min', `${beat}px`)
+  // Each beat its least width or more: the room left in its column is shared
+  const tracks = beats.tracks.map(t => `minmax(${Math.ceil(t * 10) / 10}px, 1fr)`)
+  c.bar.style.setProperty('--beat-widths', tracks.join(' '))
   const runs = runsOf(c)
   c.chords.forEach((chord, i) => {
     chord.style.setProperty('--row', String((i % 2) + 1))
@@ -143,7 +129,7 @@ function stagger(c: Crowded, beat: number): void {
  * crowded bar takes what its row has spare and stays on one line. Only where
  * a section's bars then add up to more than its width do bars stagger: the
  * most crowded first, one at a time, until the section fits, each only if
- * staggered on beats of one width it is narrower than on one line. No bar is
+ * it is narrower staggered (staggered-beats.ts) than on one line. No bar is
  * ever shrunk alone. Returns how many sections still run past their width,
  * plus any chord cut off: 0 when the chart's bars fit at this size.
  */
@@ -151,7 +137,7 @@ export function layOutBars(content: HTMLElement): number {
   const grids = [...content.querySelectorAll<HTMLElement>('.bar-grid')]
   for (const bar of content.querySelectorAll<HTMLElement>('.bar')) {
     delete bar.dataset.lines
-    bar.style.removeProperty('--beat-min')
+    bar.style.removeProperty('--beat-widths')
     for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord')) {
       chord.style.removeProperty('--row')
       chord.style.removeProperty('--run')
@@ -180,18 +166,18 @@ export function layOutBars(content: HTMLElement): number {
       c.bar.style.removeProperty('width')
       for (const chord of c.chords) chord.style.removeProperty('width')
     }
-    // Most crowded first, each bar that is narrower staggered: its beats, all one width, take
-    // less than its chords side by side. Every such bar is queued, so a bar that helps at one
-    // size helps at every smaller one too, and a size that fits is never followed by a larger one
-    const beat = new Map(all.map(c => [c, beatWidthOf(c)]))
-    const narrower = (c: Crowded) => c.beats * (beat.get(c) as number) < c.widths.reduce((sum, w) => sum + w, 0) - 1
+    // Most crowded first, each bar that is narrower staggered than with its chords side by
+    // side. Every such bar is queued, so a bar that helps at one size helps at every smaller
+    // one too, and a size that fits is never followed by a larger one
+    const beat = new Map(all.map(c => [c, staggeredBeats(c)]))
+    const narrower = (c: Crowded) => (beat.get(c) as StaggeredBeats).width < oneLineWidth(c) - 1
     const queues = candidates.map(list => list.filter(narrower).sort((a, b) => b.need - a.need))
     let at = open.map((_, g) => g)
     while (at.length) {
       const next = at.filter(g => queues[g].length)
       for (const g of next) {
         const c = queues[g].shift() as Crowded
-        stagger(c, beat.get(c) as number)
+        stagger(c, beat.get(c) as StaggeredBeats)
       }
       at = next.filter(g => overflows(open[g]))
     }
