@@ -50,6 +50,11 @@ describe('needsTwoLines', () => {
     expect(needsTwoLines(1, 30, 0.5)).toBe(false) // one chord shrinks in its bar instead
     expect(needsTwoLines(2, 30, 1)).toBe(false)
   })
+
+  it('never for three chords: the third would stand alone like a bar of its own', () => {
+    expect(needsTwoLines(3, 30, 0.5)).toBe(false) // 15 px: shrinks in its bar instead
+    expect(needsTwoLines(4, 30, 0.5)).toBe(true)
+  })
 })
 
 /** A bar `width` wide whose chords need `oneLine` px on one line and `twoLines` px on two. */
@@ -143,6 +148,15 @@ describe('layOutBars with one size (Practice)', () => {
     content.append(bar)
     layOutBars(content, 20, { oneSize: true, shrink: true })
     expect(bar.style.getPropertyValue('--fit')).toBe('0.75')
+  })
+
+  it('keeps a bar of three chords on one line and shrinks it alone, not the chart (Faith: B F#/A# G#m)', () => {
+    const content = document.createElement('div')
+    const bar = fakeBar(3, 200, 250, 250) // 250 px of chords in a 200 px bar
+    content.append(bar)
+    expect(layOutBars(content, 44, { oneSize: true, shrink: false })).toBe(0)
+    expect(bar.dataset.lines).toBeUndefined()
+    expect(bar.style.getPropertyValue('--fit')).toBe('0.8')
   })
 
   it('leaves Stage as it was: a chord too wide for its beat does not count there', () => {
