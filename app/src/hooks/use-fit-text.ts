@@ -33,13 +33,6 @@ interface FitOptions {
    * fits, so the page can make room (smaller chord diagrams). On by default.
    */
   cramped?: boolean
-  /**
-   * Cells whose content must stay inside them, as a selector: the bars of a
-   * band chart. At every size tried, content wider than its cell (a long chord
-   * in one bar) is scaled down in that cell alone, so it neither runs into the
-   * next cell nor makes the whole chart smaller.
-   */
-  fitCells?: string
 }
 
 interface Range {
@@ -65,25 +58,6 @@ function rangeFrom(content: HTMLElement, passed: Range): Range {
 }
 
 /**
- * Scales each cell whose content is wider than it down to the size at which
- * it fits, by setting `--fit` on the cell (the stylesheet turns it into zoom),
- * and lets every other cell back to full size. Reads every cell before writing
- * any, so the page is laid out once.
- */
-function fitWideCells(content: HTMLElement, selector: string) {
-  const cells = [...content.querySelectorAll<HTMLElement>(selector)]
-  for (const cell of cells) cell.style.removeProperty('--fit')
-  const scales = cells.map(cell =>
-    cell.clientWidth > 0 && cell.scrollWidth > cell.clientWidth + 1
-      ? Math.floor((cell.clientWidth / cell.scrollWidth) * 100) / 100
-      : 1,
-  )
-  cells.forEach((cell, i) => {
-    if (scales[i] < 1) cell.style.setProperty('--fit', String(scales[i]))
-  })
-}
-
-/**
  * Sets `content`'s font size to the largest value (px) at which it fits
  * inside `container` without scrolling, found by binary search on real
  * layout. If even `min` does not fit, the essential part (if given) is fitted
@@ -99,7 +73,7 @@ export function useFitText(
   containerRef: RefObject<HTMLElement | null>,
   contentRef: RefObject<HTMLElement | null>,
   contentKey: string,
-  { min, max, enabled, preferNoWrapMin, essentialRef, fallback, cssVars = false, cramped = true, fitCells }: FitOptions,
+  { min, max, enabled, preferNoWrapMin, essentialRef, fallback, cssVars = false, cramped = true }: FitOptions,
 ): void {
   useLayoutEffect(() => {
     const container = containerRef.current
@@ -108,7 +82,6 @@ export function useFitText(
 
     const setSize = (px: number) => {
       content.style.fontSize = `${px}px`
-      if (fitCells) fitWideCells(content, fitCells)
     }
 
     const fits = () =>
@@ -177,5 +150,5 @@ export function useFitText(
     const observer = new ResizeObserver(() => fit())
     observer.observe(container)
     return () => observer.disconnect()
-  }, [containerRef, contentRef, contentKey, min, max, enabled, preferNoWrapMin, essentialRef, fallback, cssVars, cramped, fitCells])
+  }, [containerRef, contentRef, contentKey, min, max, enabled, preferNoWrapMin, essentialRef, fallback, cssVars, cramped])
 }

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { largestFit, layOutBars, needsTwoLines, useBandFit } from '../../hooks/fit-chart'
+import { largestFit, layOutBars, refitCharts, useBandFit } from '../../hooks/fit-chart'
 
 describe('largestFit', () => {
   it('takes the largest size when everything fits', () => {
@@ -43,125 +43,122 @@ describe('largestFit', () => {
   })
 })
 
-describe('needsTwoLines', () => {
-  it('only for two or more chords that would go under 20 px', () => {
-    expect(needsTwoLines(2, 30, 0.6)).toBe(true) // 18 px
-    expect(needsTwoLines(3, 30, 0.7)).toBe(false) // 21 px
-    expect(needsTwoLines(1, 30, 0.5)).toBe(false) // one chord shrinks in its bar instead
-    expect(needsTwoLines(2, 30, 1)).toBe(false)
-  })
-})
-
-/** A bar `width` wide whose chords need `oneLine` px on one line and `twoLines` px on two. */
-function fakeBar(chords: number, width: number, oneLine: number, twoLines: number) {
+/**
+ * A bar of `beats` beat columns, each `beat` px wide, with a chord at each of
+ * `starts` (0-based beats) needing `need[i]` px (or a function of the chart's
+ * size). jsdom has no layout, so a chord's clientWidth is the width of the
+ * columns it spans: its --span on one line, its --run when staggered.
+ */
+function beatBar(beats: number, starts: number[], beat: number, need: (number | (() => number))[]) {
   const bar = document.createElement('div')
   bar.className = 'bar'
-  for (let i = 0; i < chords; i++) {
+  bar.dataset.beats = String(beats)
+  bar.style.setProperty('--beats', String(beats))
+  const chords = starts.map((start, i) => {
     const chord = document.createElement('span')
     chord.className = 'bar-chord'
+    chord.dataset.start = String(start)
+    const span = (starts[i + 1] ?? beats) - start
+    chord.style.setProperty('--start', String(start + 1))
+    chord.style.setProperty('--span', String(span))
+    const columns = () => {
+      const run = parseFloat(chord.style.getPropertyValue('--run'))
+      return bar.dataset.lines === '2' && !Number.isNaN(run) ? run : span
+    }
+    Object.defineProperty(chord, 'clientWidth', { get: () => columns() * beat })
+    Object.defineProperty(chord, 'scrollWidth', {
+      get: () => {
+        const n = need[i]
+        return Math.max(columns() * beat, typeof n === 'function' ? n() : n)
+      },
+    })
     bar.appendChild(chord)
-  }
-  Object.defineProperty(bar, 'clientWidth', { get: () => width })
-  Object.defineProperty(bar, 'scrollWidth', { get: () => (bar.dataset.lines === '2' ? twoLines : oneLine) })
-  return bar
+    return chord
+  })
+  return { bar, chords }
 }
 
+const prop = (chords: HTMLElement[], name: string) => chords.map(c => c.style.getPropertyValue(name))
+
 describe('layOutBars', () => {
-  it('puts a crowded bar on two lines, and leaves the others alone', () => {
+  it('keeps a bar on one line when every chord fits its columns', () => {
     const content = document.createElement('div')
-    const crowded = fakeBar(2, 100, 160, 90) // at 30 px: 30 × 0.62 = 18.6, under 20
-    const roomy = fakeBar(2, 100, 100, 60)
-    content.append(crowded, roomy)
-    layOutBars(content, 30)
-    expect(crowded.dataset.lines).toBe('2')
-    expect(crowded.style.getPropertyValue('--fit')).toBe('')
-    expect(roomy.dataset.lines).toBeUndefined()
+    const { bar, chords } = beatBar(4, [0, 2], 50, [80, 90])
+    content.append(bar)
+    expect(layOutBars(content)).toBe(0)
+    expect(bar.dataset.lines).toBeUndefined()
+    expect(prop(chords, '--row')).toEqual(['', ''])
   })
 
-  it('shrinks one long chord in its own bar', () => {
+  it('staggers a bar whose chords do not fit their beats, each still under its beat (Faith: B F#/A# G#m .)', () => {
     const content = document.createElement('div')
-    const long = fakeBar(1, 100, 125, 125)
-    content.append(long)
-    layOutBars(content, 30)
-    expect(long.dataset.lines).toBeUndefined()
-    expect(long.style.getPropertyValue('--fit')).toBe('0.8')
+    const { bar, chords } = beatBar(4, [0, 1, 2], 40, [30, 70, 60])
+    content.append(bar)
+    expect(layOutBars(content)).toBe(0)
+    expect(bar.dataset.lines).toBe('2')
+    expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
+    expect(prop(chords, '--start')).toEqual(['1', '2', '3'])
+    expect(prop(chords, '--run')).toEqual(['2', '3', '2'])
   })
 
-  it('still shrinks a bar that is too wide on two lines', () => {
+  it('staggers a three-chord bar without dots the same way, so the last chord is on the right of the top line', () => {
     const content = document.createElement('div')
-    const packed = fakeBar(4, 100, 250, 110)
-    content.append(packed)
-    layOutBars(content, 30)
-    expect(packed.dataset.lines).toBe('2')
-    expect(packed.style.getPropertyValue('--fit')).toBe('0.9')
+    const { bar, chords } = beatBar(3, [0, 1, 2], 40, [60, 60, 30])
+    content.append(bar)
+    expect(layOutBars(content)).toBe(0)
+    expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
+    expect(prop(chords, '--run')).toEqual(['2', '2', '1'])
+  })
+
+  it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
+    const content = document.createElement('div')
+    const bars = [
+      beatBar(4, [0, 1, 2], 40, [30, 70, 60]),
+      beatBar(4, [0, 2], 30, [70, 70]),
+      beatBar(3, [0, 1, 2], 40, [60, 60, 30]),
+      beatBar(4, [0, 1, 2, 3], 30, [50, 50, 50, 50]),
+    ]
+    content.append(...bars.map(b => b.bar))
+    layOutBars(content)
+    for (const { bar, chords } of bars) {
+      expect(bar.dataset.lines).toBe('2')
+      for (const chord of chords.filter(c => c.style.getPropertyValue('--row') === '2')) {
+        expect(Number(chord.style.getPropertyValue('--start'))).toBeGreaterThan(1)
+      }
+    }
+  })
+
+  it('never sets --fit or zoom on a bar', () => {
+    const content = document.createElement('div')
+    const bars = [beatBar(4, [0, 1, 2], 40, [30, 70, 60]), beatBar(4, [0], 20, [200]), beatBar(4, [0, 2], 10, [90, 90])]
+    content.append(...bars.map(b => b.bar))
+    layOutBars(content)
+    for (const { bar } of bars) {
+      expect(bar.style.getPropertyValue('--fit')).toBe('')
+      expect(bar.style.zoom).toBe('')
+    }
+  })
+
+  it('counts a bar of one chord too long even split', () => {
+    const content = document.createElement('div')
+    const { bar } = beatBar(4, [0], 20, [120])
+    content.append(bar, beatBar(4, [0, 2], 50, [80, 90]).bar)
+    expect(layOutBars(content)).toBe(1)
+    expect(bar.dataset.lines).toBeUndefined()
   })
 
   it('starts again from one line at every size', () => {
     const content = document.createElement('div')
-    const bar = fakeBar(2, 100, 160, 90)
+    let need = 70
+    const { bar, chords } = beatBar(4, [0, 1, 2], 40, [30, () => need, 30])
     content.append(bar)
-    layOutBars(content, 30)
+    layOutBars(content)
     expect(bar.dataset.lines).toBe('2')
-    layOutBars(content, 40) // 40 × 0.62 = 24.8: one line is fine now
+    need = 35
+    layOutBars(content)
     expect(bar.dataset.lines).toBeUndefined()
-  })
-})
-
-/** A bar whose chords each need `need` px, in slots `slot` px wide on one line and `slotTwo` on two. */
-function slottedBar(chords: number, slot: number, slotTwo: number, need: number) {
-  const bar = fakeBar(chords, 200, 200, 200)
-  for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord')) {
-    Object.defineProperty(chord, 'clientWidth', { get: () => (bar.dataset.lines === '2' ? slotTwo : slot) })
-    Object.defineProperty(chord, 'scrollWidth', { get: () => need })
-  }
-  return bar
-}
-
-describe('layOutBars with one size (Practice)', () => {
-  it('puts a shared bar on two lines, a chord a line, as soon as a chord is too wide for its beat', () => {
-    const content = document.createElement('div')
-    const bar = slottedBar(2, 90, 190, 99) // G#m needs 99 px of a 90 px half
-    content.append(bar)
-    expect(layOutBars(content, 44, { oneSize: true, shrink: false })).toBe(0)
-    expect(bar.dataset.lines).toBe('2')
-    expect(bar.dataset.oneALine).toBe('true')
-    expect(bar.style.getPropertyValue('--fit')).toBe('')
-  })
-
-  it('never shrinks a bar alone, but says how many are still too narrow', () => {
-    const content = document.createElement('div')
-    const bar = slottedBar(1, 90, 90, 120) // one long chord: two lines cannot help
-    content.append(bar)
-    expect(layOutBars(content, 44, { oneSize: true, shrink: false })).toBe(1)
-    expect(bar.dataset.lines).toBeUndefined()
-    expect(bar.style.getPropertyValue('--fit')).toBe('')
-  })
-
-  it('shrinks it when asked, at the smallest size, rather than spill over', () => {
-    const content = document.createElement('div')
-    const bar = slottedBar(1, 90, 90, 120)
-    content.append(bar)
-    layOutBars(content, 20, { oneSize: true, shrink: true })
-    expect(bar.style.getPropertyValue('--fit')).toBe('0.75')
-  })
-
-  it('puts the third chord of a bar on the right of the second line, under its beat (Faith: B F#/A# G#m)', () => {
-    const content = document.createElement('div')
-    const bar = slottedBar(3, 60, 90, 99)
-    content.append(bar)
-    layOutBars(content, 44, { oneSize: true, shrink: false })
-    expect(bar.dataset.lines).toBe('2')
-    const chords = [...bar.querySelectorAll<HTMLElement>('.bar-chord')]
-    expect(chords.map(c => c.dataset.under)).toEqual([undefined, undefined, 'true'])
-  })
-
-  it('leaves Stage as it was: a chord too wide for its beat does not count there', () => {
-    const content = document.createElement('div')
-    const bar = slottedBar(2, 90, 190, 99)
-    content.append(bar)
-    expect(layOutBars(content, 44)).toBe(0)
-    expect(bar.dataset.lines).toBeUndefined()
-    expect(bar.dataset.oneALine).toBeUndefined()
+    expect(prop(chords, '--row')).toEqual(['', '', ''])
+    expect(prop(chords, '--run')).toEqual(['', '', ''])
   })
 })
 
@@ -178,6 +175,31 @@ function fakeChart(lines: number) {
 }
 
 describe('useBandFit', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('takes the largest size from 44 down to 20 at which the chart fits and returns to it after a refit', () => {
+    vi.stubGlobal('ResizeObserver', class {
+      observe() {}
+      disconnect() {}
+    })
+    const chart = fakeChart(8) // the chart alone fits up to 50 px
+    // A chord three chart sizes wide in a 100 px bar (a pixel's grace): it fits up to 33.67 px
+    const size = () => parseFloat(chart.content.current.style.fontSize) || 0
+    chart.content.current.append(beatBar(1, [0], 100, [() => size() * 3]).bar)
+    renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
+    expect(chart.size()).toBe(33.5)
+    chart.content.current.style.fontSize = '44px'
+    refitCharts()
+    expect(chart.size()).toBe(33.5)
+  })
+
+  it('stops at 20 when nothing fits, and scrolls', () => {
+    const chart = fakeChart(8)
+    chart.content.current.append(beatBar(4, [0], 10, [500]).bar)
+    renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
+    expect(chart.size()).toBe(20)
+  })
+
   it('fits the whole chart at the largest size that fits', () => {
     const chart = fakeChart(12) // fits up to 33.4 px
     renderHook(() => useBandFit(chart.container, chart.content, 'a', true))

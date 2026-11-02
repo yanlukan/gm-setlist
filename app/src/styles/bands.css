@@ -95,8 +95,9 @@
   padding: 0 0.35em;
   border-left: 2px solid var(--text-muted);
 }
-/* Chords that would go under 20 px on one line: two lines, each chord on its row. The fit
-   sets --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
+/* Chords that do not fit their beats at the chart's size stagger: they alternate between two
+   lines, each under its own beat, running on over the empty beats of its line. The fit sets
+   --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
 .band-chart .bar[data-lines='2'] { grid-template-rows: auto auto; row-gap: 0; }
 .band-chart .bar[data-lines='2'] .bar-chord {
   grid-row: var(--row, 1);

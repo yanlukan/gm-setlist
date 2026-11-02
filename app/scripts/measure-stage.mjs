@@ -89,22 +89,19 @@ async function evaluate(cdp, expression) {
 }
 
 // In the page: the song, the chart's size, whether it scrolls, and the smallest chord drawn
-// (the chart's size times the zoom the fit gave the chord's bar)
+// (every chord is drawn at the chart's size: no bar is shrunk alone)
 const MEASURE = `(() => {
   const scroll = document.querySelector('.stage-screen .chart-scroll')
   const chart = scroll && scroll.querySelector('.chart')
   if (!chart) return null
   const size = parseFloat(chart.style.fontSize)
-  const drawn = [...chart.querySelectorAll('.bar')]
-    .filter(bar => bar.querySelector('.bar-chord'))
-    .map(bar => size * (parseFloat(bar.style.getPropertyValue('--fit')) || 1))
   return {
     title: document.querySelector('.stage-title')?.textContent ?? '?',
     size,
     scrolls: scroll.scrollHeight > scroll.clientHeight,
     scrollsSideways: scroll.scrollWidth > scroll.clientWidth,
     place: document.querySelector('.bb-count')?.textContent ?? '',
-    smallest: drawn.length ? Math.min(...drawn) : size,
+    smallest: size,
     twoLines: chart.querySelectorAll('.bar[data-lines="2"]').length,
   }
 })()`
