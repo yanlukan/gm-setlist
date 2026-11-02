@@ -24,7 +24,7 @@ export function recordingBars(title: string, freeTime = 0, end = by(title).durat
   return ((end - freeTime) * song.bpm!) / 60 / beatsPerBar
 }
 export const chordsOf = (title: string) =>
-  [...new Set(by(title).sections.flatMap(s => tokens(s.chords)).filter(t => t !== '|' && t !== REPEAT_BAR && !isRepeatCount(t) && t !== 'N.C.'))]
+  [...new Set(by(title).sections.flatMap(s => tokens(s.chords)).filter(t => t !== '|' && t !== REPEAT_BAR && !isRepeatCount(t) && t !== 'N.C.' && t !== '.'))] // a dot is a beat, not a chord
 export function everyLineInBars(title: string) {
   for (const section of by(title).sections) {
     for (const line of section.chords.split('\n')) expect(hasBars(line), `${section.name}: ${line}`).toBe(true)

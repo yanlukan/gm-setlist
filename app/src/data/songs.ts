@@ -19,7 +19,7 @@ export const DEFAULT_SONGS: Song[] = [
     sections: [
       { name: 'Intro', chords: '|  B  |  %  |  %  |  %  |' },
       { name: 'Verse', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
-      { name: 'Pre-Chorus', chords: '|  E  |  B  |  E  |  B  |\n|  E  |  B  F#/A#  G#m  |  C#m  |  F#  N.C.  |' },
+      { name: 'Pre-Chorus', chords: '|  E  |  B  |  E  |  B  |\n|  E  |  B  F#/A#  G#m  .  |  C#m  |  F#  N.C.  |' },
       { name: 'Chorus', chords: '|  B  |  %  |  %  |  %  |' },
       { name: 'Solo', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
       { name: 'Stop', chords: '|  N.C.  |' },
