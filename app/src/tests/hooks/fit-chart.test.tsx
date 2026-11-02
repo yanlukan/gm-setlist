@@ -183,6 +183,22 @@ describe('layOutBars', () => {
     expect(pair.bar.style.getPropertyValue('--beat-widths')).toBe('minmax(20px, 1fr) minmax(80px, 1fr)')
   })
 
+  it('staggers every bar of a section with the same chords once one of them staggers (Too Funky: Dm G/D, Am/D G/D)', () => {
+    const content = document.createElement('div')
+    const same = (chords: string, need: number, staggered: number) => {
+      const b = beatBar(2, [0, 1], need, staggered, [40, 60])
+      b.bar.dataset.chords = chords
+      return b
+    }
+    const row = [same('Dm G/D', 110, 90), same('Am/D G/D', 130, 100), same('Dm G/D', 110, 90), same('Am/D G/D', 130, 100)]
+    // Another section with the same chords, which fits on one line: left as it is
+    const other = same('Dm G/D', 110, 90)
+    content.append(fakeGrid(400, 4, row), fakeGrid(400, 4, [other]))
+    expect(layOutBars(content)).toBe(0)
+    expect(row.map(b => b.bar.dataset.lines)).toEqual(['2', '2', '2', '2'])
+    expect(other.bar.dataset.lines).toBeUndefined()
+  })
+
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
     const content = document.createElement('div')
     const bars = [

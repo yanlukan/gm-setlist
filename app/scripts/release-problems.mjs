@@ -11,9 +11,16 @@ export const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b
 /**
  * The problems in one page, as [where, text, kind]: where is `bar <n>` or
  * `section <n>`, from 1; kind is 'width' for a row too wide for the screen.
+ * `bars` are the bars with chords, in the order of their numbers: each one's
+ * section, its chords as written and its lines (1, or 2 staggered).
  */
-export function problems({ chords, sections }) {
+export function problems({ chords, sections, bars = [] }) {
   const found = sections.map(n => [`section ${n}`, 'runs past its width', 'width'])
+  // The same chords in one section are drawn the same way: on one line, or staggered
+  bars.forEach((b, i) => {
+    const first = bars.findIndex(o => o.section === b.section && o.chords === b.chords)
+    if (b.chords && first < i && bars[first].lines !== b.lines) found.push([`bar ${i + 1}`, `drawn differently from bar ${first + 1}`])
+  })
   chords.forEach((c, i) => {
     const n = `bar ${c.bar + 1}`
     if (c.px < 20) found.push([n, `${c.name} chord under 20 px (${c.px.toFixed(1)} px)`])

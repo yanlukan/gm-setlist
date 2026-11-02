@@ -65,7 +65,14 @@ export function BandBars({ lines, renderTokens }: Props) {
         const { beats, chords } = beatsOf(cell.tokens)
         const style = { '--beats': Math.max(beats, 1) } as CSSProperties
         return (
-          <div key={i} className={cell.classes.join(' ')} style={style} data-beats={beats}>
+          <div
+            key={i}
+            className={cell.classes.join(' ')}
+            style={style}
+            data-beats={beats}
+            // Its chords as written: the fit draws bars of a section with the same ones the same way
+            data-chords={cell.tokens.filter(t => !isRepeatCount(t)).join(' ')}
+          >
             {chords.map(chord => (
               <span
                 key={chord.start}

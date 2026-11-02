@@ -41,6 +41,17 @@ describe('the release check rules', () => {
     expect(problems(page).map(([, text]: string[]) => text)).toEqual(['F#/A# out of order (starts before B ends)'])
   })
 
+  it('fails a bar drawn differently from an earlier bar of its section with the same chords', () => {
+    const bar = (section: number, chords: string, lines: string) => ({ section, chords, lines })
+    const page = {
+      chords: [],
+      sections: [],
+      // Too Funky's Keyboard row: bar 3 on one line, bar 1 staggered; the next section may differ
+      bars: [bar(0, 'Dm G/D', '2'), bar(0, 'Am/D G/D', '2'), bar(0, 'Dm G/D', '1'), bar(0, 'Am/D G/D', '2'), bar(1, 'Dm G/D', '1')],
+    }
+    expect(problems(page)).toEqual([['bar 3', 'drawn differently from bar 1']])
+  })
+
   it('makes a row too wide for the phone at 20 px a warning, not a failure', () => {
     const found = [['section 9', 'runs past its width', 'width'], ['bar 53', 'C6/9 off the screen', 'width'], ['bar 2', 'G cut off']]
     const phone = sortOut('phone-390x844', 20, found)

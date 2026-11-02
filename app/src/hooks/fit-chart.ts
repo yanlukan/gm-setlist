@@ -72,6 +72,8 @@ interface Crowded {
   /** The bar's beats and each chord's beat (0-based), as BandBars.tsx writes them */
   beats: number
   starts: number[]
+  /** Its chords as written (`data-chords`): bars of a section with the same ones are drawn the same way */
+  key: string | undefined
   /** Its width on one line, each chord's text width, the gap between beats and the chart's size */
   need: number
   widths: number[]
@@ -95,7 +97,7 @@ function crowdedOf(bar: HTMLElement): Crowded | null {
   const beats = count(bar.dataset.beats)
   const starts = chords.map(chord => count(chord.dataset.start))
   if (chords.length < 2 || beats === null || starts.some(start => start === null)) return null
-  return { bar, chords, beats, starts: starts as number[], need: 0, widths: [], gap: 0, font: 0 }
+  return { bar, chords, beats, starts: starts as number[], key: bar.dataset.chords, need: 0, widths: [], gap: 0, font: 0 }
 }
 
 /** How many beats each chord runs on its own line: to the next chord there (two along) or the bar's end. */
@@ -129,7 +131,9 @@ function stagger(c: Crowded, beats: StaggeredBeats): void {
  * crowded bar takes what its row has spare and stays on one line. Only where
  * a section's bars then add up to more than its width do bars stagger: the
  * most crowded first, one at a time, until the section fits, each only if
- * it is narrower staggered (staggered-beats.ts) than on one line. No bar is
+ * it is narrower staggered (staggered-beats.ts) than on one line; a bar that
+ * staggers takes every bar of its section with the same chords with it, so
+ * the same chords are always drawn the same way. No bar is
  * ever shrunk alone. Returns how many sections still run past their width,
  * plus any chord cut off: 0 when the chart's bars fit at this size.
  */
@@ -177,7 +181,10 @@ export function layOutBars(content: HTMLElement): number {
       const next = at.filter(g => queues[g].length)
       for (const g of next) {
         const c = queues[g].shift() as Crowded
-        stagger(c, beat.get(c) as StaggeredBeats)
+        // The bars with the same chords measure the same, so they are all in the queue too
+        const alike = c.key === undefined ? [] : queues[g].filter(o => o.key === c.key)
+        queues[g] = queues[g].filter(o => !alike.includes(o))
+        for (const o of [c, ...alike]) stagger(o, beat.get(o) as StaggeredBeats)
       }
       at = next.filter(g => overflows(open[g]))
     }

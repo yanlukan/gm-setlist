@@ -38,15 +38,10 @@ const SCREENS = ['Stage', 'Practice']
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
-// In the page: every chord with its bar number, drawn size (font size x the zoom of its bar and
-// their ancestors, so a bar the fit shrinks counts as shrunk) and the rects the checks compare;
-// and the sections (bar grids, numbered from 1) whose bars run past their width.
+// In the page: every chord with its bar number, drawn size and the rects the checks compare;
+// each bar with chords: its section, its chords as written and its lines; and the sections
+// (bar grids, numbered from 1) whose bars run past their width.
 const READ_CHORDS = () => {
-  const zoomOf = el => {
-    let zoom = 1
-    for (let e = el; e; e = e.parentElement) zoom *= parseFloat(getComputedStyle(e).zoom) || 1
-    return zoom
-  }
   const rect = el => {
     const r = el.getBoundingClientRect()
     return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }
@@ -66,7 +61,7 @@ const READ_CHORDS = () => {
     return {
       bar: bar ? bars.indexOf(bar) : -1,
       name: chord.textContent.trim(),
-      px: parseFloat(getComputedStyle(chord).fontSize) * zoomOf(bar ?? chord),
+      px: parseFloat(getComputedStyle(chord).fontSize),
       content,
       text,
       barRect: bar ? rect(bar) : null,
@@ -76,11 +71,13 @@ const READ_CHORDS = () => {
       row: chord.style.getPropertyValue('--row'),
     }
   })
-  const sections = [...document.querySelectorAll('.band-chart .bar-grid')]
+  const grids = [...document.querySelectorAll('.band-chart .bar-grid')]
+  const barInfo = bars.map(bar => ({ section: grids.indexOf(bar.closest('.bar-grid')), chords: bar.dataset.chords ?? '', lines: bar.dataset.lines ?? '1' }))
+  const sections = grids
     .map((grid, i) => (grid.scrollWidth > grid.clientWidth + 1 ? i + 1 : 0))
     .filter(Boolean)
   const chart = document.querySelector('.band-chart')
-  return { chords, sections, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
+  return { chords, sections, bars: barInfo, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
 }
 
 

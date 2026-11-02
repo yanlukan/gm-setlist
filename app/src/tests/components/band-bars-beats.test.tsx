@@ -36,6 +36,12 @@ describe('bars in beat columns', () => {
     expect(bars[1].querySelector('.bar-count')!.textContent).toBe('(x2)')
   })
 
+  it('writes each bar\'s chords on it, without its repeat count, so the same chords can be drawn the same way', () => {
+    draw('|  Dm  G/D  |  Am/D  G/D  |  Dm  G/D  (x2)  |')
+    const bars = [...document.querySelectorAll('.bar')] as HTMLElement[]
+    expect(bars.map(b => b.dataset.chords)).toEqual(['Dm G/D', 'Am/D G/D', 'Dm G/D'])
+  })
+
   it('draws a dot in a line that is not in bars as nothing', () => {
     useStore.setState(useStore.getInitialState())
     useStore.getState().saveSections('Faith', [{ name: 'Verse', chords: '|  D  |\nN.C.  .  E' }])
