@@ -167,10 +167,20 @@ describe('layOutBars', () => {
 
   it('never staggers a bar that would be no narrower staggered', () => {
     const content = document.createElement('div')
-    const pair = beatBar(4, [0, 2], 500, 100, [40, 100]) // the second chord ends the bar either way
+    const pair = beatBar(4, [0, 2], 500, 100, [10, 100]) // half a size after a short first chord, the second ends the bar either way
     content.append(fakeGrid(400, 4, [pair]))
     expect(layOutBars(content)).toBe(1)
     expect(pair.bar.dataset.lines).toBeUndefined()
+  })
+
+  it('staggers a two-chord bar whose second chord can start under the first one\'s tail (Too Funky: Am/D G/D)', () => {
+    const content = document.createElement('div')
+    const pair = beatBar(2, [0, 1], 500, 100, [100, 60])
+    content.append(fakeGrid(400, 4, [pair]))
+    layOutBars(content)
+    expect(pair.bar.dataset.lines).toBe('2')
+    // Its second chord starts half the 40 px size after the first
+    expect(pair.bar.style.getPropertyValue('--beat-widths')).toBe('minmax(20px, 1fr) minmax(80px, 1fr)')
   })
 
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {

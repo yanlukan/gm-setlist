@@ -24,13 +24,15 @@ export function problems({ chords, sections }) {
     if (c.cutOff) found.push([n, `${c.name} cut off`])
     if (c.offScreen) found.push([n, `${c.name} off the screen`, 'width'])
     // Staggered, the chords read in playing order: each starts at least half the chart's size
-    // after the one before, the first ends before the second starts, and two on one line never
+    // after the one before, the first ends before the second starts (in a bar of three chords or
+    // more; with two, the second may start under the first one's tail), and two on one line never
     // overlap. A chord may run on under the next one on the other line
     const prev = chords[i - 1]
     if (c.staggered && prev && prev.bar === c.bar) {
       if (c.text.left < prev.text.left + 0.5 * c.px - 1) found.push([n, `${c.name} out of order (starts under ${prev.name})`])
       const first = chords[i - 2]?.bar !== c.bar
-      if (first && prev.text.right > c.text.left + 1) found.push([n, `${c.name} out of order (starts before ${prev.name} ends)`])
+      const third = chords[i + 1]?.bar === c.bar
+      if (first && third && prev.text.right > c.text.left + 1) found.push([n, `${c.name} out of order (starts before ${prev.name} ends)`])
     }
     if (c.staggered) {
       for (const o of chords.slice(i + 1)) {

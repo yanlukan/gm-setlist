@@ -28,6 +28,19 @@ describe('the release check rules', () => {
     expect(texts).toContain('G#m out of order (overlaps B on its line)')
   })
 
+  it('lets the second of two staggered chords start under the first one\'s tail, half a size after its start', () => {
+    // Too Funky: Am/D (top), G/D (bottom) from 20 px, under Am/D's tail
+    const pair = { chords: [chord(0, 'Am/D', 0, 100, '1'), chord(0, 'G/D', 20, 80, '2', 20)], sections: [] }
+    expect(problems(pair)).toEqual([])
+    const tooSoon = { chords: [chord(0, 'Am/D', 0, 100, '1'), chord(0, 'G/D', 10, 70, '2', 20)], sections: [] }
+    expect(problems(tooSoon).map(([, text]: string[]) => text)).toEqual(['G/D out of order (starts under Am/D)'])
+  })
+
+  it('still fails the second of three staggered chords starting before the first ends', () => {
+    const page = { chords: [chord(0, 'B', 0, 100, '1'), chord(0, 'F#/A#', 20, 140, '2', 20), chord(0, 'G#m', 110, 140, '1')], sections: [] }
+    expect(problems(page).map(([, text]: string[]) => text)).toEqual(['F#/A# out of order (starts before B ends)'])
+  })
+
   it('makes a row too wide for the phone at 20 px a warning, not a failure', () => {
     const found = [['section 9', 'runs past its width', 'width'], ['bar 53', 'C6/9 off the screen', 'width'], ['bar 2', 'G cut off']]
     const phone = sortOut('phone-390x844', 20, found)

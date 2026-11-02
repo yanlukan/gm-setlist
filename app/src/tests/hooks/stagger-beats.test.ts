@@ -17,7 +17,8 @@ function readsInOrder(bar: BarMeasure): void {
     if (i >= 2) expect(l).toBeGreaterThanOrEqual(right[i - 2] - 1e-6)
     expect(right[i]).toBeLessThanOrEqual(end + 1e-6)
   })
-  expect(right[0]).toBeLessThanOrEqual(left[1] + 1e-6)
+  // With three chords or more, the first ends before the second starts; with two, the second may start under its tail
+  if (bar.starts.length >= 3) expect(right[0]).toBeLessThanOrEqual(left[1] + 1e-6)
   for (const t of tracks) expect(t).toBeGreaterThanOrEqual(0)
 }
 
@@ -51,14 +52,26 @@ describe('staggeredBeats', () => {
       { beats: 4, starts: [1, 2, 3], widths: [40, 90, 20], gap: 8, font: 30 },
       { beats: 8, starts: [0, 2, 3, 6], widths: [70, 20, 140, 60], gap: 9, font: 36 },
       { beats: 2, starts: [0, 1], widths: [100, 100], gap: 10, font: 40 },
+      { beats: 4, starts: [0, 2], widths: [120, 40], gap: 6, font: 44 },
     ]
     bars.forEach(readsInOrder)
   })
 
+  it('lets the second of two chords start under the first one\'s tail, half a size after its start (Too Funky: Am/D G/D)', () => {
+    const pair = { beats: 2, starts: [0, 1], widths: [100, 60], gap: 10, font: 40 }
+    expect(staggeredBeats(pair)).toEqual({ tracks: [10, 80], lefts: [0, 20], width: 100 })
+    expect(staggeredBeats(pair).width).toBeLessThan(oneLineWidth(pair))
+  })
+
+  it('still starts the second of three chords after the first ends', () => {
+    const three = { beats: 3, starts: [0, 1, 2], widths: [100, 60, 30], gap: 10, font: 40 }
+    expect(staggeredBeats(three).lefts[1]).toBe(110)
+  })
+
   it('is narrower than one line where a long chord can run on under a short one', () => {
     expect(staggeredBeats(faith).width).toBeLessThan(oneLineWidth(faith))
-    // Two chords: the second ends the bar either way, so never
-    const pair = { beats: 2, starts: [0, 1], widths: [40, 100], gap: 10, font: 40 }
+    // Two chords, the first short: the second starts half a size later and ends the bar either way, so never
+    const pair = { beats: 2, starts: [0, 1], widths: [10, 100], gap: 10, font: 40 }
     expect(staggeredBeats(pair).width).toBeGreaterThanOrEqual(oneLineWidth(pair) - 1)
   })
 })

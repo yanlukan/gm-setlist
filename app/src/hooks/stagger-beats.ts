@@ -22,7 +22,9 @@ export interface StaggeredBeats {
  * The smallest beats, one width each, for a bar whose chords alternate
  * between two lines (chord i on line i % 2 + 1), so that it reads in playing
  * order: each chord starts at least half the chart's size after the one
- * before, the first chord ends before the second starts, and each chord ends
+ * before, the first chord ends before the second starts (in a bar of three
+ * chords or more; with two, top then bottom is the only reading, so the
+ * second may start under the first one's tail), and each chord ends
  * before the next chord on its own line starts. A chord may run on under the
  * next one on the other line. The chords' starts are placed left to right,
  * then each run of beats between two starts gets the room between them,
@@ -36,8 +38,9 @@ export function staggeredBeats({ beats, starts, widths, gap, font }: BarMeasure)
     let left = starts[0] * gap
     if (i > 0) {
       left = Math.max(lefts[i - 1] + font / 2, lefts[i - 1] + (starts[i] - starts[i - 1]) * gap)
-      // The first chord, and the one before on its own line, end before it starts
-      if (i === 1) left = Math.max(left, lefts[0] + widths[0] + gap)
+      // The first chord (unless it is one of only two: then the second may start under its tail),
+      // and the one before on its own line, end before it starts
+      if (i === 1 && n >= 3) left = Math.max(left, lefts[0] + widths[0] + gap)
       if (i >= 2) left = Math.max(left, lefts[i - 2] + widths[i - 2] + gap)
     }
     lefts.push(left)
