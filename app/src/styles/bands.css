@@ -129,6 +129,8 @@
   font-size: max(0.75em, 20px);
 }
 .band-chart .chart-mark { font-size: max(0.75em, 20px); }
+/* A bar of only dots: the chord still sounding, at the chord size in the marks' muted colour */
+.band-chart .bar-held { color: var(--text-muted); }
 /* N.C. sharing a bar is at the chord size */
 .band-chart .bar-shared .bar-chord .chart-mark { font-size: 1em; }
 /* (x2) at the end of its bar */

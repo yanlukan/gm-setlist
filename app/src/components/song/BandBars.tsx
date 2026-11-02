@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { barsOf, beatsOf, hasBars, isRepeatCount, padsAfter, REPEAT_BAR } from '../../music/bars'
+import { barsOf, BEAT, beatsOf, hasBars, isRepeatCount, padsAfter, REPEAT_BAR } from '../../music/bars'
+import { isChartMark } from '../../music/theory'
 
 interface Props {
   /** The section's lines, as written. */
@@ -11,22 +12,27 @@ interface Props {
 type Cell =
   | { kind: 'plain'; text: string }
   | { kind: 'pad'; className: 'pad-both' | 'pad-wide' }
-  | { kind: 'bar'; tokens: string[]; classes: string[] }
+  | { kind: 'bar'; tokens: string[]; classes: string[]; held?: string }
 
 /**
  * One cell per bar. Each written line is padded with blank cells to a
  * multiple of four, so every line starts a row and bar 1 of every line is in
- * the first column, in rows of four, eight or two.
+ * the first column, in rows of four, eight or two. A bar of only dots holds
+ * the chord still sounding: the section's last chord before it, across bar
+ * lines and lines in bars; none at the section's start, after N.C. or after
+ * a line not in bars.
  */
 function layOut(lines: string[]): Cell[] {
   const cells: Cell[] = []
   let column = 0
+  let sounding: string | undefined
   lines.forEach((line, li) => {
     const tokens = line.split(/\s+/).filter(Boolean)
     if (!hasBars(tokens)) {
       // N.C., a blank line or a line not in bars runs across the whole row
       cells.push({ kind: 'plain', text: line })
       column = 0
+      sounding = undefined
       return
     }
     const bars = barsOf(tokens)
@@ -43,7 +49,11 @@ function layOut(lines: string[]): Cell[] {
         const before = cells[cells.length - 1]
         if (before?.kind === 'bar') before.classes.push('phrase-end')
       }
-      cells.push({ kind: 'bar', tokens: bar, classes })
+      const { chords } = beatsOf(bar)
+      const last = chords[chords.length - 1]?.token
+      if (last !== undefined) sounding = isChartMark(last) ? undefined : last
+      const held = chords.length === 0 && bar.includes(BEAT) ? sounding : undefined
+      cells.push({ kind: 'bar', tokens: bar, classes, held })
       column++
     })
     for (const pad of padsAfter(bars.length)) {
@@ -73,6 +83,12 @@ export function BandBars({ lines, renderTokens }: Props) {
             // Its chords as written: the fit draws bars of a section with the same ones the same way
             data-chords={cell.tokens.filter(t => !isRepeatCount(t)).join(' ')}
           >
+            {cell.held !== undefined && (
+              // The chord still sounding, muted: a held bar never reads as empty
+              <span className="bar-chord bar-held" data-start={0} style={{ '--start': 1, '--span': Math.max(beats, 1) } as CSSProperties}>
+                {cell.held}
+              </span>
+            )}
             {chords.map(chord => (
               <span
                 key={chord.start}

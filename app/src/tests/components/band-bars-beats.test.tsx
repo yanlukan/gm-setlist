@@ -42,6 +42,28 @@ describe('bars in beat columns', () => {
     expect(bars.map(b => b.dataset.chords)).toEqual(['Dm G/D', 'Am/D G/D', 'Dm G/D'])
   })
 
+  it('draws a bar of only dots with the chord still sounding, muted, across its beats', () => {
+    draw('|  Dm  G/D  |  .  .  .  .  |')
+    const held = document.querySelectorAll<HTMLElement>('.bar')[1].querySelector<HTMLElement>('.bar-chord')!
+    expect(held.textContent).toBe('G/D')
+    expect(held.classList.contains('bar-held')).toBe(true)
+    expect(held.dataset.start).toBe('0')
+    expect(held.style.getPropertyValue('--span')).toBe('4')
+  })
+
+  it('holds the last chord of the section across lines and through a % bar', () => {
+    render(<BandBars lines={['|  C  |  Am  |', '|  %  |  .  .  |']} renderTokens={t => t} />)
+    const bars = [...document.querySelectorAll('.bar')]
+    expect(bars[3].querySelector('.bar-held')!.textContent).toBe('Am')
+  })
+
+  it('leaves a bar of only dots empty with no chord before it, or after N.C.', () => {
+    render(<BandBars lines={['|  .  .  |  C  |  N.C.  |  .  .  |']} renderTokens={t => t} />)
+    const bars = [...document.querySelectorAll('.bar')]
+    expect(bars[0].querySelector('.bar-chord')).toBeNull()
+    expect(bars[3].querySelector('.bar-chord')).toBeNull()
+  })
+
   it('draws a dot in a line that is not in bars as nothing', () => {
     useStore.setState(useStore.getInitialState())
     useStore.getState().saveSections('Faith', [{ name: 'Verse', chords: '|  D  |\nN.C.  .  E' }])
