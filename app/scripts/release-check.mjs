@@ -1,7 +1,7 @@
 // The release check: opens every song at the iPad sizes (and a phone) on Stage and Practice,
 // in WebKit (iPad Safari's engine) and Chromium, and fails on any chord that is too small,
-// crosses its bar, overlaps another chord, is cut off, is off the screen or, in a staggered
-// bar, starts before the chord before it ends; and on any section wider than its room.
+// crosses its bar, overlaps another chord, is cut off, is off the screen or is out of playing
+// order in a staggered bar; and on any section wider than its room.
 // Usage, from app/: npm run build && npm run check:release
 // Exit 0 when everything passes; otherwise 1 with one line per problem:
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
@@ -70,6 +70,7 @@ const READ_CHORDS = () => {
       cutOff: chord.scrollWidth > chord.clientWidth + 1,
       offScreen: !!screen && (text.right > screen.right + 1 || text.left < screen.left - 1),
       staggered: bar?.dataset.lines === '2',
+      row: chord.style.getPropertyValue('--row'),
     }
   })
   const sections = [...document.querySelectorAll('.band-chart .bar-grid')]
@@ -92,10 +93,21 @@ function problems({ chords, sections }) {
     }
     if (c.cutOff) found.push([n, `${c.name} cut off`])
     if (c.offScreen) found.push([n, `${c.name} off the screen`])
-    // Staggered: the chords are in playing order, and each must start where the one before ends
-    const next = chords[i + 1]
-    if (c.staggered && next && next.bar === c.bar && next.text.left < c.text.right - 1) {
-      found.push([n, `${next.name} out of order (starts before ${c.name} ends)`])
+    // Staggered, the chords read in playing order: each starts at least half the chart's size
+    // after the one before, the first ends before the second starts, and two on one line never
+    // overlap. A chord may run on under the next one on the other line
+    const prev = chords[i - 1]
+    if (c.staggered && prev && prev.bar === c.bar) {
+      if (c.text.left < prev.text.left + 0.5 * c.px - 1) found.push([n, `${c.name} out of order (starts under ${prev.name})`])
+      const first = chords[i - 2]?.bar !== c.bar
+      if (first && prev.text.right > c.text.left + 1) found.push([n, `${c.name} out of order (starts before ${prev.name} ends)`])
+    }
+    if (c.staggered) {
+      for (const o of chords.slice(i + 1)) {
+        if (o.bar === c.bar && o.row === c.row && Math.min(c.text.right, o.text.right) - Math.max(c.text.left, o.text.left) > 1) {
+          found.push([n, `${o.name} out of order (overlaps ${c.name} on its line)`])
+        }
+      }
     }
     for (const o of chords.slice(i + 1)) {
       if (o.bar === c.bar && overlap(c.content, o.content)) found.push([n, `${c.name} overlaps ${o.name}`])

@@ -61,6 +61,10 @@ describe('the band chart stylesheet', () => {
   it('puts a crowded bar on two grid rows only where the fit says so', () => {
     const bands = css('bands.css')
     expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('grid-template-rows: auto auto;')
+    // Staggered, its beats are all one width, as wide as the fit says or more
+    expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain(
+      'grid-template-columns: repeat(var(--beats, 1), minmax(var(--beat-min, min-content), 1fr));',
+    )
     expect(between(bands, ".band-chart .bar[data-lines='2'] .bar-chord {", '}')).toContain('grid-row: var(--row, 1);')
   })
 

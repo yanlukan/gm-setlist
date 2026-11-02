@@ -51,11 +51,12 @@ type Px = number | (() => number)
 const pxOf = (v: Px) => (typeof v === 'function' ? v() : v)
 
 /**
- * A bar of `beats` beats with a chord at each of `starts` (0-based beats).
- * jsdom has no layout, so the width the bar needs is faked: `need` px on one
- * line, `staggered` px on two (a number, or a function of the chart's size).
+ * A bar of `beats` beats with a chord at each of `starts` (0-based beats),
+ * each chord's text `widths[i]` px wide. jsdom has no layout, so the width
+ * the bar needs is faked: `need` px on one line, `staggered` px on two (a
+ * number, or a function of the chart's size).
  */
-function beatBar(beats: number, starts: number[], need: Px, staggered: Px = need) {
+function beatBar(beats: number, starts: number[], need: Px, staggered: Px = need, widths: number[] = starts.map(() => 0)) {
   const bar = document.createElement('div')
   bar.className = 'bar'
   bar.dataset.beats = String(beats)
@@ -66,6 +67,7 @@ function beatBar(beats: number, starts: number[], need: Px, staggered: Px = need
     chord.dataset.start = String(start)
     chord.style.setProperty('--start', String(start + 1))
     chord.style.setProperty('--span', String((starts[i + 1] ?? beats) - start))
+    Object.defineProperty(chord, 'offsetWidth', { get: () => widths[i] })
     bar.appendChild(chord)
     return chord
   })
@@ -94,7 +96,7 @@ const repeatBar = () => beatBar(1, [], 40)
 describe('layOutBars', () => {
   it('lets a crowded bar take the room its row has spare, on one line', () => {
     const content = document.createElement('div')
-    const crowded = beatBar(3, [0, 1, 2], 160, 100) // more than its quarter of 400 px
+    const crowded = beatBar(3, [0, 1, 2], 160, 100, [30, 110, 30]) // more than its quarter of 400 px
     content.append(fakeGrid(400, 4, [crowded, repeatBar(), repeatBar(), repeatBar()]))
     expect(layOutBars(content)).toBe(0)
     expect(crowded.bar.dataset.lines).toBeUndefined()
@@ -103,18 +105,20 @@ describe('layOutBars', () => {
 
   it('staggers a bar whose row does not fit, each chord still under its beat (Faith: B F#/A# G#m .)', () => {
     const content = document.createElement('div')
-    const { bar, chords } = beatBar(4, [0, 1, 2], 250, 150)
+    const { bar, chords } = beatBar(4, [0, 1, 2], 250, 150, [30, 110, 80])
     content.append(fakeGrid(400, 4, [{ bar }, beatBar(1, [0], 60), beatBar(1, [0], 60), beatBar(1, [0], 60)]))
     expect(layOutBars(content)).toBe(0)
     expect(bar.dataset.lines).toBe('2')
     expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
     expect(prop(chords, '--start')).toEqual(['1', '2', '3'])
     expect(prop(chords, '--run')).toEqual(['2', '3', '2'])
+    // Beats of one width: G#m's 80 px over its two beats
+    expect(bar.style.getPropertyValue('--beat-min')).toBe('40px')
   })
 
   it('staggers a three-chord bar without dots the same way, so the last chord is on the right of the top line', () => {
     const content = document.createElement('div')
-    const { bar, chords } = beatBar(3, [0, 1, 2], 250, 150)
+    const { bar, chords } = beatBar(3, [0, 1, 2], 250, 150, [30, 110, 30])
     content.append(fakeGrid(400, 4, [{ bar }, beatBar(1, [0], 60), beatBar(1, [0], 60), beatBar(1, [0], 60)]))
     expect(layOutBars(content)).toBe(0)
     expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
@@ -123,8 +127,8 @@ describe('layOutBars', () => {
 
   it('staggers the most crowded bar first, and only as many as the row needs', () => {
     const content = document.createElement('div')
-    const most = beatBar(4, [0, 1, 2], 200, 120)
-    const next = beatBar(2, [0, 1], 130, 100)
+    const most = beatBar(4, [0, 1, 2], 200, 120, [30, 110, 80])
+    const next = beatBar(4, [0, 1, 2], 130, 100, [30, 110, 80])
     content.append(fakeGrid(400, 4, [most, next, repeatBar(), repeatBar()])) // 410 px: 10 too many
     expect(layOutBars(content)).toBe(0)
     expect(most.bar.dataset.lines).toBe('2')
@@ -133,7 +137,7 @@ describe('layOutBars', () => {
 
   it('queues every bar of two or more chords, so a bar within its share still staggers when the row needs it', () => {
     const content = document.createElement('div')
-    const roomy = beatBar(2, [0, 1], 100, 60) // exactly its quarter of 400 px
+    const roomy = beatBar(4, [0, 1, 2], 100, 60, [10, 50, 40]) // exactly its quarter of 400 px
     content.append(fakeGrid(400, 4, [roomy, beatBar(1, [0], 320)])) // 420 px: 20 too many
     expect(layOutBars(content)).toBe(0)
     expect(roomy.bar.dataset.lines).toBe('2')
@@ -151,13 +155,50 @@ describe('layOutBars', () => {
     expect(noStart.bar.dataset.lines).toBeUndefined()
   })
 
+  it('gives a staggered bar beats of one width, so every chord ends before the next on its own line, gaps counted', () => {
+    const content = document.createElement('div')
+    const { bar } = beatBar(4, [0, 1, 2], 500, 150, [30, 110, 80])
+    bar.style.setProperty('column-gap', '10px')
+    content.append(fakeGrid(400, 4, [{ bar }]))
+    layOutBars(content)
+    // G#m: 80 px and one 10 px gap over two beats
+    expect(bar.style.getPropertyValue('--beat-min')).toBe('35px')
+  })
+
+  it('keeps the first chord inside its beats, so the second starts after it ends', () => {
+    const content = document.createElement('div')
+    const { bar } = beatBar(5, [0, 1, 3], 500, 150, [60, 230, 30])
+    content.append(fakeGrid(400, 4, [{ bar }]))
+    layOutBars(content)
+    expect(bar.dataset.lines).toBe('2')
+    expect(bar.style.getPropertyValue('--beat-min')).toBe('60px')
+  })
+
+  it('starts each chord at least half the chart size after the one before', () => {
+    const content = document.createElement('div')
+    const { bar } = beatBar(4, [0, 1, 2], 500, 150, [40, 120, 80])
+    bar.style.fontSize = '100px'
+    content.append(fakeGrid(400, 4, [{ bar }]))
+    layOutBars(content)
+    expect(bar.style.getPropertyValue('--beat-min')).toBe('50px')
+  })
+
+  it('never staggers a bar that would be no narrower on beats of one width', () => {
+    const content = document.createElement('div')
+    const pair = beatBar(4, [0, 2], 500, 100, [40, 100]) // the second chord's two beats need 50 px each
+    const even = beatBar(3, [0, 1, 2], 500, 100, [80, 80, 80])
+    content.append(fakeGrid(400, 4, [pair]), fakeGrid(400, 4, [even]))
+    expect(layOutBars(content)).toBe(2)
+    expect(pair.bar.dataset.lines).toBeUndefined()
+    expect(even.bar.dataset.lines).toBeUndefined()
+  })
+
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
     const content = document.createElement('div')
     const bars = [
-      beatBar(4, [0, 1, 2], 500, 100),
-      beatBar(4, [0, 2], 500, 100),
-      beatBar(3, [0, 1, 2], 500, 100),
-      beatBar(4, [0, 1, 2, 3], 500, 100),
+      beatBar(4, [0, 1, 2], 500, 100, [30, 110, 80]),
+      beatBar(3, [0, 1, 2], 500, 100, [30, 110, 30]),
+      beatBar(4, [0, 1, 2, 3], 500, 100, [20, 60, 60, 20]),
     ]
     for (const b of bars) content.append(fakeGrid(400, 4, [b]))
     layOutBars(content)
@@ -171,13 +212,14 @@ describe('layOutBars', () => {
 
   it('never sets --fit or zoom on a bar', () => {
     const content = document.createElement('div')
-    const bars = [beatBar(4, [0, 1, 2], 500, 300), beatBar(4, [0], 500), beatBar(4, [0, 2], 90)]
+    const bars = [beatBar(4, [0, 1, 2], 500, 300, [30, 110, 80]), beatBar(4, [0], 500), beatBar(4, [0, 2], 90)]
     content.append(fakeGrid(400, 4, bars))
     layOutBars(content)
-    for (const { bar } of bars) {
+    for (const { bar, chords } of bars) {
       expect(bar.style.getPropertyValue('--fit')).toBe('')
       expect(bar.style.zoom).toBe('')
       expect(bar.style.width).toBe('')
+      expect(prop(chords, 'width').every(w => w === '')).toBe(true)
     }
   })
 
@@ -201,13 +243,14 @@ describe('layOutBars', () => {
   it('starts again from one line at every size', () => {
     const content = document.createElement('div')
     let need = 500
-    const { bar, chords } = beatBar(4, [0, 1, 2], () => need, 150)
+    const { bar, chords } = beatBar(4, [0, 1, 2], () => need, 150, [30, 110, 80])
     content.append(fakeGrid(400, 4, [{ bar }]))
     layOutBars(content)
     expect(bar.dataset.lines).toBe('2')
     need = 300
     layOutBars(content)
     expect(bar.dataset.lines).toBeUndefined()
+    expect(bar.style.getPropertyValue('--beat-min')).toBe('')
     expect(prop(chords, '--row')).toEqual(['', '', ''])
     expect(prop(chords, '--run')).toEqual(['', '', ''])
   })
@@ -254,7 +297,7 @@ describe('useBandFit', () => {
 
   it('staggers a crowded bar rather than make the whole chart smaller', () => {
     const chart = fakeChart(8)
-    const { bar } = beatBar(4, [0, 1, 2], () => chart.size() * 10, () => chart.size() * 6)
+    const { bar } = beatBar(4, [0, 1, 2], () => chart.size() * 10, () => chart.size() * 6, [30, 110, 80])
     chart.content.current.append(fakeGrid(300, 4, [{ bar }]))
     renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
     expect(chart.size()).toBe(44) // 440 px on one line, 264 staggered
