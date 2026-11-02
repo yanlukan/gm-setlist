@@ -1,4 +1,5 @@
 import { Fragment, type Ref } from 'react'
+import { BEAT } from '../../music/bars'
 import { isChartMark, sectionColor } from '../../music/theory'
 import { hasShapes } from '../../music/voicings'
 import { chordParts } from '../../music/chord-text'
@@ -46,6 +47,8 @@ export function ChartBody({ chart, onChord, picked = null, focus, sectionsRef }:
   const renderTokens = (text: string) =>
     text.split(/(\s+)/).map((token, i) => {
       if (!token.trim()) return <span key={i}>{token}</span>
+      // A dot only holds a beat for the chord before it: it draws nothing
+      if (token === BEAT) return null
       if (isChartMark(token)) return <span key={i} className="chart-mark">{token}</span>
       if (!onChord || keyboard || !hasShapes(token)) return <span key={i}>{chordText(token)}</span>
       return (

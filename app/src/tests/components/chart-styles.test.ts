@@ -58,10 +58,11 @@ describe('the band chart stylesheet', () => {
     expect(phone).toContain('.band-chart .pad-wide { display: none; }')
   })
 
-  it('puts a crowded bar on two lines only where the fit says so', () => {
+  it('puts a crowded bar on two grid rows only where the fit says so', () => {
     const bands = css('bands.css')
-    expect(between(bands, '.band-chart .bar {', '}')).toContain('flex-wrap: nowrap;')
-    expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('flex-wrap: wrap;')
+    expect(between(bands, '.band-chart .bar {', '}')).toContain('grid-template-columns: repeat(var(--beats, 1), minmax(0, 1fr));')
+    expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('grid-template-rows: auto auto;')
+    expect(between(bands, ".band-chart .bar[data-lines='2'] .bar-chord {", '}')).toContain('grid-row: var(--row, 1);')
   })
 
   it('makes the bands compact on both screens, the name beside the letter', () => {
@@ -104,7 +105,7 @@ describe('the band chart stylesheet', () => {
     expect(layout).toContain('font-size: max(16px, 0.4em);')
   })
 
-  it('scales a bar down by the fit the chart gives it, so a long chord stays inside its bar', () => {
-    expect(between(css('bands.css'), '.band-chart .bar {', '}')).toContain('zoom: var(--fit, 1);')
+  it('never scales a bar down on its own', () => {
+    expect(css('bands.css')).not.toContain('zoom: var(--fit')
   })
 })

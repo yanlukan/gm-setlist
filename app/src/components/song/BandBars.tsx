@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { barsOf, hasBars, isRepeatCount, padsAfter, REPEAT_BAR } from '../../music/bars'
+import type { CSSProperties, ReactNode } from 'react'
+import { barsOf, beatsOf, hasBars, isRepeatCount, padsAfter, REPEAT_BAR } from '../../music/bars'
 
 interface Props {
   /** The section's lines, as written. */
@@ -12,9 +12,6 @@ type Cell =
   | { kind: 'plain'; text: string }
   | { kind: 'pad'; className: 'pad-both' | 'pad-wide' }
   | { kind: 'bar'; tokens: string[]; classes: string[] }
-
-/** Chords in a bar, leaving out % and repeat counts. */
-const chordCount = (bar: string[]) => bar.filter(t => t !== REPEAT_BAR && !isRepeatCount(t)).length
 
 /**
  * One cell per bar. Each written line is padded with blank cells to a
@@ -39,7 +36,7 @@ function layOut(lines: string[]): Cell[] {
       if (bi === bars.length - 1) classes.push('bar-last')
       // The double bar where the section starts
       if (li === 0 && bi === 0) classes.push('bar-double')
-      if (chordCount(bar) > 1) classes.push('bar-shared')
+      if (beatsOf(bar).chords.length > 1) classes.push('bar-shared')
       // Halfway along an eight-bar row: the line between the two phrases is the stronger one
       if (column % 8 === 4) {
         classes.push('phrase-start')
@@ -64,12 +61,25 @@ export function BandBars({ lines, renderTokens }: Props) {
       {layOut(lines).map((cell, i) => {
         if (cell.kind === 'plain') return <div key={i} className="chart-line bar-plain">{renderTokens(cell.text)}</div>
         if (cell.kind === 'pad') return <div key={i} className={`bar-pad ${cell.className}`} aria-hidden="true" />
+        // The bar is a grid of its beats: each chord starts in the column of its beat
+        const { beats, chords } = beatsOf(cell.tokens)
+        const style = { '--beats': Math.max(beats, 1) } as CSSProperties
         return (
-          <div key={i} className={cell.classes.join(' ')}>
+          <div key={i} className={cell.classes.join(' ')} style={style} data-beats={beats}>
+            {chords.map(chord => (
+              <span
+                key={chord.start}
+                className="bar-chord"
+                data-start={chord.start}
+                style={{ '--start': chord.start + 1, '--span': chord.length } as CSSProperties}
+              >
+                {renderTokens(chord.token)}
+              </span>
+            ))}
             {cell.tokens.map((token, ti) => {
               if (token === REPEAT_BAR) return <span key={ti} className="bar-repeat" aria-label="Repeat the bar before">%</span>
               if (isRepeatCount(token)) return <span key={ti} className="chart-mark bar-count">{token}</span>
-              return <span key={ti} className="bar-chord">{renderTokens(token)}</span>
+              return null
             })}
           </div>
         )

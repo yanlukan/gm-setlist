@@ -83,27 +83,25 @@
 .band-chart .bar,
 .band-chart .bar-pad { min-height: 44px; }
 .band-chart .bar {
-  display: flex;
-  /* One line: the fit puts a crowded bar on two (data-lines) */
-  flex-wrap: nowrap;
+  /* A bar is a grid of its beats: each chord starts in the column of its beat (BandBars.tsx).
+     A bar written without dots has one beat a chord, so its chords share it equally */
+  display: grid;
+  grid-template-columns: repeat(var(--beats, 1), minmax(0, 1fr));
+  /* (x2) gets a column of its own after the beats */
+  grid-auto-columns: auto;
   align-items: baseline;
   align-content: center;
-  column-gap: 0.6em;
+  column-gap: 0.3em;
   padding: 0 0.35em;
   border-left: 2px solid var(--text-muted);
-  /* A chord too wide for its bar is scaled down in that bar alone (set by the fit) */
-  zoom: var(--fit, 1);
 }
-/* Chords that would go under 20 px on one line: two lines, two chords a line, in this bar only */
-.band-chart .bar[data-lines='2'] {
-  flex-wrap: wrap;
-  row-gap: 0;
+/* Chords that would go under 20 px on one line: two lines, each chord on its row. The fit
+   sets --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
+.band-chart .bar[data-lines='2'] { grid-template-rows: auto auto; row-gap: 0; }
+.band-chart .bar[data-lines='2'] .bar-chord {
+  grid-row: var(--row, 1);
+  grid-column: var(--start) / span var(--run, var(--span));
 }
-.band-chart .bar[data-lines='2'] .bar-chord { flex: 0 0 calc(50% - 0.3em); min-width: 0; }
-/* The odd chord out on two lines sits on the right, under its beat (fit-chart.ts) */
-.band-chart .bar[data-lines='2'] .bar-chord[data-under] { margin-left: calc(50% + 0.3em); }
-/* Practice: a bar of two chords on two lines has one chord a line (fit-chart.ts) */
-.band-chart .bar[data-lines='2'][data-one-a-line] .bar-chord { flex-basis: 100%; }
 .band-chart .bar-last { border-right: 2px solid var(--text-muted); }
 /* The double bar where a section starts, in the band's colour */
 .band-chart .bar-double {
@@ -111,10 +109,10 @@
   padding-left: calc(9px + 0.35em);
   background: linear-gradient(to right, var(--band) 0 5px, transparent 5px 7px, var(--band) 7px 9px, transparent 9px) no-repeat;
 }
-/* Chords share a bar from its midpoint; every chord is drawn at the chart's size */
-.band-chart .bar-chord { flex: 1 1 0; min-width: max-content; }
+/* Every chord is drawn at the chart's size, in its beat's columns */
+.band-chart .bar-chord { grid-column: var(--start) / span var(--span); min-width: 0; white-space: nowrap; overflow: hidden; }
 .band-chart .bar-repeat {
-  flex: 1 1 0;
+  grid-column: 1 / span var(--beats, 1);
   text-align: center;
   font-weight: 600;
   color: var(--text-muted);
@@ -124,7 +122,7 @@
 /* N.C. sharing a bar is at the chord size */
 .band-chart .bar-shared .bar-chord .chart-mark { font-size: 1em; }
 /* (x2) at the end of its bar */
-.band-chart .bar-count { margin-left: auto; }
+.band-chart .bar-count { grid-row: 1; grid-column: calc(var(--beats, 1) + 1); justify-self: end; }
 /* The alteration in brackets, a little smaller: Bb7(b9) */
 .band-chart .chord-alt { font-size: max(0.8em, 20px); }
 
