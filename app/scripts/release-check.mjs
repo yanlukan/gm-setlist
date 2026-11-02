@@ -1,9 +1,11 @@
 // The release check: opens every song at the iPad sizes (and a phone) on Stage and Practice,
 // in WebKit (iPad Safari's engine) and Chromium, and fails on any chord that is too small,
-// crosses its bar, overlaps another chord or is cut off.
+// crosses its bar, overlaps another chord, is cut off, is off the screen or, in a staggered
+// bar, starts before the chord before it ends; and on any section wider than its room.
 // Usage, from app/: npm run build && npm run check:release
 // Exit 0 when everything passes; otherwise 1 with one line per problem:
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
+//   <engine> <size> <screen> <nn> <song> section <n>: runs past its width
 // Pictures: release-shots/<engine>/<size>/<screen>/<nn>-<song>.png, and release-shots/changed.txt
 // lists the pictures whose SHA-256 differs from the run before (hashes in release-shots/hashes.json).
 import { spawn } from 'node:child_process'
@@ -34,7 +36,8 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
 // In the page: every chord with its bar number, drawn size (font size x the zoom of its bar and
-// their ancestors, so a bar the fit shrinks counts as shrunk) and the rects the checks compare.
+// their ancestors, so a bar the fit shrinks counts as shrunk) and the rects the checks compare;
+// and the sections (bar grids, numbered from 1) whose bars run past their width.
 const READ_CHORDS = () => {
   const zoomOf = el => {
     let zoom = 1
@@ -46,33 +49,54 @@ const READ_CHORDS = () => {
     return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }
   }
   const bars = []
-  return [...document.querySelectorAll('.band-chart .bar-chord')].map(chord => {
+  // The screen the chart is drawn in: it hides anything past its sides (layout.css)
+  const scroll = document.querySelector('.band-chart')?.closest('.chart-scroll')
+  const screen = scroll ? rect(scroll) : null
+  const chords = [...document.querySelectorAll('.band-chart .bar-chord')].map(chord => {
     const bar = chord.closest('.bar')
     if (bar && !bars.includes(bar)) bars.push(bar)
+    const content = rect(chord.firstElementChild ?? chord)
+    // Where the chord's text itself is, all of it (a chord is drawn as several spans)
+    const range = document.createRange()
+    range.selectNodeContents(chord)
+    const text = rect(range)
     return {
       bar: bar ? bars.indexOf(bar) : -1,
       name: chord.textContent.trim(),
       px: parseFloat(getComputedStyle(chord).fontSize) * zoomOf(bar ?? chord),
-      content: rect(chord.firstElementChild ?? chord),
+      content,
+      text,
       barRect: bar ? rect(bar) : null,
       cutOff: chord.scrollWidth > chord.clientWidth + 1,
+      offScreen: !!screen && (text.right > screen.right + 1 || text.left < screen.left - 1),
+      staggered: bar?.dataset.lines === '2',
     }
   })
+  const sections = [...document.querySelectorAll('.band-chart .bar-grid')]
+    .map((grid, i) => (grid.scrollWidth > grid.clientWidth + 1 ? i + 1 : 0))
+    .filter(Boolean)
+  return { chords, sections }
 }
 
 const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
 
-/** The problems in one page's chords, as [bar number from 1, text]. */
-function problems(chords) {
-  const found = []
+/** The problems in one page, as [where, text]: where is `bar <n>` or `section <n>`, from 1. */
+function problems({ chords, sections }) {
+  const found = sections.map(n => [`section ${n}`, 'runs past its width'])
   chords.forEach((c, i) => {
-    const n = c.bar + 1
+    const n = `bar ${c.bar + 1}`
     if (c.px < 20) found.push([n, `${c.name} chord under 20 px (${c.px.toFixed(1)} px)`])
     const b = c.barRect
     if (b && (c.content.left < b.left - 1 || c.content.right > b.right + 1 || c.content.top < b.top - 1 || c.content.bottom > b.bottom + 1)) {
       found.push([n, `${c.name} runs past its bar`])
     }
     if (c.cutOff) found.push([n, `${c.name} cut off`])
+    if (c.offScreen) found.push([n, `${c.name} off the screen`])
+    // Staggered: the chords are in playing order, and each must start where the one before ends
+    const next = chords[i + 1]
+    if (c.staggered && next && next.bar === c.bar && next.text.left < c.text.right - 1) {
+      found.push([n, `${next.name} out of order (starts before ${c.name} ends)`])
+    }
     for (const o of chords.slice(i + 1)) {
       if (o.bar === c.bar && overlap(c.content, o.content)) found.push([n, `${c.name} overlaps ${o.name}`])
     }
@@ -84,8 +108,9 @@ function problems(chords) {
 async function settle(page, what) {
   let last = null
   for (let i = 0; i < 80; i++) {
-    const now = JSON.stringify(await page.evaluate(READ_CHORDS))
-    if (now !== '[]' && now === last) {
+    const read = await page.evaluate(READ_CHORDS)
+    const now = JSON.stringify(read)
+    if (read.chords.length && now === last) {
       await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))
       return page.evaluate(READ_CHORDS)
     }
@@ -163,7 +188,7 @@ try {
             continue
           }
           pages++
-          for (const [bar, text] of problems(chords)) lines.push(`${engineName} ${label} bar ${bar}: ${text}`)
+          for (const [where, text] of problems(chords)) lines.push(`${engineName} ${label} ${where}: ${text}`)
           const file = join(SHOTS, engineName, size.name, screen.toLowerCase(), `${nn}-${slug(title)}.png`)
           mkdirSync(dirname(file), { recursive: true })
           const picture = await page.screenshot({ fullPage: true })

@@ -16,9 +16,10 @@ const GUESS_STEPS = 4
  * by halving the range eight times and rounded down to half a pixel.
  *
  * With a `guess` (asked for once `max` has failed), the halving starts from
- * a range a tenth either side of it: about six tries instead of ten, each a
+ * a range a tenth either side of it, in fewer halvings for the same half
+ * pixel: about six tries instead of ten, each a
  * layout of the whole chart. A guess that misses the range falls back to the
- * whole of it.
+ * whole of it: below the guess, or above a tenth over it, when that fits too.
  */
 export function largestFit(fits: (px: number) => boolean, min: number, max: number, guess?: () => number): number {
   if (fits(max)) return max
@@ -29,15 +30,21 @@ export function largestFit(fits: (px: number) => boolean, min: number, max: numb
   if (!Number.isNaN(g) && g > min && g < max) {
     if (fits(g)) {
       const up = Math.min(max, g * GUESS_RANGE)
-      lo = g
-      hi = up
+      // A guess well under the size that fits: search the rest of the range
+      if (up < max && fits(up)) lo = up
+      else {
+        lo = g
+        hi = up
+        steps = GUESS_STEPS
+      }
     } else {
       const down = Math.max(min, g / GUESS_RANGE)
       hi = g
-      if (down > min && fits(down)) lo = down
+      if (down > min && fits(down)) {
+        lo = down
+        steps = GUESS_STEPS
+      }
     }
-    // A range a tenth wide needs fewer halvings for the same half pixel
-    if (lo > min) steps = GUESS_STEPS
   }
   if (lo === min && !fits(min)) return min
   for (let i = 0; i < steps; i++) {
@@ -58,9 +65,33 @@ function clipped(chord: HTMLElement): boolean {
   return chord.scrollWidth > chord.clientWidth + 1
 }
 
-/** The bars of a section in a row: `--cols` from the stylesheet. */
-function colsOf(grid: HTMLElement): number {
-  return parseFloat(getComputedStyle(grid).getPropertyValue('--cols')) || 4
+interface Crowded {
+  bar: HTMLElement
+  chords: HTMLElement[]
+  /** The bar's beats and each chord's beat (0-based), as BandBars.tsx writes them */
+  beats: number
+  starts: number[]
+  /** Its width on one line */
+  need: number
+}
+
+/** A whole number from a data attribute, or null where it is missing or not one. */
+function count(value: string | undefined): number | null {
+  const n = value === undefined || value === '' ? NaN : Number(value)
+  return Number.isInteger(n) && n >= 0 ? n : null
+}
+
+/**
+ * A bar that may stagger: two or more chords, drawn in beats (BandBars.tsx
+ * writes `data-beats` on the bar and `data-start` on each chord). A bar
+ * without them is never staggered, since its chords' beats are not known.
+ */
+function crowdedOf(bar: HTMLElement): Crowded | null {
+  const chords = [...bar.querySelectorAll<HTMLElement>('.bar-chord')]
+  const beats = count(bar.dataset.beats)
+  const starts = chords.map(chord => count(chord.dataset.start))
+  if (chords.length < 2 || beats === null || starts.some(start => start === null)) return null
+  return { bar, chords, beats, starts: starts as number[], need: 0 }
 }
 
 /**
@@ -69,9 +100,7 @@ function colsOf(grid: HTMLElement): number {
  * line to the next chord there or the bar's end (`--run`). The second chord
  * is never on beat 1, so no line starts with a lone chord at the left.
  */
-function stagger(bar: HTMLElement, chords: HTMLElement[]): void {
-  const beats = Number(bar.dataset.beats) || chords.length
-  const starts = chords.map(chord => Number(chord.dataset.start) || 0)
+function stagger({ bar, chords, beats, starts }: Crowded): void {
   bar.dataset.lines = '2'
   chords.forEach((chord, i) => {
     // The next chord on its own line is two along: chords alternate lines
@@ -81,20 +110,13 @@ function stagger(bar: HTMLElement, chords: HTMLElement[]): void {
   })
 }
 
-interface Crowded {
-  bar: HTMLElement
-  chords: HTMLElement[]
-  need: number
-}
-
 /**
  * Lays out every bar at the content's current font size: one rule for every
  * song and every screen. A section's columns are sized by need (bands.css):
  * each at least as wide as its most crowded bar, the room left shared, so a
  * crowded bar takes what its row has spare and stays on one line. Only where
  * a section's bars then add up to more than its width do bars stagger: the
- * most crowded first, one at a time, each a bar of two or more chords that
- * needs more than its share of the row, until the section fits. No bar is
+ * most crowded first, one at a time, until the section fits. No bar is
  * ever shrunk alone. Returns how many sections still run past their width,
  * plus any chord cut off: 0 when the chart's bars fit at this size.
  */
@@ -111,24 +133,21 @@ export function layOutBars(content: HTMLElement): number {
   if (open.length) {
     // What each bar that could stagger needs on one line: its min-content width,
     // read with every such bar set to it at once, so the page is laid out once
-    const share = open.map(grid => grid.clientWidth / colsOf(grid))
     const candidates = open.map(grid =>
-      [...grid.querySelectorAll<HTMLElement>('.bar')]
-        .map(bar => ({ bar, chords: [...bar.querySelectorAll<HTMLElement>('.bar-chord')], need: 0 }))
-        .filter(c => c.chords.length > 1),
+      [...grid.querySelectorAll<HTMLElement>('.bar')].map(crowdedOf).filter((c): c is Crowded => c !== null),
     )
     const all = candidates.flat()
     for (const c of all) c.bar.style.width = 'min-content'
     for (const c of all) c.need = c.bar.offsetWidth
     for (const c of all) c.bar.style.removeProperty('width')
-    // Most crowded first; a bar within its share of the row would not help
-    const queues = candidates.map((list, g) => list.filter(c => c.need > share[g] + 1).sort((a, b) => b.need - a.need))
+    // Most crowded first. Every such bar is queued, so a bar that helps at one size helps at
+    // every smaller one too, and a size that fits is never followed by a larger one
+    const queues = candidates.map(list => [...list].sort((a, b) => b.need - a.need))
     let at = open.map((_, g) => g)
     while (at.length) {
       const next = at.filter(g => queues[g].length)
       for (const g of next) {
-        const c = queues[g].shift() as Crowded
-        stagger(c.bar, c.chords)
+        stagger(queues[g].shift() as Crowded)
       }
       at = next.filter(g => overflows(open[g]))
     }
@@ -155,9 +174,10 @@ export function refitCharts(): void {
  * Sizes a chart in bars, the same on Stage and Practice: the largest chord
  * size from `--chart-min` to `--chart-max` at which the whole chart fits its
  * container, every section's bars fit its width and no chord is cut off,
- * staggering crowded bars only where their row needs it (layOutBars). At the smallest size the search stops whatever is left, and
- * the chart scrolls. Rotating the iPad (a new container size, a new range
- * from the stylesheet) refits through a ResizeObserver.
+ * staggering crowded bars only where their row needs it (layOutBars). At
+ * the smallest size the search stops whatever is left, and the chart
+ * scrolls. Rotating the iPad (a new container size, a new range from the
+ * stylesheet) refits through a ResizeObserver.
  */
 export function useBandFit(
   containerRef: RefObject<HTMLElement | null>,
@@ -175,15 +195,17 @@ export function useBandFit(
       container.scrollWidth <= container.clientWidth
     const apply = (px: number) => {
       content.style.fontSize = `${px}px`
-      return layOutBars(content)
+      return layOutBars(content) === 0 && fits()
     }
     const fit = () => {
       const min = cssPx(content, '--chart-min', MIN_CHORD_PX)
       const max = cssPx(content, '--chart-max', MAX_CHORD_PX)
       // At `max` the chart overflows: its chords shrink about as much as its height must
-      const guess = () => max * Math.min(container.clientHeight / container.scrollHeight, container.clientWidth / container.scrollWidth)
-      const px = largestFit(size => apply(size) === 0 && fits(), min, max, guess)
-      apply(px)
+      const guess = () =>
+        max * Math.min(container.clientHeight / container.scrollHeight, container.clientWidth / container.scrollWidth)
+      // The search rounds down to half a pixel, a size it may not have tried: step down to one that fits
+      let px = largestFit(apply, min, max, guess)
+      while (!apply(px) && px > min) px = Math.max(min, px - 0.5)
     }
 
     // Left from a chart not in bars, it would keep this one's lines from wrapping

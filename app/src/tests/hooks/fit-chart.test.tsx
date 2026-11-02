@@ -29,6 +29,10 @@ describe('largestFit', () => {
     expect(largestFit(px => px <= 31.3, 20, 44, () => 30)).toBe(31)
   })
 
+  it('searches on up when the size a tenth above a guess that fits fits too', () => {
+    expect(largestFit(px => px <= 40.2, 20, 44, () => 23)).toBe(40)
+  })
+
   it('falls back to the whole range when the guess is far off', () => {
     expect(largestFit(px => px <= 24.2, 20, 44, () => 40)).toBe(24)
   })
@@ -127,12 +131,24 @@ describe('layOutBars', () => {
     expect(next.bar.dataset.lines).toBeUndefined()
   })
 
-  it('never staggers a bar that needs no more than its share of the row', () => {
+  it('queues every bar of two or more chords, so a bar within its share still staggers when the row needs it', () => {
     const content = document.createElement('div')
-    const roomy = beatBar(2, [0, 1], 100, 70) // exactly its quarter of 400 px
-    content.append(fakeGrid(400, 4, [roomy, beatBar(1, [0], 350)]))
-    expect(layOutBars(content)).toBe(1)
-    expect(roomy.bar.dataset.lines).toBeUndefined()
+    const roomy = beatBar(2, [0, 1], 100, 60) // exactly its quarter of 400 px
+    content.append(fakeGrid(400, 4, [roomy, beatBar(1, [0], 320)])) // 420 px: 20 too many
+    expect(layOutBars(content)).toBe(0)
+    expect(roomy.bar.dataset.lines).toBe('2')
+  })
+
+  it('never staggers a bar whose beats are not written on it', () => {
+    const content = document.createElement('div')
+    const unknown = beatBar(4, [0, 1, 2], 500, 100)
+    delete unknown.bar.dataset.beats
+    const noStart = beatBar(4, [0, 1, 2], 500, 100)
+    delete noStart.chords[1].dataset.start
+    content.append(fakeGrid(400, 4, [unknown]), fakeGrid(400, 4, [noStart]))
+    expect(layOutBars(content)).toBe(2)
+    expect(unknown.bar.dataset.lines).toBeUndefined()
+    expect(noStart.bar.dataset.lines).toBeUndefined()
   })
 
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
@@ -225,6 +241,15 @@ describe('useBandFit', () => {
     chart.content.current.style.fontSize = '44px'
     refitCharts()
     expect(chart.size()).toBe(33)
+  })
+
+  it('steps down from the size the search rounded to when that size does not fit', () => {
+    const chart = fakeChart(8)
+    // Fits up to 33.4 px, but not at exactly 33, the half pixel the search rounds down to
+    const need = () => (chart.size() === 33 ? 1000 : chart.size() * 9)
+    chart.content.current.append(fakeGrid(300, 4, [beatBar(1, [0], need)]))
+    renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
+    expect(chart.size()).toBe(32.5)
   })
 
   it('staggers a crowded bar rather than make the whole chart smaller', () => {
