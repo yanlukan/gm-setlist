@@ -47,6 +47,11 @@ describe('bars in the editor', () => {
     expect(section('Verse').querySelectorAll('.ce-chord.is-repeat')).toHaveLength(1)
   })
 
+  it('names a beat dot in the chart for a screen reader, like a bar line', () => {
+    faithWith('|  D  .  |')
+    expect(within(section('Verse')).getByRole('button', { name: 'Beat' }).textContent).toBe('.')
+  })
+
   it('takes out a bar line selected, like a chord', () => {
     faithWith('|  D  |  G  |')
     chord('Verse', 2)

@@ -4,7 +4,8 @@ import { chordNotes } from './voicings'
 
 /**
  * A section's chords as lines of chords. A token is a chord or a chart mark
- * such as N.C., (x2), a bar line | or the repeat bar %. The stored text is these lines written out: two
+ * such as N.C., (x2), a bar line |, the repeat bar % or the beat dot . (a
+ * beat with no new chord). The stored text is these lines written out: two
  * spaces between chords, one line break between lines.
  */
 export type ChordLines = string[][]
@@ -16,8 +17,8 @@ const LINE_ENDINGS = /\r\n|[\r\u2028\u2029\u0085]/g
 
 /**
  * Text to lines of chords. Blank lines are kept here; `formatChordText`
- * decides how many stay. Bar lines typed against a chord stand apart, and
- * the beat dots of a pasted ChordPro grid go.
+ * decides how many stay. Bar lines typed against a chord stand apart; the
+ * beat dots of a pasted ChordPro grid stay, one beat each.
  */
 export function parseChordText(text: string): ChordLines {
   const clean = fromGrid(text

@@ -9,7 +9,7 @@ import { FormEditor } from './FormEditor'
 import { isChartMark, sectionColor } from '../../music/theory'
 import { formAfterDelete, formAfterRename } from '../../music/form'
 import { layOutParts, relayOut } from '../../music/phrases'
-import { BAR, REPEAT_BAR, hasBars } from '../../music/bars'
+import { BAR, BEAT, REPEAT_BAR, hasBars } from '../../music/bars'
 import {
   backspace, breakLine, deleteChord, formatChordText, insertChord, isChordToken,
   normalizeChordText, parseChordText, replaceChord, typeAt, unknownChords,
@@ -308,7 +308,7 @@ export function ChartEditor({
                 token === BAR ? 'is-bar' : token === REPEAT_BAR ? 'is-repeat' : isChartMark(token) ? 'is-mark' : '',
                 isChordToken(token) ? '' : 'is-bad',
               ].filter(Boolean).join(' ')}
-              aria-label={token === BAR ? 'Bar line' : token === REPEAT_BAR ? 'Repeat the bar before' : undefined}
+              aria-label={token === BAR ? 'Bar line' : token === REPEAT_BAR ? 'Repeat the bar before' : token === BEAT ? 'Beat' : undefined}
               aria-pressed={picked === ti}
               data-cursor={picked === ti}
               onClick={() => tapChord(si, li, ti)}
