@@ -60,7 +60,6 @@ describe('the band chart stylesheet', () => {
 
   it('puts a crowded bar on two grid rows only where the fit says so', () => {
     const bands = css('bands.css')
-    expect(between(bands, '.band-chart .bar {', '}')).toContain('grid-template-columns: repeat(var(--beats, 1), minmax(0, 1fr));')
     expect(between(bands, ".band-chart .bar[data-lines='2'] {", '}')).toContain('grid-template-rows: auto auto;')
     expect(between(bands, ".band-chart .bar[data-lines='2'] .bar-chord {", '}')).toContain('grid-row: var(--row, 1);')
   })
@@ -107,5 +106,16 @@ describe('the band chart stylesheet', () => {
 
   it('never scales a bar down on its own', () => {
     expect(css('bands.css')).not.toContain('zoom: var(--fit')
+  })
+
+  it('sizes the bar columns by need, so no chord is ever cut off', () => {
+    const bands = css('bands.css')
+    // A section's columns: at least what their most crowded bar needs, the rest shared
+    expect(between(bands, '.band-chart .bar-grid {', '}')).toContain('grid-template-columns: repeat(var(--cols), minmax(min-content, 1fr));')
+    // A bar's beats: at least as wide as their chords
+    expect(between(bands, '.band-chart .bar {', '}')).toContain('grid-template-columns: repeat(var(--beats, 1), minmax(min-content, 1fr));')
+    const chord = between(bands, '.band-chart .bar-chord {', '}')
+    expect(chord).not.toContain('overflow: hidden')
+    expect(chord).not.toContain('min-width: 0')
   })
 })

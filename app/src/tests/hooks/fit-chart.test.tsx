@@ -43,13 +43,15 @@ describe('largestFit', () => {
   })
 })
 
+type Px = number | (() => number)
+const pxOf = (v: Px) => (typeof v === 'function' ? v() : v)
+
 /**
- * A bar of `beats` beat columns, each `beat` px wide, with a chord at each of
- * `starts` (0-based beats) needing `need[i]` px (or a function of the chart's
- * size). jsdom has no layout, so a chord's clientWidth is the width of the
- * columns it spans: its --span on one line, its --run when staggered.
+ * A bar of `beats` beats with a chord at each of `starts` (0-based beats).
+ * jsdom has no layout, so the width the bar needs is faked: `need` px on one
+ * line, `staggered` px on two (a number, or a function of the chart's size).
  */
-function beatBar(beats: number, starts: number[], beat: number, need: (number | (() => number))[]) {
+function beatBar(beats: number, starts: number[], need: Px, staggered: Px = need) {
   const bar = document.createElement('div')
   bar.className = 'bar'
   bar.dataset.beats = String(beats)
@@ -58,42 +60,47 @@ function beatBar(beats: number, starts: number[], beat: number, need: (number | 
     const chord = document.createElement('span')
     chord.className = 'bar-chord'
     chord.dataset.start = String(start)
-    const span = (starts[i + 1] ?? beats) - start
     chord.style.setProperty('--start', String(start + 1))
-    chord.style.setProperty('--span', String(span))
-    const columns = () => {
-      const run = parseFloat(chord.style.getPropertyValue('--run'))
-      return bar.dataset.lines === '2' && !Number.isNaN(run) ? run : span
-    }
-    Object.defineProperty(chord, 'clientWidth', { get: () => columns() * beat })
-    Object.defineProperty(chord, 'scrollWidth', {
-      get: () => {
-        const n = need[i]
-        return Math.max(columns() * beat, typeof n === 'function' ? n() : n)
-      },
-    })
+    chord.style.setProperty('--span', String((starts[i + 1] ?? beats) - start))
     bar.appendChild(chord)
     return chord
   })
+  Object.defineProperty(bar, 'offsetWidth', { get: () => pxOf(bar.dataset.lines === '2' ? staggered : need) })
   return { bar, chords }
 }
 
+/**
+ * A section's bars: one row of `cols` columns in `width` px. Its columns are
+ * content-sized, so it is as wide as its bars need when that is more than its
+ * width, and overflows.
+ */
+function fakeGrid(width: number, cols: number, bars: { bar: HTMLElement }[]) {
+  const grid = document.createElement('div')
+  grid.className = 'bar-grid'
+  grid.style.setProperty('--cols', String(cols))
+  grid.append(...bars.map(b => b.bar))
+  Object.defineProperty(grid, 'clientWidth', { get: () => width })
+  Object.defineProperty(grid, 'scrollWidth', { get: () => Math.max(width, bars.reduce((sum, b) => sum + b.bar.offsetWidth, 0)) })
+  return grid
+}
+
 const prop = (chords: HTMLElement[], name: string) => chords.map(c => c.style.getPropertyValue(name))
+const repeatBar = () => beatBar(1, [], 40)
 
 describe('layOutBars', () => {
-  it('keeps a bar on one line when every chord fits its columns', () => {
+  it('lets a crowded bar take the room its row has spare, on one line', () => {
     const content = document.createElement('div')
-    const { bar, chords } = beatBar(4, [0, 2], 50, [80, 90])
-    content.append(bar)
+    const crowded = beatBar(3, [0, 1, 2], 160, 100) // more than its quarter of 400 px
+    content.append(fakeGrid(400, 4, [crowded, repeatBar(), repeatBar(), repeatBar()]))
     expect(layOutBars(content)).toBe(0)
-    expect(bar.dataset.lines).toBeUndefined()
-    expect(prop(chords, '--row')).toEqual(['', ''])
+    expect(crowded.bar.dataset.lines).toBeUndefined()
+    expect(prop(crowded.chords, '--row')).toEqual(['', '', ''])
   })
 
-  it('staggers a bar whose chords do not fit their beats, each still under its beat (Faith: B F#/A# G#m .)', () => {
+  it('staggers a bar whose row does not fit, each chord still under its beat (Faith: B F#/A# G#m .)', () => {
     const content = document.createElement('div')
-    const { bar, chords } = beatBar(4, [0, 1, 2], 40, [30, 70, 60])
-    content.append(bar)
+    const { bar, chords } = beatBar(4, [0, 1, 2], 250, 150)
+    content.append(fakeGrid(400, 4, [{ bar }, beatBar(1, [0], 60), beatBar(1, [0], 60), beatBar(1, [0], 60)]))
     expect(layOutBars(content)).toBe(0)
     expect(bar.dataset.lines).toBe('2')
     expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
@@ -103,22 +110,40 @@ describe('layOutBars', () => {
 
   it('staggers a three-chord bar without dots the same way, so the last chord is on the right of the top line', () => {
     const content = document.createElement('div')
-    const { bar, chords } = beatBar(3, [0, 1, 2], 40, [60, 60, 30])
-    content.append(bar)
+    const { bar, chords } = beatBar(3, [0, 1, 2], 250, 150)
+    content.append(fakeGrid(400, 4, [{ bar }, beatBar(1, [0], 60), beatBar(1, [0], 60), beatBar(1, [0], 60)]))
     expect(layOutBars(content)).toBe(0)
     expect(prop(chords, '--row')).toEqual(['1', '2', '1'])
     expect(prop(chords, '--run')).toEqual(['2', '2', '1'])
   })
 
+  it('staggers the most crowded bar first, and only as many as the row needs', () => {
+    const content = document.createElement('div')
+    const most = beatBar(4, [0, 1, 2], 200, 120)
+    const next = beatBar(2, [0, 1], 130, 100)
+    content.append(fakeGrid(400, 4, [most, next, repeatBar(), repeatBar()])) // 410 px: 10 too many
+    expect(layOutBars(content)).toBe(0)
+    expect(most.bar.dataset.lines).toBe('2')
+    expect(next.bar.dataset.lines).toBeUndefined()
+  })
+
+  it('never staggers a bar that needs no more than its share of the row', () => {
+    const content = document.createElement('div')
+    const roomy = beatBar(2, [0, 1], 100, 70) // exactly its quarter of 400 px
+    content.append(fakeGrid(400, 4, [roomy, beatBar(1, [0], 350)]))
+    expect(layOutBars(content)).toBe(1)
+    expect(roomy.bar.dataset.lines).toBeUndefined()
+  })
+
   it('never starts a line with a lone chord at the left unless it is on beat 1', () => {
     const content = document.createElement('div')
     const bars = [
-      beatBar(4, [0, 1, 2], 40, [30, 70, 60]),
-      beatBar(4, [0, 2], 30, [70, 70]),
-      beatBar(3, [0, 1, 2], 40, [60, 60, 30]),
-      beatBar(4, [0, 1, 2, 3], 30, [50, 50, 50, 50]),
+      beatBar(4, [0, 1, 2], 500, 100),
+      beatBar(4, [0, 2], 500, 100),
+      beatBar(3, [0, 1, 2], 500, 100),
+      beatBar(4, [0, 1, 2, 3], 500, 100),
     ]
-    content.append(...bars.map(b => b.bar))
+    for (const b of bars) content.append(fakeGrid(400, 4, [b]))
     layOutBars(content)
     for (const { bar, chords } of bars) {
       expect(bar.dataset.lines).toBe('2')
@@ -130,31 +155,41 @@ describe('layOutBars', () => {
 
   it('never sets --fit or zoom on a bar', () => {
     const content = document.createElement('div')
-    const bars = [beatBar(4, [0, 1, 2], 40, [30, 70, 60]), beatBar(4, [0], 20, [200]), beatBar(4, [0, 2], 10, [90, 90])]
-    content.append(...bars.map(b => b.bar))
+    const bars = [beatBar(4, [0, 1, 2], 500, 300), beatBar(4, [0], 500), beatBar(4, [0, 2], 90)]
+    content.append(fakeGrid(400, 4, bars))
     layOutBars(content)
     for (const { bar } of bars) {
       expect(bar.style.getPropertyValue('--fit')).toBe('')
       expect(bar.style.zoom).toBe('')
+      expect(bar.style.width).toBe('')
     }
   })
 
-  it('counts a bar of one chord too long even split', () => {
+  it('counts a section whose bar of one chord is too long even split', () => {
     const content = document.createElement('div')
-    const { bar } = beatBar(4, [0], 20, [120])
-    content.append(bar, beatBar(4, [0, 2], 50, [80, 90]).bar)
+    const long = beatBar(4, [0], 450)
+    content.append(fakeGrid(400, 4, [long]), fakeGrid(400, 4, [beatBar(4, [0, 2], 80)]))
     expect(layOutBars(content)).toBe(1)
-    expect(bar.dataset.lines).toBeUndefined()
+    expect(long.bar.dataset.lines).toBeUndefined()
+  })
+
+  it('counts a chord wider than its columns', () => {
+    const content = document.createElement('div')
+    const { bar, chords } = beatBar(2, [0, 1], 80)
+    Object.defineProperty(chords[1], 'clientWidth', { get: () => 40 })
+    Object.defineProperty(chords[1], 'scrollWidth', { get: () => 50 })
+    content.append(fakeGrid(400, 4, [{ bar }]))
+    expect(layOutBars(content)).toBe(1)
   })
 
   it('starts again from one line at every size', () => {
     const content = document.createElement('div')
-    let need = 70
-    const { bar, chords } = beatBar(4, [0, 1, 2], 40, [30, () => need, 30])
-    content.append(bar)
+    let need = 500
+    const { bar, chords } = beatBar(4, [0, 1, 2], () => need, 150)
+    content.append(fakeGrid(400, 4, [{ bar }]))
     layOutBars(content)
     expect(bar.dataset.lines).toBe('2')
-    need = 35
+    need = 300
     layOutBars(content)
     expect(bar.dataset.lines).toBeUndefined()
     expect(prop(chords, '--row')).toEqual(['', '', ''])
@@ -183,19 +218,27 @@ describe('useBandFit', () => {
       disconnect() {}
     })
     const chart = fakeChart(8) // the chart alone fits up to 50 px
-    // A chord three chart sizes wide in a 100 px bar (a pixel's grace): it fits up to 33.67 px
-    const size = () => parseFloat(chart.content.current.style.fontSize) || 0
-    chart.content.current.append(beatBar(1, [0], 100, [() => size() * 3]).bar)
+    // A bar of one chord nine chart sizes wide in a 300 px section: it fits up to 33.4 px
+    chart.content.current.append(fakeGrid(300, 4, [beatBar(1, [0], () => chart.size() * 9)]))
     renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
-    expect(chart.size()).toBe(33.5)
+    expect(chart.size()).toBe(33)
     chart.content.current.style.fontSize = '44px'
     refitCharts()
-    expect(chart.size()).toBe(33.5)
+    expect(chart.size()).toBe(33)
+  })
+
+  it('staggers a crowded bar rather than make the whole chart smaller', () => {
+    const chart = fakeChart(8)
+    const { bar } = beatBar(4, [0, 1, 2], () => chart.size() * 10, () => chart.size() * 6)
+    chart.content.current.append(fakeGrid(300, 4, [{ bar }]))
+    renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
+    expect(chart.size()).toBe(44) // 440 px on one line, 264 staggered
+    expect(bar.dataset.lines).toBe('2')
   })
 
   it('stops at 20 when nothing fits, and scrolls', () => {
     const chart = fakeChart(8)
-    chart.content.current.append(beatBar(4, [0], 10, [500]).bar)
+    chart.content.current.append(fakeGrid(300, 4, [beatBar(4, [0], 500)]))
     renderHook(() => useBandFit(chart.container, chart.content, 'a', true))
     expect(chart.size()).toBe(20)
   })

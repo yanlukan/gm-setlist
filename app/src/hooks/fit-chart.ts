@@ -48,53 +48,94 @@ export function largestFit(fits: (px: number) => boolean, min: number, max: numb
   return Math.max(min, Math.floor(lo * 2) / 2)
 }
 
-/** A chord fits when its text is no wider than the columns it spans. */
-function chordFits(chord: HTMLElement): boolean {
-  return chord.scrollWidth <= chord.clientWidth + 1
+/** A section's bars run past its width: its columns, sized by need, add up to more. */
+function overflows(grid: HTMLElement): boolean {
+  return grid.scrollWidth > grid.clientWidth + 1
 }
 
-/** The bars whose chords do not all fit their columns. */
-function tooNarrow(bars: HTMLElement[]): boolean[] {
-  return bars.map(bar => [...bar.querySelectorAll<HTMLElement>('.bar-chord')].some(chord => !chordFits(chord)))
+/** A chord cut off: its text wider than the columns it spans. */
+function clipped(chord: HTMLElement): boolean {
+  return chord.scrollWidth > chord.clientWidth + 1
+}
+
+/** The bars of a section in a row: `--cols` from the stylesheet. */
+function colsOf(grid: HTMLElement): number {
+  return parseFloat(getComputedStyle(grid).getPropertyValue('--cols')) || 4
+}
+
+/**
+ * Puts a bar's chords on two lines, alternately, each still starting under
+ * its own beat (`--start`) and running on over the empty beats of its own
+ * line to the next chord there or the bar's end (`--run`). The second chord
+ * is never on beat 1, so no line starts with a lone chord at the left.
+ */
+function stagger(bar: HTMLElement, chords: HTMLElement[]): void {
+  const beats = Number(bar.dataset.beats) || chords.length
+  const starts = chords.map(chord => Number(chord.dataset.start) || 0)
+  bar.dataset.lines = '2'
+  chords.forEach((chord, i) => {
+    // The next chord on its own line is two along: chords alternate lines
+    const end = i + 2 < chords.length ? starts[i + 2] : beats
+    chord.style.setProperty('--row', String((i % 2) + 1))
+    chord.style.setProperty('--run', String(end - starts[i]))
+  })
+}
+
+interface Crowded {
+  bar: HTMLElement
+  chords: HTMLElement[]
+  need: number
 }
 
 /**
  * Lays out every bar at the content's current font size: one rule for every
- * song and every screen. A bar whose chords all fit their beats stays on one
- * line. A bar of two or more chords that do not staggers: its chords
- * alternate between a top and a bottom line (`--row`), each still starting
- * under its own beat (`--start`), each running on over the empty beats of
- * its own line to the next chord there or the bar's end (`--run`). The second
- * chord is never on beat 1, so no line starts with a lone chord at the left.
- * No bar is ever shrunk alone. Reads every bar before writing any, so the
- * page is laid out once a pass. Returns how many bars still have a chord too
- * wide for its columns: a bar of one long chord, or one too narrow even
- * staggered.
+ * song and every screen. A section's columns are sized by need (bands.css):
+ * each at least as wide as its most crowded bar, the room left shared, so a
+ * crowded bar takes what its row has spare and stays on one line. Only where
+ * a section's bars then add up to more than its width do bars stagger: the
+ * most crowded first, one at a time, each a bar of two or more chords that
+ * needs more than its share of the row, until the section fits. No bar is
+ * ever shrunk alone. Returns how many sections still run past their width,
+ * plus any chord cut off: 0 when the chart's bars fit at this size.
  */
 export function layOutBars(content: HTMLElement): number {
-  const bars = [...content.querySelectorAll<HTMLElement>('.bar')]
-  for (const bar of bars) {
+  const grids = [...content.querySelectorAll<HTMLElement>('.bar-grid')]
+  for (const bar of content.querySelectorAll<HTMLElement>('.bar')) {
     delete bar.dataset.lines
     for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord')) {
       chord.style.removeProperty('--row')
       chord.style.removeProperty('--run')
     }
   }
-  const crowded = tooNarrow(bars)
-  bars.forEach((bar, b) => {
-    const chords = [...bar.querySelectorAll<HTMLElement>('.bar-chord')]
-    if (!crowded[b] || chords.length < 2) return
-    const beats = Number(bar.dataset.beats) || chords.length
-    const starts = chords.map(chord => Number(chord.dataset.start) || 0)
-    bar.dataset.lines = '2'
-    chords.forEach((chord, i) => {
-      // The next chord on its own line is two along: chords alternate lines
-      const end = i + 2 < chords.length ? starts[i + 2] : beats
-      chord.style.setProperty('--row', String((i % 2) + 1))
-      chord.style.setProperty('--run', String(end - starts[i]))
-    })
-  })
-  return tooNarrow(bars).filter(Boolean).length
+  let open = grids.filter(overflows)
+  if (open.length) {
+    // What each bar that could stagger needs on one line: its min-content width,
+    // read with every such bar set to it at once, so the page is laid out once
+    const share = open.map(grid => grid.clientWidth / colsOf(grid))
+    const candidates = open.map(grid =>
+      [...grid.querySelectorAll<HTMLElement>('.bar')]
+        .map(bar => ({ bar, chords: [...bar.querySelectorAll<HTMLElement>('.bar-chord')], need: 0 }))
+        .filter(c => c.chords.length > 1),
+    )
+    const all = candidates.flat()
+    for (const c of all) c.bar.style.width = 'min-content'
+    for (const c of all) c.need = c.bar.offsetWidth
+    for (const c of all) c.bar.style.removeProperty('width')
+    // Most crowded first; a bar within its share of the row would not help
+    const queues = candidates.map((list, g) => list.filter(c => c.need > share[g] + 1).sort((a, b) => b.need - a.need))
+    let at = open.map((_, g) => g)
+    while (at.length) {
+      const next = at.filter(g => queues[g].length)
+      for (const g of next) {
+        const c = queues[g].shift() as Crowded
+        stagger(c.bar, c.chords)
+      }
+      at = next.filter(g => overflows(open[g]))
+    }
+    open = open.filter(overflows)
+  }
+  const cut = [...content.querySelectorAll<HTMLElement>('.bar-chord')].filter(clipped).length
+  return open.length + cut
 }
 
 /** A px custom property from the content's style, or `otherwise` where it is not set. */
@@ -113,8 +154,8 @@ export function refitCharts(): void {
 /**
  * Sizes a chart in bars, the same on Stage and Practice: the largest chord
  * size from `--chart-min` to `--chart-max` at which the whole chart fits its
- * container and every bar's chords fit their beats, crowded bars staggered
- * (layOutBars). At the smallest size the search stops whatever is left, and
+ * container, every section's bars fit its width and no chord is cut off,
+ * staggering crowded bars only where their row needs it (layOutBars). At the smallest size the search stops whatever is left, and
  * the chart scrolls. Rotating the iPad (a new container size, a new range
  * from the stylesheet) refits through a ResizeObserver.
  */

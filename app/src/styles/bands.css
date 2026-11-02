@@ -75,7 +75,9 @@
 /* ---------- The bars ---------- */
 .band-chart .bar-grid {
   display: grid;
-  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  /* Sized by need: each column at least as wide as its most crowded bar, the room left
+     shared, so a crowded bar takes the room a % bar or a blank cell does not need */
+  grid-template-columns: repeat(var(--cols), minmax(min-content, 1fr));
   row-gap: var(--row-gap);
 }
 /* N.C., a blank line or a line not in bars runs across the whole row */
@@ -84,9 +86,10 @@
 .band-chart .bar-pad { min-height: 44px; }
 .band-chart .bar {
   /* A bar is a grid of its beats: each chord starts in the column of its beat (BandBars.tsx).
-     A bar written without dots has one beat a chord, so its chords share it equally */
+     A bar written without dots has one beat a chord, so its chords share it equally. Every
+     beat is at least as wide as its chord, so no chord is ever cut off */
   display: grid;
-  grid-template-columns: repeat(var(--beats, 1), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--beats, 1), minmax(min-content, 1fr));
   /* (x2) gets a column of its own after the beats */
   grid-auto-columns: auto;
   align-items: baseline;
@@ -95,9 +98,9 @@
   padding: 0 0.35em;
   border-left: 2px solid var(--text-muted);
 }
-/* Chords that do not fit their beats at the chart's size stagger: they alternate between two
-   lines, each under its own beat, running on over the empty beats of its line. The fit sets
-   --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
+/* Where a section's bars add up to more than its width, its most crowded bars stagger: their
+   chords alternate between two lines, each under its own beat, running on over the empty beats
+   of its line. The fit sets --row and --run (fit-chart.ts); until it does, every chord is on row 1 */
 .band-chart .bar[data-lines='2'] { grid-template-rows: auto auto; row-gap: 0; }
 .band-chart .bar[data-lines='2'] .bar-chord {
   grid-row: var(--row, 1);
@@ -111,7 +114,7 @@
   background: linear-gradient(to right, var(--band) 0 5px, transparent 5px 7px, var(--band) 7px 9px, transparent 9px) no-repeat;
 }
 /* Every chord is drawn at the chart's size, in its beat's columns */
-.band-chart .bar-chord { grid-column: var(--start) / span var(--span); min-width: 0; white-space: nowrap; overflow: hidden; }
+.band-chart .bar-chord { grid-column: var(--start) / span var(--span); white-space: nowrap; }
 .band-chart .bar-repeat {
   grid-column: 1 / span var(--beats, 1);
   text-align: center;
