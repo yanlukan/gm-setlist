@@ -29,10 +29,10 @@ describe('a line written in bars', () => {
 })
 
 describe('bars typed or pasted', () => {
-  it('reads bar lines typed against a chord, and drops ChordPro beat dots', () => {
-    expect(parseChordText('|C . . .|G/B . . .||')).toEqual([['|', 'C', '|', 'G/B', '|']])
-    expect(normalizeChordText('C|G\n| Am . . | % |')).toBe('C  |  G\n|  Am  |  %  |')
-    expect(fromGrid('|. C . |').split(/\s+/).filter(Boolean)).toEqual(['|', 'C', '|'])
+  it('reads bar lines typed against a chord, and keeps ChordPro beat dots', () => {
+    expect(parseChordText('|C . . .|G/B . . .||')).toEqual([['|', 'C', '.', '.', '.', '|', 'G/B', '.', '.', '.', '|']])
+    expect(normalizeChordText('C|G\n| Am . . | % |')).toBe('C  |  G\n|  Am  .  .  |  %  |')
+    expect(fromGrid('|. C . |').split(/\s+/).filter(Boolean)).toEqual(['|', '.', 'C', '.', '|'])
   })
   it('never flags | or % as not a chord', () => {
     expect(unknownChords('|  C  |  %  |')).toEqual([])

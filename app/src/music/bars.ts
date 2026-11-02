@@ -45,8 +45,53 @@ export function barsOf(tokens: string[]): string[][] {
 
 /**
  * ChordPro grid writing made plain: a bar line is a token of its own however
- * it was typed ("C|G", "||"), and the dots that stand for beats go.
+ * it was typed ("C|G", "||"). The dots stay: each one is a beat.
  */
 export function fromGrid(text: string): string {
-  return text.replace(/\|+/g, ' | ').replace(/(^|\s)\.+(?=\s|$)/gm, '$1')
+  return text.replace(/\|+/g, ' | ')
+}
+
+/** A beat with no new chord on it: the chord before it carries on, or the beat is empty. */
+export const BEAT = '.'
+
+/** A chord in a bar: the beat it starts on and how many beats it lasts. */
+export interface BarChord {
+  token: string
+  start: number
+  length: number
+}
+
+/** A bar laid out on its beats; `dotted` is true when the writer gave the beats with dots. */
+export interface BarBeats {
+  beats: number
+  chords: BarChord[]
+  dotted: boolean
+}
+
+/**
+ * A bar's chords placed on its beats. With dots, every token (chord or dot)
+ * is one beat and a chord lasts until the next chord or the end of the bar;
+ * dots before the first chord are empty beats. Without dots, each chord is
+ * one beat. % and repeat counts like (x2) take no beat of their own, but a
+ * bar that is only % is one beat long.
+ */
+export function beatsOf(bar: string[]): BarBeats {
+  if (bar.length === 1 && bar[0] === REPEAT_BAR) return { beats: 1, dotted: false, chords: [] }
+  const tokens = bar.filter(t => t !== REPEAT_BAR && !isRepeatCount(t))
+  const dotted = tokens.includes(BEAT)
+  const chords: BarChord[] = []
+  tokens.forEach((token, i) => {
+    if (token === BEAT) return
+    chords.push({ token, start: i, length: 1 })
+  })
+  if (dotted) {
+    chords.forEach((c, i) => {
+      c.length = (i + 1 < chords.length ? chords[i + 1].start : tokens.length) - c.start
+    })
+  } else {
+    chords.forEach((c, i) => {
+      c.start = i
+    })
+  }
+  return { beats: tokens.length, dotted, chords }
 }
