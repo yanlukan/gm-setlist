@@ -49,19 +49,12 @@ export function largestFit(fits: (px: number) => boolean, min: number, max: numb
 }
 
 /**
- * A bar can go on two lines, two chords a line, only with an even number of
- * chords: with an odd one the last would stand alone and read as a bar of its
- * own (B F#/A# | G#m). A bar of one or three chords shrinks in its bar instead.
- */
-const pairsUp = (chords: number) => chords >= 2 && chords % 2 === 0
-
-/**
- * A bar of an even number of chords goes on two lines when, on one line, its
- * chords would have to shrink under 20 px to fit it. Any other bar never does:
+ * A bar of two or more chords goes on two lines when, on one line, its chords
+ * would have to shrink under 20 px to fit it. A bar of one chord never does:
  * it shrinks in its bar instead.
  */
 export function needsTwoLines(chords: number, px: number, scale: number): boolean {
-  return pairsUp(chords) && px * scale < MIN_CHORD_PX
+  return chords >= 2 && px * scale < MIN_CHORD_PX
 }
 
 /** How much a cell must shrink for its content to fit it, 1 when it fits. */
@@ -86,41 +79,41 @@ function scaleOf(bar: HTMLElement, slots: boolean): number {
  * Lays out every bar for the size set: first each on one line, then the
  * crowded ones on two lines, then any bar still too narrow for its chords
  * scaled down in that bar alone (`--fit`, which the stylesheet turns into
- * zoom), unless `shrink` is false. With `oneSize` (Practice) a shared bar goes
+ * zoom), unless `shrink` is false. On two lines, an odd last chord sits on
+ * the right of the second line, under its beat (B F#/A# then G#m). With `oneSize` (Practice) a shared bar goes
  * on two lines as soon as its chords do not fit their slots, and no bar
- * shrinks unless asked, except one of three chords, which cannot pair up. Reads every bar before writing any, so the page is
+ * shrinks unless asked. Reads every bar before writing any, so the page is
  * laid out once a pass. Returns how many bars are still too narrow.
  */
 export function layOutBars(content: HTMLElement, px: number, { oneSize = false, shrink = true }: { oneSize?: boolean; shrink?: boolean } = {}): number {
   const bars = [...content.querySelectorAll<HTMLElement>('.bar')]
-  const counts = bars.map(bar => bar.querySelectorAll('.bar-chord').length)
-  // One size: a bar of three chords cannot pair up, so its chords take their own
-  // widths (practice.css) and it shrinks alone rather than shrink the chart
-  const alone = (i: number) => oneSize && counts[i] >= 3 && !pairsUp(counts[i])
-  bars.forEach((bar, i) => {
+  for (const bar of bars) {
     bar.style.removeProperty('--fit')
     delete bar.dataset.oneALine
     delete bar.dataset.lines
-    if (alone(i)) bar.dataset.alone = 'true'
-    else delete bar.dataset.alone
-  })
-  const scale = (bar: HTMLElement, i: number) => scaleOf(bar, oneSize && !alone(i))
-  const oneLine = bars.map(scale)
+    for (const chord of bar.querySelectorAll<HTMLElement>('.bar-chord[data-under]')) delete chord.dataset.under
+  }
+  const oneLine = bars.map(bar => scaleOf(bar, oneSize))
   bars.forEach((bar, i) => {
-    const chords = counts[i]
+    const all = bar.querySelectorAll<HTMLElement>('.bar-chord')
+    const chords = all.length
     // One size: a shared bar whose chords do not fit their slots goes on two lines,
     // since it may not shrink instead
-    const two = oneSize ? pairsUp(chords) && oneLine[i] < 1 : needsTwoLines(chords, px, oneLine[i])
+    const two = oneSize ? chords >= 2 && oneLine[i] < 1 : needsTwoLines(chords, px, oneLine[i])
     if (!two) return
     bar.dataset.lines = '2'
     // One size: two chords get a line each (Stage keeps two a line, for its four-chord bars)
     if (oneSize && chords === 2) bar.dataset.oneALine = 'true'
+    // An odd chord out goes on the right, under its beat: alone on the left it reads as a new bar
+    else if (chords % 2 === 1) all[chords - 1].dataset.under = 'true'
   })
-  const after = bars.map(scale)
-  bars.forEach((bar, i) => {
-    if ((shrink || alone(i)) && after[i] < 1) bar.style.setProperty('--fit', String(after[i]))
-  })
-  return after.filter((s, i) => s < 1 && !alone(i)).length
+  const after = bars.map(bar => scaleOf(bar, oneSize))
+  if (shrink) {
+    bars.forEach((bar, i) => {
+      if (after[i] < 1) bar.style.setProperty('--fit', String(after[i]))
+    })
+  }
+  return after.filter(scale => scale < 1).length
 }
 
 /** A px custom property from the content's style, or `otherwise` where it is not set. */

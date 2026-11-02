@@ -126,9 +126,6 @@
 /* Chords sharing a bar each get an equal slot, their beat: two chords are on beats 1 and 3
    in every bar. A chord too wide for its slot puts the bar on two lines (fit-chart.ts) */
 .practice-screen .band-chart .bar-chord { min-width: 0; }
-/* Three chords cannot pair up on two lines: they keep their own widths and the bar shrinks alone */
-.practice-screen .band-chart .bar[data-alone] { column-gap: 0.3em; }
-.practice-screen .band-chart .bar[data-alone] .bar-chord { min-width: max-content; }
 
 /* A chord with shapes is a button on Practice: tap to pick it, tap again to let go */
 button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration-style: dotted; }
