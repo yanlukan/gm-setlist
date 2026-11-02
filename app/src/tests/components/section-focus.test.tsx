@@ -18,7 +18,7 @@ const shapes = () =>
     .getAllByRole('listitem')
     .map(el => el.getAttribute('aria-label'))
 
-const FAITH_ALL = ['B', 'E', 'G#m', 'C#m', 'F#']
+const FAITH_ALL = ['B', 'E', 'F#/A#', 'G#m', 'C#m', 'F#']
 
 describe('tapping a section on the chart', () => {
   it("shows just that section's chord shapes, and tapping it again shows them all", () => {
@@ -30,7 +30,7 @@ describe('tapping a section on the chart', () => {
     expect(screen.getByRole('button', { name: 'Intro' })).toHaveAttribute('aria-pressed', 'true')
 
     fireEvent.click(screen.getByRole('button', { name: 'Pre-Chorus' }))
-    expect(shapes()).toEqual(['E', 'B', 'G#m', 'C#m', 'F#'])
+    expect(shapes()).toEqual(['E', 'B', 'F#/A#', 'G#m', 'C#m', 'F#'])
 
     fireEvent.click(screen.getByRole('button', { name: 'Pre-Chorus' }))
     expect(shapes()).toEqual(FAITH_ALL)

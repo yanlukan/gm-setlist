@@ -30,7 +30,7 @@ const tile = (name: string) =>
 const shapes = () =>
   within(screen.getByRole('list', { name: /^Chord shapes/ })).getAllByRole('listitem').map(el => el.getAttribute('aria-label'))
 const goTo = (title: string) => act(() => useStore.getState().goToSong(G.indexOf(title)))
-const FAITH_ALL = ['B', 'E', 'G#m', 'C#m', 'F#']
+const FAITH_ALL = ['B', 'E', 'F#/A#', 'G#m', 'C#m', 'F#']
 
 describe('shapes in this song', () => {
   it("show Faith's shapes from the songbook, marked with where they come from", () => {

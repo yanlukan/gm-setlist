@@ -81,7 +81,7 @@ describe('band positions', () => {
     const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
     const { picks } = bandPlanFor(faith, undefined)
     const shown = Object.fromEntries(Object.entries(picks).map(([name, i]) => [name, shapeText(voicingsFor(name)[i])]))
-    expect(shown).toEqual({ B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' })
+    expect(shown).toEqual({ B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#/A#': '6-x-8-6-7-x', 'F#': '2-4-4-3-2-2' })
   })
 
   it('recommend every researched shape, each for a chord the song plays in the band\'s key', () => {
@@ -121,7 +121,7 @@ describe('band positions', () => {
     const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
     const { picks, researched } = bandPlanFor(faith, { transpose: -2 })
     expect(researched).toEqual({})
-    expect(Object.keys(picks)).toEqual(['A', 'D', 'F#m', 'Bm', 'E'])
+    expect(Object.keys(picks)).toEqual(['A', 'D', 'E/G#', 'F#m', 'Bm', 'E'])
   })
 
   it('call a song with barres up the neck by its frets, even with an open bass string', () => {

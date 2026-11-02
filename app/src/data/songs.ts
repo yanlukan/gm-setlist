@@ -10,16 +10,16 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 192, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
-    shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#': '2-4-4-3-2-2' },
+    shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#/A#': '6-x-8-6-7-x', 'F#': '2-4-4-3-2-2' },
     shapesFrom: 'Songbook',
-    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz). The chart counts bars at 96, so each bar is two of the book\'s. The 4-bar guitar intro and a bar of silence before the last chorus are from the recording; the organ opening before the guitar is in free time and not in bars.',
+    notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. Before the G#m the bass walks down B, A#, G# (heard on the recording, not in the book), so the bar is B F#/A# G#m. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz). The chart counts bars at 96, so each bar is two of the book\'s. The 4-bar guitar intro and a bar of silence before the last chorus are from the recording; the organ opening before the guitar is in free time and not in bars.',
     form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Verse', 'Pre-Chorus', 'Chorus', 'Solo', 'Pre-Chorus', 'Stop', 'Chorus'],
     // In bars at 96, so each bar is two of the book's; the guitar intro and the
     // stop before the last chorus are counted from the recording
     sections: [
       { name: 'Intro', chords: '|  B  |  %  |  %  |  %  |' },
       { name: 'Verse', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
-      { name: 'Pre-Chorus', chords: '|  E  |  B  |  E  |  B  |\n|  E  |  B  G#m  |  C#m  |  F#  N.C.  |' },
+      { name: 'Pre-Chorus', chords: '|  E  |  B  |  E  |  B  |\n|  E  |  B  F#/A#  G#m  |  C#m  |  F#  N.C.  |' },
       { name: 'Chorus', chords: '|  B  |  %  |  %  |  %  |' },
       { name: 'Solo', chords: '|  B  |  %  |  E  B  |  B  |\n|  B  |  %  |  E  |  B  |' },
       { name: 'Stop', chords: '|  N.C.  |' },
