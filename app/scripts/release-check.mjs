@@ -1,15 +1,19 @@
 // The release check: opens every song at the iPad sizes (and a phone) on Stage and Practice,
 // in WebKit (iPad Safari's engine) and Chromium, and fails on any chord that is too small,
 // crosses its bar, overlaps another chord, is cut off, is off the screen or is out of playing
-// order in a staggered bar; and on any section wider than its room.
+// order in a staggered bar, or drawn differently from a bar of its section with the same chords;
+// and on any section wider than its room. Then it does the same for the player's edited charts,
+// saved as the app saves them (release-saved.mjs), on the 11-inch iPad in WebKit.
 // Usage, from app/: npm run build && npm run check:release
 // Exit 0 when everything passes; otherwise 1 with one line per problem:
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
 //   <engine> <size> <screen> <nn> <song> section <n>: runs past its width
+//   webkit <size> <screen> saved <song> bar <n>: <problem>
 // On the phone, a row that cannot fit even at 20 px (a section too wide, a chord off the screen)
 // is a `phone warning: ...` line instead, and does not fail the check (release-problems.mjs).
-// Pictures: release-shots/<engine>/<size>/<screen>/<nn>-<song>.png, and release-shots/changed.txt
-// lists the pictures whose SHA-256 differs from the run before (hashes in release-shots/hashes.json).
+// Pictures: release-shots/<engine>/<size>/<screen>/<nn>-<song>.png (saved-<song>.png for the saved
+// charts), and release-shots/changed.txt lists the pictures whose SHA-256 differs from the run
+// before (hashes in release-shots/hashes.json).
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -17,6 +21,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, webkit } from 'playwright'
 import { problems, sortOut } from './release-problems.mjs'
+import { PUT_SAVED, SAVED } from './release-saved.mjs'
 
 const PORT = 4179
 const URL = `http://localhost:${PORT}/gm-setlist/`
@@ -34,6 +39,8 @@ const SIZES = [
   { name: 'phone-390x844', width: 390, height: 844 },
 ]
 const SCREENS = ['Stage', 'Practice']
+/** The sizes the saved charts are checked at: the 11-inch iPad, upright and on its side. */
+const SAVED_SIZES = ['820x1180', '1180x820']
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -98,7 +105,13 @@ async function settle(page, what) {
 }
 
 async function startServer() {
-  const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: APP, stdio: 'ignore' })
+  // Vite itself, not npx: killing npx can leave the server holding the port for the next run.
+  // In a process group of its own, so the whole group goes when the check ends
+  const server = spawn(join(APP, 'node_modules', '.bin', 'vite'), ['preview', '--port', String(PORT), '--strictPort'], {
+    cwd: APP,
+    stdio: 'ignore',
+    detached: true,
+  })
   server.on('error', error => {
     console.error(`Preview server failed to start: ${error.message}`)
     process.exit(1)
@@ -111,20 +124,54 @@ async function startServer() {
     }
     await sleep(200)
   }
-  server.kill()
+  await stopServer(server)
   throw new Error('The preview server did not start (is the app built? is port 4179 free?)')
 }
 
-/** Opens the song with this index through the Songs sheet; returns its title. */
-async function openSong(page, index) {
+/** Stops the preview server and everything it started, and waits until it has gone. */
+async function stopServer(server) {
+  if (server.exitCode !== null || server.signalCode !== null) return
+  const gone = new Promise(resolve => server.once('exit', resolve))
+  try {
+    process.kill(-server.pid, 'SIGTERM')
+  } catch {
+    server.kill('SIGTERM')
+  }
+  if (await Promise.race([gone.then(() => true), sleep(5000).then(() => false)])) return
+  try {
+    process.kill(-server.pid, 'SIGKILL')
+  } catch {
+    server.kill('SIGKILL')
+  }
+  await gone
+}
+
+/** Opens the song with this title, or this index, through the Songs sheet; returns its title. */
+async function openSong(page, which) {
   await page.getByRole('button', { name: /^Songs, / }).click()
   const sheet = page.getByRole('dialog', { name: 'All songs' })
   const rows = sheet.locator('.songtile')
   if ((await rows.count()) !== EXPECTED_SONGS) throw new Error(`Expected ${EXPECTED_SONGS} songs in the sheet, found ${await rows.count()}`)
-  const title = (await rows.nth(index).locator('.songtile-title').textContent()).trim()
+  const titles = (await rows.locator('.songtile-title').allTextContents()).map(t => t.trim())
+  const index = typeof which === 'number' ? which : titles.indexOf(which)
+  if (index < 0) throw new Error(`No song "${which}" in the sheet`)
+  const title = titles[index]
   await rows.nth(index).click()
   await sheet.waitFor({ state: 'detached' })
+  await shows(page, title)
   return title
+}
+
+/** Fails the whole check unless the screen's song title is the one opened: else the wrong chart is measured. */
+async function shows(page, title) {
+  const heading = page.locator('.stage-title, .ph-title').first()
+  let shown = null
+  for (let i = 0; i < 50; i++) {
+    shown = (await heading.count()) ? (await heading.textContent()).trim() : null
+    if (shown === title) return
+    await page.waitForTimeout(100)
+  }
+  throw new Error(`Opened "${title}" from the Songs sheet, but the screen shows "${shown}"`)
 }
 
 /** Makes the app show this screen. The bottom-bar button is named for the screen it switches TO. */
@@ -142,50 +189,82 @@ const lines = []
 const warnings = []
 let pages = 0
 
+/** Measures the song on screen, records its problems, and keeps its picture as `<shot>.png`. */
+async function check(page, engineName, size, screen, label, shot, marker) {
+  let chords
+  try {
+    chords = await settle(page, label)
+  } catch (error) {
+    lines.push(`${engineName} ${label}: ${error.message}`)
+    return
+  }
+  pages++
+  if (marker && !chords.chords.some(c => c.name === marker)) lines.push(`${engineName} ${label}: the saved chart is not drawn (no ${marker})`)
+  const { failures, warnings: phone } = sortOut(size.name, chords.chartPx, problems(chords))
+  for (const [where, text] of failures) lines.push(`${engineName} ${label} ${where}: ${text}`)
+  for (const [where, text] of phone) warnings.push(`phone warning: ${engineName} ${label} ${where}: ${text}`)
+  const file = join(SHOTS, engineName, size.name, screen.toLowerCase(), `${shot}.png`)
+  mkdirSync(dirname(file), { recursive: true })
+  const picture = await page.screenshot({ fullPage: true })
+  writeFileSync(file, picture)
+  const key = file.slice(SHOTS.length + 1)
+  const hash = createHash('sha256').update(picture).digest('hex')
+  if (hashes[key] !== hash) changed.push(key)
+  hashes[key] = hash
+}
+
+/** A fresh page at this size on this screen; with `saved`, the player's edited copies stored first. */
+async function openApp(browser, size, screen, errors, saved) {
+  const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 2, hasTouch: true })
+  const page = await context.newPage()
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto(URL)
+  await onScreen(page, screen)
+  if (saved) {
+    // Stored once the app has made its database, then read back as the app starts again
+    await page.evaluate(PUT_SAVED, saved)
+    await page.reload()
+    await onScreen(page, screen)
+  }
+  return { context, page }
+}
+
 const server = await startServer()
 try {
   for (const [engineName, engine] of ENGINES) {
     const browser = await engine.launch()
     for (const size of SIZES) {
       for (const screen of SCREENS) {
-        const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 2, hasTouch: true })
-        const page = await context.newPage()
         const errors = []
-        page.on('pageerror', error => errors.push(error.message))
-        await page.goto(URL)
-        await onScreen(page, screen)
+        const { context, page } = await openApp(browser, size, screen, errors)
         for (let i = 0; i < EXPECTED_SONGS; i++) {
           const title = await openSong(page, i)
           const nn = String(i + 1).padStart(2, '0')
-          const label = `${size.name} ${screen.toLowerCase()} ${nn} ${title}`
-          let chords
-          try {
-            chords = await settle(page, label)
-          } catch (error) {
-            lines.push(`${engineName} ${label}: ${error.message}`)
-            continue
-          }
-          pages++
-          const { failures, warnings: phone } = sortOut(size.name, chords.chartPx, problems(chords))
-          for (const [where, text] of failures) lines.push(`${engineName} ${label} ${where}: ${text}`)
-          for (const [where, text] of phone) warnings.push(`phone warning: ${engineName} ${label} ${where}: ${text}`)
-          const file = join(SHOTS, engineName, size.name, screen.toLowerCase(), `${nn}-${slug(title)}.png`)
-          mkdirSync(dirname(file), { recursive: true })
-          const picture = await page.screenshot({ fullPage: true })
-          writeFileSync(file, picture)
-          const key = file.slice(SHOTS.length + 1)
-          const hash = createHash('sha256').update(picture).digest('hex')
-          if (hashes[key] !== hash) changed.push(key)
-          hashes[key] = hash
+          await check(page, engineName, size, screen, `${size.name} ${screen.toLowerCase()} ${nn} ${title}`, `${nn}-${slug(title)}`)
         }
         for (const message of errors) lines.push(`${engineName} ${size.name} ${screen.toLowerCase()}: page error: ${message}`)
         await context.close()
       }
     }
+    // The player's own edited charts, as saved: on the iPad, both ways up, in iPad Safari's engine
+    if (engineName === 'webkit') {
+      for (const size of SIZES.filter(s => SAVED_SIZES.includes(s.name))) {
+        for (const screen of SCREENS) {
+          const errors = []
+          const { context, page } = await openApp(browser, size, screen, errors, SAVED)
+          for (const { title, marker } of SAVED) {
+            await openSong(page, title)
+            await check(page, engineName, size, screen, `${size.name} ${screen.toLowerCase()} saved ${title}`, `saved-${slug(title)}`, marker)
+          }
+          for (const message of errors) lines.push(`${engineName} ${size.name} ${screen.toLowerCase()} saved: page error: ${message}`)
+          await context.close()
+        }
+      }
+    }
     await browser.close()
   }
 } finally {
-  server.kill()
+  await stopServer(server)
 }
 
 mkdirSync(SHOTS, { recursive: true })
