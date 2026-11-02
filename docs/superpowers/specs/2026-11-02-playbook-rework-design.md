@@ -90,14 +90,16 @@ recording (part 3).
 ### 2. One layout rule
 
 - Every bar is a row of beat columns. A chord sits in the column of its beat.
-- The whole chart is one size: the largest at which every bar's chords fit
-  their columns, from 44 px down to 20 px. No bar is ever shrunk alone.
-- A bar that still does not fit at 20 px splits at its half-bar: beats 1-2
-  on the first line, 3-4 on the second, each chord still under its own beat.
-  So G#m in Faith lands on the right of line two, where it is played, by the
-  rule rather than by a special case.
+- The whole chart is one size: the largest from 44 px down to 20 px at
+  which the chart fits the screen. No bar is ever shrunk alone.
+- A bar whose chords do not fit their beats at that size staggers: its chords
+  alternate between a top and a bottom line, each still starting under its
+  own beat, and each may run on over the empty beats of its own line. Faith's
+  bar reads B (top, beat 1), F#/A# (bottom, beat 2), G#m (top, beat 3). No
+  chord ever starts a line on its own at the left, where it would read as a
+  new bar (player, 2026-11-02: "this g#m looks like its alone in new tact").
 - The fit code is rewritten around this rule; the current special cases
-  (one-a-line, odd chord out, shrink alone, two sizes on Stage and Practice)
+  (two chords a line, one a line, odd chord out, shrink alone, two size rules for Stage and Practice)
   go away.
 
 ### 3. Chords with evidence
