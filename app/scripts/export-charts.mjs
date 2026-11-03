@@ -36,20 +36,21 @@ function linesOf(chords) {
 }
 
 export function exportChart(song) {
-  let before = []
   const sections = song.sections.map(section => {
+    let before = []
     const source = song.evidence?.[section.name]
     const barSources = new Map((source?.bars ?? []).map(b => [b.bar, b.from]))
     const bars = section.chords
       .split('\n')
       .flatMap(line => (hasBars(line) ? barsOf(tokensOf(line)) : []))
       .map((bar, i) => {
-        const repeats = bar.length === 1 && bar[0] === REPEAT_BAR
-        const written = repeats ? before : bar
+        const clean = bar.filter(t => !isRepeatCount(t))
+        const repeats = clean.length === 1 && clean[0] === REPEAT_BAR
+        const written = repeats ? before : clean
         before = written
         return {
           bar: i,
-          chords: bar.filter(t => !isRepeatCount(t)).join(' '),
+          chords: clean.join(' '),
           slots: slotsOf(written),
           evidence: barSources.get(i) ?? null,
         }

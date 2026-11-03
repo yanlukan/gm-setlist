@@ -30,6 +30,20 @@ describe('exporting charts for the recording check', () => {
     expect(played.slice(8, 16)).toEqual([0, 1, 2, 3, 0, 1, 2, 3].map(bar => ({ section: 'Verse', bar })))
   })
 
+  it('a % with a repeat count after it is still the bar it repeats', () => {
+    const out = exportChart(song({ sections: [{ name: 'A', chords: '|  A  |  %  |  (x2)\n|  %  |' }], form: ['A'] }))
+    const [a, rep, next] = out.sections[0].bars
+    expect(rep.chords).toBe('%')
+    expect(rep.slots).toEqual(a.slots)
+    expect(next.slots).toEqual(a.slots)
+    expect(out.played.length).toBe(5)
+  })
+
+  it('a % that opens a section has no slots', () => {
+    const out = exportChart(song({ sections: [{ name: 'B', chords: '|  G  |' }, { name: 'A', chords: '|  %  |' }] }))
+    expect(out.sections[1].bars[0].slots).toEqual([])
+  })
+
   it('an undotted bar shares equally', () => {
     const out = exportChart(song({ sections: [{ name: 'A', chords: '|  E  B  |' }], form: ['A'] }))
     expect(out.sections[0].bars[0].slots).toEqual([{ chord: 'E', start: 0, length: 0.5 }, { chord: 'B', start: 0.5, length: 0.5 }])
@@ -57,7 +71,13 @@ describe('exporting charts for the recording check', () => {
       const out = exportChart(s)
       s.sections.forEach((section, i) => {
         const bars = barsOfSection(section.chords)
-        expect(out.sections[i].bars.map((b: { chords: string }) => b.chords), s.title).toEqual(bars.map(barChords))
+        expect(out.sections[i].bars.map((b: { bar: number; chords: string }) => [b.bar, b.chords]), s.title).toEqual(bars.map((b, n) => [n, barChords(b)]))
+        for (const bar of out.sections[i].bars as { bar: number; chords: string; slots: { chord: string; length: number }[] }[]) {
+          if (bar.chords.split(' ').every(t => t === 'N.C.' || t === '.')) continue
+          const label = `${s.title} ${section.name} bar ${bar.bar}`
+          expect(bar.slots.length, label).toBeGreaterThan(0)
+          expect(bar.slots.reduce((n, x) => n + x.length, 0), label).toBeCloseTo(1, 5)
+        }
       })
       if (s.form) {
         expect(out.skipped, s.title).toBeNull()
