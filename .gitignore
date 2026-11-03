@@ -8,3 +8,5 @@ __pycache__/
 .venv/
 node_modules/
 app/release-shots/
+server/recording_check/charts.json
+server/recording_check/recordings.local.json
