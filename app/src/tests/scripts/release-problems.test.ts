@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { barChords, barsOfSection } from '../../music/evidence'
+// @ts-expect-error -- the release check's saved charts are a plain script with no types
+import { CHECK_SONG } from '../../../scripts/release-saved.mjs'
 // @ts-expect-error -- the release check's rules are a plain script with no types
 import { problems, sortOut } from '../../../scripts/release-problems.mjs'
 
@@ -77,5 +80,31 @@ describe('the release check rules', () => {
     const found = problems({ chords: [], sections: [], diagrams: 1 })
     expect(sortOut('phone-390x844', 20, found).failures).toHaveLength(1)
     expect(sortOut('820x1180', 24, found).failures).toHaveLength(1)
+  })
+
+  describe('the unsure mark', () => {
+    const page = (marks: unknown[]) => ({ chords: [chord(0, 'B', 0, 30), chord(0, 'F#', 40, 80)], sections: [], marks })
+    const mark = (left: number, right: number, offScreen = false) => ({ rect: box(left, right, 0, 20), offScreen })
+
+    it('fails a mark over a chord', () => {
+      expect(problems(page([mark(20, 35)]))).toEqual([['mark 1', 'unsure mark covers B']])
+    })
+    it('passes a mark beside the chords, or touching by a pixel', () => {
+      expect(problems(page([mark(31, 39)]))).toEqual([])
+      expect(problems(page([mark(30, 45)]))).toEqual([['mark 1', 'unsure mark covers F#']])
+      expect(problems(page([mark(30, 40.5)]))).toEqual([])
+    })
+    it('fails a mark off the screen, as a width problem', () => {
+      expect(problems(page([mark(31, 39, true)]))).toEqual([['mark 1', 'unsure mark off the screen', 'width']])
+    })
+    it('numbers marks from 1 and needs none', () => {
+      expect(problems(page([mark(31, 39), mark(0, 10)]))).toEqual([['mark 2', 'unsure mark covers B']])
+      expect(problems({ chords: [], sections: [] })).toEqual([])
+    })
+  })
+
+  it("the check's own song writes its unsure bars as the evidence says", () => {
+    const bars = barsOfSection(CHECK_SONG.sections[0].chords).map(barChords)
+    for (const b of CHECK_SONG.evidence.Marks.bars) expect(bars[b.bar]).toBe(b.chords)
   })
 })

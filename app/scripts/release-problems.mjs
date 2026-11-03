@@ -12,9 +12,10 @@ export const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b
  * The problems in one page, as [where, text, kind]: where is `bar <n>` or
  * `section <n>`, from 1; kind is 'width' for a row too wide for the screen.
  * `bars` are the bars with chords, in the order of their numbers: each one's
- * section, its chords as written and its lines (1, or 2 staggered).
+ * section, its chords as written and its lines (1, or 2 staggered). `marks` are the unsure
+ * marks: each one's rect and whether it runs past the screen; one may not cover a chord.
  */
-export function problems({ chords, sections, bars = [], diagrams = 0 }) {
+export function problems({ chords, sections, bars = [], diagrams = 0, marks = [] }) {
   const found = sections.map(n => [`section ${n}`, 'runs past its width', 'width'])
   // The chart comes first: no chord diagram shows until a chord is tapped
   if (diagrams > 0) found.push(['screen', `${diagrams} chord diagram(s) shown before any tap`])
@@ -53,6 +54,12 @@ export function problems({ chords, sections, bars = [], diagrams = 0 }) {
     for (const o of chords.slice(i + 1)) {
       if (o.bar === c.bar && overlap(c.content, o.content)) found.push([n, `${c.name} overlaps ${o.name}`])
     }
+  })
+  // An unsure mark hangs over its bar's edge and may not cover any chord's text
+  marks.forEach((m, i) => {
+    const n = `mark ${i + 1}`
+    if (m.offScreen) found.push([n, 'unsure mark off the screen', 'width'])
+    for (const c of chords) if (overlap(m.rect, c.text)) found.push([n, `unsure mark covers ${c.name}`])
   })
   return found
 }

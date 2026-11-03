@@ -1,9 +1,14 @@
-/* The mark on a bar the sources disagree about: a small ? hung over the bar's top edge,
-   in the warning colour of the title line's Capo, clear of the chords (they stay inside the bar) */
+/* The mark on a bar the sources disagree about: a small ? hung over the bar's top edge, in the
+   warning colour of the title line's Capo. It hangs by the gap between rows and a pixel, no further,
+   or it would reach the chords of the row above; the room on the right is kept clear below */
 .band-chart .bar { position: relative; }
+/* A chord ends 0.35em short of its bar's right edge, less than the mark is wide (it is 1.1 of its
+   own size, which is never under 12px, and sits 0.2 in). A bar with a mark keeps that room clear
+   on the right, so the mark never covers the last chord */
+.band-chart .bar:has(.bar-unsure) { padding-right: max(0.35em, calc(max(12px, 0.4em) * 1.3 + 1px)); }
 .bar-unsure {
   position: absolute;
-  top: -0.45em;
+  top: calc(-1px - var(--row-gap, 3px));
   right: 0.2em;
   z-index: 1;
   min-width: 1.1em;
@@ -22,5 +27,5 @@
 button.bar-unsure { pointer-events: auto; cursor: pointer; }
 /* A tap target a finger can hit, without a bigger mark. It stays inside its own bar on the top and
    right (so it never widens the grid or takes a tap from a neighbour) and grows down and inward */
-button.bar-unsure::after { content: ''; position: absolute; inset: 0.45em -0.2em -14px -14px; }
+button.bar-unsure::after { content: ''; position: absolute; inset: calc(1px + var(--row-gap, 3px)) -0.2em -14px -14px; }
 .unsure-readings { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }

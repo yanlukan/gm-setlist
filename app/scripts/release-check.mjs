@@ -3,7 +3,8 @@
 // crosses its bar, overlaps another chord, is cut off, is off the screen or is out of playing
 // order in a staggered bar, or drawn differently from a bar of its section with the same chords;
 // and on any section wider than its room. Then it does the same for the player's edited charts,
-// saved as the app saves them (release-saved.mjs), on the 11-inch iPad in WebKit.
+// saved as the app saves them (release-saved.mjs), on the 11-inch iPad in WebKit; and the check's
+// own song of unsure bars at every size: an unsure mark may not cover a chord or leave the screen.
 // Usage, from app/: npm run build && npm run check:release
 // Exit 0 when everything passes; otherwise 1 with one line per problem:
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
@@ -21,13 +22,15 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, webkit } from 'playwright'
 import { problems, sortOut } from './release-problems.mjs'
-import { PUT_SAVED, SAVED } from './release-saved.mjs'
+import { CHECK_MARKS, CHECK_SONG, PUT_SAVED, SAVED } from './release-saved.mjs'
 
 const PORT = 4179
 const URL = `http://localhost:${PORT}/gm-setlist/`
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SHOTS = join(APP, 'release-shots')
 const EXPECTED_SONGS = 21
+/** With the check's own song put in the app's store, the Songs sheet has one more. */
+const WITH_CHECK_SONG = EXPECTED_SONGS + 1
 const ENGINES = [
   ['webkit', webkit],
   ['chromium', chromium],
@@ -78,6 +81,11 @@ const READ_CHORDS = () => {
       row: chord.style.getPropertyValue('--row'),
     }
   })
+  // The unsure marks: where each one is, and whether it runs past the screen
+  const marks = [...document.querySelectorAll('.band-chart .bar-unsure')].map(mark => {
+    const r = rect(mark)
+    return { rect: r, offScreen: !!screen && (r.right > screen.right + 1 || r.left < screen.left - 1) }
+  })
   const grids = [...document.querySelectorAll('.band-chart .bar-grid')]
   const barInfo = bars.map(bar => ({ section: grids.indexOf(bar.closest('.bar-grid')), chords: bar.dataset.chords ?? '', lines: bar.dataset.lines ?? '1' }))
   const sections = grids
@@ -86,7 +94,7 @@ const READ_CHORDS = () => {
   const chart = document.querySelector('.band-chart')
   // Chord diagrams on the page before anything is tapped: there should be none
   const diagrams = document.querySelectorAll('main svg[role="img"]').length
-  return { chords, sections, bars: barInfo, diagrams, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
+  return { chords, sections, bars: barInfo, diagrams, marks, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
 }
 
 
@@ -149,11 +157,11 @@ async function stopServer(server) {
 }
 
 /** Opens the song with this title, or this index, through the Songs sheet; returns its title. */
-async function openSong(page, which) {
+async function openSong(page, which, expected = EXPECTED_SONGS) {
   await page.getByRole('button', { name: /^Songs, / }).click()
   const sheet = page.getByRole('dialog', { name: 'All songs' })
   const rows = sheet.locator('.songtile')
-  if ((await rows.count()) !== EXPECTED_SONGS) throw new Error(`Expected ${EXPECTED_SONGS} songs in the sheet, found ${await rows.count()}`)
+  if ((await rows.count()) !== expected) throw new Error(`Expected ${expected} songs in the sheet, found ${await rows.count()}`)
   const titles = (await rows.locator('.songtile-title').allTextContents()).map(t => t.trim())
   const index = typeof which === 'number' ? which : titles.indexOf(which)
   if (index < 0) throw new Error(`No song "${which}" in the sheet`)
@@ -162,6 +170,17 @@ async function openSong(page, which) {
   await sheet.waitFor({ state: 'detached' })
   await shows(page, title)
   return title
+}
+
+/** The setlist as the Songs sheet shows it: its name and the titles in order. Leaves the sheet closed. */
+async function shownList(page) {
+  await page.getByRole('button', { name: /^Songs, / }).click()
+  const sheet = page.getByRole('dialog', { name: 'All songs' })
+  const titles = (await sheet.locator('.songtile .songtile-title').allTextContents()).map(t => t.trim())
+  const name = (await sheet.locator('.sheet-title').textContent()).trim()
+  await sheet.locator('.songtile').first().click()
+  await sheet.waitFor({ state: 'detached' })
+  return { name, titles }
 }
 
 /** Fails the whole check unless the screen's song title is the one opened: else the wrong chart is measured. */
@@ -192,7 +211,7 @@ const warnings = []
 let pages = 0
 
 /** Measures the song on screen, records its problems, and keeps its picture as `<shot>.png`. */
-async function check(page, engineName, size, screen, label, shot, marker) {
+async function check(page, engineName, size, screen, label, shot, marker, markCount) {
   let chords
   try {
     chords = await settle(page, label)
@@ -202,6 +221,7 @@ async function check(page, engineName, size, screen, label, shot, marker) {
   }
   pages++
   if (marker && !chords.chords.some(c => c.name === marker)) lines.push(`${engineName} ${label}: the saved chart is not drawn (no ${marker})`)
+  if (markCount !== undefined && chords.marks.length !== markCount) lines.push(`${engineName} ${label}: ${chords.marks.length} unsure marks drawn, expected ${markCount}`)
   const { failures, warnings: phone } = sortOut(size.name, chords.chartPx, problems(chords))
   for (const [where, text] of failures) lines.push(`${engineName} ${label} ${where}: ${text}`)
   for (const [where, text] of phone) warnings.push(`phone warning: ${engineName} ${label} ${where}: ${text}`)
@@ -224,7 +244,7 @@ async function openApp(browser, size, screen, errors, saved) {
   await onScreen(page, screen)
   if (saved) {
     // Stored once the app has made its database, then read back as the app starts again
-    await page.evaluate(PUT_SAVED, saved)
+    await page.evaluate(PUT_SAVED, { saved, songs: [CHECK_SONG], list: await shownList(page) })
     await page.reload()
     await onScreen(page, screen)
   }
@@ -248,19 +268,22 @@ try {
         await context.close()
       }
     }
-    // The player's own edited charts, as saved: on the iPad, both ways up, in iPad Safari's engine
-    if (engineName === 'webkit') {
-      for (const size of SIZES.filter(s => SAVED_SIZES.includes(s.name))) {
-        for (const screen of SCREENS) {
-          const errors = []
-          const { context, page } = await openApp(browser, size, screen, errors, SAVED)
+    // The player's own edited charts, as saved (on the iPad, both ways up, in iPad Safari's engine),
+    // and the check's own song with its unsure marks (every size, both engines)
+    for (const size of SIZES) {
+      for (const screen of SCREENS) {
+        const errors = []
+        const { context, page } = await openApp(browser, size, screen, errors, SAVED)
+        if (engineName === 'webkit' && SAVED_SIZES.includes(size.name)) {
           for (const { title, marker } of SAVED) {
-            await openSong(page, title)
+            await openSong(page, title, WITH_CHECK_SONG)
             await check(page, engineName, size, screen, `${size.name} ${screen.toLowerCase()} saved ${title}`, `saved-${slug(title)}`, marker)
           }
-          for (const message of errors) lines.push(`${engineName} ${size.name} ${screen.toLowerCase()} saved: page error: ${message}`)
-          await context.close()
         }
+        await openSong(page, CHECK_SONG.title, WITH_CHECK_SONG)
+        await check(page, engineName, size, screen, `${size.name} ${screen.toLowerCase()} saved ${CHECK_SONG.title}`, `saved-${slug(CHECK_SONG.title)}`, 'Bbmaj9(#11)/D', CHECK_MARKS)
+        for (const message of errors) lines.push(`${engineName} ${size.name} ${screen.toLowerCase()} saved: page error: ${message}`)
+        await context.close()
       }
     }
     await browser.close()
