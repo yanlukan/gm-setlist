@@ -82,7 +82,7 @@ export function persistEdits(title: string, edits: SongEdits): void {
   track(title, saveSongEdits(title, edits))
 }
 
-function persistDelete(title: string): void {
+export function persistDelete(title: string): void {
   if (readOnly) {
     useStore.setState({ saveStatus: 'readonly' })
     return

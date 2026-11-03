@@ -83,13 +83,19 @@ export interface UnsureBar {
   evidence: BarEvidence
 }
 
-const squash = (chords: string) => tokensOf(chords).join(' ')
+export const squash = (chords: string) => tokensOf(chords).join(' ')
+
+/** A section's evidence bars that are well formed; saved or pasted evidence may be anything. */
+function goodBars(bars: unknown): BarEvidence[] {
+  if (!Array.isArray(bars)) return []
+  return bars.filter(b => b && typeof b.bar === 'number' && typeof b.chords === 'string')
+}
 
 /** The Unsure bars that still read the disputed chords and that the player has not settled on them. */
 export function openUnsure(song: Song, edits: SongEdits | undefined): UnsureBar[] {
   const found: UnsureBar[] = []
   ;(edits?.sections ?? song.sections).forEach((section, index) => {
-    const unsure = (song.evidence?.[section.name]?.bars ?? []).filter(b => b.from === 'Unsure')
+    const unsure = goodBars(song.evidence?.[section.name]?.bars).filter(b => b.from === 'Unsure')
     if (unsure.length === 0) return
     const bars = barsOfSection(section.chords)
     for (const evidence of unsure) {
@@ -118,13 +124,17 @@ export function chordsFromText(song: Song, edits: SongEdits | undefined): string
   }
   const ear = new Set<string>()
   for (const [name, section] of Object.entries(song.evidence ?? {})) {
-    for (const b of section.bars ?? []) if (b.from === 'Ear') ear.add(`${name}:${b.bar}`)
+    if (!names.includes(name)) continue
+    for (const b of goodBars(section?.bars)) if (b.from === 'Ear') ear.add(`${name}:${b.bar}`)
   }
+  // A settled bar that reads its disputed chords again is unsure, not by ear
+  const open = openUnsure(song, edits)
   for (const [name, settled] of Object.entries(edits?.heard ?? {})) {
-    for (const bar of Object.keys(settled)) ear.add(`${name}:${bar}`)
+    if (!names.includes(name)) continue
+    for (const bar of Object.keys(settled)) if (!open.some(u => u.name === name && u.bar === Number(bar))) ear.add(`${name}:${bar}`)
   }
   if (ear.size > 0) parts.push(`${bars(ear.size)} by ear.`)
-  const unsure = openUnsure(song, edits).length
+  const unsure = open.length
   if (unsure > 0) parts.push(`${bars(unsure)} unsure.`)
   return parts.join(' ')
 }

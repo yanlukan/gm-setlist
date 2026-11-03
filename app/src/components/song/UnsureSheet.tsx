@@ -36,7 +36,7 @@ export function UnsureSheet({ chart, unsure, onClose }: Props) {
   const listed = readings.some(r => squash(r.chords) === squash(charted))
 
   const settle = (chords: string) => {
-    settleBar(song.title, unsure.name, unsure.bar, chords)
+    settleBar(song.title, unsure, chords)
     onClose()
   }
 

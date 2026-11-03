@@ -5,7 +5,8 @@ import { StageScreen } from '../../components/stage/StageScreen'
 import { SongFacts } from '../../components/sheets/SongFacts'
 import { useSongChart } from '../../hooks/use-song-chart'
 import { useStore } from '../../store/use-store'
-import { chordsFromText } from '../../music/evidence'
+import { chordsFromText, openUnsure } from '../../music/evidence'
+import { settleBar } from '../../store/evidence'
 import type { Song } from '../../types'
 
 // A bar the sources disagree about carries a small mark. On Practice it is a
@@ -126,6 +127,30 @@ describe('the unsure mark', () => {
     }
     render(<Facts />)
     expect(screen.getByText('Chords').nextElementSibling!.textContent).toBe(chordsFromText(useStore.getState().songs[0], undefined))
+  })
+
+  it('More can mark settled bars unsure again', () => {
+    show()
+    function Facts() {
+      const chart = useSongChart(useStore(s => s.songs[0]))!
+      return <SongFacts chart={chart} />
+    }
+    const { rerender } = render(<Facts />)
+    expect(screen.queryByRole('button', { name: 'Mark settled bars unsure again' })).toBeNull()
+    act(() => settleBar('Fixture', openUnsure(useStore.getState().songs[0], undefined)[0], disputed))
+    rerender(<Facts />)
+    expect(openUnsure(useStore.getState().songs[0], useStore.getState().edits.Fixture)).toEqual([])
+    fireEvent.click(screen.getByRole('button', { name: 'Mark settled bars unsure again' }))
+    expect(useStore.getState().edits.Fixture).toBeUndefined()
+    expect(openUnsure(useStore.getState().songs[0], useStore.getState().edits.Fixture)).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Mark settled bars unsure again' })).toBeNull()
+  })
+
+  it('a bar with a mark is marked for the padding that keeps the mark clear', () => {
+    show()
+    render(<PracticeScreen />)
+    expect(barsOf('Pre-Chorus')[5].classList.contains('bar-marked')).toBe(true)
+    expect(barsOf('Pre-Chorus')[4].classList.contains('bar-marked')).toBe(false)
   })
 
   it('More leaves the row out when the source is not known', () => {

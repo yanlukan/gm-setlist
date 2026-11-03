@@ -76,11 +76,13 @@ export function BandBars({ lines, renderTokens, markFor }: Props) {
         if (cell.kind === 'pad') return <div key={i} className={`bar-pad ${cell.className}`} aria-hidden="true" />
         // The bar is a grid of its beats: each chord starts in the column of its beat
         const { beats, chords } = beatsOf(cell.tokens)
+        // A bar with a mark keeps room clear for it on the right
+        const mark = markFor?.(cell.number)
         const style = { '--beats': Math.max(beats, 1) } as CSSProperties
         return (
           <div
             key={i}
-            className={cell.classes.join(' ')}
+            className={(mark ? [...cell.classes, 'bar-marked'] : cell.classes).join(' ')}
             style={style}
             data-beats={beats}
             // Its chords as written: the fit draws bars of a section with the same ones the same way
@@ -107,7 +109,7 @@ export function BandBars({ lines, renderTokens, markFor }: Props) {
               if (isRepeatCount(token)) return <span key={ti} className="chart-mark bar-count">{token}</span>
               return null
             })}
-            {markFor?.(cell.number)}
+            {mark}
           </div>
         )
       })}

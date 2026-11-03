@@ -94,8 +94,12 @@ describe('the release check rules', () => {
       expect(problems(page([mark(30, 45)]))).toEqual([['mark 1', 'unsure mark covers F#']])
       expect(problems(page([mark(30, 40.5)]))).toEqual([])
     })
-    it('fails a mark off the screen, as a width problem', () => {
-      expect(problems(page([mark(31, 39, true)]))).toEqual([['mark 1', 'unsure mark off the screen', 'width']])
+    it('fails a mark off the screen, as its own kind of problem', () => {
+      expect(problems(page([mark(31, 39, true)]))).toEqual([['mark 1', 'unsure mark off the screen', 'mark']])
+    })
+    it('is a failure on the phone at the smallest size too', () => {
+      const found = problems(page([mark(31, 39, true)]))
+      expect(sortOut('phone-390x844', 20, found)).toEqual({ failures: found, warnings: [] })
     })
     it('numbers marks from 1 and needs none', () => {
       expect(problems(page([mark(31, 39), mark(0, 10)]))).toEqual([['mark 2', 'unsure mark covers B']])

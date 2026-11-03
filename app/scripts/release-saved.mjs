@@ -44,7 +44,8 @@ const unsure = (bar, chords) => ({
 /**
  * The check's own song, kept as a custom song: an Unsure bar at each of the places the mark has
  * the least room (one long chord, six chords, a staggered bar, `%`, only dots, the last column of
- * a row, and a staggered bar in the last column). Bars count from 0 across the section's lines.
+ * a row, and a staggered bar in the last column), and one bar without a mark that has the chords of
+ * a marked one. Bars count from 0 across the section's lines.
  */
 export const CHECK_SONG = {
   title: 'Release check: unsure bars',
@@ -62,6 +63,8 @@ export const CHECK_SONG = {
         '|  Bbmaj9(#11)/D  |  C  Dm  Em  F  G  Am  |  B  F#/A#  G#m  .  |  %  |',
         '|  E  |  .  .  .  .  |  A  |  A  B  |',
         '|  C  |  G  |  Am  |  B  F#/A#  G#m  .  |',
+        // The chords of marked bar 0, unmarked: drawn the same as the marked one
+        '|  Bbmaj9(#11)/D  |  C  |  G  |  Am  |',
       ].join('\n'),
     },
   ],

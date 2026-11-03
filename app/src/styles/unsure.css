@@ -5,7 +5,7 @@
 /* A chord ends 0.35em short of its bar's right edge, less than the mark is wide (it is 1.1 of its
    own size, which is never under 12px, and sits 0.2 in). A bar with a mark keeps that room clear
    on the right, so the mark never covers the last chord */
-.band-chart .bar:has(.bar-unsure) { padding-right: max(0.35em, calc(max(12px, 0.4em) * 1.3 + 1px)); }
+.band-chart .bar.bar-marked { padding-right: max(0.35em, calc(max(12px, 0.4em) * 1.3 + 1px)); }
 .bar-unsure {
   position: absolute;
   top: calc(-1px - var(--row-gap, 3px));

@@ -4,6 +4,7 @@ import { chordsFromText } from '../../music/evidence'
 import { songbookOf } from '../../music/songbook'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { soundFor } from '../../music/gx10'
+import { unsettleSong } from '../../store/evidence'
 import { SoundFact } from '../song/SoundFact'
 
 /** What is known of the song: its GX-10 sound, the songbook, the key and the capo, the cue and the notes. */
@@ -29,7 +30,14 @@ export function SongFacts({ chart }: { chart: SongChart }) {
         {chordsFrom && (
           <>
             <dt>Chords</dt>
-            <dd>{chordsFrom}</dd>
+            <dd>
+              {chordsFrom}
+              {songEdits?.heard && Object.keys(songEdits.heard).length > 0 && (
+                <div>
+                  <button className="sheet-action" onClick={() => unsettleSong(song.title)}>Mark settled bars unsure again</button>
+                </div>
+              )}
+            </dd>
           </>
         )}
         {!keyboard && (
