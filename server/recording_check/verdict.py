@@ -65,11 +65,19 @@ def _name(chord, chart, fraction, key):
     return spell(chord, key)
 
 
-def _runs(play):
-    """Runs of equal chords as (first beat, last beat, chord)."""
+def _usable(beat, min_confidence, allow_none):
+    """A beat counts when it is confident and, unless the chart has N.C., not 'no chord'."""
+    chord, conf = beat
+    return conf >= min_confidence and (allow_none or chord.kind != 'none')
+
+
+def _runs(play, usable):
+    """Runs of equal chords over usable beats as [first beat, last beat, chord]."""
     runs = []
     for i, (chord, _) in enumerate(play):
-        if runs and same(runs[-1][2], chord):
+        if not usable(play[i]):
+            continue
+        if runs and runs[-1][1] == i - 1 and same(runs[-1][2], chord):
             runs[-1][1] = i
         else:
             runs.append([i, i, chord])
@@ -77,27 +85,26 @@ def _runs(play):
 
 
 def _chord_difference(chart, play, min_confidence):
-    """Mean confidence of the first differing run in one play, or None."""
+    """Mean confidence of the first differing run in one play, or None.
+
+    A run counts if the chart has no such chord and it covers more than a
+    quarter of the bar, or is a passing chord whose root or kind is new.
+    """
     n = len(play)
-    chords = [c for c, _, _ in chart]
-    for first, last, chord in _runs(play):
-        confs = [play[i][1] for i in range(first, last + 1)]
-        if min(confs) < min_confidence or any(same(chord, c) for c in chords):
+    allow_none = any(c.kind == 'none' for c, _, _ in chart)
+    usable = lambda beat: _usable(beat, min_confidence, allow_none)
+    for first, last, chord in _runs(play, usable):
+        if any(same(chord, c) for c, _, _ in chart):
             continue
         covers = (last - first + 1) / n > QUARTER
         passing = (first > 0 and last < n - 1
-                   and not same(play[first - 1][0], play[last + 1][0]))
+                   and usable(play[first - 1]) and usable(play[last + 1])
+                   and not same(play[first - 1][0], play[last + 1][0])
+                   and not any(c.root == chord.root and c.kind == chord.kind for c, _, _ in chart))
         if covers or passing:
+            confs = [play[i][1] for i in range(first, last + 1)]
             return sum(confs) / len(confs)
     return None
-
-
-def _trusted(play, min_confidence):
-    """The play's chords with low-confidence beats holding the previous chord."""
-    out = []
-    for i, (chord, conf) in enumerate(play):
-        out.append(chord if conf >= min_confidence or not out else out[-1])
-    return out
 
 
 def _changes(chords):
@@ -113,16 +120,17 @@ def _collapsed(chords):
 
 
 def _rhythm_difference(chart, play, min_confidence):
-    """True when one play has the chart's chords in order but changes on other beats."""
+    """True when every beat is usable, the chart's chords come in order, on other beats."""
     n = len(play)
-    chords = _trusted(play, min_confidence)
+    allow_none = any(c.kind == 'none' for c, _, _ in chart)
+    if not all(_usable(b, min_confidence, allow_none) for b in play):
+        return False
+    chords = [c for c, _ in play]
     chart_by_beat = [_chart_at(chart, (i + 0.5) / n) for i in range(n)]
-    if None in chart_by_beat:
+    if None in chart_by_beat or _changes(chords) == _chart_changes(chart, n):
         return False
-    if _changes(chords) == _chart_changes(chart, n):
-        return False
-    return all(same(a, b) for a, b in zip(_collapsed(chords), _collapsed(chart_by_beat))) \
-        and len(_collapsed(chords)) == len(_collapsed(chart_by_beat))
+    a, b = _collapsed(chords), _collapsed(chart_by_beat)
+    return len(a) == len(b) and all(same(x, y) for x, y in zip(a, b))
 
 
 def _modal_reading(chart_slots, plays, key):
@@ -149,7 +157,7 @@ def bar_finding(chart_slots, plays, key, min_confidence=MIN_CONFIDENCE, min_shar
 
 def song_verdict(findings: dict, bar_count: int, flood_share=FLOOD_SHARE) -> str:
     """'not lined up' when over flood_share of the bars are chord findings."""
-    flagged = sum(1 for f in findings.values() if f.kind == 'chord')
+    flagged = sum(1 for f in findings.values() if f is not None and f.kind == 'chord')
     if bar_count <= 0 or flagged > flood_share * bar_count:
         return 'not lined up'
     return 'lined up'

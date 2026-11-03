@@ -66,7 +66,7 @@ class SpellShiftTests(unittest.TestCase):
     def test_flat_and_sharp_minor_keys(self):
         self.assertEqual(spell(parse('A#'), 'Gm'), 'Bb')
         self.assertEqual(spell(parse('A#'), 'F#m'), 'A#')
-        self.assertEqual(spell(parse('A#'), 'C'), 'A#')
+        self.assertEqual(spell(parse('A#'), 'C'), 'Bb')
 
     def test_kind_suffixes(self):
         self.assertEqual(spell(parse('Bdim'), 'C'), 'Bdim')
@@ -79,6 +79,38 @@ class SpellShiftTests(unittest.TestCase):
         self.assertEqual(shift(parse('B/D#'), 1), parse('C/E'))
         self.assertEqual(shift(parse('B'), -1), parse('Bb'))
         self.assertEqual(shift(parse('N'), 1), Chord(-1, 'none', -1))
+
+    def test_spelling_follows_the_keys_own_scale(self):
+        self.assertEqual(spell(parse('A/C#'), 'Dm'), 'A/C#')
+        self.assertEqual(spell(parse('C#dim'), 'Dm'), 'C#dim')
+        self.assertEqual(spell(parse('D/F#'), 'Gm'), 'D/F#')
+        self.assertEqual(spell(parse('D/F#'), 'F'), 'D/F#')
+        self.assertEqual(spell(parse('A#'), 'G'), 'Bb')
+        self.assertEqual(spell(parse('A#'), 'Am'), 'Bb')
+
+    def test_unusual_diatonic_names(self):
+        self.assertEqual(spell(parse('F'), 'C#'), 'E#')
+        self.assertEqual(spell(parse('B'), 'Gb'), 'Cb')
+        self.assertEqual(spell(parse('C'), 'C#'), 'B#')
+
+    def test_sus2_stays_sus2(self):
+        self.assertEqual(spell(parse('Dsus2'), 'D'), 'Dsus2')
+        self.assertEqual(spell(parse('Dsus4'), 'D'), 'Dsus4')
+        self.assertEqual(spell(parse('Dsus'), 'D'), 'Dsus4')
+        self.assertTrue(same(parse('Dsus2'), parse('Dsus4')))
+        self.assertEqual(spell(shift(parse('Dsus2'), 2), 'E'), 'Esus2')
+
+    def test_dash_and_plus_spellings(self):
+        self.assertEqual(parse('C-7').kind, 'min')
+        self.assertEqual(parse('C7+').kind, 'aug')
+        self.assertEqual(parse('C7#5').kind, 'aug')
+        self.assertEqual(parse('Cmaj7#11').kind, 'maj')
+
+    def test_six_nine_is_not_a_slash_bass(self):
+        self.assertEqual(parse('C6/9'), Chord(0, 'maj', 0))
+
+    def test_double_flat_is_not_a_chord(self):
+        self.assertIsNone(parse('Bbb'))
 
 
 if __name__ == '__main__':

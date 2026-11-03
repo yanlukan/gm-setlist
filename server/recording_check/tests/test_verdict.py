@@ -99,6 +99,7 @@ class RhythmFindingTests(unittest.TestCase):
         late = play('E', 'E', 'E', 'B')
         f = bar_finding(E_B, [late, late, late], 'E', 0.5, 0.6)
         self.assertEqual((f.kind, f.record), ('rhythm', 'E . . B'))
+        self.assertAlmostEqual(f.confidence, 0.9)
 
     def test_same_chords_on_the_same_beats_agree(self):
         ok = play('E', 'E', 'B', 'B')
@@ -112,6 +113,45 @@ class RhythmFindingTests(unittest.TestCase):
     def test_a_chord_difference_wins_over_rhythm(self):
         beats = play('E', 'E', 'A', 'A')
         self.assertEqual(bar_finding(E_B, [beats] * 2, 'E', 0.5, 0.6).kind, 'chord')
+
+
+class FixRoundTests(unittest.TestCase):
+    def test_a_low_confidence_beat_is_not_a_late_change(self):
+        weak = [(parse('E'), .9), (parse('E'), .9), (parse('B'), .4), (parse('B'), .9)]
+        self.assertIsNone(bar_finding(E_B, [weak] * 3, 'E', 0.5, 0.6))
+
+    def test_a_record_with_no_chord_is_not_a_finding(self):
+        silent = play('B', 'N', 'N', 'G#m')
+        self.assertIsNone(bar_finding(B_GSM, [silent] * 3, 'B', 0.5, 0.6))
+        fade = [(parse('B'), .9), (parse('B'), .9), (parse('N'), .9), (parse('N'), .9)]
+        self.assertIsNone(bar_finding(B_GSM, [fade] * 3, 'B', 0.5, 0.6))
+        shifted = play('E', 'E', 'N', 'N')
+        self.assertIsNone(bar_finding(E_B, [shifted] * 3, 'E', 0.5, 0.6))
+
+    def test_a_chord_heard_over_a_no_chord_bar_still_flags(self):
+        chart = slots(('N.C.', 0, 1))
+        beats = play('E', 'E', 'E', 'E')
+        self.assertEqual(bar_finding(chart, [beats] * 2, 'E', 0.5, 0.6).kind, 'chord')
+        self.assertIsNone(bar_finding(chart, [play('N', 'N', 'N', 'N')] * 2, 'E', 0.5, 0.6))
+
+    def test_a_walking_bass_note_is_not_a_passing_chord(self):
+        chart = slots(('C', 0, 1))
+        beats = play('C', 'C/2', 'C/3', 'C')
+        self.assertIsNone(bar_finding(chart, [beats] * 3, 'C', 0.5, 0.6))
+
+    def test_a_bass_change_over_half_the_bar_still_flags(self):
+        chart = slots(('C', 0, 1))
+        beats = play('C', 'C/D', 'C/E', 'C/E')
+        self.assertEqual(bar_finding(chart, [beats] * 3, 'C', 0.5, 0.6).kind, 'chord')
+
+    def test_a_weak_beat_splits_a_run(self):
+        beats = [(parse('B'), .9), (parse('E'), .9), (parse('E'), .3), (parse('E'), .9)]
+        self.assertIsNone(bar_finding(B_GSM, [beats] * 3, 'B', 0.5, 0.6))
+        beats = [(parse('B'), .9), (parse('E'), .9), (parse('E'), .9), (parse('E'), .3)]
+        self.assertEqual(bar_finding(B_GSM, [beats] * 3, 'B', 0.5, 0.6).kind, 'chord')
+
+    def test_song_verdict_ignores_missing_findings(self):
+        self.assertEqual(song_verdict({0: None, 1: None}, 4), 'lined up')
 
 
 class SongVerdictTests(unittest.TestCase):
