@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../../store/use-store'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 } from '../../data/songs'
 import { isChartMark } from '../../music/theory'
 
 beforeEach(() => {

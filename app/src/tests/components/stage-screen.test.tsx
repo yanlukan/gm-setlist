@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within, act } from '@testing-library/react'
 import { StageScreen } from '../../components/stage/StageScreen'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 as G } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { playedKey } from '../../music/setlist-text'
 import { useStore } from '../../store/use-store'
 

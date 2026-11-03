@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { songbookOf } from '../../music/songbook'
 import type { Song } from '../../types'
 

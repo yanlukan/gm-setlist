@@ -65,7 +65,7 @@ describe('checking chords', () => {
   })
 
   it('finds nothing wrong with the charts the app ships', async () => {
-    const { DEFAULT_SONGS } = await import('../../data/songs')
+    const { DEFAULT_SONGS } = await import('../../data/library')
     const wrong: string[] = []
     for (const song of DEFAULT_SONGS) {
       for (const section of song.sections) {

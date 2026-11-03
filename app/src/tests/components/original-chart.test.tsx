@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { CurrentScreen } from '../../App'
 import { BottomBar } from '../../components/layout/BottomBar'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { useStore } from '../../store/use-store'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!

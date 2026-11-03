@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { sameSections, hasEditedChart, differingSections } from '../../music/chart-edits'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 

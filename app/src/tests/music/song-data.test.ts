@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 } from '../../data/songs'
 import { transposeInKey } from '../../music/theory'
 import { ctl1Tags, soundFor } from '../../music/gx10'
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { formatSetlist, playedKey, formatLength, setLength } from '../../music/setlist-text'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 } from '../../data/songs'
 
 const inGigOrder = GIG_SETLIST_2026.map(t => DEFAULT_SONGS.find(s => s.title === t)!)
 

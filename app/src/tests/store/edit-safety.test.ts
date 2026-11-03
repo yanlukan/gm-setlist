@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useStore } from '../../store/use-store'
 import { db, resetDb, getSongHistory, getSongEdits } from '../../store/persistence'
 import { whenHistorySaved, VERSION_GAP_MS } from '../../store/song-history'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const start = new Date('2026-09-30T12:00:00Z').getTime()

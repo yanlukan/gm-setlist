@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { CHORD_DB, lookupChord, type ChordVoicing } from '../../data/chords-db'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { isChartMark, transposeInKey } from '../../music/theory'
 
 describe('chord diagrams', () => {

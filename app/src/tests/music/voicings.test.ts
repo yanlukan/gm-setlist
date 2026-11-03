@@ -2,7 +2,8 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { chordNotes, voicingsFor, bandPositions, hasShapes, shapeToShow, shapeText, fretSpan, researchedStart, SHAPES_RELEASED, setOwnShapes, ownShapesFor } from '../../music/voicings'
 import { bandPlanFor } from '../../hooks/use-band-positions'
 import { lookupChord, type ChordVoicing } from '../../data/chords-db'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 } from '../../data/songs'
 import { transposeInKey, isChartMark } from '../../music/theory'
 
 const OPEN = [4, 9, 2, 7, 11, 4] // E A D G B E

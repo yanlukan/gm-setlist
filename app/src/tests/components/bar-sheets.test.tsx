@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { BottomBar } from '../../components/layout/BottomBar'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 as G } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 import { APP_VERSION } from '../../version'
 

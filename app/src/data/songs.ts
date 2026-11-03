@@ -1,6 +1,6 @@
 import type { Song } from '../types'
 
-export const DEFAULT_SONGS: Song[] = [
+export const SONGS: Song[] = [
   {
     title: 'Faith',
     songbook: 12,

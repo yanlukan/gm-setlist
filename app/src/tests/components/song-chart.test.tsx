@@ -4,7 +4,8 @@ import { SongSheet } from '../../components/song/SongSheet'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { ChartBody } from '../../components/song/ChartBody'
 import { useSongChart } from '../../hooks/use-song-chart'
-import { DEFAULT_SONGS, GIG_SETLIST_2026 as G } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
+import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 
 const song = (title: string) => DEFAULT_SONGS.find(s => s.title === title)!

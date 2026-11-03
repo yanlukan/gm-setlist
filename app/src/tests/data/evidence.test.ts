@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { barsOfSection, barChords } from '../../music/evidence'
 
 describe('where each shipped song came from', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { barsOfSection, barChords } from '../../music/evidence'
 import { by, formBars } from '../songs-in-bars-helpers'
 // @ts-expect-error -- the chart export is a plain script with no types

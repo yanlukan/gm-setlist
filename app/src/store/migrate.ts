@@ -1,6 +1,6 @@
 import type { Song, SongEdits, SetlistData } from '../types'
 import * as persistence from './persistence'
-import { DEFAULT_SONGS } from '../data/songs'
+import { DEFAULT_SONGS } from '../data/library'
 
 const FLAG = 'playbook-migrated-to-idb'
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { formLabel, compressForm, formRuns, formMatches, formAfterRename, formAfterDelete, sameForm } from '../../music/form'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 
 describe('the short name of a section in the song order', () => {
   it.each([

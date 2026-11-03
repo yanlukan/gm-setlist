@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_VIEW, capoFor, shapeSections, shownSections, simplifyRuleFor, type ChartView } from '../../music/chart-view'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const KEYBOARD: ChartView = { ...DEFAULT_VIEW, instrument: 'keyboard' }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { layOutParts, phraseLines, relayOut } from '../../music/phrases'
 
 describe('a section laid out by its parts', () => {

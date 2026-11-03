@@ -1,5 +1,5 @@
 import { lookupChord, normalizeQuality, type ChordVoicing } from '../data/chords-db'
-import { DEFAULT_SONGS } from '../data/songs'
+import { DEFAULT_SONGS } from '../data/library'
 
 /**
  * Band shapes for electric guitar: compact three- and four-string voicings

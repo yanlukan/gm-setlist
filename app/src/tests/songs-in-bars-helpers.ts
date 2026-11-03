@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import { DEFAULT_SONGS } from '../data/songs'
+import { DEFAULT_SONGS } from '../data/library'
 import { barsOf, hasBars, REPEAT_BAR, isRepeatCount } from '../music/bars'
 
 // The songs charted in bars from the songbook, each checked against the

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { bandPlanFor, neckFor, shapeChoice } from '../../hooks/use-band-positions'
 import { fretSpan, setOwnShapes, shapeText, voicingsFor } from '../../music/voicings'
 import { useStore } from '../../store/use-store'

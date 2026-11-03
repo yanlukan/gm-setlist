@@ -6,7 +6,7 @@ import { CurrentScreen } from '../../App'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { StageScreen } from '../../components/stage/StageScreen'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { playedKey } from '../../music/setlist-text'
 import { useStore } from '../../store/use-store'
 

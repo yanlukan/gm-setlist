@@ -1,4 +1,4 @@
-import { DEFAULT_SONGS } from '../data/songs'
+import { DEFAULT_SONGS } from '../data/library'
 import type { Song } from '../types'
 
 /**

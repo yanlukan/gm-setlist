@@ -2,6 +2,7 @@ import { useChartView } from '../../store/use-store'
 import { guitarFor } from '../../music/chart-view'
 import { chordsFromText } from '../../music/evidence'
 import { songbookOf } from '../../music/songbook'
+import { recordCheckOf, recordCheckText } from '../../music/record-check'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { soundFor } from '../../music/gx10'
 import { unsettleSong } from '../../store/evidence'
@@ -14,6 +15,7 @@ export function SongFacts({ chart }: { chart: SongChart }) {
   const book = songbookOf(song)
   const guitar = guitarFor(song, songEdits, view)
   const chordsFrom = chordsFromText(song, songEdits)
+  const recordCheck = recordCheckOf(song.title)
 
   return (
     <div className="song-facts-list">
@@ -38,6 +40,12 @@ export function SongFacts({ chart }: { chart: SongChart }) {
                 </div>
               )}
             </dd>
+          </>
+        )}
+        {recordCheck && (
+          <>
+            <dt>Record check</dt>
+            <dd>{recordCheckText(recordCheck)}</dd>
           </>
         )}
         {!keyboard && (

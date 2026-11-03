@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { letterAt, letterByName, sectionLetters } from '../../music/letters'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 
 const letters = (title: string) => sectionLetters(DEFAULT_SONGS.find(s => s.title === title)!.sections.map(s => s.name))
 

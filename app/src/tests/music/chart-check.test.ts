@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/songs'
+import { DEFAULT_SONGS } from '../../data/library'
 import { parseChordText, unknownChords } from '../../music/chord-text'
 import { hasShapes, indexOfShape, voicingsFor } from '../../music/voicings'
 import { DEFAULT_VIEW, shownSections, type ChartView } from '../../music/chart-view'

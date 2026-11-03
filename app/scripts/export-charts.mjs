@@ -2,7 +2,7 @@
 // Usage, from app/: node scripts/export-charts.mjs > ../server/recording_check/charts.json
 // Node strips the types of the two imports below.
 import { fileURLToPath } from 'node:url'
-import { DEFAULT_SONGS } from '../src/data/songs.ts'
+import { SONGS as DEFAULT_SONGS } from '../src/data/songs.ts'
 import { barsOf, beatsOf, hasBars, isRepeatCount, REPEAT_BAR } from '../src/music/bars.ts'
 
 const tokensOf = line => line.split(/\s+/).filter(Boolean)
