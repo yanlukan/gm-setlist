@@ -65,4 +65,17 @@ describe('the release check rules', () => {
     expect(sortOut('820x1180', 20, found).failures).toHaveLength(1)
     expect(sortOut('820x1180', 20, found).warnings).toHaveLength(0)
   })
+
+  it('a chord diagram on a fresh page is a problem', () => {
+    const found = problems({ chords: [], sections: [], diagrams: 2 })
+    expect(found).toHaveLength(1)
+    expect(found[0][1]).toContain('chord diagram')
+    expect(problems({ chords: [], sections: [], diagrams: 0 })).toEqual([])
+  })
+
+  it('fails a chord diagram at every size, the phone too', () => {
+    const found = problems({ chords: [], sections: [], diagrams: 1 })
+    expect(sortOut('phone-390x844', 20, found).failures).toHaveLength(1)
+    expect(sortOut('820x1180', 24, found).failures).toHaveLength(1)
+  })
 })

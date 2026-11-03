@@ -84,7 +84,9 @@ const READ_CHORDS = () => {
     .map((grid, i) => (grid.scrollWidth > grid.clientWidth + 1 ? i + 1 : 0))
     .filter(Boolean)
   const chart = document.querySelector('.band-chart')
-  return { chords, sections, bars: barInfo, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
+  // Chord diagrams on the page before anything is tapped: there should be none
+  const diagrams = document.querySelectorAll('main svg[role="img"]').length
+  return { chords, sections, bars: barInfo, diagrams, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
 }
 
 
