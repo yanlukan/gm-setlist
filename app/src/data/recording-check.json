@@ -59,21 +59,6 @@
    },
    {
     "section": "Chorus",
-    "bar": 3,
-    "chords": "Dm",
-    "kind": "chord",
-    "record": "Dm/A Dm C F",
-    "confidence": 0.66,
-    "at": [
-     46.4,
-     105.3,
-     162.8,
-     186.3,
-     209.9
-    ]
-   },
-   {
-    "section": "Chorus",
     "bar": 5,
     "chords": "Dm",
     "kind": "chord",
@@ -103,22 +88,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Post-Chorus",
-    "bar": 0,
-    "chords": "Gm9",
-    "kind": "chord",
-    "record": "Gm9 . Gm/Bb .",
-    "confidence": 0.64,
-    "at": [
-     133.8,
-     141.7,
-     228.4,
-     236.3
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Papa Was a Rolling Stone": {
@@ -150,20 +120,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Pre-Chorus",
-    "bar": 1,
-    "chords": "B",
-    "kind": "chord",
-    "record": "B F#m/A G#m B",
-    "confidence": 0.83,
-    "at": [
-     96.9,
-     229.6
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "A Different Corner": {
@@ -171,41 +128,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Verse",
-    "bar": 2,
-    "chords": "Gb",
-    "kind": "chord",
-    "record": "Gb/Db Gb Gb/Bb .",
-    "confidence": 0.94,
-    "at": [
-     24.2
-    ]
-   },
-   {
-    "section": "Verse",
-    "bar": 4,
-    "chords": "Ebm",
-    "kind": "chord",
-    "record": "Ebm Abm . .",
-    "confidence": 0.85,
-    "at": [
-     29.1
-    ]
-   },
-   {
-    "section": "Verse",
-    "bar": 10,
-    "chords": "Gb",
-    "kind": "chord",
-    "record": "Gb/Db . Gb/Bb .",
-    "confidence": 0.98,
-    "at": [
-     43.6
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Too Funky": {
@@ -255,34 +178,6 @@
     ]
    },
    {
-    "section": "Chorus",
-    "bar": 1,
-    "chords": "%",
-    "kind": "chord",
-    "record": "F#m C#m/E D A/C#",
-    "confidence": 0.67,
-    "at": [
-     111.5,
-     195.3,
-     245.5,
-     280.2
-    ]
-   },
-   {
-    "section": "Chorus",
-    "bar": 3,
-    "chords": "C#",
-    "kind": "chord",
-    "record": "C#m/E C#/E# . .",
-    "confidence": 0.75,
-    "at": [
-     115.7,
-     199.5,
-     249.6,
-     284.9
-    ]
-   },
-   {
     "section": "Instrumental",
     "bar": 2,
     "chords": "Esus24",
@@ -296,22 +191,6 @@
      218.3,
      260.1,
      268.4
-    ]
-   },
-   {
-    "section": "Instrumental",
-    "bar": 3,
-    "chords": "Eadd9",
-    "kind": "chord",
-    "record": "Bm D Bm A",
-    "confidence": 0.74,
-    "at": [
-     128.2,
-     136.6,
-     212.1,
-     220.4,
-     262.2,
-     270.8
     ]
    },
    {
@@ -349,17 +228,6 @@
      181.8,
      190.0
     ]
-   },
-   {
-    "section": "Outro",
-    "bar": 12,
-    "chords": "F#m7",
-    "kind": "chord",
-    "record": "B/E B/D# D#m/F# .",
-    "confidence": 0.83,
-    "at": [
-     254.9
-    ]
    }
   ],
   "unchecked": []
@@ -369,19 +237,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Solo",
-    "bar": 6,
-    "chords": "G",
-    "kind": "chord",
-    "record": "D C G .",
-    "confidence": 0.79,
-    "at": [
-     129.1
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Careless Whisper": {
@@ -397,44 +253,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Chorus",
-    "bar": 4,
-    "chords": "Em7 G/C",
-    "kind": "chord",
-    "record": "Em7 C . .",
-    "confidence": 0.73,
-    "at": [
-     94.8,
-     206.5
-    ]
-   },
-   {
-    "section": "Chorus",
-    "bar": 6,
-    "chords": "G/C",
-    "kind": "chord",
-    "record": "Em . C .",
-    "confidence": 0.59,
-    "at": [
-     103.1,
-     214.8
-    ]
-   },
-   {
-    "section": "Chorus",
-    "bar": 11,
-    "chords": "G/C",
-    "kind": "chord",
-    "record": "C . . .",
-    "confidence": 0.69,
-    "at": [
-     123.8,
-     235.5
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Roxanne": {
@@ -442,19 +261,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Outro",
-    "bar": 1,
-    "chords": "N.C. E Bm7",
-    "kind": "chord",
-    "record": "Bm7 Bm/C# D/F# D/A",
-    "confidence": 0.79,
-    "at": [
-     195.7
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": [
    {
     "section": "Verse 2",
@@ -495,30 +302,7 @@
   "checked": "2026-11-03",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Intro",
-    "bar": 3,
-    "chords": "Abm6 Bb",
-    "kind": "chord",
-    "record": "Abm/B . Bb .",
-    "confidence": 0.78,
-    "at": [
-     9.6
-    ]
-   },
-   {
-    "section": "Bridge",
-    "bar": 7,
-    "chords": "Db Db/C",
-    "kind": "chord",
-    "record": "Db . Ab/C .",
-    "confidence": 0.79,
-    "at": [
-     111.4
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Last Christmas": {

@@ -10,6 +10,7 @@ MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
 MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
 FLAT_OFFSETS = {3, 8, 10}   # b3, b6, b7 of the major key on the same tonic
 MINOR_FLAT_OFFSETS = FLAT_OFFSETS | {1}   # a minor key also flats its b2 (Bb in Am)
+FLAT_DEGREE = {1: 2, 3: 3, 8: 6, 10: 7}   # semitones above the tonic -> the degree it flattens
 LETTERS = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
 DEGREES = {1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11, 9: 2, 11: 5, 13: 9}
 SUFFIX = {'maj': '', 'min': 'm', 'dim': 'dim', 'aug': 'aug', 'power': '5'}
@@ -130,8 +131,17 @@ def _key_names(key: str) -> list:
     flats = MINOR_FLAT_OFFSETS if minor else FLAT_OFFSETS
     for pc in range(12):
         if names[pc] is None or '?' in names[pc]:
-            names[pc] = (FLAT_NAMES if (pc - tonic) % 12 in flats else SHARP_NAMES)[pc]
+            offset = (pc - tonic) % 12
+            names[pc] = _flat_degree(pc, first, offset) if offset in flats else SHARP_NAMES[pc]
     return names
+
+
+def _flat_degree(pc: int, first: int, offset: int) -> str:
+    """A flattened degree named on its own scale letter (b6 of Eb is Cb, b2 of Ebm is Fb);
+    a double flat falls back to the plain flat name."""
+    note = LETTER_ORDER[(first + FLAT_DEGREE[offset] - 1) % 7]
+    diff = (pc - LETTERS[note] + 6) % 12 - 6
+    return note + {-1: 'b', 0: '', 1: '#'}[diff] if diff in (-1, 0, 1) else FLAT_NAMES[pc]
 
 
 def spell(chord: Chord, key: str) -> str:

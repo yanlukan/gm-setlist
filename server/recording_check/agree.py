@@ -1,17 +1,19 @@
 """When the record's chord agrees with a chart chord although they are not the same.
 
 Rulings of 2026-11-03, the same for every song:
-- a bass on the chord's own fifth is never a difference (D against D/A);
+- a bass on the chord's own third or fifth is an inversion and never a difference
+  (D against D/A or D/F#, Gm9 against Gm/Bb); another bass still is (B against F#/A#);
 - a chart chord with a natural 11 and no #11 (B11, Am11) matches the record's major,
   minor or sus on its root and bass, because an 11th often drops its third;
 - a chart maj9 matches the record's triads a major third and a fifth above its root
-  (Ebmaj9 against Gm or Bb), named with no bass or with the chart's bass.
+  (Ebmaj9 against Gm or Bb), named with no bass or with the chart's bass;
+- a chart slash chord X/Y whose X is a fifth above Y matches the record's chord on Y
+  (G/C against C), because the detector hears the bass and the upper chord as one.
 """
 import re
 
-from recording_check.chords import Chord, same
+from recording_check.chords import Chord, same, tones
 
-FIFTH = {'maj': 7, 'min': 7, 'sus': 7, 'power': 7, 'dim': 6, 'aug': 8}
 _REST = re.compile(r'^[A-G][#b]?([^/]*)')
 
 
@@ -21,9 +23,10 @@ def _quality(text):
     return match.group(1) if match else ''
 
 
-def _on_fifth(record, chart):
-    return (record.root == chart.root and record.kind == chart.kind and chart.kind in FIFTH
-            and record.bass == (chart.root + FIFTH[chart.kind]) % 12)
+def _inversion(record, chart):
+    """The chart's chord with the bass on its own third or fifth."""
+    return (record.root == chart.root and record.kind == chart.kind
+            and record.bass in tones(chart) - {chart.root})
 
 
 def _eleventh(record, chart, quality):
@@ -40,6 +43,11 @@ def _maj9(record, chart, quality):
                for u in uppers)
 
 
+def _slash_on_fifth(record, chart):
+    """Chart X/Y with X a fifth above Y, against a record chord rooted on Y."""
+    return chart.bass != chart.root and (chart.root - chart.bass) % 12 == 7 and record.root == chart.bass
+
+
 def agrees(record: Chord, chart: Chord, chart_text: str) -> bool:
     """True when the record's chord counts as the chart chord."""
     if same(record, chart):
@@ -47,4 +55,5 @@ def agrees(record: Chord, chart: Chord, chart_text: str) -> bool:
     if record.kind == 'none' or chart.kind == 'none':
         return False
     quality = _quality(chart_text)
-    return _on_fifth(record, chart) or _eleventh(record, chart, quality) or _maj9(record, chart, quality)
+    return (_inversion(record, chart) or _eleventh(record, chart, quality) or _maj9(record, chart, quality)
+            or _slash_on_fifth(record, chart))

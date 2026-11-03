@@ -93,8 +93,10 @@ class ChordFindingTests(unittest.TestCase):
 
     def test_slash_bass_difference_counts(self):
         chart = slots(('F#', 0, 1))
-        beats = play('F#/A#', 'F#/A#', 'F#/A#', 'F#/A#')
+        beats = play('F#/G#', 'F#/G#', 'F#/G#', 'F#/G#')
         self.assertEqual(bar_finding(chart, [beats] * 2, 'B', 0.5, 0.6).kind, 'chord')
+        # a bass on the chord's own third is an inversion (ruling of the fix wave)
+        self.assertIsNone(bar_finding(chart, [play('F#/A#', 'F#/A#', 'F#/A#', 'F#/A#')] * 2, 'B', 0.5, 0.6))
 
     def test_no_plays(self):
         self.assertIsNone(bar_finding(B_GSM, [], 'B', 0.5, 0.6))
@@ -145,10 +147,10 @@ class FixRoundTests(unittest.TestCase):
         beats = play('C', 'C/2', 'C/3', 'C')
         self.assertIsNone(bar_finding(chart, [beats] * 3, 'C', 0.5, 0.6))
 
-    def test_a_bass_change_over_half_the_bar_still_flags(self):
+    def test_a_bass_moving_to_the_chords_own_third_is_an_inversion(self):
         chart = slots(('C', 0, 1))
         beats = play('C', 'C/D', 'C/E', 'C/E')
-        self.assertEqual(bar_finding(chart, [beats] * 3, 'C', 0.5, 0.6).kind, 'chord')
+        self.assertIsNone(bar_finding(chart, [beats] * 3, 'C', 0.5, 0.6))
 
     def test_a_bass_outside_the_charts_own_chord_never_flags(self):
         # Last Christmas: a drum or a chromatic bass note on A# under the chart's Bm7
@@ -185,9 +187,6 @@ class SongVerdictTests(unittest.TestCase):
         self.assertEqual(song_verdict({i: self.rhythm for i in range(20)}, 32), 'lined up')
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 
 class LocalFloodTests(unittest.TestCase):
     def test_a_lone_difference_stays(self):
@@ -206,18 +205,19 @@ class LocalFloodTests(unittest.TestCase):
 
 
 class CoordinatorRulingTests(unittest.TestCase):
-    def test_a_bar_played_once_needs_three_quarters_confidence(self):
+    def test_a_bar_played_once_needs_confidence_0_85(self):
         chart = slots(('C', 0, 1))
         self.assertIsNone(bar_finding(chart, [play('F', 'F', 'F', 'F', conf=0.7)], 'C'))
-        self.assertEqual(bar_finding(chart, [play('F', 'F', 'F', 'F', conf=0.8)], 'C').kind, 'chord')
+        self.assertIsNone(bar_finding(chart, [play('F', 'F', 'F', 'F', conf=0.8)], 'C'))
+        self.assertEqual(bar_finding(chart, [play('F', 'F', 'F', 'F', conf=0.9)], 'C').kind, 'chord')
         self.assertEqual(bar_finding(chart, [play('F', 'F', 'F', 'F', conf=0.7)] * 2, 'C').kind, 'chord')
 
     def test_a_bass_on_the_chords_own_fifth_agrees(self):
         for chart, record in (('D', 'D/A'), ('C', 'C/G'), ('Am', 'Am/E')):
             beats = play(chart, record, record, record)
             self.assertIsNone(bar_finding(slots((chart, 0, 1)), [beats] * 3, 'C'), record)
-        # a bass on the third still counts
-        self.assertEqual(bar_finding(slots(('D', 0, 1)), [play('D', 'D/F#', 'D/F#', 'D/F#')] * 3, 'D').kind, 'chord')
+        # a bass outside the chord still counts
+        self.assertEqual(bar_finding(slots(('D', 0, 1)), [play('D/E', 'D/E', 'D/E', 'D/E')] * 3, 'D').kind, 'chord')
 
     def test_an_eleventh_without_its_third_matches_major_minor_or_sus(self):
         for record in ('B', 'Bm', 'Bsus4'):
@@ -275,3 +275,23 @@ class ReviewRoundTests(unittest.TestCase):
         keys = [('A', b) for b in range(6)] + [('B', b) for b in range(6)]
         differs = [False] * 8 + [True] * 4
         self.assertEqual(kept_repeats({8, 9, 10, 11}, keys, differs), set())
+
+
+class RiffNoteTests(unittest.TestCase):
+    def test_a_new_chord_on_every_beat_is_riff_notes_not_a_finding(self):
+        chart = slots(('Eadd9', 0, 1))
+        self.assertIsNone(bar_finding(chart, [play('Bm', 'D', 'Bm', 'A')] * 3, 'F#m'))
+        roxanne = slots(('N.C.', 0, 0.25), ('E', 0.25, 0.25), ('Bm7', 0.5, 0.5))
+        self.assertIsNone(bar_finding(roxanne, [play('Bm7', 'Bm/C#', 'D/F#', 'D/A')] * 2, 'Bm'))
+
+    def test_a_held_beat_keeps_the_finding(self):
+        chart = slots(('Eadd9', 0, 1))
+        self.assertEqual(bar_finding(chart, [play('Bm', 'D', 'D', 'A')] * 3, 'F#m').kind, 'chord')
+
+    def test_a_short_bar_is_not_a_riff(self):
+        chart = slots(('C', 0, 1))
+        self.assertEqual(bar_finding(chart, [play('F', 'G', 'Am')] * 3, 'C').kind, 'chord')
+
+
+if __name__ == '__main__':
+    unittest.main()

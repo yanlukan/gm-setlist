@@ -75,15 +75,20 @@ The tests need no audio: `$PY -m unittest discover -s recording_check/tests -t .
    passing chord must sit between two different chords (not two inversions of one),
    so a walking bass is never a finding. A foreign bass is only taken as walking when
    the same play also has the chart chord over its own bass; a held (pedal) bass
-   still counts. A bass on the chord's own fifth agrees; a
-   chart 11th without #11 matches major, minor or sus on its root; a chart maj9
-   matches its triads a major third and a fifth up (`agree.py`). A bar played once
-   needs confidence 0.75. Rhythm findings only come from bars of at most 2 chart
-   chords on whole beats, when the tracker runs within 10 % of the chart's bpm. Where 3 of 5 consecutive plays differ, the
+   still counts. A bass on the chord's own third or fifth is an inversion and agrees
+   (Gm9 against Gm/Bb); a chart slash chord X/Y with X a fifth above Y matches the
+   record's chord on Y (G/C against C); a chart 11th without #11 matches major, minor or sus on its root; a chart maj9
+   matches its triads a major third and a fifth up (`agree.py`). A reading with a new chord on
+   every beat of a bar of 4 or more beats is riff notes, never a finding. A bar played
+   once needs confidence 0.85. Rhythm findings only come from bars of at most 2 chart
+   chords on whole beats, when the tracker runs within 10 % of the chart's bpm. Where 3 of 5 consecutive plays (in playing
+   order, hand bars included) differ, the
    line-up slipped in that stretch and those plays are dropped, unless the bar
    differs in at least 60 % of all its plays while its section lines up in another
    pass (a chart error repeated each time round); a song with more than
-   a quarter of its plays dropped, or a chart that does not fit in the recording, is
+   a quarter of its plays dropped (out of every bar played in the song order, hand bars
+   included), or with chord findings on more than a quarter of its checked chart bars
+   (each chart bar counted once, hand bars left out), or a chart that does not fit in the recording, is
    `not lined up`.
 
 ## Thresholds
@@ -94,7 +99,7 @@ The same for every song; never tune one for a single song.
 |---|---|---|---|
 | verdict.py | MIN_CONFIDENCE | 0.5 | a beat counts only at or above this |
 | verdict.py | MIN_SHARE | 0.6 | share of a bar's plays that must agree |
-| verdict.py | FLOOD_SHARE | 0.25 | more chord findings than this share of bars: not lined up |
+| verdict.py | FLOOD_SHARE | 0.25 | not lined up when chord findings exceed this share of the checked chart bars (each counted once, hand bars left out), or dropped plays exceed this share of all plays in the song order (hand bars included) |
 | verdict.py | QUARTER | 0.25 | a differing run must cover more than this share of the bar, unless it is a passing chord |
 | reading.py | BASS_FLOOR, BASS_FULL | 0.2, 0.5 | bass share of the band mapped to confidence 0 to 1 |
 | reading.py | BASS_SURE | 0.5 | below this the bass is not trusted |
@@ -106,9 +111,10 @@ The same for every song; never tune one for a single song.
 | align.py | UNITS_PER_BEAT | 2 | line-up units per chart beat (half beats) |
 | align.py | NO_CHORD_COST | 0.5 | a unit's cost where the chart has N.C. |
 | align.py | STRETCH, STRETCH_COST | 1 unit, 0.5 | how far a bar may stretch, and its cost |
-| verdict.py | ONE_PLAY_CONFIDENCE | 0.75 | a bar played once needs this much |
+| verdict.py | ONE_PLAY_CONFIDENCE | 0.85 | a bar played once needs this much |
+| verdict.py | RIFF_BEATS | 4 | a reading with a new chord on every beat of a bar this long or longer is riff notes |
 | verdict.py | RHYTHM_MAX_CHORDS | 2 | rhythm only on bars of this many chart chords or fewer, on whole beats |
 | check.py | RHYTHM_TEMPO | 0.10 | rhythm only when the tracker is this close to the chart's bpm |
-| verdict.py | LOCAL_WINDOW, LOCAL_MOST | 5, 3 | differing plays in a row that mean the line-up slipped |
+| verdict.py | LOCAL_WINDOW, LOCAL_MOST | 5, 3 | of this many consecutive plays in playing order (hand bars included), this many differing mean the line-up slipped |
 | align.py | BEAT_TOLERANCE, MAX_GAP | 0.15, 2.5 beats | when a tracker beat is off the pulse |
 | align.py | SNAP | 0.15 | how near double or half time a tracker must be to keep its phase; else (a 12/8 feel) units follow the chart's tempo |

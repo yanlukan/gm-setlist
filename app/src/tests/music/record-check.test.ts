@@ -31,11 +31,30 @@ describe('withRecordCheck', () => {
     expect(openUnsure(out, undefined).map(u => [u.name, u.bar])).toEqual([['Verse', 1]])
   })
 
+  it("a section by ear or from the record gets no mark: the ear wins", () => {
+    for (const from of ['Ear', 'Record'] as const) {
+      const s = song({ evidence: { Verse: { from } } })
+      const [out] = withRecordCheck([s], check([finding()]))
+      expect(out).toEqual(s)
+    }
+  })
+
   it("uses the section's own source for the chart reading", () => {
-    const s = song({ evidence: { Verse: { from: 'Ear' } } })
+    const s = song({ evidence: { Verse: { from: 'Chart' } } })
     const [out] = withRecordCheck([s], check([finding()]))
-    expect(out.evidence?.Verse?.bars?.[0].readings?.[0].from).toBe('Ear')
-    expect(out.evidence?.Verse?.from).toBe('Ear')
+    expect(out.evidence?.Verse?.bars?.[0].readings?.[0].from).toBe('Chart')
+  })
+
+  it('compares and stores the chords squashed', () => {
+    const [out] = withRecordCheck([song()], check([finding({ chords: 'F  G' })]))
+    expect(out.evidence?.Verse?.bars?.[0].chords).toBe('F G')
+    expect(out.evidence?.Verse?.bars?.[0].readings?.[0].chords).toBe('F G')
+  })
+
+  it('a repeated section where one copy reads other chords drops the finding', () => {
+    const sections = [{ name: 'Verse', chords: '| C | F G | Am | G |' }, { name: 'Verse', chords: '| C | F Em | Am | G |' }]
+    const [out] = withRecordCheck([song({ sections })], check([finding()]))
+    expect(out.evidence).toBeUndefined()
   })
 
   it("a finding about other chords than the bar's is dropped", () => {
@@ -72,14 +91,35 @@ describe('withRecordCheck', () => {
   })
 
   it('the input is not changed', () => {
-    const s = song({ evidence: { Verse: { from: 'Ear', bars: [] } } })
+    const s = song({ evidence: { Verse: { from: 'Book', bars: [] } } })
     const before = JSON.stringify(s)
     withRecordCheck([s], check([finding()]))
     expect(JSON.stringify(s)).toBe(before)
   })
 })
 
+describe('the marks against a saved copy', () => {
+  const [merged] = withRecordCheck([song()], check([finding()]))
+  it('a saved copy that still reads the chords keeps the mark', () => {
+    const edits = { sections: [{ name: 'Verse', chords: '| C | F  G | Am | G |\n| C |' }] }
+    expect(openUnsure(merged, edits).map(u => [u.name, u.bar])).toEqual([['Verse', 1]])
+  })
+  it('a saved copy with the bar edited has no mark', () => {
+    const edits = { sections: [{ name: 'Verse', chords: '| C | F Am | Am | G |' }] }
+    expect(openUnsure(merged, edits)).toEqual([])
+  })
+  it('a bar the player settled on the chart chords has no mark', () => {
+    expect(openUnsure(merged, { heard: { Verse: { 1: 'F  G' } } })).toEqual([])
+  })
+  it('a bar settled on other chords that still reads the disputed ones stays open', () => {
+    expect(openUnsure(merged, { heard: { Verse: { 1: 'F Am' } } }).map(u => u.bar)).toEqual([1])
+  })
+})
+
 describe('recordCheckText', () => {
+  it('says when there is no recording', () => {
+    expect(recordCheckText(check([], { recording: null, verdict: 'no recording' })['Test'])).toBe('no recording, 2026-11-03')
+  })
   it('More names the recording and the date', () => {
     expect(recordCheckText(check([])['Test'])).toBe('test.m4a, 2026-11-03')
   })

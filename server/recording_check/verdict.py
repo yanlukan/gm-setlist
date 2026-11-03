@@ -9,7 +9,8 @@ MIN_CONFIDENCE = 0.5   # a beat counts only at or above this confidence
 MIN_SHARE = 0.6        # share of plays that must agree for a finding
 FLOOD_SHARE = 0.25     # more chord findings than this share of bars: not lined up
 QUARTER = 0.25         # a differing run must cover more than this share of the bar
-ONE_PLAY_CONFIDENCE = 0.75   # a bar played once needs this much to be a finding
+ONE_PLAY_CONFIDENCE = 0.85   # a bar played once needs this much to be a finding
+RIFF_BEATS = 4         # a new chord on every beat of a bar this long is riff notes
 RHYTHM_MAX_CHORDS = 2  # rhythm findings only on bars of at most this many chart chords
 
 
@@ -174,7 +175,9 @@ def bar_finding(chart_slots, plays, key, min_confidence=MIN_CONFIDENCE, min_shar
     """A Finding for this chart bar, or None when the record agrees.
 
     A bar played once needs ONE_PLAY_CONFIDENCE. Rhythm findings need `rhythm` (the
-    caller's word that the record's tempo is the chart's) and a simple bar.
+    caller's word that the record's tempo is the chart's) and a simple bar. A reading
+    with a new chord on every beat of a bar of RIFF_BEATS or more is riff notes the
+    detector took for chords, never a finding.
     """
     plays = [p for p in plays if p]
     chart = _chart_chords(chart_slots)
@@ -183,7 +186,15 @@ def bar_finding(chart_slots, plays, key, min_confidence=MIN_CONFIDENCE, min_shar
     finding = _finding(chart_slots, chart, plays, key, min_confidence, min_share, rhythm)
     if finding is not None and len(plays) == 1 and finding.confidence < ONE_PLAY_CONFIDENCE:
         return None
+    if finding is not None and _riff(finding.record):
+        return None
     return finding
+
+
+def _riff(reading):
+    """A new chord on every beat of a bar of RIFF_BEATS or more beats."""
+    tokens = reading.split()
+    return len(tokens) >= RIFF_BEATS and '.' not in tokens
 
 
 def _finding(chart_slots, chart, plays, key, min_confidence, min_share, rhythm):

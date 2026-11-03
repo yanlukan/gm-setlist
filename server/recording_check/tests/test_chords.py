@@ -93,6 +93,18 @@ class SpellShiftTests(unittest.TestCase):
         self.assertEqual(spell(parse('B'), 'Gb'), 'Cb')
         self.assertEqual(spell(parse('C'), 'C#'), 'B#')
 
+    def test_a_flat_degree_takes_its_scale_letter(self):
+        # b6 of Eb is Cb, b7 of Db is Cb, b2 of Ebm is Fb, b6 of Ab is Fb
+        self.assertEqual(spell(parse('G#m/B'), 'Eb'), 'Abm/Cb')
+        self.assertEqual(spell(parse('B'), 'Db'), 'Cb')
+        self.assertEqual(spell(parse('E'), 'Ebm'), 'Fb')
+        self.assertEqual(spell(parse('E'), 'Ab'), 'Fb')
+        self.assertEqual(spell(parse('G#m/B'), 'Abm'), 'Abm/Cb')
+        # sharp keys keep their names
+        self.assertEqual(spell(parse('G'), 'A'), 'G')
+        self.assertEqual(spell(parse('E'), 'F#'), 'E')
+        self.assertEqual(spell(parse('Bb'), 'C'), 'Bb')
+
     def test_sus2_stays_sus2(self):
         self.assertEqual(spell(parse('Dsus2'), 'D'), 'Dsus2')
         self.assertEqual(spell(parse('Dsus4'), 'D'), 'Dsus4')

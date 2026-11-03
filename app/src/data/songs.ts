@@ -386,6 +386,7 @@ export const SONGS: Song[] = [
     chordsFrom: 'Book',
     evidence: {
       'Intro': { from: 'Record' },
+      Chorus: { from: 'Ear' },
     },
     shapes: {
       'F#sus4': 'x-x-4-4-2-2', 'F#': 'x-x-4-3-2-2', Esus24: 'x-x-2-2-0-2', Eadd9: 'x-x-2-1-0-2',

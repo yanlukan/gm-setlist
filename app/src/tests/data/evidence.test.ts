@@ -21,3 +21,20 @@ describe('where each shipped song came from', () => {
     }
   })
 })
+
+describe('the ear wins over the recording check', () => {
+  it('no section by ear or from the record carries an Unsure mark', () => {
+    for (const song of DEFAULT_SONGS) {
+      for (const [name, ev] of Object.entries(song.evidence ?? {})) {
+        if (ev.from !== 'Ear' && ev.from !== 'Record') continue
+        expect((ev.bars ?? []).filter(b => b.from === 'Unsure'), `${song.title} ${name}`).toEqual([])
+      }
+    }
+  })
+
+  it("Everything She Wants' chorus is the book's chords, settled by ear on 2026-09-29", () => {
+    const esw = DEFAULT_SONGS.find(s => s.title === 'Everything She Wants')!
+    expect(esw.evidence?.Chorus?.from).toBe('Ear')
+    expect(esw.evidence?.Chorus?.bars ?? []).toEqual([])
+  })
+})
