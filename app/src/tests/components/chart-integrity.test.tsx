@@ -53,10 +53,10 @@ describe('charts that were only looked at', () => {
 describe('the chart as it is read', () => {
   // The chords, in order: the chart breaks a section into lines by its parts,
   // and draws a section written in bars as a box for each bar, its bar lines
-  // the edges of the boxes
+  // the edges of the boxes; the ? on an unsure bar is not a chord
   const chordsOf = (text: string) => text.split(/\s+/).filter(t => t && t !== '|' && t !== '.')
   const shownChords = (el: Element) => el.querySelector('.bar-grid')
-    ? Array.from(el.querySelectorAll('.bar-plain, .bar > span')).flatMap(e => chordsOf(e.textContent ?? ''))
+    ? Array.from(el.querySelectorAll('.bar-plain, .bar > span:not(.bar-unsure)')).flatMap(e => chordsOf(e.textContent ?? ''))
     : chordsOf(el.textContent ?? '')
 
   it.each(['normal', 'stage'] as const)('shows every song\'s chords exactly as saved, in %s mode, in the band key', mode => {
