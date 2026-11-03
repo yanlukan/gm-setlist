@@ -3,6 +3,31 @@ export interface Section {
   chords: string
 }
 
+export type Source = 'Ear' | 'Book' | 'Record' | 'Chart' | 'Unsure'
+
+/** What one source says a bar is. */
+export interface Reading {
+  from: Exclude<Source, 'Unsure'>
+  chords: string
+}
+
+/** Where one bar's chords came from, where it differs from its section. */
+export interface BarEvidence {
+  /** The bar in its section, from 0 (see barChords). */
+  bar: number
+  /** The bar's chords as the chart writes them, one space apart: the evidence is about these. */
+  chords: string
+  from: Source
+  /** For an Unsure bar: what each source says, two or more. */
+  readings?: Reading[]
+}
+
+/** Where a section's chords came from, and the bars that came from somewhere else. */
+export interface SectionEvidence {
+  from?: Exclude<Source, 'Unsure'>
+  bars?: BarEvidence[]
+}
+
 export interface Song {
   title: string
   shortTitle?: string
@@ -56,6 +81,10 @@ export interface Song {
   duration?: number
   /** Its number in the George Michael Complete songbook, for the 17 songs in it. */
   songbook?: number
+  /** Where the song's chords came from, unless a section says otherwise. */
+  chordsFrom?: Exclude<Source, 'Unsure'>
+  /** Where each section's chords came from, by section name. */
+  evidence?: Record<string, SectionEvidence>
 }
 
 export interface SongEdits {
@@ -82,6 +111,8 @@ export interface SongEdits {
   neck?: number
   /** Shapes the player picked for this song only, by chord: index into `voicingsFor`, or one of your own shapes as its fret text. */
   shapes?: Record<string, number | string>
+  /** The chords the player settled an unsure bar on, by section name, then bar. */
+  heard?: Record<string, Record<number, string>>
 }
 
 /**
