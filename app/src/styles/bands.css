@@ -70,7 +70,6 @@
   color: var(--band);
   overflow-wrap: anywhere;
 }
-.band-head .chart-label-btn { min-height: 44px; text-align: left; }
 
 /* ---------- The bars ---------- */
 .band-chart .bar-grid {
@@ -164,8 +163,6 @@
 :is(.stage-screen, .practice-screen) .band-head { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 5px; padding: 4px 4px 0 6px; }
 /* Whole names: they break between words and after hyphens, never inside a word (85 px a column) */
 :is(.stage-screen, .practice-screen) .band-head .chart-label { white-space: normal; font-size: 13px; line-height: 1.1; padding-top: 2px; overflow-wrap: normal; min-width: 0; }
-/* On Practice the name is still a button (it narrows the shapes), just no taller than the name */
-.practice-screen .band-head .chart-label-btn { min-height: 0; }
 
 /* Where the GX-10's CTL1 goes on (filled) or off (outlined), on a line of its own under the name */
 .ctl1-tag {

@@ -19,15 +19,13 @@ interface Props {
 }
 
 /**
- * Practice's chart: read, with a part's name picking the part for the panel's
- * shapes, or edited in place with the chord keyboard under it.
+ * Practice's chart: read, with a tap on a chord picking it for its shapes, or
+ * edited in place with the chord keyboard under it.
  */
 export function SongSheet({ picked = null, onPick }: Props) {
   const { song } = useShownSong()
   const chart = useSongChart(song)
   const editMode = useStore(s => s.editMode)
-  const focusSection = useStore(s => s.focusSection)
-  const setFocusSection = useStore(s => s.setFocusSection)
   const saveSections = useStore(s => s.saveSections)
   const saveNotes = useStore(s => s.saveNotes)
   const saveForm = useStore(s => s.saveForm)
@@ -108,10 +106,6 @@ export function SongSheet({ picked = null, onPick }: Props) {
           sectionsRef={sectionsRef}
           onChord={onPick}
           picked={picked}
-          focus={{
-            index: focusSection?.title === shown.title ? focusSection.index : null,
-            onFocus: index => setFocusSection(index === null ? null : { title: shown.title, index }),
-          }}
         />
       </div>
     </div>

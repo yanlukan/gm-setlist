@@ -176,12 +176,6 @@ export interface StoreState extends ViewSettings, ShapeSettings, SetNavigation {
   setlistData: SetlistData
   currentIndex: number
   editMode: boolean
-  /**
-   * A section tapped on the chart: the diagrams below then show only its
-   * chords. Tied to the song's title, so it lapses on its own when the song
-   * changes. Not saved.
-   */
-  focusSection: { title: string; index: number } | null
 
   // Computed
   allSongs: () => Song[]
@@ -231,7 +225,6 @@ export interface StoreState extends ViewSettings, ShapeSettings, SetNavigation {
   // Other actions
   /** False if a song with that title already exists (titles are the song's identity). */
   addCustomSong: (song: Song) => boolean
-  setFocusSection: (focus: { title: string; index: number } | null) => void
   restoreGigOrder: () => void
   /** A short confirmation shown at the bottom of the screen, e.g. "Copied". */
   toast: string | null
@@ -254,7 +247,6 @@ export const useStore = create<StoreState>((set, get) => ({
   setlistData: defaultSetlistData,
   currentIndex: 0,
   editMode: false,
-  focusSection: null,
   toast: null,
   loadFailed: false,
   saveStatus: 'saved',
@@ -637,7 +629,6 @@ export const useStore = create<StoreState>((set, get) => ({
     return true
   },
 
-  setFocusSection: focus => set({ focusSection: focus }),
 
   /** Rebuild the active setlist as the printed Sept 2026 running order. */
   restoreGigOrder: () => {

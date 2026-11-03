@@ -22,7 +22,7 @@ function Screens() {
 }
 
 const button = (name: string | RegExp) => screen.getByRole('button', { name })
-/** A chord on the chart, by name (the panel's tiles are list items, not buttons). */
+/** A chord on the chart, by name. */
 const chartChord = (name: string) => screen.getAllByRole('button', { name })[0]
 const goTo = (title: string) => act(() => useStore.getState().goToSong(G.indexOf(title)))
 
@@ -64,15 +64,15 @@ describe('the two screens', () => {
 })
 
 describe('picking a chord on Practice', () => {
-  it('a tap picks it and the panel shows its shapes; a second tap lets go', () => {
+  it('a tap picks it and opens its shapes; a second tap lets go', () => {
     render(<PracticeScreen />) // Faith
     fireEvent.click(chartChord('B'))
     expect(chartChord('B')).toHaveAttribute('aria-pressed', 'true')
     expect(chartChord('B').classList.contains('is-picked')).toBe(true)
-    expect(screen.getByRole('heading', { name: /^Shapes for B · \d+ of them$/ })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Shapes for B' })).toBeInTheDocument()
     fireEvent.click(chartChord('B'))
     expect(chartChord('B')).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('list', { name: 'Chord shapes' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('a shape of your own picked from a chord on the chart becomes the song’s shape', () => {
@@ -84,17 +84,10 @@ describe('picking a chord on Practice', () => {
     expect(useStore.getState().edits.Faith?.shapes?.E).toBe(OWN)
   })
 
-  it('lets go of the chord when the song changes', () => {
-    render(<PracticeScreen />)
-    fireEvent.click(chartChord('B'))
-    act(() => useStore.getState().nextSong())
-    expect(screen.getByRole('list', { name: 'Chord shapes' })).toBeInTheDocument()
-  })
-
-  it('has no panel while editing: the chord keyboard takes its place', () => {
+  it('has no shapes while editing: the chord keyboard sits under the chart', () => {
     useStore.setState({ editMode: true })
     render(<PracticeScreen />)
-    expect(screen.queryByRole('complementary', { name: 'Shapes and the book' })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.getByRole('group', { name: 'Chord keyboard' })).toBeInTheDocument()
   })
 })

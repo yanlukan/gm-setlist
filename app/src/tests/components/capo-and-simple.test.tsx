@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
+import { BookFacts } from '../../components/practice/BookFacts'
+import { useShownSong } from '../../hooks/use-shown-song'
+import { useSongChart } from '../../hooks/use-song-chart'
 import { useStore } from '../../store/use-store'
 import { faithOneLine } from '../faith-one-line'
 
@@ -12,12 +15,30 @@ beforeEach(() => {
 
 const verse = () => screen.getAllByText((_, el) => el?.className === 'chart-chords')[1]
 
+/** The book facts on their own: Practice no longer shows them (they move into More). */
+function Facts() {
+  const chart = useSongChart(useShownSong().song)
+  return chart ? <BookFacts chart={chart} /> : null
+}
+
 describe('capo', () => {
   it('shows the shapes to play: Faith in B with a capo on 2 is played in A shapes', () => {
     useStore.getState().setCapo('Faith', 2)
     render(<PracticeScreen />)
-    expect(screen.getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()
     expect(verse().textContent).toBe('A  D  A  D  A')
+  })
+
+  it('says which shapes to play in the book facts', () => {
+    useStore.getState().setCapo('Faith', 2)
+    render(<Facts />)
+    expect(screen.getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()
+  })
+
+  it('says nothing of a capo to the keyboard player', () => {
+    useStore.getState().setInstrument('keyboard')
+    useStore.getState().setCapo('Faith', 2)
+    render(<Facts />)
+    expect(screen.queryByText(/^Capo 2:/)).toBeNull()
   })
 
   it('edits at the shapes shown and stores the chart at its own pitch', () => {

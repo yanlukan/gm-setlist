@@ -80,13 +80,10 @@ describe('a chart in bands', () => {
     expect(lettered()).toEqual(['A Intro', 'B Verse', 'D Chorus×2'])
   })
 
-  it('shows just one section’s shapes from its header', () => {
+  it('draws a part’s name as plain text, not a button', () => {
     render(<SongSheet />)
-    const verse = screen.getByRole('button', { name: 'Verse' })
-    expect(verse.getAttribute('aria-pressed')).toBe('false')
-    fireEvent.click(verse)
-    expect(useStore.getState().focusSection).toEqual({ title: 'Faith', index: 1 })
-    expect(verse.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('button', { name: 'Verse' })).toBeNull()
+    expect(document.querySelector('.band-head .chart-label-btn')).toBeNull()
   })
 
   it('keeps the letters for the keyboard player, with plain headers and no chord taps', () => {
@@ -112,14 +109,14 @@ describe('a chart in bands', () => {
     const alteration = screen.getByText('(b9)')
     expect(alteration.classList.contains('chord-alt')).toBe(true)
     fireEvent.click(alteration)
-    expect(screen.getByRole('heading', { name: /^Shapes for Bb7\(b9\) · \d+ of them$/ })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Shapes for Bb7(b9)' })).toBeInTheDocument()
   })
 })
 
 describe('a band on its own', () => {
   const draw = (chords: string, name = 'Verse') =>
     render(
-      <BandChart sections={[{ name, chords }]} focusable={false} focusedIndex={null} onFocus={() => {}} renderTokens={text => text} />,
+      <BandChart sections={[{ name, chords }]} renderTokens={text => text} />,
     )
 
   it('draws an empty section as a header with no bars', () => {

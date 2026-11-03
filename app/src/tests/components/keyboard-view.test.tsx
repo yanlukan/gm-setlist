@@ -35,7 +35,6 @@ describe('the keyboard view', () => {
     useStore.getState().setInstrument('guitar')
     rerender(<PracticeScreen />)
     expect(verse()).toBe('A  D  A  D  A')
-    expect(screen.getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()
   })
 
   it('shows no shapes, no neck position and no guitar sound', () => {

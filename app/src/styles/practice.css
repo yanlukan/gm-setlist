@@ -40,73 +40,8 @@
   .practice-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
 }
 
-/* ---------- The chart and the panel: panel under the chart upright, beside it on its side ---------- */
+/* ---------- The chart takes the room under the header ---------- */
 .practice-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.practice-panel {
-  flex: none;
-  /* The player sets the size with the bar above (hooks/use-panel-size.ts) */
-  height: 300px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 12px 16px;
-}
-/* The bar between the chart and the shapes: drag to resize, or hide them */
-.panel-handle {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 36px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-  cursor: row-resize;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.panel-grip { width: 56px; height: 6px; border-radius: 3px; background: var(--text-muted); opacity: 0.6; }
-.panel-toggle {
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: none;
-  color: var(--text-muted);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.tiles-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
-.tiles-title { margin: 0; font-size: 17px; font-weight: 800; }
-.tiles-hint { margin: 4px 0 8px; color: var(--text-muted); font-size: 13px; }
-.tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.tiles:first-child { margin-top: 0; }
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: var(--diagram-tile);
-  color: var(--text);
-  cursor: pointer;
-}
-.tile.is-chosen { border-color: #facc15; }
-.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; align-self: stretch; }
-.tile-top .diagram-play { margin-top: 0; }
-.tile-name { font-size: 14px; font-weight: 800; }
-.tile-where { font-size: 11px; color: var(--text-muted); }
-.tile-frets { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-/* The song order in words, one run through the song per line */
-.so-run { margin: 6px 0 0; font-size: 15px; font-weight: 700; line-height: 1.4; }
-.so-arrow { color: var(--text-muted); font-weight: 400; }
-.so-step { white-space: nowrap; }
 .book-facts dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 15px; }
 .book-facts dt { color: var(--text-muted); font-weight: 700; }
 .book-facts dd { margin: 0; }
@@ -129,11 +64,6 @@ button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit
 .chart-chord-tap.is-picked { color: #facc15; text-decoration-color: #facc15; }
 
 @media (orientation: landscape) and (min-width: 900px) {
-  .practice-body { flex-direction: row; }
-  .practice-panel { width: 360px; height: auto; }
-  .panel-handle { flex-direction: column; min-height: 0; min-width: 36px; border-top: none; border-left: 1px solid var(--border); cursor: col-resize; }
-  .panel-grip { width: 6px; height: 56px; }
-  .panel-toggle { writing-mode: vertical-rl; min-height: 0; min-width: 36px; padding: 12px 0; }
-  /* Practice keeps four bars a row on its side: the panel takes the room */
+  /* Practice keeps four bars a row on its side */
   .practice-screen .band-chart { --cols: 4; }
 }
