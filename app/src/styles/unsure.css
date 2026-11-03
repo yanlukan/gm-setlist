@@ -13,13 +13,14 @@
   background: #f59e0b;
   color: #111;
   font: inherit;
-  font-size: 12px;
+  font-size: max(12px, 0.4em);
   font-weight: 800;
   line-height: 1.1em;
   text-align: center;
   pointer-events: none;
 }
 button.bar-unsure { pointer-events: auto; cursor: pointer; }
-/* A tap target a finger can hit, without a bigger mark */
-button.bar-unsure::after { content: ''; position: absolute; inset: -14px; }
+/* A tap target a finger can hit, without a bigger mark. It stays inside its own bar on the top and
+   right (so it never widens the grid or takes a tap from a neighbour) and grows down and inward */
+button.bar-unsure::after { content: ''; position: absolute; inset: 0.45em -0.2em -14px -14px; }
 .unsure-readings { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
