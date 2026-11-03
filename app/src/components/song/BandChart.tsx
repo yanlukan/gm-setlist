@@ -9,13 +9,15 @@ interface Props {
   renderTokens: (text: string) => ReactNode
   /** A tag under a section's name, by section name: "CTL1 ON · SOLO", "CTL1 OFF". */
   tags?: ReadonlyMap<string, string>
+  /** A mark drawn inside a bar, by the section's index and the bar's number in it. */
+  markFor?: (section: number, bar: number) => ReactNode
 }
 
 /**
  * A chart in bands: each section a band tinted in its colour, its letter
  * (A, B, C in chart order) and name in a gutter beside its bars.
  */
-export function BandChart({ sections, renderTokens, tags }: Props) {
+export function BandChart({ sections, renderTokens, tags, markFor }: Props) {
   const letters = sectionLetters(sections.map(s => s.name))
   return (
     <>
@@ -27,7 +29,7 @@ export function BandChart({ sections, renderTokens, tags }: Props) {
             {tags?.get(section.name) && <Ctl1Tag text={tags.get(section.name)!} />}
           </div>
           <div className="chart-chords">
-            <BandBars lines={section.chords.trim() ? section.chords.split('\n') : []} renderTokens={renderTokens} />
+            <BandBars lines={section.chords.trim() ? section.chords.split('\n') : []} renderTokens={renderTokens} markFor={markFor && (bar => markFor(i, bar))} />
           </div>
         </div>
       ))}

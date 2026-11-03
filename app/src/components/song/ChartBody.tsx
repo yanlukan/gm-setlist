@@ -6,6 +6,7 @@ import { chordParts } from '../../music/chord-text'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { BandChart } from './BandChart'
 import { ctl1Tags } from '../../music/gx10'
+import type { UnsureBar } from '../../music/evidence'
 
 interface Props {
   chart: SongChart
@@ -13,11 +14,13 @@ interface Props {
   onChord?: (chord: string) => void
   /** The chord picked, drawn as picked. */
   picked?: string | null
+  /** Practice: the mark on an unsure bar is a button. Absent on Stage, where the mark only shows. */
+  onUnsure?: (bar: UnsureBar) => void
   sectionsRef?: Ref<HTMLDivElement>
 }
 
 /** The chart's parts and chords: the same on both screens, only what reacts to a tap differs. */
-export function ChartBody({ chart, onChord, picked = null, sectionsRef }: Props) {
+export function ChartBody({ chart, onChord, picked = null, onUnsure, sectionsRef }: Props) {
   const { readSections, bands, keyboard, song } = chart
 
   // In bands a chord is drawn in its parts: Practice draws the ending small and
@@ -38,6 +41,27 @@ export function ChartBody({ chart, onChord, picked = null, sectionsRef }: Props)
         )}
         {parts.bass && <span className="ch-bass">{parts.bass}</span>}
       </>
+    )
+  }
+
+  // A small ? on each bar the sources disagree about
+  const markFor = (section: number, bar: number) => {
+    const found = chart.unsure.find(u => u.section === section && u.bar === bar)
+    if (!found) return null
+    return onUnsure ? (
+      <button
+        type="button"
+        className="bar-unsure"
+        aria-label="Unsure bar: what the sources say"
+        onClick={e => {
+          e.stopPropagation()
+          onUnsure(found)
+        }}
+      >
+        ?
+      </button>
+    ) : (
+      <span className="bar-unsure" role="img" aria-label="Unsure bar">?</span>
     )
   }
 
@@ -83,6 +107,7 @@ export function ChartBody({ chart, onChord, picked = null, sectionsRef }: Props)
         <BandChart
           sections={readSections}
           renderTokens={renderTokens}
+          markFor={markFor}
           // Where the GX-10's CTL1 goes on or off: the guitarist's, not the keyboard's
           tags={keyboard ? undefined : ctl1Tags(song.title)}
         />

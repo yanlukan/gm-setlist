@@ -1,0 +1,25 @@
+/* The mark on a bar the sources disagree about: a small ? hung over the bar's top edge,
+   in the warning colour of the title line's Capo, clear of the chords (they stay inside the bar) */
+.band-chart .bar { position: relative; }
+.bar-unsure {
+  position: absolute;
+  top: -0.45em;
+  right: 0.2em;
+  z-index: 1;
+  min-width: 1.1em;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #111;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1em;
+  text-align: center;
+  pointer-events: none;
+}
+button.bar-unsure { pointer-events: auto; cursor: pointer; }
+/* A tap target a finger can hit, without a bigger mark */
+button.bar-unsure::after { content: ''; position: absolute; inset: -14px; }
+.unsure-readings { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }

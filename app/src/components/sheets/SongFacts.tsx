@@ -1,5 +1,6 @@
 import { useChartView } from '../../store/use-store'
 import { guitarFor } from '../../music/chart-view'
+import { chordsFromText } from '../../music/evidence'
 import { songbookOf } from '../../music/songbook'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { soundFor } from '../../music/gx10'
@@ -11,6 +12,7 @@ export function SongFacts({ chart }: { chart: SongChart }) {
   const view = useChartView()
   const book = songbookOf(song)
   const guitar = guitarFor(song, songEdits, view)
+  const chordsFrom = chordsFromText(song, songEdits)
 
   return (
     <div className="song-facts-list">
@@ -24,6 +26,12 @@ export function SongFacts({ chart }: { chart: SongChart }) {
         )}
         <dt>Songbook</dt>
         <dd>{book !== undefined ? `George Michael Complete, no. ${book}` : 'Not in the songbook'}</dd>
+        {chordsFrom && (
+          <>
+            <dt>Chords</dt>
+            <dd>{chordsFrom}</dd>
+          </>
+        )}
         {!keyboard && (
           <>
             <dt>Shapes</dt>

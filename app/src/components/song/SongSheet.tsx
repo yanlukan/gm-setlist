@@ -8,6 +8,7 @@ import { useSongChart } from '../../hooks/use-song-chart'
 import { useChartFit } from '../../hooks/use-chart-fit'
 import { useSwipe } from '../../hooks/use-swipe'
 import { ChartEditor } from '../edit/ChartEditor'
+import type { UnsureBar } from '../../music/evidence'
 import { ChartBody } from './ChartBody'
 import { EmptyList } from './EmptyList'
 
@@ -16,13 +17,15 @@ interface Props {
   picked?: string | null
   /** A chord with shapes is a button that picks it. Without this, chords are plain. */
   onPick?: (chord: string) => void
+  /** The mark on an unsure bar is a button that opens what the sources say. */
+  onUnsure?: (bar: UnsureBar) => void
 }
 
 /**
  * Practice's chart: read, with a tap on a chord picking it for its shapes, or
  * edited in place with the chord keyboard under it.
  */
-export function SongSheet({ picked = null, onPick }: Props) {
+export function SongSheet({ picked = null, onPick, onUnsure }: Props) {
   const { song } = useShownSong()
   const chart = useSongChart(song)
   const editMode = useStore(s => s.editMode)
@@ -106,6 +109,7 @@ export function SongSheet({ picked = null, onPick }: Props) {
           sectionsRef={sectionsRef}
           onChord={onPick}
           picked={picked}
+          onUnsure={onUnsure}
         />
       </div>
     </div>

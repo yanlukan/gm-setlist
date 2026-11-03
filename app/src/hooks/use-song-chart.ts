@@ -5,6 +5,7 @@ import { hasBars } from '../music/bars'
 import { formMatches } from '../music/form'
 import { letterByName } from '../music/letters'
 import { layOutParts } from '../music/phrases'
+import { openUnsure, type UnsureBar } from '../music/evidence'
 import { hasEditedChart } from '../music/chart-edits'
 import { playedKey, transposeFor } from '../music/setlist-text'
 import { useBandPositions, type BandPlan } from './use-band-positions'
@@ -47,6 +48,8 @@ export interface SongChart {
   span: BandPlan['span']
   /** The recommended shape for each chord. */
   band: Record<string, number>
+  /** The bars the sources disagree about and the player has not settled. */
+  unsure: UnsureBar[]
   /** Changes whenever what is drawn changes. */
   fitKey: string
 }
@@ -66,6 +69,7 @@ export function useSongChart(song: Song | undefined): SongChart | null {
     const laidOut = displaySections.map(sec => ({ ...sec, chords: layOutParts(sec.chords) }))
     const readSections = view.simple ? laidOut.map(sec => ({ ...sec, chords: simplifyText(sec.chords, rule) })) : laidOut
     const bands = readSections.some(s => s.chords.split('\n').some(line => hasBars(line)))
+    const unsure = openUnsure(song, songEdits)
     const form = songEdits?.form ?? song.form ?? []
     const semitones = transposeFor(song, songEdits)
     const capo = capoFor(song, songEdits, view)
@@ -94,7 +98,8 @@ export function useSongChart(song: Song | undefined): SongChart | null {
       edited: hasEditedChart(song, songEdits),
       span,
       band,
-      fitKey: JSON.stringify([song.title, readSections, form, keyboard, capo]),
+      unsure,
+      fitKey: JSON.stringify([song.title, readSections, form, keyboard, capo, unsure.map(u => [u.section, u.bar])]),
     }
   }, [song, songEdits, view, rule, band, span])
 }

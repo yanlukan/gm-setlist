@@ -7,12 +7,14 @@ interface Props {
   lines: string[]
   /** How chords are drawn: tappable for their shapes, or plain on stage. */
   renderTokens: (text: string) => ReactNode
+  /** A mark drawn inside a bar, by its number in the section (every bar of every line in bars, from 0). */
+  markFor?: (bar: number) => ReactNode
 }
 
 type Cell =
   | { kind: 'plain'; text: string }
   | { kind: 'pad'; className: 'pad-both' | 'pad-wide' }
-  | { kind: 'bar'; tokens: string[]; classes: string[]; held?: string }
+  | { kind: 'bar'; tokens: string[]; classes: string[]; held?: string; number: number }
 
 /**
  * One cell per bar. Each written line is padded with blank cells to a
@@ -26,6 +28,7 @@ function layOut(lines: string[]): Cell[] {
   const cells: Cell[] = []
   let column = 0
   let sounding: string | undefined
+  let number = 0
   lines.forEach((line, li) => {
     const tokens = line.split(/\s+/).filter(Boolean)
     if (!hasBars(tokens)) {
@@ -53,7 +56,7 @@ function layOut(lines: string[]): Cell[] {
       const last = chords[chords.length - 1]?.token
       if (last !== undefined) sounding = isChartMark(last) ? undefined : last
       const held = chords.length === 0 && bar.includes(BEAT) ? sounding : undefined
-      cells.push({ kind: 'bar', tokens: bar, classes, held })
+      cells.push({ kind: 'bar', tokens: bar, classes, held, number: number++ })
       column++
     })
     for (const pad of padsAfter(bars.length)) {
@@ -65,7 +68,7 @@ function layOut(lines: string[]): Cell[] {
 }
 
 /** A section's bars, as cells of the band's grid. */
-export function BandBars({ lines, renderTokens }: Props) {
+export function BandBars({ lines, renderTokens, markFor }: Props) {
   return (
     <div className="bar-grid">
       {layOut(lines).map((cell, i) => {
@@ -104,6 +107,7 @@ export function BandBars({ lines, renderTokens }: Props) {
               if (isRepeatCount(token)) return <span key={ti} className="chart-mark bar-count">{token}</span>
               return null
             })}
+            {markFor?.(cell.number)}
           </div>
         )
       })}
