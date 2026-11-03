@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
-import { BookFacts } from '../../components/practice/BookFacts'
+import { SongFacts } from '../../components/sheets/SongFacts'
 import { useShownSong } from '../../hooks/use-shown-song'
 import { useSongChart } from '../../hooks/use-song-chart'
 import { useStore } from '../../store/use-store'
@@ -15,10 +15,10 @@ beforeEach(() => {
 
 const verse = () => screen.getAllByText((_, el) => el?.className === 'chart-chords')[1]
 
-/** The book facts on their own: Practice no longer shows them (they move into More). */
+/** The song's facts on their own, as More shows them. */
 function Facts() {
   const chart = useSongChart(useShownSong().song)
-  return chart ? <BookFacts chart={chart} /> : null
+  return chart ? <SongFacts chart={chart} /> : null
 }
 
 describe('capo', () => {
@@ -28,7 +28,7 @@ describe('capo', () => {
     expect(verse().textContent).toBe('A  D  A  D  A')
   })
 
-  it('says which shapes to play in the book facts', () => {
+  it('says which shapes to play in the song facts', () => {
     useStore.getState().setCapo('Faith', 2)
     render(<Facts />)
     expect(screen.getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()

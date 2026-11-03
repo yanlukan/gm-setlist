@@ -5,8 +5,8 @@ import { useSongChart } from '../../hooks/use-song-chart'
 import { useChartFit } from '../../hooks/use-chart-fit'
 import { useSwipe } from '../../hooks/use-swipe'
 import { ChartBody } from '../song/ChartBody'
+import { SongHeader } from '../song/SongHeader'
 import { EmptyList } from '../song/EmptyList'
-import { StageHeader } from './StageHeader'
 import { NextUp } from './NextUp'
 
 /**
@@ -38,7 +38,7 @@ export function StageScreen() {
 
   return (
     <main className="stage-screen" aria-label="Stage">
-      {chart && <StageHeader chart={chart} extraFrom={extraFrom} />}
+      {chart && <SongHeader chart={chart} extraFrom={extraFrom} screen="stage" />}
       <div ref={scrollRef} className="chart-scroll">
         {chart ? (
           <div ref={fitRef} className={chart.bands ? 'chart band-chart' : 'chart'}>

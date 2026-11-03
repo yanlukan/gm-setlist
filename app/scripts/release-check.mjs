@@ -164,7 +164,7 @@ async function openSong(page, which) {
 
 /** Fails the whole check unless the screen's song title is the one opened: else the wrong chart is measured. */
 async function shows(page, title) {
-  const heading = page.locator('.stage-title, .ph-title').first()
+  const heading = page.locator('.song-title').first()
   let shown = null
   for (let i = 0; i < 50; i++) {
     shown = (await heading.count()) ? (await heading.textContent()).trim() : null

@@ -1,19 +1,5 @@
-/* ---------- Practice: the song's setup and facts on top ---------- */
-/* The top bar is gone, so the header takes the safe area at the top */
-.practice-head {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: calc(6px + var(--safe-top)) 16px 6px;
-  border-bottom: 1px solid var(--border);
-}
-.ph-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.ph-title { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.1; }
-.ph-artist { color: var(--text-muted); font-size: 14px; }
-.practice-head .fact { padding: 2px 8px; font-size: 14px; }
-.ph-badge { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
-.ph-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* ---------- The song's settings, in More, and Done / Reset in the title line ---------- */
+.song-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
 .setup-key { display: inline-flex; }
 .setup-btn {
   min-height: 36px;
@@ -35,24 +21,8 @@
 .setup-btn.is-danger { border-color: var(--danger); color: var(--danger); }
 
 
-/* ---------- On its side: the title and the setup share a line when they fit ---------- */
-@media (orientation: landscape) and (min-width: 900px) {
-  .practice-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 16px; }
-}
-
 /* ---------- The chart takes the room under the header ---------- */
 .practice-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.book-facts dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 15px; }
-.book-facts dt { color: var(--text-muted); font-weight: 700; }
-.book-facts dd { margin: 0; }
-.facts-capo { margin-top: 2px; color: #f59e0b; font-weight: 700; }
-
-/* Practice's song order is in words, so the chart's parts need no letters (Stage keeps them for
-   its chips). A phone still shows the letter: it has no room for the part's name */
-@media (min-width: 501px) {
-  .practice-screen .band-head .band-letter { display: none; }
-}
-
 /* Every chord at the chart's one size, as printed charts draw them: the root full size,
    its ending small and raised, the bass a little smaller (ChartBody.tsx) */
 .practice-screen .band-chart .ch-end { position: relative; top: -0.42em; margin-left: 0.03em; font-size: 0.62em; }

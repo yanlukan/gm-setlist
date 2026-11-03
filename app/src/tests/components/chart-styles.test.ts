@@ -102,7 +102,7 @@ describe('the band chart stylesheet', () => {
   it('keeps the title line readable on every chart', () => {
     const layout = css('layout.css')
     expect(layout).toContain('font-size: max(26px, 0.6em);')
-    expect(layout.split('max(16px, 0.36em)')).toHaveLength(3)
+    expect(layout.split('max(16px, 0.36em)')).toHaveLength(2)
     expect(layout).toContain('font-size: max(16px, 0.4em);')
   })
 

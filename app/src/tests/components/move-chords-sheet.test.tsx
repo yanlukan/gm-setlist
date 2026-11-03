@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { PracticeScreen } from '../../components/practice/PracticeScreen'
-import { StageScreen } from '../../components/stage/StageScreen'
+import { CurrentScreen } from '../../App'
+import { BottomBar } from '../../components/layout/BottomBar'
 import { useStore } from '../../store/use-store'
 import { moveChords } from '../../store/song-shapes'
 
@@ -9,14 +9,26 @@ beforeEach(() => {
   useStore.setState(useStore.getInitialState())
 })
 
+/** The screen with its bar, and More open: the position is in the song's settings. */
+function Screens() {
+  return (
+    <>
+      <CurrentScreen />
+      <BottomBar />
+    </>
+  )
+}
+const openMore = () => fireEvent.click(screen.getByRole('button', { name: 'More' }))
+
 // Faith: the songbook's shapes, the riff at the 7th fret and the barres lower
 const position = () => screen.getByRole('button', { name: 'Recommended position: frets 2 to 9. Move the chords' })
 const sheet = () => screen.getByRole('dialog', { name: 'Move chords' })
 const neck = () => useStore.getState().edits.Faith?.neck
 
-describe('moving the chords from the setup row', () => {
-  it('opens from the position on the title line and says where the shapes come from', () => {
-    render(<PracticeScreen />)
+describe('moving the chords from More', () => {
+  it('opens from the position in More and says where the shapes come from', () => {
+    render(<Screens />)
+    openMore()
     fireEvent.click(position())
     expect(sheet()).toHaveTextContent('Frets 2–9')
     expect(within(sheet()).getByText('Songbook')).toBeInTheDocument()
@@ -26,7 +38,8 @@ describe('moving the chords from the setup row', () => {
   })
 
   it('moves every chord off the songbook, then lower or higher, and back in one tap', () => {
-    render(<PracticeScreen />)
+    render(<Screens />)
+    openMore()
     fireEvent.click(position())
     fireEvent.click(within(sheet()).getByRole('button', { name: 'Move the chords' }))
     const moved = neck()!
@@ -50,14 +63,16 @@ describe('moving the chords from the setup row', () => {
 
   it('shows a moved song as yours', () => {
     moveChords('Faith', 7)
-    render(<PracticeScreen />)
+    render(<Screens />)
+    openMore()
     expect(screen.getByRole('button', { name: /^Your position: frets \d+ to \d+\. Move the chords$/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Recommended position/ })).not.toBeInTheDocument()
   })
 
   it('is not on Stage at all, where nothing about the song changes', () => {
     useStore.setState({ viewMode: 'stage' })
-    render(<StageScreen />)
+    render(<Screens />)
+    expect(screen.queryByRole('button', { name: 'More' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Move the chords/ })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/position/)).not.toBeInTheDocument()
   })

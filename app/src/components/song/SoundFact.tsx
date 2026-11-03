@@ -1,7 +1,7 @@
 import { soundFor, soundLabel } from '../../music/gx10'
 
 /**
- * The song's GX-10 memory and sound in the header, "U02-3 ACOUSTIC". The
+ * The song's GX-10 memory and sound, "U02-3 ACOUSTIC", told in More. The
  * guitarist's: the keyboard view leaves it out. Nothing for a song not in
  * the gig set.
  */

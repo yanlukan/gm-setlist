@@ -101,9 +101,10 @@ describe('positions', () => {
     for (const p of positions) expect(p.textContent).toMatch(/^(Frets \d+–\d+|Open position|Open to fret \d+)$/)
   })
 
-  it('calls the acoustic song open position', () => {
+  it('calls the acoustic song open position, in More', () => {
     goTo('Waiting (Reprise)')
-    render(<PracticeScreen />)
+    render(<Screens />)
+    fireEvent.click(button('More'))
     expect(button('Recommended position: open position. Move the chords')).toHaveTextContent('Open position')
   })
 })

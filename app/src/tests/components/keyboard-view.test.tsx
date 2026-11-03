@@ -15,8 +15,8 @@ beforeEach(() => {
 const chords = () => screen.getAllByText((_, el) => el?.className === 'chart-chords')
 const verse = () => chords()[1].textContent
 
-// The instrument setting is in the More sheet (bar-sheets.test.tsx); the
-// Keyboard badge in the setup row is in practice-header.test.tsx.
+// The instrument setting is in the More sheet (bar-sheets.test.tsx); what More
+// leaves out for the keyboard is in more-song.test.tsx.
 describe('the keyboard view', () => {
   beforeEach(() => {
     useStore.getState().setInstrument('keyboard')

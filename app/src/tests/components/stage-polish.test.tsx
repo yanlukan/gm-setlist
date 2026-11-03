@@ -13,34 +13,25 @@ const open = (title: string) => {
   const { setlistData } = useStore.getState()
   useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf(title))
 }
-const sound = () => screen.getByLabelText(/^GX-10 sound: /)
 
 // Tap tempo is gone: the BPM is text (screens.test.tsx). Chord taps on Stage,
 // the Next up line and the key button are in stage-screen.test.tsx and
-// practice-header.test.tsx.
+// song-header.test.tsx and more-song.test.tsx.
 
-describe('GX-10 sound on Stage', () => {
-  it("shows the song's memory and sound, and the CTL1 switches at their sections, not in the cue", () => {
+describe('the cue on Stage', () => {
+  it('shows CTL1 switches at their sections, not in the cue, and the sound not at all', () => {
     open('Somebody to Love')
     const { container } = render(<StageScreen />)
-    expect(sound()).toHaveTextContent('U05-3 CRUNCH')
+    expect(screen.queryByLabelText(/^GX-10 sound: /)).toBeNull() // More names it
     expect(screen.getByLabelText('CTL1 ON · SOLO')).toBeInTheDocument()
     expect(screen.getByLabelText('CTL1 OFF')).toBeInTheDocument()
-    expect(container.querySelector('.stage-cue')).not.toHaveTextContent('CTL1')
-  })
-
-  it('sits on the title row, and a sound alone adds no cue line', () => {
-    const { container } = render(<StageScreen />) // Faith: U01-1 ACOUSTIC, no stage directions
-    expect(sound()).toHaveTextContent('U01-1 ACOUSTIC')
-    expect(sound().closest('.stage-row')).toBe(container.querySelector('.stage-title')!.closest('.stage-row'))
-    expect(container.querySelector('.stage-cue')).toBeNull()
+    expect(container.querySelector('.song-cue')).not.toHaveTextContent('CTL1')
   })
 
   it('leaves the stage directions in the cue', () => {
     open('Roxanne')
     const { container } = render(<StageScreen />)
-    expect(sound()).toHaveTextContent('WARM JAZZ')
-    expect(container.querySelector('.stage-cue')).toHaveTextContent(/^GUITAR TACET/)
+    expect(container.querySelector('.song-cue')).toHaveTextContent(/^GUITAR TACET/)
   })
 })
 

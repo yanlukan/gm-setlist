@@ -96,7 +96,7 @@ const MEASURE = `(() => {
   if (!chart) return null
   const size = parseFloat(chart.style.fontSize)
   return {
-    title: document.querySelector('.stage-title')?.textContent ?? '?',
+    title: document.querySelector('.song-title')?.textContent ?? '?',
     size,
     scrolls: scroll.scrollHeight > scroll.clientHeight,
     scrollsSideways: scroll.scrollWidth > scroll.clientWidth,

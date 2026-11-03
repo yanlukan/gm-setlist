@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store/use-store'
 import { useShownSong } from '../../hooks/use-shown-song'
+import { useSongChart } from '../../hooks/use-song-chart'
 import { useBackup } from '../../hooks/use-backup'
 import { hasEditedChart } from '../../music/chart-edits'
 import { APP_VERSION, BUILD_TIME } from '../../version'
@@ -8,6 +9,8 @@ import { checkForUpdate, updateNow, useUpdateCheck } from '../../hooks/use-updat
 import { RestoreModal } from '../shared/RestoreModal'
 import { SavedChartsModal } from '../edit/SavedChartsModal'
 import { Sheet } from './Sheet'
+import { SongFacts } from './SongFacts'
+import { SongSettings } from './SongSettings'
 
 /**
  * On an iPad the home-screen app and Safari are two copies of PlayBook, each
@@ -28,9 +31,10 @@ function builtAt(): string {
   return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
-/** The app's settings, on Practice only. The one thing about a single song is going back to its original chart. */
+/** The song's settings and facts, then the app's settings. On Practice only. */
 export function MoreSheet({ onClose }: { onClose: () => void }) {
   const { song } = useShownSong()
+  const chart = useSongChart(song)
   const update = useUpdateCheck()
   const checkNow = async () => {
     const found = await checkForUpdate()
@@ -39,6 +43,8 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
     else showToast('Could not reach the site. Try again when online')
   }
   const edits = useStore(s => s.edits)
+  const editMode = useStore(s => s.editMode)
+  const toggleEditMode = useStore(s => s.toggleEditMode)
   const instrument = useStore(s => s.instrument)
   const setInstrument = useStore(s => s.setInstrument)
   const simpleChords = useStore(s => s.simpleChords)
@@ -69,6 +75,12 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
       <Sheet label="More" onClose={onClose} className="more-sheet">
         <section className="more-group">
           <h3 className="more-title">This song</h3>
+          {chart && <SongSettings chart={chart} />}
+          {chart && <SongFacts chart={chart} />}
+          {/* Done is in the title line while editing */}
+          {!editMode && (
+            <button className="more-item" onClick={() => { toggleEditMode(); onClose() }}>Edit the chart</button>
+          )}
           <button className="more-item" disabled={!edited} onClick={backToOriginal}>Back to the original chart</button>
         </section>
 

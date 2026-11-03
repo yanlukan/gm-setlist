@@ -13,18 +13,17 @@ beforeEach(() => {
   useStore.setState({ viewMode: 'stage' })
 })
 
-const header = () => document.querySelector('.stage-head') as HTMLElement
+const header = () => document.querySelector('.song-head') as HTMLElement
 const goTo = (title: string) => act(() => useStore.getState().goToSong(G.indexOf(title)))
 
-describe('the Stage header', () => {
-  it('has the title and the facts: key, BPM as text, time and the GX-10 sound', () => {
+describe('the Stage title line', () => {
+  it('has the title and the facts: key, BPM as text and time', () => {
     render(<StageScreen />)
     expect(screen.getByRole('main', { name: 'Stage' })).toBeInTheDocument()
     expect(within(header()).getByRole('heading', { name: 'Faith' })).toBeInTheDocument()
     expect(within(header()).getByText(`Key ${playedKey(faith).key}`)).toBeInTheDocument()
     expect(within(header()).getByText(`${faith.bpm} BPM`)).toBeInTheDocument()
     expect(within(header()).getByText(faith.timeSignature)).toBeInTheDocument()
-    expect(within(header()).getByLabelText('GX-10 sound: U01-1 ACOUSTIC')).toHaveTextContent('U01-1 ACOUSTIC')
   })
 
   it('has no tap tempo and no buttons at all', () => {
@@ -59,9 +58,9 @@ describe('the Stage header', () => {
 
   it('shows the cue in the header, only for songs that have one', () => {
     render(<StageScreen />)
-    expect(header().querySelector('.stage-cue')).toBeNull()
+    expect(header().querySelector('.song-cue')).toBeNull()
     goTo('Papa Was a Rolling Stone')
-    expect(header().querySelector('.stage-cue')).toHaveTextContent(song('Papa Was a Rolling Stone').cue!)
+    expect(header().querySelector('.song-cue')).toHaveTextContent(song('Papa Was a Rolling Stone').cue!)
   })
 
   it('tags an extra song with the list it is from', () => {
@@ -104,12 +103,11 @@ describe('the Stage chart', () => {
     expect(document.querySelector('.chart-scroll .chart-sections')).not.toBeNull()
   })
 
-  it('the keyboard shows no capo and no GX-10 sound', () => {
+  it('the keyboard shows no capo', () => {
     useStore.getState().setCapo('Faith', 2)
     useStore.getState().setInstrument('keyboard')
     render(<StageScreen />)
     expect(within(header()).queryByText(/^Capo/)).toBeNull()
-    expect(within(header()).queryByLabelText(/^GX-10 sound/)).toBeNull()
   })
 
   it('says what is wrong when the list is empty', () => {

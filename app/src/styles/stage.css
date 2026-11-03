@@ -16,9 +16,9 @@
 .fact.is-danger { background: #ea580c; color: #fff; }
 .tag-extra { padding: 3px 10px; border-radius: 6px; background: #facc15; color: #111; font-size: 14px; font-weight: 800; white-space: nowrap; }
 
-/* ---------- Stage: only what is needed while playing ---------- */
+/* ---------- The title line, one for both screens ---------- */
 /* The top bar is gone, so the header takes the safe area at the top */
-.stage-head {
+.song-head {
   flex: none;
   display: flex;
   flex-direction: column;
@@ -26,10 +26,11 @@
   padding: calc(8px + var(--safe-top)) 16px 8px;
   border-bottom: 1px solid var(--border);
 }
-.stage-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.stage-title { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.1; }
-.stage-facts { display: flex; flex-wrap: wrap; gap: 6px; }
-.stage-cue { color: #facc15; font-size: 17px; font-weight: 700; }
+.song-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.song-title { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.1; }
+.song-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.edit-bar { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.song-cue { color: #facc15; font-size: 17px; font-weight: 700; }
 .form-strip.is-short .form-chip { padding: 2px 6px 2px 3px; }
 
 /* One line above the bar; a long cue is cut with … */
@@ -50,8 +51,8 @@
 
 /* ---------- On its side: the header on one row ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
-  .stage-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px; padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }
-  .stage-row { display: contents; }
-  .stage-title { font-size: 24px; }
-  .stage-cue { flex-basis: 100%; }
+  .song-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px; padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }
+  .song-row { display: contents; }
+  .song-title { font-size: 24px; }
+  .song-cue { flex-basis: 100%; }
 }

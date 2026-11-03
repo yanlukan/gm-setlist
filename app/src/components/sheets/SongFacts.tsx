@@ -2,18 +2,26 @@ import { useChartView } from '../../store/use-store'
 import { guitarFor } from '../../music/chart-view'
 import { songbookOf } from '../../music/songbook'
 import type { SongChart } from '../../hooks/use-song-chart'
+import { soundFor } from '../../music/gx10'
+import { SoundFact } from '../song/SoundFact'
 
-/** What the songbook and the song's notes say, under the shapes. */
-export function BookFacts({ chart }: { chart: SongChart }) {
+/** What is known of the song: its GX-10 sound, the songbook, the key and the capo, the cue and the notes. */
+export function SongFacts({ chart }: { chart: SongChart }) {
   const { song, songEdits, keyboard, capo } = chart
   const view = useChartView()
   const book = songbookOf(song)
   const guitar = guitarFor(song, songEdits, view)
 
   return (
-    <section className="book-facts" aria-label="From the book and the notes">
-      <h2 className="tiles-title">From the book and the notes</h2>
+    <div className="song-facts-list">
       <dl>
+        {/* The sound is the guitarist's, and only songs in the gig set have one */}
+        {!keyboard && soundFor(song.title) && (
+          <>
+            <dt>Sound</dt>
+            <dd><SoundFact title={song.title} /></dd>
+          </>
+        )}
         <dt>Songbook</dt>
         <dd>{book !== undefined ? `George Michael Complete, no. ${book}` : 'Not in the songbook'}</dd>
         {!keyboard && (
@@ -38,6 +46,6 @@ export function BookFacts({ chart }: { chart: SongChart }) {
         )}
       </dl>
       {chart.notes && <p className="chart-notes">{chart.notes}</p>}
-    </section>
+    </div>
   )
 }

@@ -9,8 +9,8 @@ import { useStore } from '../../store/use-store'
 import { db, resetDb } from '../../store/persistence'
 import { keepVersion, whenHistorySaved } from '../../store/song-history'
 
-/** The setup row, where the save status sits beside Done. */
-const setup = () => screen.getByRole('group', { name: 'Song setup' })
+/** The title line, where the save status sits beside Done. */
+const setup = () => document.querySelector('.song-head') as HTMLElement
 /** The Songs sheet, opened from the bar. */
 const openSongs = () => {
   render(<BottomBar />)

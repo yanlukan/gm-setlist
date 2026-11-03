@@ -5,18 +5,14 @@ import { positionLabel } from '../../hooks/use-band-positions'
 import type { SongChart } from '../../hooks/use-song-chart'
 import { CapoPicker } from '../song/CapoPicker'
 import { MoveChordsSheet } from '../song/MoveChordsSheet'
-import { SaveStatus } from '../edit/SaveStatus'
 
 /**
- * The song's own settings, next to the song: key, capo, guitar, Move chords
- * and Edit. While editing, Edit is Done, with Reset and the save status beside it.
+ * The song's own settings, in More: key, capo, guitar and Move chords. The
+ * keyboard player gets the key only. CapoPicker and Move chords open over More.
  */
-export function PracticeSetup({ chart }: { chart: SongChart }) {
+export function SongSettings({ chart }: { chart: SongChart }) {
   const { song, songEdits, keyboard, semitones, capo, span } = chart
   const view = useChartView()
-  const editMode = useStore(s => s.editMode)
-  const toggleEditMode = useStore(s => s.toggleEditMode)
-  const resetEdits = useStore(s => s.resetEdits)
   const setTranspose = useStore(s => s.setTranspose)
   const clearTranspose = useStore(s => s.clearTranspose)
   const setCapo = useStore(s => s.setCapo)
@@ -44,7 +40,7 @@ export function PracticeSetup({ chart }: { chart: SongChart }) {
   const where = span ? `${moved ? 'Your' : 'Recommended'} position: ${positionLabel(span).toLowerCase().replace('–', ' to ')}` : ''
 
   return (
-    <div className="ph-setup" role="group" aria-label="Song setup">
+    <div className="song-settings" role="group" aria-label="Song settings">
       <span className="setup-key">
         <button className="setup-btn" aria-label="Transpose down" onClick={() => setTranspose(song.title, semitones - 1)}>&minus;</button>
         <button
@@ -57,10 +53,8 @@ export function PracticeSetup({ chart }: { chart: SongChart }) {
         <button className="setup-btn" aria-label="Transpose up" onClick={() => setTranspose(song.title, semitones + 1)}>+</button>
       </span>
 
-      {keyboard ? (
-        // The keyboard has no capo, no guitar and no shapes to move
-        <span className="ph-badge">Keyboard</span>
-      ) : (
+      {/* The keyboard has no capo, no guitar and no shapes to move */}
+      {!keyboard && (
         <>
           <button
             className={capo > 0 ? 'setup-btn is-moved' : 'setup-btn'}
@@ -88,23 +82,6 @@ export function PracticeSetup({ chart }: { chart: SongChart }) {
           )}
         </>
       )}
-
-      <button className={editMode ? 'setup-btn is-active' : 'setup-btn'} onClick={toggleEditMode}>
-        {editMode ? 'Done' : 'Edit'}
-      </button>
-      {editMode && (
-        <button
-          className="setup-btn is-danger"
-          onClick={() => {
-            if (confirm(`Reset "${song.title}" to the original chart?\n\nYour version is kept under Earlier versions, at the bottom of the chart.`)) {
-              resetEdits(song.title)
-            }
-          }}
-        >
-          Reset
-        </button>
-      )}
-      {editMode && <SaveStatus />}
 
       {showCapo && (
         <CapoPicker
