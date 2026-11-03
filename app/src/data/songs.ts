@@ -165,10 +165,6 @@ export const DEFAULT_SONGS: Song[] = [
     timeSignature: '4/4',
     capo: null,
     chordsFrom: 'Book',
-    evidence: {
-      'Intro': { from: 'Record' },
-      'Post-Chorus': { from: 'Record' },
-    },
     shapes: { Gm9: '3-5-3-3-3-5', C6: 'x-3-5-5-5-5', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-7-5-4-3', Gm: '3-5-5-3-3-3', Dsus4: 'x-5-7-7-3-3' },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 47): Gm9 to C6 through the intro, the verses and the outro; jazzy voicings, not plain Gm and C. The chorus goes round Cm7, Cm6, Gm9, Gm three times, then turns on two bars of Dsus4, and the groove comes back for 8 bars before the next verse. The 16-bar intro and those 8 bars are counted from the recording; the few quiet seconds before the groove are not charted. Guitar lays out for the 8-bar instrumental. The record fades over the outro from about 4:30. The shapes are the book's capo-3 boxes at concert pitch: every dot on the 3rd fret is where the capo sits (Gm9 is an Em9 shape, C6 an A6 shape), so with a capo there they are open shapes.",
