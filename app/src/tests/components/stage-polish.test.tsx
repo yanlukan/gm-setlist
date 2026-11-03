@@ -19,10 +19,11 @@ const open = (title: string) => {
 // song-header.test.tsx and more-song.test.tsx.
 
 describe('the cue on Stage', () => {
-  it('shows CTL1 switches at their sections, not in the cue, and the sound not at all', () => {
+  it('shows CTL1 switches at their sections, not in the cue, and the sound in the title line only', () => {
     open('Somebody to Love')
     const { container } = render(<StageScreen />)
-    expect(screen.queryByLabelText(/^GX-10 sound: /)).toBeNull() // More names it
+    expect(screen.getAllByLabelText(/^GX-10 sound: /)).toHaveLength(1)
+    expect(container.querySelector('.song-head [aria-label^="GX-10 sound: "]')).not.toBeNull()
     expect(screen.getByLabelText('CTL1 ON · SOLO')).toBeInTheDocument()
     expect(screen.getByLabelText('CTL1 OFF')).toBeInTheDocument()
     expect(container.querySelector('.song-cue')).not.toHaveTextContent('CTL1')

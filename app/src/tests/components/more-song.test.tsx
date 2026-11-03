@@ -43,6 +43,17 @@ describe('the song in More', () => {
     expect(within(openMore()).getByText('Capo 2: play A shapes, sounds in B')).toBeInTheDocument()
   })
 
+  it('opens the capo picker and Move chords outside the sheet, over the bottom bar', () => {
+    render(<Screens />)
+    const more = openMore()
+    fireEvent.click(within(more).getByRole('button', { name: 'Add a capo' }))
+    const capo = screen.getByRole('dialog', { name: 'Capo' })
+    expect(more.contains(capo)).toBe(false)
+    fireEvent.click(within(capo).getByRole('button', { name: /Fret 4/ }))
+    fireEvent.click(within(more).getByRole('button', { name: /^Capo on fret 4/ }))
+    expect(more.contains(screen.getByRole('dialog', { name: 'Capo' }))).toBe(false)
+  })
+
   it('Edit the chart closes More and starts editing', () => {
     render(<Screens />)
     fireEvent.click(within(openMore()).getByRole('button', { name: 'Edit the chart' }))

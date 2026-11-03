@@ -37,6 +37,20 @@ describe('shapes on tap', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  it('has a Close button', () => {
+    render(<PracticeScreen />)
+    fireEvent.click(taps()[0])
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('closes when another sheet opens', () => {
+    render(<PracticeScreen />)
+    fireEvent.click(taps()[0])
+    act(() => useStore.getState().toggleSheet('more'))
+    expect(screen.queryByRole('dialog', { name: /^Shapes for / })).toBeNull()
+  })
+
   it('a second tap on the same chord closes it', () => {
     render(<PracticeScreen />)
     fireEvent.click(tap('E'))

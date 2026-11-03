@@ -47,6 +47,7 @@ export function ChordShapesSheet({ chart, chord, onClose }: Props) {
     <Sheet label={`Shapes for ${chord}`} onClose={onClose} className="shapes-sheet">
       <div className="tiles-head">
         <h2 className="tiles-title">Shapes for {chord} &middot; {listed.length} of them</h2>
+        <button className="sheet-action" onClick={onClose}>Close</button>
       </div>
       <p className="tiles-hint">
         The recommended shape suits this song's sound and sits with its other chords. A shape you tap is used for {chord} in this song only.

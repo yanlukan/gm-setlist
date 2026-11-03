@@ -2,6 +2,7 @@ import type { SongChart } from '../../hooks/use-song-chart'
 import { useStore } from '../../store/use-store'
 import { EditBar } from '../edit/EditBar'
 import { FormStrip } from './FormStrip'
+import { SoundFact } from './SoundFact'
 
 interface Props {
   chart: SongChart
@@ -27,6 +28,8 @@ export function SongHeader({ chart, extraFrom, screen }: Props) {
           <span className="fact">Key {chart.playedKey}</span>
           <span className="fact">{chart.bpm} BPM</span>
           <span className="fact">{song.timeSignature}</span>
+          {/* On stage the sound is read at a glance; Practice has it in More */}
+          {screen === 'stage' && !keyboard && <SoundFact title={song.title} />}
           {/* The capo is the guitarist's: the keyboard has none */}
           {chart.capo > 0 && !keyboard && <span className="fact is-warn">Capo {chart.capo}</span>}
           {chart.lowerKey && <span className="fact is-danger">LOWER KEY</span>}
@@ -34,7 +37,7 @@ export function SongHeader({ chart, extraFrom, screen }: Props) {
         </span>
         {editing && <EditBar song={song.title} />}
       </div>
-      {chart.showForm && (
+      {chart.showForm && !editing && (
         <div className="song-row">
           <FormStrip form={chart.form} letters={chart.letters} short />
         </div>

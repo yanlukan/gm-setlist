@@ -1,24 +1,25 @@
-import { useState } from 'react'
 import { useChartView, useStore } from '../../store/use-store'
 import { guitarFor } from '../../music/chart-view'
 import { positionLabel } from '../../hooks/use-band-positions'
 import type { SongChart } from '../../hooks/use-song-chart'
-import { CapoPicker } from '../song/CapoPicker'
-import { MoveChordsSheet } from '../song/MoveChordsSheet'
 
 /**
  * The song's own settings, in More: key, capo, guitar and Move chords. The
- * keyboard player gets the key only. CapoPicker and Move chords open over More.
+ * keyboard player gets the key only. Capo and Move chords are asked for here
+ * and open from MoreSheet, outside the sheet, so they sit over the bottom bar.
  */
-export function SongSettings({ chart }: { chart: SongChart }) {
+interface Props {
+  chart: SongChart
+  onCapo: () => void
+  onMove: () => void
+}
+
+export function SongSettings({ chart, onCapo, onMove }: Props) {
   const { song, songEdits, keyboard, semitones, capo, span } = chart
   const view = useChartView()
   const setTranspose = useStore(s => s.setTranspose)
   const clearTranspose = useStore(s => s.clearTranspose)
-  const setCapo = useStore(s => s.setCapo)
   const setSongGuitar = useStore(s => s.setSongGuitar)
-  const [showCapo, setShowCapo] = useState(false)
-  const [moving, setMoving] = useState(false)
 
   // Transposing only changes an offset. The stored chart stays at source
   // pitch, so any amount of transposing is reversible and nothing is lost.
@@ -59,7 +60,7 @@ export function SongSettings({ chart }: { chart: SongChart }) {
           <button
             className={capo > 0 ? 'setup-btn is-moved' : 'setup-btn'}
             aria-label={capo > 0 ? `Capo on fret ${capo}. Change capo` : 'Add a capo'}
-            onClick={() => setShowCapo(true)}
+            onClick={() => onCapo()}
           >
             {capo > 0 ? `Capo ${capo}` : 'No capo'} &#9662;
           </button>
@@ -74,7 +75,7 @@ export function SongSettings({ chart }: { chart: SongChart }) {
             <button
               className={moved ? 'setup-btn is-moved' : 'setup-btn'}
               aria-label={`${where}. Move the chords`}
-              onClick={() => setMoving(true)}
+              onClick={() => onMove()}
             >
               {/* The fret position is the label: the screen reader hears "Move the chords" */}
               {positionLabel(span)} &#9662;
@@ -83,16 +84,6 @@ export function SongSettings({ chart }: { chart: SongChart }) {
         </>
       )}
 
-      {showCapo && (
-        <CapoPicker
-          song={song}
-          edits={songEdits}
-          capo={capo}
-          onPick={fret => { setCapo(song.title, fret); setShowCapo(false) }}
-          onClose={() => setShowCapo(false)}
-        />
-      )}
-      {moving && <MoveChordsSheet song={song} edits={songEdits} onClose={() => setMoving(false)} />}
     </div>
   )
 }

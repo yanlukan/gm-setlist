@@ -8,6 +8,8 @@ import { APP_VERSION, BUILD_TIME } from '../../version'
 import { checkForUpdate, updateNow, useUpdateCheck } from '../../hooks/use-update-check'
 import { RestoreModal } from '../shared/RestoreModal'
 import { SavedChartsModal } from '../edit/SavedChartsModal'
+import { CapoPicker } from '../song/CapoPicker'
+import { MoveChordsSheet } from '../song/MoveChordsSheet'
 import { Sheet } from './Sheet'
 import { SongFacts } from './SongFacts'
 import { SongSettings } from './SongSettings'
@@ -55,12 +57,13 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
   const toggleTheme = useStore(s => s.toggleTheme)
   const restoreGigOrder = useStore(s => s.restoreGigOrder)
   const useBuiltInChart = useStore(s => s.useBuiltInChart)
+  const setCapo = useStore(s => s.setCapo)
   const showToast = useStore(s => s.showToast)
   // Songs that show chords saved on this device instead of the built-in chart
   const savedCharts = useStore(s => s.allSongs().filter(one => hasEditedChart(one, s.edits[one.title])).length)
   const { exportBackup, importBackup } = useBackup()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [dialog, setDialog] = useState<'restore' | 'saved' | null>(null)
+  const [dialog, setDialog] = useState<'restore' | 'saved' | 'capo' | 'move' | null>(null)
 
   const edited = !!song && hasEditedChart(song, edits[song.title])
   const backToOriginal = () => {
@@ -75,7 +78,7 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
       <Sheet label="More" onClose={onClose} className="more-sheet">
         <section className="more-group">
           <h3 className="more-title">This song</h3>
-          {chart && <SongSettings chart={chart} />}
+          {chart && <SongSettings chart={chart} onCapo={() => setDialog('capo')} onMove={() => setDialog('move')} />}
           {chart && <SongFacts chart={chart} />}
           {/* Done is in the title line while editing */}
           {!editMode && (
@@ -146,6 +149,16 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
         />
       </Sheet>
       {/* Over the sheet, which stays open beneath them */}
+      {chart && dialog === 'capo' && (
+        <CapoPicker
+          song={chart.song}
+          edits={chart.songEdits}
+          capo={chart.capo}
+          onPick={fret => { setCapo(chart.song.title, fret); setDialog(null) }}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {chart && dialog === 'move' && <MoveChordsSheet song={chart.song} edits={chart.songEdits} onClose={() => setDialog(null)} />}
       {dialog === 'restore' && <RestoreModal onClose={() => setDialog(null)} />}
       {dialog === 'saved' && <SavedChartsModal onClose={() => setDialog(null)} />}
     </>

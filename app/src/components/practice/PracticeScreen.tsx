@@ -15,6 +15,7 @@ export function PracticeScreen() {
   const { song, extraFrom } = useShownSong()
   const chart = useSongChart(song)
   const editMode = useStore(s => s.editMode)
+  const openSheet = useStore(s => s.openSheet)
   // The chord tapped on the chart belongs to its song: a new song lets go of it
   const [picked, setPicked] = useState<{ title: string; chord: string } | null>(null)
   const pickedChord = picked && song && picked.title === song.title ? picked.chord : null
@@ -22,6 +23,10 @@ export function PracticeScreen() {
   useEffect(() => {
     if (editMode) setPicked(null)
   }, [editMode])
+  // Another sheet opening takes the player's attention: the shapes close
+  useEffect(() => {
+    if (openSheet) setPicked(null)
+  }, [openSheet])
   const pick = (chord: string | null) => setPicked(chord && song ? { title: song.title, chord } : null)
 
   return (

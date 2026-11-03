@@ -33,10 +33,18 @@ describe.each(screens)('the title line on %s', (_name, Screen) => {
     expect(within(header()).queryAllByRole('button')).toHaveLength(0)
   })
 
-  it('says a capo, and LOWER KEY, as warnings', () => {
+  it('says a capo as a warning', () => {
     useStore.getState().setCapo('Faith', 2)
     render(<Screen />)
     expect(within(header()).getByText('Capo 2')).toHaveClass('is-warn')
+  })
+
+  it('says LOWER KEY as a warning when the band plays lower', () => {
+    const song = "I'm Your Man"
+    useStore.getState().goToSong(DEFAULT_SONGS.length ? useStore.getState().setlistSongs().findIndex(s => s.title === song) : 0)
+    useStore.getState().setTranspose(song, 0) // back to the recording's key
+    render(<Screen />)
+    expect(within(header()).getByText('LOWER KEY')).toHaveClass('is-danger')
   })
 
   it('says a capo to a guitarist only', () => {
@@ -46,8 +54,20 @@ describe.each(screens)('the title line on %s', (_name, Screen) => {
     expect(within(header()).queryByText(/^Capo/)).toBeNull()
   })
 
-  it('has no GX-10 sound: More names it', () => {
+  it('shows the GX-10 sound on Stage only, as text', () => {
     render(<Screen />) // Faith has a sound
+    const sound = within(header()).queryByLabelText(/^GX-10 sound/)
+    if (_name === 'Stage') {
+      expect(sound).not.toBeNull()
+      expect(sound!.tagName).toBe('SPAN')
+    } else {
+      expect(sound).toBeNull()
+    }
+  })
+
+  it('has no sound for the keyboard', () => {
+    useStore.getState().setInstrument('keyboard')
+    render(<Screen />)
     expect(screen.queryByLabelText(/^GX-10 sound/)).toBeNull()
   })
 
@@ -107,6 +127,13 @@ describe('editing', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Stage' }))
     expect(useStore.getState().editMode).toBe(false)
     expect(within(header()).queryByRole('button', { name: 'Done' })).toBeNull()
+  })
+
+  it('shows the song order once: the editor has its own', () => {
+    render(<PracticeScreen />)
+    expect(within(header()).queryByRole('group', { name: /^Song order: / })).not.toBeNull()
+    act(() => useStore.getState().toggleEditMode())
+    expect(within(header()).queryByRole('group', { name: /^Song order: / })).toBeNull()
   })
 
   it('asks before Reset', () => {
