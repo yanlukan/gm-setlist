@@ -97,6 +97,7 @@ export function ChordKeyboard({
         </button>
         <button className="ck-tool ck-bar ck-bar-start" onClick={() => onBar('|')} disabled={!ready} aria-label="Bar line">|</button>
         <button className="ck-tool ck-bar" onClick={() => onBar('%')} disabled={!ready} aria-label="Repeat the bar before">%</button>
+        <button className="ck-tool ck-bar" onClick={() => onBar('.')} disabled={!ready} aria-label="Beat">·</button>
         <button className="ck-tool ck-newline" onClick={onNewLine} disabled={!ready} aria-label="New line">&#8629; Line</button>
         {onFind && <button className="ck-tool ck-find" onClick={onFind}>Find&hellip;</button>}
       </div>

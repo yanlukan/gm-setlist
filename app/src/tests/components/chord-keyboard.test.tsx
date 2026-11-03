@@ -96,6 +96,12 @@ describe('chord keyboard', () => {
     expect(h.onBar.mock.calls).toEqual([['|'], ['%']])
   })
 
+  it('the Beat key types a dot', () => {
+    const h = setup()
+    fireEvent.click(key('Beat'))
+    expect(h.onBar).toHaveBeenCalledWith('.')
+  })
+
   it('cannot undo or redo when there is nothing to undo or redo', () => {
     setup({ canUndo: false, canRedo: false })
     expect(key('Undo')).toBeDisabled()

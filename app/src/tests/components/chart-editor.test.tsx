@@ -118,6 +118,14 @@ describe('putting chords in', () => {
     expect(saved(0)).toBe('B  N.C.  (x2)')
   })
 
+  it('a beat dot goes after the chord selected', () => {
+    render(<SongSheet />)
+    chord('Intro', 0)
+    tap('Beat')
+    expect(saved(0)).toBe('B  .')
+    expect(saved(0)).not.toContain('|')
+  })
+
   it('is ready from the start: until you tap the chart, chords go at the end of the first section', () => {
     render(<SongSheet />)
     expect(screen.getByText('Adding to the end of Intro · tap the chart to move')).toBeInTheDocument()
