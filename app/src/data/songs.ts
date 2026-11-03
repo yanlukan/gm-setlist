@@ -10,6 +10,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 192, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+      'Pre-Chorus': { bars: [{ bar: 5, chords: 'B F#/A# G#m .', from: 'Ear' }] },
+      'Stop': { from: 'Record' },
+    },
     shapes: { B: '7-9-9-8-7-7', E: '0-7-9-9-9-x', 'G#m': '4-6-6-4-4-4', 'C#m': 'x-4-6-6-5-4', 'F#/A#': '6-x-8-6-7-x', 'F#': '2-4-4-3-2-2' },
     shapesFrom: 'Songbook',
     notes: 'Guitar: the riff is a B barre at the 7th fret, E shape (7-9-9-8-7-7), with muted Bo Diddley strums between the hits (the songbook, the Andy Guitar and Guitar Lessons 365 lessons, and two tab transcriptions agree). The book\'s E is the A shape at the same fret over the open low E, top string off (0-7-9-9-9-x). Pre-chorus barres: G#m and C#m at the 4th fret, F# at the 2nd. Before the G#m the bass walks down B, A#, G# (heard on the recording, not in the book), so the bar is B F#/A# G#m. From the songbook (no. 12). Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus, Solo over the verse chords, Pre-Chorus, Chorus, end. The pre-chorus stops dead (N.C.) before the chorus. The book marks 192 in quarter notes, the same speed as 96 in half time. Recording is slightly sharp (~446Hz). The chart counts bars at 96, so each bar is two of the book\'s. The 4-bar guitar intro and a bar of silence before the last chorus are from the recording; the organ opening before the guitar is in free time and not in bars.',
@@ -37,6 +43,12 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 243, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+      'Instrumental': { from: 'Record' },
+      'Bridge': { bars: [{ bar: 15, chords: 'G6', from: 'Record' }] },
+    },
     shapes: { Am: 'x-0-2-2-1-0', 'G/B': 'x-2-0-0-0-x', F6: 'x-x-3-2-3-1' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 31). Synth-driven: guitar plays percussive rhythm stabs with fills. The book is a whole tone above the band. Where one of its shapes moves down two frets note for note, that shape is shown, marked Songbook; its open chords cannot move down, so the rest are the usual shapes. The intro is not in the book: it is taken from the recording, which has it. Form: Intro, Verse, Pre-Chorus, Chorus, Verse, Pre-Chorus, Chorus twice; an instrumental over the pre-chorus chords; Bridge; then the Chorus four times into the fade. The bars are counted from the recording at 132.',
@@ -70,6 +82,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 327, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     shapes: {
       Dm9: 'x-5-3-5-5-x', Am11: 'x-0-5-4-3-3', Am7: 'x-0-2-0-1-0', Fmaj7: 'x-x-3-2-1-0',
       Em7: 'x-x-2-0-3-0', Fmaj9: '1-x-2-0-1-0', G6: '3-2-0-0-0-0',
@@ -99,6 +115,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 231, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Chart',
     notes: 'Chords from two published charts and Hooktheory; the bars and the song order from the recording. Opens with 4 bars of a palm-muted vamp on the home chord, the bass walking up into the verse; the same 4 bars come back before verses 2 and 3. Straight eighths throughout. The verse changes chord halfway through every bar. Verse 3 goes straight to the Bridge, which is quieter. The record fades in the third chorus; end on the home chord.',
     form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Intro', 'Verse', 'Bridge', 'Chorus', 'Chorus', 'Chorus'],
     sections: [
@@ -119,6 +136,11 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 266, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Chart',
+    evidence: {
+      'Pre-Chorus': { bars: [{ bar: 0, chords: 'Ebm7', from: 'Record' }, { bar: 4, chords: 'Ebm7', from: 'Record' }] },
+      'Chorus': { from: 'Record' },
+    },
     notes: "Built from Hooktheory's analysis and published charts, checked against the recording. Published charts simplify the chorus to plain major chords on top; the recording's bass walks down under them, giving the minor sevenths charted here. The pre-chorus starts on the minor seventh a fourth above the home chord, as on the recording and the published charts (3.53.1 to 4.0.1 wrongly started it a third lower). Form: Intro, Verse, Pre-Chorus, Chorus twice; the intro again; Verse, Pre-Chorus, then the Chorus six times into the fade. The bars are counted from the recording at 128, from where the band comes in after the quiet opening. Keyboard-driven production; guitar doubles synth lines.",
     form: [
       'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus',
@@ -142,6 +164,11 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 283, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+      'Post-Chorus': { from: 'Record' },
+    },
     shapes: { Gm9: '3-5-3-3-3-5', C6: 'x-3-5-5-5-5', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-7-5-4-3', Gm: '3-5-5-3-3-3', Dsus4: 'x-5-7-7-3-3' },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 47): Gm9 to C6 through the intro, the verses and the outro; jazzy voicings, not plain Gm and C. The chorus goes round Cm7, Cm6, Gm9, Gm three times, then turns on two bars of Dsus4, and the groove comes back for 8 bars before the next verse. The 16-bar intro and those 8 bars are counted from the recording; the few quiet seconds before the groove are not charted. Guitar lays out for the 8-bar instrumental. The record fades over the outro from about 4:30. The shapes are the book's capo-3 boxes at concert pitch: every dot on the 3rd fret is where the capo sits (Gm9 is an Em9 shape, C6 an A6 shape), so with a capo there they are open shapes.",
@@ -166,6 +193,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 255, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Outro': { from: 'Record' },
+    },
     shapes: { Bbm: 'x-1-3-3-2-1', Gb: '2-4-4-3-2-2', Fm: '1-3-3-1-1-1', Ab: '4-6-6-5-4-4', Bbm7: 'x-1-3-1-2-1' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 36): the two-bar intro riff plays 4 times and one bar more, and the Killer verses sit over the riff with no chords (N.C.). Killer then settles on Bbm, Gb, Fm: the line goes round six times, twice before the voice comes back. The trumpet solo adds Ab. Papa is a one-chord Bbm7 vamp, 40 bars in the book. The Outro comes from the recording, since the book leaves the ending open: four more bars of Bbm7, the Killer line once, and the last Fm held while the band slows down. On the record the first chords come 40 bars in, one bar sooner than the book. The book\'s shapes are the usual barres: Bbm and Bbm7 at the 1st fret (A shape), Fm at the 1st and Gb at the 2nd (E shape), Ab at the 4th.',
@@ -190,6 +221,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 340, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
     shapes: {
       Bbsus2: 'x-1-3-3-1-1', Absus2: '4-x-1-3-4-x', Gbsus2: '2-4-4-1-x-x', Abadd9: '4-x-1-3-1-x', Bb: 'x-1-3-3-3-1',
       Fsus4: '1-3-3-3-1-1', F: '1-3-3-2-1-1', Bbadd9: 'x-1-3-5-3-1', Gbadd9: '2-x-4-3-2-4',
@@ -217,6 +249,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 389, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
     shapes: {
       C: 'x-3-2-0-1-0', Bb: 'x-1-3-3-3-1', F: 'x-x-3-2-1-1', G: '3-2-0-0-0-3', 'F/C': 'x-3-3-2-1-1',
       Cm: 'x-3-5-5-4-3', 'Cm(maj7)': 'x-3-5-4-4-3', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-5-2-4-x',
@@ -245,6 +278,11 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 411, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+      'Chorus': { bars: [{ bar: 0, chords: 'C#m7', from: 'Record' }] },
+    },
     shapes: {
       'C#madd9': 'x-4-6-8-5-4', 'G#7': '4-6-4-5-4-4', Amaj7: 'x-x-7-6-5-4', 'F#m9': 'x-9-7-9-9-x', B6: '7-x-6-8-7-x',
       'C#sus24': 'x-4-6-8-7-4', 'C#m': 'x-4-6-6-5-4', 'F#m7': 'x-x-4-6-5-5', B: '7-6-4-4-4-7', Emaj7: 'x-7-6-4-4-4',
@@ -290,6 +328,15 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 244, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+      'Verse': { bars: [{ bar: 1, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 3, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 5, chords: 'Abm', from: 'Record' }, { bar: 9, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 11, chords: 'Gb/Db', from: 'Record' }, { bar: 13, chords: 'Abm', from: 'Record' }] },
+      'Chorus': { bars: [{ bar: 1, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 3, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 5, chords: 'Abm', from: 'Record' }] },
+      'Instrumental': { from: 'Record' },
+      'Bridge': { bars: [{ bar: 1, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 3, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 5, chords: 'Abm', from: 'Record' }] },
+      'Outro': { bars: [{ bar: 1, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 3, chords: 'Gb/Db Gb', from: 'Record' }, { bar: 5, chords: 'Abm', from: 'Record' }] },
+    },
     shapes: { Gb: '2-4-4-3-2-2', 'Gb/Db': 'x-4-4-3-2-2' },
     shapesFrom: 'Songbook',
     notes: "From the songbook (no. 8), which prints it in G and says the recording sounds a semitone lower; the band plays it at the record's pitch, Gb. The book writes D/G between the G chords, but on the record the keyboard plays G over D there, so the chart has Gb/Db. The guitar skips those and holds Gb: the Db is only a bass note (A string, 4th fret, inside the Gb barre). At the end of each line the bass holds Ab while the guitar plays two chords over it, a bar each: Ebm, then Abm (the book has Am7 there). The book's open G cannot slide down a fret, so the Gb shown is the same notes a semitone lower, fingered as a barre: 2-4-4-3-2-2. Form: Intro, Verse, Chorus, Instrumental twice round, Bridge twice round, Chorus, Outro round until the fade. Everything but the verse is the same 8-bar round. The intro is one round, taken from the recording (the book starts at the verse). The book leaves the instrumental without chords or a bar count; on the recording it is the round twice (1:18 to 1:57). The Outro is the book's coda: on the record it goes round three times, then fades out during a fourth, so agree at rehearsal how the band ends it. Sparse and atmospheric, best fingerpicked.",
@@ -312,6 +359,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 225, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     shapes: { Dm: 'x-x-0-2-3-1', 'G/D': 'x-x-0-4-3-3', 'Am/D': 'x-x-0-5-5-5' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 61). One groove over a D pedal all the way through, two beats per chord; only the two-bar N.C. break stops it. The book keeps the open D ringing under all three shapes: Dm, G/D (x-x-0-4-3-3) and Am/D (x-x-0-5-5-5). Tight muted funk comping; synth and piano lead. Form: Intro, Verse, Keyboard, Verse, Keyboard, Pre-Chorus, Chorus, Keyboard, Break, Outro vamp. The 8-bar intro is from the recording; the book starts at the verse. The record fades from 3:21. The book marks 100 BPM.',
@@ -336,6 +387,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 393, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     shapes: {
       'F#sus4': 'x-x-4-4-2-2', 'F#': 'x-x-4-3-2-2', Esus24: 'x-x-2-2-0-2', Eadd9: 'x-x-2-1-0-2',
       'F#m': '2-4-4-2-2-2', Bm: 'x-2-4-4-3-2', 'C#': 'x-4-6-6-6-4', 'C#aug': 'x-4-x-6-6-5',
@@ -368,6 +423,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 268, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Chart',
     shapes: { Em7: 'x-7-9-7-8-7', A: '5-7-7-6-5-5', 'C#m7': 'x-4-6-4-5-4', 'A/C#': 'x-4-7-6-5-5', D: 'x-5-7-7-7-5' },
     shapesFrom: 'Songsterr',
     notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. 118 BPM. The shapes marked Songsterr are the record\'s rhythm guitar as Songsterr\'s transcription plays it, barres between the 6th and 11th frets, moved down two frets to the band\'s key.',
@@ -397,6 +453,11 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 319, // recording length, for set timing
     timeSignature: '12/8',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Build': { from: 'Record' },
+      'Outro': { from: 'Record' },
+    },
     shapes: {
       G: '3-2-0-0-0-3', 'D/F#': '2-x-0-2-3-2', Em: '0-2-2-0-0-0', C: 'x-3-2-0-1-0', D: 'x-x-0-2-3-2',
       A: 'x-0-2-2-2-0', A7: 'x-0-2-0-2-0', D7: 'x-x-0-2-1-2', 'A/C#': 'x-4-2-2-2-x', 'C/D': 'x-x-0-0-1-0',
@@ -435,6 +496,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 300, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
     shapes: { Fm7: '1-3-1-1-1-1' },
     shapesFrom: 'Songbook',
     notes: 'From the songbook (no. 4), with the bars and song order checked against the recording. One four-bar loop all the way through; in its second bar the second chord is a quick passing chord on the last beat. The book is a whole tone above the band and mostly in open shapes, which cannot move down; only its barre moves down two frets note for note, and it is marked Songbook. The sax starts on a pickup note before the first bar. The sax riff comes once after the first chorus and twice after the second; the third verse is sung higher. After the last chorus the sax and the vocal ad libs go round the loop until the record fades, six times; agree the ending at rehearsal. Sax line is essential.',
@@ -457,6 +519,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 321, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     // The songbook's own boxes (no. 25): a D and G drone rings on the top two
     // strings through almost every chord.
     shapes: {
@@ -489,6 +555,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 251, // recording length, for set timing
     timeSignature: '12/8',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
     shapes: {
       Bm: 'x-2-4-4-3-2', 'D/A': 'x-0-4-2-3-2', Gmaj7: 'x-x-5-4-3-2', 'F#m7': 'x-x-4-2-2-0', Em7: '0-5-5-4-3-x',
@@ -525,6 +595,10 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 147, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
+    evidence: {
+      'Intro': { from: 'Record' },
+    },
     cue: 'ACOUSTIC GUITAR + VOCAL ONLY — no band.',
     shapes: { G: '3-x-0-0-3-3', Cadd9: 'x-3-2-0-3-3', D: 'x-x-0-2-3-2', C: 'x-3-2-0-1-0' },
     shapesFrom: 'Songbook',
@@ -550,6 +624,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 275, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Book',
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
     shapes: {
       D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
@@ -589,6 +664,7 @@ export const DEFAULT_SONGS: Song[] = [
     duration: 267, // recording length, for set timing
     timeSignature: '4/4',
     capo: null,
+    chordsFrom: 'Chart',
     notes: "Built from Hooktheory's analysis and two published charts, checked against the recording: one progression all the way through, two bars per chord. The record's synths colour it Dadd9, Bm7 and Em7 with an added 4th, and A with an added 6th; plain chords are fine on guitar. Keep the strumming light and let the sleigh-bell groove carry it. Form: Intro, Chorus twice, Instrumental, Verse twice, Chorus twice, Instrumental, Verse twice, Chorus twice, Instrumental, Outro. The Instrumental is the round with no voice after each pair of choruses. The record fades out in the Outro; the band ends on D.",
     form: [
       'Intro', 'Chorus', 'Chorus', 'Instrumental', 'Verse', 'Verse',
