@@ -13,6 +13,8 @@ MINOR_FLAT_OFFSETS = FLAT_OFFSETS | {1}   # a minor key also flats its b2 (Bb in
 LETTERS = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
 DEGREES = {1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11, 9: 2, 11: 5, 13: 9}
 SUFFIX = {'maj': '', 'min': 'm', 'dim': 'dim', 'aug': 'aug', 'power': '5'}
+TONES = {'maj': (0, 4, 7), 'min': (0, 3, 7), 'dim': (0, 3, 6), 'aug': (0, 4, 8),
+         'sus': (0, 5, 7), 'power': (0, 7)}   # intervals of each chord class (sus4)
 
 _ROOT = re.compile(r'^([A-G])([#b]?)(.*)$')
 _QUALITY = re.compile(r'^(?:maj|min|dim|hdim|aug|sus|add|m|M|\+|°|ø|\d|[#b]\d{1,2}|\([^)]*\)|-)*$')
@@ -89,6 +91,14 @@ def parse(symbol: str):
 def same(a: Chord, b: Chord) -> bool:
     """Equal root, kind and bass."""
     return a == b
+
+
+def tones(chord: Chord) -> set:
+    """The chord's pitch classes (root, third or sus note, fifth); none for no chord."""
+    if chord.kind == 'none':
+        return set()
+    intervals = (0, 2, 7) if chord.kind == 'sus' and chord.sus == 2 else TONES[chord.kind]
+    return {(chord.root + t) % 12 for t in intervals}
 
 
 def shift(chord: Chord, semitones: int) -> Chord:
