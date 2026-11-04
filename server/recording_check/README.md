@@ -119,13 +119,15 @@ the chart line of its first paired change, else the line before; the chart's
 section names give the parts, a name played again differently numbered ` 2`, ` 3`.
 An unpaired record change covering no more than `QUARTER` of the bar (and ending
 in it) is a passing reading: it disputes nothing, is not written, and is free to
-leave unpaired in the line-up. A bar is
-`Chart`, in the chart's spelling, when it holds one chord (no change after beat 1
-but passing readings: where a chord changes inside a bar is the record's timing
-alone) and every other chord in it agrees with its chart chord on a beat of at least `MIN_CONFIDENCE` and no chart
-chord the record lacks falls in it; every other bar is `Unsure`, with the chart's
-reading (when a chart chord falls in it) and the record's, and is written in the
-chart's chords when it has a chart reading. A section played again reuses its
+leave unpaired in the line-up. A record chord the chart lacks is set against
+the chart chord held over from before. A bar is `Chart`, in the chart's spelling,
+when it holds one chord (no change after beat 1 but passing readings: where a chord
+changes inside a bar is the record's timing alone), that chord agrees with the
+chart chord sounding (whatever the record's confidence), and no chart chord the
+record lacks falls in it. Every other bar is `Unsure` with two different readings,
+Chart and Record, written in the chart's chords on the record's beats; a bar with a
+change inside it has the chart's chords alone (`C Bb`) as its Chart reading. A bar
+whose two readings would be the same is `Chart`. A section played again reuses its
 section only with the same bars and the same marks; a name ending in a number is
 numbered ` (2)`, ` (3)`.
 

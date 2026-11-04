@@ -38,7 +38,7 @@ class LineUpTest(unittest.TestCase):
         self.assertEqual(out['sections'][0]['chords'], '|  C  .  Bb  .  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [
             {'bar': 0, 'chords': 'C . Bb .', 'from': 'Unsure',
-             'readings': [{'from': 'Chart', 'chords': 'C . Bb .'}, {'from': 'Record', 'chords': 'C . Bb .'}]}])
+             'readings': [{'from': 'Chart', 'chords': 'C Bb'}, {'from': 'Record', 'chords': 'C . Bb .'}]}])
 
     def test_two_held_bars_are_both_chart(self):
         out = line_up(lines(('Verse', 'C Bb')), [held('C'), held('Bb')], 'F')
@@ -61,13 +61,20 @@ class LineUpTest(unittest.TestCase):
         out = line_up(lines(('Verse', 'C Dm G')), [bar('C C Em Em'), held('G')], 'C')
         self.assertEqual(out['evidence']['Verse']['bars'], [
             {'bar': 0, 'chords': 'C . Dm .', 'from': 'Unsure',
-             'readings': [{'from': 'Chart', 'chords': 'C . Dm .'}, {'from': 'Record', 'chords': 'C . Em .'}]}])
+             'readings': [{'from': 'Chart', 'chords': 'C Dm'}, {'from': 'Record', 'chords': 'C . Em .'}]}])
 
-    def test_an_extra_record_change_the_chart_lacks_is_unsure_record_only(self):
+    def test_an_extra_record_change_the_chart_lacks_is_unsure_against_the_chord_held_over(self):
         out = line_up(lines(('Verse', 'C G F')), [held('C'), held('G'), held('D'), held('F')], 'C')
-        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  D  |  F  |')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  G  |  F  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [
-            {'bar': 2, 'chords': 'D', 'from': 'Unsure', 'readings': [{'from': 'Record', 'chords': 'D'}]}])
+            {'bar': 2, 'chords': 'G', 'from': 'Unsure',
+             'readings': [{'from': 'Chart', 'chords': 'G'}, {'from': 'Record', 'chords': 'D'}]}])
+
+    def test_a_chart_chord_held_over_from_an_earlier_bar_is_the_bars_chart_reading(self):
+        out = line_up(lines(('Verse', 'C F')), [held('C'), held('Em'), held('Em'), held('F')], 'C')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  C  |  C  |  F  |')
+        self.assertEqual([(b['bar'], b['readings']) for b in out['evidence']['Verse']['bars']], [
+            (i, [{'from': 'Chart', 'chords': 'C'}, {'from': 'Record', 'chords': 'Em'}]) for i in (1, 2)])
 
     def test_a_chart_chord_the_record_lacks_makes_its_bar_unsure(self):
         out = line_up(lines(('Verse', 'C G Am F')), [held('C'), held('G'), held('F')], 'C')
@@ -76,12 +83,26 @@ class LineUpTest(unittest.TestCase):
             {'bar': 1, 'chords': 'G . Am .', 'from': 'Unsure',
              'readings': [{'from': 'Chart', 'chords': 'G . Am .'}, {'from': 'Record', 'chords': 'G'}]}])
 
-    def test_an_unsure_record_never_confirms_the_chart(self):
+    def test_a_one_chord_bar_the_chart_names_is_chart_whatever_the_confidence(self):
         out = line_up(lines(('Verse', 'C G Am F')), [held(n, 0.2) for n in ('C', 'G', 'Am', 'F', 'F')], 'C')
-        bars = out['evidence']['Verse']['bars']
-        self.assertEqual([b['bar'] for b in bars], [0, 1, 2, 3, 4])
-        self.assertTrue(all(b['from'] == 'Unsure' for b in bars))
-        self.assertEqual(bars[0]['readings'], [{'from': 'Chart', 'chords': 'C'}, {'from': 'Record', 'chords': 'C'}])
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  Am  |  F  |  F  |')
+        self.assertEqual(out['evidence']['Verse']['bars'], [])
+        # a low-confidence bar the chart does not name stays Unsure
+        out = line_up(lines(('Verse', 'C G')), [held('C', 0.2), held('Em', 0.2)], 'C')
+        self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [1])
+
+    def test_every_unsure_bar_has_two_different_readings_chart_and_record(self):
+        chart = lines(('Intro', 'C Bb F C'), ('Verse', 'G F F/C C'), ('Chorus', 'Cm Cm7 G'), ('Verse', 'G F C'),
+                      ('Outro', 'C Bb'))
+        record = ([held('C', 0.3), bar('C C Bb Bb'), held('F'), held('C'), held('G'), held('Dm'), bar('F F C C'),
+                   held('C'), held('Cm', 0.2), bar('Cm Cm7 Cm7 Cm7'), held('Em'), held('G'), held('F'), held('C'),
+                   bar('C C C Bb', 0.4), held('Bb'), held('Bb')])
+        out = line_up(chart, record, 'C')
+        entries = [e for name in out['form'] for e in out['evidence'][name]['bars']]
+        self.assertTrue(entries)
+        for entry in entries:
+            self.assertEqual([r['from'] for r in entry['readings']], ['Chart', 'Record'])
+            self.assertNotEqual(entry['readings'][0]['chords'], entry['readings'][1]['chords'])
 
     def test_sections_come_from_the_charts_names_and_the_song_order_repeats_them(self):
         chart = lines(('Verse', 'C G'), ('Chorus', 'F C'), ('Verse', 'C G'))
