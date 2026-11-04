@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_SONGS } from '../../data/library'
+import { SONGS } from '../../data/songs'
 import { songbookOf } from '../../music/songbook'
 import type { Song } from '../../types'
 
@@ -24,7 +24,7 @@ const BOOK: Record<string, number> = {
   'Kissing a Fool': 37,
 }
 
-const songNamed = (title: string) => DEFAULT_SONGS.find(s => s.title === title)!
+const songNamed = (title: string) => SONGS.find(s => s.title === title)!
 
 describe('songbook numbers', () => {
   it('gives each of the 17 songs in the book its number', () => {
@@ -35,7 +35,8 @@ describe('songbook numbers', () => {
   })
 
   it('has no number for the four songs not in the book', () => {
-    const others = DEFAULT_SONGS.filter(s => !(s.title in BOOK)).map(s => s.title).sort()
+    // The 21 hand-written charts; an added song is not one of them
+    const others = SONGS.filter(s => !(s.title in BOOK)).map(s => s.title).sort()
     expect(others).toEqual(['Amazing', 'Club Tropicana', 'Last Christmas', 'Wake Me Up Before You Go-Go'])
     for (const title of others) expect(songbookOf(songNamed(title))).toBeUndefined()
   })

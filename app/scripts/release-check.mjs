@@ -29,9 +29,12 @@ const PORT = 4179
 const URL = `http://localhost:${PORT}/gm-setlist/`
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SHOTS = join(APP, 'release-shots')
+/** The songs in the gig running order, the default list. */
 const SHIPPED_SONGS = 21
-/** The shipped songs and the ones written as JSON in src/data/added. */
-const EXPECTED_SONGS = SHIPPED_SONGS + readAddedSongs().length
+/** The songs written as JSON in src/data/added: in the library, not in the gig list, so the check puts them in its list. */
+const ADDED_TITLES = readAddedSongs().map(song => song.title)
+/** The gig list and the added songs, as the Songs sheet shows them once the check has added them. */
+const EXPECTED_SONGS = SHIPPED_SONGS + ADDED_TITLES.length
 /** With the check's own song put in the app's store, the Songs sheet has one more. */
 const WITH_CHECK_SONG = EXPECTED_SONGS + 1
 const ENGINES = [
@@ -245,9 +248,11 @@ async function openApp(browser, size, screen, errors, saved) {
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(URL)
   await onScreen(page, screen)
-  if (saved) {
-    // Stored once the app has made its database, then read back as the app starts again
-    await page.evaluate(PUT_SAVED, { saved, songs: [CHECK_SONG], list: await shownList(page) })
+  if (saved || ADDED_TITLES.length) {
+    // Stored once the app has made its database, then read back as the app starts again;
+    // the added songs go in the list as the player would put them there with Edit list
+    const songs = saved ? [CHECK_SONG] : []
+    await page.evaluate(PUT_SAVED, { saved: saved ?? [], songs, list: await shownList(page), added: ADDED_TITLES })
     await page.reload()
     await onScreen(page, screen)
   }

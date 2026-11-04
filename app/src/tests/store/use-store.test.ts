@@ -29,8 +29,11 @@ describe('useStore', () => {
       expect(useStore.getState().currentIndex).toBe(1)
     })
 
+    // Navigation runs over the active setlist (the gig running order by default), not the whole library:
+    // an added song is in the library but not in the list until the player puts it there
     it('nextSong clamps to max', () => {
-      const max = DEFAULT_SONGS.length - 1
+      const max = useStore.getState().setlistSongs().length - 1
+      expect(max).toBe(GIG_SETLIST_2026.length - 1)
       useStore.setState({ currentIndex: max })
       useStore.getState().nextSong()
       expect(useStore.getState().currentIndex).toBe(max)
@@ -60,7 +63,7 @@ describe('useStore', () => {
       expect(useStore.getState().currentIndex).toBe(0)
 
       useStore.getState().goToSong(9999)
-      expect(useStore.getState().currentIndex).toBe(DEFAULT_SONGS.length - 1)
+      expect(useStore.getState().currentIndex).toBe(GIG_SETLIST_2026.length - 1)
     })
   })
 

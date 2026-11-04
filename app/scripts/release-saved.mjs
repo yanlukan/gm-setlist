@@ -86,8 +86,8 @@ export const CHECK_SONG = {
 /** How many marks the check's song draws. */
 export const CHECK_MARKS = CHECK_SONG.evidence.Marks.bars.length
 
-/** In the page: puts the saved charts and the check's song in the app's own store, as the app would have saved them; `list` is the setlist as the app shows it, `{ name, titles }`. */
-export const PUT_SAVED = ({ saved, songs, list }) =>
+/** In the page: puts the saved charts and the check's song in the app's own store, as the app would have saved them; `list` is the setlist as the app shows it, `{ name, titles }`; `added` are titles of added songs to put in the list, as the player would with Edit list. */
+export const PUT_SAVED = ({ saved, songs, list, added = [] }) =>
   new Promise((resolve, reject) => {
     const open = indexedDB.open('playbook')
     open.onerror = () => reject(open.error)
@@ -95,8 +95,8 @@ export const PUT_SAVED = ({ saved, songs, list }) =>
       const tx = open.result.transaction(['songEdits', 'customSongs', 'setlists'], 'readwrite')
       for (const { title, sections } of saved) tx.objectStore('songEdits').put({ title, sections })
       tx.objectStore('customSongs').put(songs, 'all')
-      // The Songs sheet lists the active setlist: the custom songs go at its end
-      const titles = [...list.titles, ...songs.map(song => song.title)]
+      // The Songs sheet lists the active setlist: the added songs, then the custom songs, go at its end
+      const titles = [...list.titles, ...added, ...songs.map(song => song.title)]
       tx.objectStore('setlists').put({ lists: { default: { id: 'default', name: list.name, songTitles: titles } }, activeId: 'default' }, 'current')
       tx.oncomplete = () => {
         open.result.close()
