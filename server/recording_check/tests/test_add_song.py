@@ -1,4 +1,5 @@
 """add_song: one JSON request in, one JSON answer out; the record is read once."""
+import contextlib
 import io
 import json
 import os
@@ -71,6 +72,43 @@ class AddSongTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as raised:
             self.run_tool(recording=os.path.join(self.dir.name, 'nothing.m4a'))
         self.assertEqual(raised.exception.code, 2)
+
+    def fails(self, raw, analyze=None):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as raised:
+            add_song.main(analyze=analyze or self.fake, stdin=io.StringIO(raw), stdout=io.StringIO())
+        self.assertEqual(raised.exception.code, 2)
+        self.assertEqual(len(err.getvalue().strip().splitlines()), 1)
+        self.assertNotIn(self.dir.name, err.getvalue())
+        return err.getvalue()
+
+    def test_stdout_carries_only_the_answer(self):
+        def noisy(path, cache):
+            print('loading model...')
+            return self.fake(path, cache)
+        out, err = io.StringIO(), io.StringIO()
+        request = json.dumps({'title': 'T', 'recording': self.audio})
+        real = io.StringIO()
+        with contextlib.redirect_stdout(real), contextlib.redirect_stderr(err):
+            add_song.main(analyze=noisy, stdin=io.StringIO(request), stdout=out)
+        self.assertEqual(real.getvalue(), '')
+        self.assertEqual(json.loads(out.getvalue())['route'], 'record')
+        self.assertIn('loading model', err.getvalue())
+
+    def test_invalid_json_exits_2(self):
+        self.fails('{nope')
+
+    def test_missing_title_exits_2(self):
+        self.fails(json.dumps({'recording': self.audio}))
+
+    def test_bad_time_signature_exits_2(self):
+        self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'timeSignature': 'fast'}))
+
+    def test_a_reading_that_raises_exits_2_without_the_path(self):
+        def boom(path, cache):
+            raise ValueError(f'no beats in {path}')
+        message = self.fails(json.dumps({'title': 'T', 'recording': self.audio}), boom)
+        self.assertIn('song.m4a', message)
 
     def test_beats_per_bar(self):
         self.assertEqual([add_song.beats_per_bar(s) for s in ('4/4', '3/4', '6/8', '12/8', '7/8')],
