@@ -60,7 +60,16 @@ describe('readChartText', () => {
     const d = readChartText('[Verse]\nC G\n[Chorus]\nF C\n[Verse]\nC G')
     expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Chorus'])
     expect(d.form).toEqual(['Verse', 'Chorus', 'Verse'])
-    expect(d.chordLines.map(l => l.section)).toEqual(['Verse', 'Chorus'])
+    expect(d.chordLines.map(l => l.section)).toEqual(['Verse', 'Chorus', 'Verse'])
+  })
+
+  it('chord lines repeat a section at each play, in the order line when it names the parts', () => {
+    const d = readChartText('Order: Verse, Verse, Chorus\n[Verse]\nC G\nAm F\n[Chorus]\nF C\n')
+    expect(d.chordLines).toEqual([
+      { section: 'Verse', chords: ['C', 'G'] }, { section: 'Verse', chords: ['Am', 'F'] },
+      { section: 'Verse', chords: ['C', 'G'] }, { section: 'Verse', chords: ['Am', 'F'] },
+      { section: 'Chorus', chords: ['F', 'C'] },
+    ])
   })
 
   it('a repeated header with different chords gets a numbered name', () => {

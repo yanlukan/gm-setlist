@@ -14,7 +14,9 @@ describe('where each shipped song came from', () => {
           expect(barChords(barsOfSection(section.chords)[b.bar] ?? []), `${name} bar ${b.bar}`).toBe(b.chords)
         }
         if (b.from === 'Unsure') {
-          expect(b.readings!.length).toBeGreaterThanOrEqual(2)
+          // A song read off the record alone has the record's one reading; every other Unsure bar has two or more
+          const recordOnly = song.chordsFrom === 'Record' && b.readings!.length === 1 && b.readings![0].from === 'Record'
+          if (!recordOnly) expect(b.readings!.length).toBeGreaterThanOrEqual(2)
           expect(new Set(b.readings!.map(r => r.chords)).size).toBe(b.readings!.length)
         } else expect(b.readings).toBeUndefined()
       }

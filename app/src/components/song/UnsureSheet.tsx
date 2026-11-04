@@ -34,6 +34,8 @@ export function UnsureSheet({ chart, unsure, onClose }: Props) {
   const charted = bar ? barChords(bar) : unsure.evidence.chords
   const readings = unsure.evidence.readings ?? []
   const listed = readings.some(r => squash(r.chords) === squash(charted))
+  // One reading (a song read off the record alone): nothing disagrees, it is just not checked yet
+  const heading = readings.length === 1 ? `${SOURCE_LABEL[readings[0].from].toLowerCase()} only` : 'the sources disagree'
 
   const settle = (chords: string) => {
     settleBar(song.title, unsure, chords)
@@ -43,7 +45,7 @@ export function UnsureSheet({ chart, unsure, onClose }: Props) {
   return (
     <Sheet label={`Bar ${unsure.bar + 1} of ${unsure.name}`} onClose={onClose} className="unsure-sheet">
       <div className="tiles-head">
-        <h2 className="tiles-title">Bar {unsure.bar + 1} of {unsure.name} &middot; the sources disagree</h2>
+        <h2 className="tiles-title">Bar {unsure.bar + 1} of {unsure.name} &middot; {heading}</h2>
         <button className="sheet-action" onClick={onClose}>Close</button>
       </div>
       <p className="tiles-hint">Tap what you play. The bar changes to it and the mark goes.</p>

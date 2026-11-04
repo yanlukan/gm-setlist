@@ -15,7 +15,7 @@ export interface ChartDraft {
   sections: Section[]
   /** Every section has bar lines. */
   barred: boolean
-  /** Unbarred reading: each chord line's chords, in playing order. */
+  /** Each chord line's chords, in playing order: a section played again repeats its lines. */
   chordLines: { section: string; chords: string[] }[]
 }
 
@@ -92,9 +92,12 @@ export function readChartText(text: string): ChartDraft {
     name: b.name,
     chords: b.lines.map(l => (draft.barred ? l.raw : l.chords.join(' '))).filter(Boolean).join('\n'),
   }))
-  for (const b of kept) {
-    for (const l of b.lines) if (l.chords.length) draft.chordLines.push({ section: b.name, chords: l.chords })
-  }
   if (kept.length) draft.form = order ?? playing
+  // Every play of a section repeats its lines: the Order line when it names only kept sections, else the text's order
+  const byName = new Map(kept.map(b => [b.name, b]))
+  const plays = order && order.every(n => byName.has(n)) ? order : playing
+  for (const name of plays) {
+    for (const l of byName.get(name)!.lines) if (l.chords.length) draft.chordLines.push({ section: name, chords: l.chords })
+  }
   return draft
 }

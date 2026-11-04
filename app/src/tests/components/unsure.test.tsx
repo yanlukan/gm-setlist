@@ -79,6 +79,19 @@ describe('the unsure mark', () => {
     expect(barsOf('Pre-Chorus')[5].getAttribute('data-chords')).toBe('B G#m')
   })
 
+  it('a bar read off the record alone shows its one reading, and one tap settles it', () => {
+    const one = { bar: 5, chords: disputed, from: 'Unsure' as const, readings: [{ from: 'Record' as const, chords: disputed }] }
+    show({ chordsFrom: 'Record', evidence: { 'Pre-Chorus': { bars: [one] } } })
+    render(<PracticeScreen />)
+    fireEvent.click(screen.getByRole('button', { name: mark }))
+    expect(screen.getByRole('dialog').querySelector('h2')!.textContent).toBe('Bar 6 of Pre-Chorus · the recording only')
+    expect(screen.queryByRole('button', { name: /^As charted/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'The recording: B F#/A# G#m' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('button', { name: mark })).toBeNull()
+    expect(barsOf('Pre-Chorus')[5].getAttribute('data-chords')).toBe(disputed)
+  })
+
   it("readings show at the chart's pitch, and the choice is stored at the song's", () => {
     show()
     act(() => useStore.setState({ edits: { Fixture: { transpose: -2 } } }))

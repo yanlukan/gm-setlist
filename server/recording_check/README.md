@@ -163,3 +163,34 @@ The same for every song; never tune one for a single song.
 ## add_song.py
 
 `server/add_song.py` reads one JSON request on stdin (`title`, `recording`, and optionally `timeSignature`, `key`, `bpm`, `chart`, `chordLines`) and writes one JSON answer on stdout; progress goes to stderr. Route `chart` runs stage 5's check, route `words` lines the chord lines up with the record's bars, route `record` gives the record's own bars, all Unsure. The answer names the recording by file name only. A missing or unreadable recording exits 2.
+
+## Adding a song
+
+One command, from `app/`, turns a recording (and a trusted chart, if there is one) into one song file:
+
+```
+node scripts/add-song.mjs --title "T" --artist "A" --recording <file> [--chart <file>] \
+  [--key K] [--bpm N] [--time 3/4] [--out <dir>] [--python <path>]
+```
+
+It writes `app/src/data/added/<slug>.json` (the slug is the title in lower case, every run of other
+characters one dash: `Freedom! '90` → `freedom-90.json`), or into `--out`, and prints the file and the
+count of Unsure bars. A title already shipped in `songs.ts` is refused; running it again for the same
+title overwrites its own file. A Python that stops, or an answer that is not a song, writes nothing
+(exit 1). Python is `--python`, else `$ADD_SONG_PYTHON`, else the main checkout's `server/.venv` beside
+this worktree, else `python3`; it runs this repository's `server/add_song.py`, whose progress goes to the
+terminal. The file names the recording by file name only.
+
+The chart text (`app/src/music/chart-text-import.ts`): optional header lines `Title:`, `Artist:`,
+`Key:`, `BPM:`, `Time:`, `Order: Intro, Verse, Chorus`; then sections headed `[Verse]` or `Verse:`, each
+with its chord lines. Word lines are dropped on reading and never sent or written. A section header
+repeated with the same chords (or none) plays that section again; with other chords it becomes
+`Verse 2`. `--key`, `--bpm`, `--time` win over the header lines; what neither gives is read off the record.
+
+What each route marks:
+
+| Chart | Route | Song file |
+|---|---|---|
+| Every section has bar lines | `chart` | the chart's bars, `chordsFrom: Chart`; each bar stage 5's check disputes is Unsure with both readings. A chart that will not line up ships as written with nothing marked, and the notes say so |
+| Chords over words, no bar lines | `words` | the record's bars spelled from the chart, `chordsFrom: Chart`; the bars the chart and record disagree on are Unsure |
+| None | `record` | the record's own bars in parts `Part 1`, `Part 2`…, `chordsFrom: Record`; every bar Unsure with the record's one reading |
