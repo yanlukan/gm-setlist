@@ -13,16 +13,21 @@ paired change; a bar with none belongs to the line before. The chart's lines giv
 the sections: a run of lines with one section name is one play of it, a name played
 again with the same bars reuses its section, else it is named `<name> 2`, `<name> 3`...
 
-A bar is Chart, written in the chart's spelling on the record's beats, when every
-chord written in it (each change, and the chord held over from the bar before) comes
-from an agreeing chart chord on a beat of at least MIN_CONFIDENCE, and no chart chord
-the record lacks falls inside it. Every other bar is Unsure, with the chart's reading
-(when a chart chord falls in it) and the record's. Detector chords are never fact.
+A record change left unpaired whose run covers no more than verdict.QUARTER of the
+bar and ends in it is a passing reading (stage 5's rule): it disputes nothing and is
+not written. A bar is Chart, written in the chart's spelling on the record's beats,
+when every other chord written in it (each change, and the chord held over from the
+bar before) comes from an agreeing chart chord on a beat of at least MIN_CONFIDENCE,
+and no chart chord the record lacks falls inside it. Every other bar is Unsure, with
+the chart's reading (when a chart chord falls in it) and the record's; it is written
+in the chart's chords when it has a chart reading, else as the record reads it, as
+stage 5 ships charts. A play reuses an earlier section only when its bars and its
+Unsure marks are the same. Detector chords are never fact.
 """
 from recording_check.agree import agrees
 from recording_check.chords import parse, same
 from recording_check.skeleton import _line, parts, unsure_evidence
-from recording_check.verdict import MIN_CONFIDENCE
+from recording_check.verdict import MIN_CONFIDENCE, QUARTER
 
 GAP_COST = 1.0   # a chart chord or a record change with no partner
 HOLD = '.'
@@ -46,18 +51,24 @@ def _tokens(bar):
 
 
 def _changes(bars):
-    """Every chord written in a bar: (bar, beat, Chord, confidence, is a change).
-    A bar's first chord held over from the bar before is written too, as no change."""
+    """Every chord written in a bar: (bar, beat, Chord, confidence, is a change, is short).
+    A bar's first chord held over from the bar before is written too, as no change. A
+    change is short when its run covers no more than QUARTER of the bar and ends in it."""
     out, previous = [], None
     for b, bar in enumerate(bars):
-        for beat, token in enumerate(_tokens(bar)):
-            if token == HOLD:
-                continue
+        tokens = _tokens(bar)
+        written = [beat for beat, token in enumerate(tokens) if token != HOLD]
+        for k, beat in enumerate(written):
             chord, conf = bar['beats'][beat]
             change = previous is None or beat > 0 or not same(chord, previous)
-            out.append((b, beat, chord, conf, change))
+            end = written[k + 1] if k + 1 < len(written) else len(tokens)
+            out.append([b, beat, chord, conf, change, change and (end - beat) / len(tokens) <= QUARTER,
+                        end == len(tokens)])
             previous = chord
-    return out
+    for i, item in enumerate(out):   # a run that goes on into the next bar is not short
+        if item[6] and i + 1 < len(out) and not out[i + 1][4]:
+            item[5] = False
+    return [tuple(item[:6]) for item in out]
 
 
 def _skip(item):
@@ -98,7 +109,7 @@ def _align(chart, changes):
 
 def _per_bar(bars, chart, changes, path):
     """Per bar: its chart line, whether it is Chart, its chart spelling and the chart's reading."""
-    info = [{'line': None, 'sure': True, 'chart': {}, 'extra': []} for _ in bars]
+    info = [{'line': None, 'sure': True, 'chart': {}, 'extra': [], 'passing': set()} for _ in bars]
     where = {}   # change index -> chart index
     gapped = []  # (chart index, change index before it or None)
     last = None
@@ -110,9 +121,14 @@ def _per_bar(bars, chart, changes, path):
         else:
             gapped.append((c, last))
     held = None   # (chart index, agreed) of the chord sounding
-    for r, (b, beat, chord, conf, change) in enumerate(changes):
+    for r, (b, beat, chord, conf, change, short) in enumerate(changes):
         here = info[b]
         c = where.get(r)
+        if c is None and short and held is not None:   # a passing reading: not written
+            here['passing'].add(beat)
+            if beat == 0:
+                here['chart'][0] = chart[held[0]][2]
+            continue
         if change or c is not None:   # a held chord the chart names again starts its chord anew
             held = None if c is None else (c, agrees(chord, chart[c][1], chart[c][2]))
             if c is not None and here['line'] is None:
@@ -141,7 +157,8 @@ def _written(tokens):
 
 
 def _chart_spelling(bar, here):
-    tokens = [here['chart'].get(i, t) if t != HOLD else t for i, t in enumerate(_tokens(bar))]
+    tokens = [HOLD if i in here['passing'] and i else here['chart'].get(i, t) if t != HOLD else t
+              for i, t in enumerate(_tokens(bar))]
     return _written(tokens)
 
 
@@ -186,6 +203,30 @@ def _sections(chart_lines, bars, info):
     return [(name, lines) for name, lines, _ in plays]
 
 
+def _bar(bar, here, unsure, index):
+    """The bar as written; an Unsure bar is added to `unsure`. A bar the chart has a
+    reading for is written in the chart's chords; one it has none for, as the record reads it."""
+    if here['sure']:
+        return _chart_spelling(bar, here)
+    record = ' '.join(bar['text'].split())
+    readings = [{'from': 'Record', 'chords': record}]
+    chart_reading = _chart_reading(bar, here)
+    if chart_reading is not None:
+        readings.insert(0, {'from': 'Chart', 'chords': chart_reading})
+    text = chart_reading if chart_reading is not None else record
+    unsure.append({'bar': index, 'chords': text, 'from': 'Unsure', 'readings': readings})
+    return text
+
+
+def _new_name(name, taken):
+    """name, else name 2, name 3...; a name ending in a number takes (2), (3)..."""
+    unique, n = name, 1
+    while unique in taken:
+        n += 1
+        unique = f'{name} ({n})' if name[-1:].isdigit() else f'{name} {n}'
+    return unique
+
+
 def line_up(chart_lines: list, bars: list, key: str) -> dict:
     """The record's bars written from a chart with no bar lines (Task 1's chordLines).
 
@@ -199,32 +240,23 @@ def line_up(chart_lines: list, bars: list, key: str) -> dict:
         return {'sections': sections, 'form': form, 'evidence': unsure_evidence(sections)}
     changes = _changes(bars)
     info = _per_bar(bars, chart, changes, _align(chart, changes))
-    sections, form, evidence, by_chords = [], [], {}, {}
+    sections, form, evidence, by_play = [], [], {}, {}
     for name, lines in _sections(chart_lines, bars, info):
-        texts = [[_chart_spelling(bars[b], info[b]) if info[b]['sure'] else bars[b]['text'] for b in line]
-                 for line in lines]
+        texts, unsure, index = [], [], 0
+        for line in lines:
+            texts.append([])
+            for b in line:
+                text = _bar(bars[b], info[b], unsure, index)
+                texts[-1].append(text)
+                index += 1
         chords = '\n'.join(_line(line) for line in texts)
-        if (name, chords) in by_chords:
-            form.append(by_chords[(name, chords)])
+        play = (name, chords, repr(unsure))
+        if play in by_play:   # the same bars and the same marks: the same section again
+            form.append(by_play[play])
             continue
-        taken = {s['name'] for s in sections}
-        unique, n = name, 1
-        while unique in taken:
-            n += 1
-            unique = f'{name} {n}'
-        by_chords[(name, chords)] = unique
+        unique = _new_name(name, {s['name'] for s in sections})
+        by_play[play] = unique
         sections.append({'name': unique, 'chords': chords})
         form.append(unique)
-        unsure, index = [], 0
-        for line, line_texts in zip(lines, texts):
-            for b, text in zip(line, line_texts):
-                if not info[b]['sure']:
-                    readings = [{'from': 'Record', 'chords': ' '.join(bars[b]['text'].split())}]
-                    chart_reading = _chart_reading(bars[b], info[b])
-                    if chart_reading is not None:
-                        readings.insert(0, {'from': 'Chart', 'chords': chart_reading})
-                    unsure.append({'bar': index, 'chords': ' '.join(text.split()), 'from': 'Unsure',
-                                   'readings': readings})
-                index += 1
         evidence[unique] = {'from': 'Chart', 'bars': unsure}
     return {'sections': sections, 'form': form, 'evidence': evidence}

@@ -40,15 +40,15 @@ class LineUpTest(unittest.TestCase):
 
     def test_a_disputed_bar_is_unsure_with_both_readings(self):
         out = line_up(lines(('Verse', 'C G Am F')), [held('C'), held('G'), held('Em'), held('F')], 'C')
-        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  Em  |  F  |')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  Am  |  F  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [
-            {'bar': 2, 'chords': 'Em', 'from': 'Unsure',
+            {'bar': 2, 'chords': 'Am', 'from': 'Unsure',
              'readings': [{'from': 'Chart', 'chords': 'Am'}, {'from': 'Record', 'chords': 'Em'}]}])
 
     def test_a_disputed_change_inside_a_bar_keeps_the_beats_in_both_readings(self):
         out = line_up(lines(('Verse', 'C Dm G')), [bar('C C Em Em'), held('G')], 'C')
         self.assertEqual(out['evidence']['Verse']['bars'], [
-            {'bar': 0, 'chords': 'C . Em .', 'from': 'Unsure',
+            {'bar': 0, 'chords': 'C . Dm .', 'from': 'Unsure',
              'readings': [{'from': 'Chart', 'chords': 'C . Dm .'}, {'from': 'Record', 'chords': 'C . Em .'}]}])
 
     def test_an_extra_record_change_the_chart_lacks_is_unsure_record_only(self):
@@ -59,9 +59,9 @@ class LineUpTest(unittest.TestCase):
 
     def test_a_chart_chord_the_record_lacks_makes_its_bar_unsure(self):
         out = line_up(lines(('Verse', 'C G Am F')), [held('C'), held('G'), held('F')], 'C')
-        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |  F  |')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  .  Am  .  |  F  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [
-            {'bar': 1, 'chords': 'G', 'from': 'Unsure',
+            {'bar': 1, 'chords': 'G . Am .', 'from': 'Unsure',
              'readings': [{'from': 'Chart', 'chords': 'G . Am .'}, {'from': 'Record', 'chords': 'G'}]}])
 
     def test_an_unsure_record_never_confirms_the_chart(self):
@@ -88,6 +88,53 @@ class LineUpTest(unittest.TestCase):
         self.assertEqual(out['form'], ['Verse', 'Chorus', 'Verse 2'])
         self.assertEqual([b['bar'] for b in out['evidence']['Verse 2']['bars']], [1])
 
+    def test_an_unsure_bar_with_a_chart_reading_is_written_in_the_charts_chords(self):
+        out = line_up(lines(('Verse', 'Cmaj7 G7 Am')), [held('C'), bar('G G E E'), held('Am')], 'C')
+        self.assertEqual(out['sections'][0]['chords'], '|  Cmaj7  |  G7  |  Am  |')
+        written = [cell.strip() for cell in out['sections'][0]['chords'].split('|') if cell.strip()]
+        for entry in out['evidence']['Verse']['bars']:
+            self.assertEqual(entry['chords'], ' '.join(written[entry['bar']].split()))
+        self.assertEqual(out['evidence']['Verse']['bars'], [
+            {'bar': 1, 'chords': 'G7', 'from': 'Unsure',
+             'readings': [{'from': 'Chart', 'chords': 'G7'}, {'from': 'Record', 'chords': 'G . E .'}]}])
+
+    def test_a_short_passing_reading_does_not_dispute_the_chart(self):
+        out = line_up(lines(('Verse', 'C G')), [bar('C C C F/A'), held('G')], 'C')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |')
+        self.assertEqual(out['evidence']['Verse']['bars'], [])
+
+    def test_a_change_covering_half_the_bar_still_disputes_it(self):
+        out = line_up(lines(('Verse', 'C G')), [bar('C C F/A F/A'), held('G')], 'C')
+        self.assertEqual(out['evidence']['Verse']['bars'], [
+            {'bar': 0, 'chords': 'C', 'from': 'Unsure',
+             'readings': [{'from': 'Chart', 'chords': 'C'}, {'from': 'Record', 'chords': 'C . F/A .'}]}])
+
+    def test_a_passing_reading_that_runs_into_the_next_bar_is_no_passing_reading(self):
+        out = line_up(lines(('Verse', 'C G')), [bar('C C C F'), bar('F G G G')], 'C')
+        self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [0, 1])
+
+    def test_a_repeated_play_with_unsure_bars_is_not_the_earlier_section(self):
+        chart = lines(('Verse', 'C G'), ('Chorus', 'F'), ('Verse', 'C Am'))
+        for confidence in (0.9, 0.2):
+            out = line_up(chart, [held(n, confidence) for n in ('C', 'G', 'F', 'C', 'G')], 'C')
+            self.assertEqual(out['form'], ['Verse', 'Chorus', 'Verse 2'])
+            self.assertIn(1, [b['bar'] for b in out['evidence']['Verse 2']['bars']])
+
+    def test_the_same_text_with_other_marks_is_a_new_section(self):
+        chart = lines(('Verse', 'C G'), ('Chorus', 'F'), ('Verse', 'C G'))
+        out = line_up(chart, [held(n) for n in ('C', 'G', 'F', 'C', 'Em')], 'C')
+        self.assertEqual(out['form'], ['Verse', 'Chorus', 'Verse 2'])
+        self.assertEqual(out['sections'][2]['chords'], out['sections'][0]['chords'])
+        self.assertEqual(out['evidence']['Verse']['bars'], [])
+        self.assertEqual([b['bar'] for b in out['evidence']['Verse 2']['bars']], [1])
+
+    def test_a_name_ending_in_a_number_is_numbered_in_brackets(self):
+        chart = lines(('Pre-Chorus 2', 'C G'), ('Chorus', 'F'), ('Pre-Chorus 2', 'Am G'), ('Chorus', 'F'),
+                      ('Pre-Chorus 2', 'Dm G'))
+        record = [held(n) for n in ('C', 'G', 'F', 'Am', 'G', 'F', 'Dm', 'G')]
+        out = line_up(chart, record, 'C')
+        self.assertEqual(out['form'], ['Pre-Chorus 2', 'Chorus', 'Pre-Chorus 2 (2)', 'Chorus', 'Pre-Chorus 2 (3)'])
+
     def test_nothing_of_the_charts_text_but_chords_reaches_the_output(self):
         chart = [{'section': 'Verse', 'chords': ['C', 'la', 'G', 'lala', '(x2)']}]
         out = line_up(chart, [held('C'), held('G')], 'C')
@@ -102,7 +149,7 @@ class LineUpTest(unittest.TestCase):
     def test_bars_off_a_synthetic_record(self):
         record = analysis(['C'] * 4 + ['G'] * 4 + ['A:min', 'A:min', 'F', 'F'] + ['C'] * 4, bpm=120)
         out = line_up(lines(('Verse', 'Cmaj7 G/B Am7 F C')), record_bars(record, 'C'), 'C')
-        self.assertEqual(out['sections'][0]['chords'], '|  Cmaj7  |  G  |  Am7  .  F  .  |  C  |')
+        self.assertEqual(out['sections'][0]['chords'], '|  Cmaj7  |  G/B  |  Am7  .  F  .  |  C  |')
         self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [1])
 
 
