@@ -49,4 +49,24 @@ describe('readChartText', () => {
     expect(d.barred).toBe(false)
     expect(d.chordLines).toEqual([])
   })
+
+  it('a word line ending in a colon is dropped', () => {
+    const d = readChartText('[Verse]\nC G\nand then la la:\nAm F\nGuitar Solo:\nD A')
+    expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Guitar Solo'])
+    expect(JSON.stringify(d)).not.toContain('la')
+  })
+
+  it('a repeated header with the same chords reuses the section', () => {
+    const d = readChartText('[Verse]\nC G\n[Chorus]\nF C\n[Verse]\nC G')
+    expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Chorus'])
+    expect(d.form).toEqual(['Verse', 'Chorus', 'Verse'])
+    expect(d.chordLines.map(l => l.section)).toEqual(['Verse', 'Chorus'])
+  })
+
+  it('a repeated header with different chords gets a numbered name', () => {
+    const d = readChartText('[Verse]\nC G\n[Chorus]\nF C\n[Verse]\nAm G')
+    expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Chorus', 'Verse 2'])
+    expect(d.form).toEqual(['Verse', 'Chorus', 'Verse 2'])
+    expect(d.chordLines.map(l => l.section)).toEqual(['Verse', 'Chorus', 'Verse 2'])
+  })
 })

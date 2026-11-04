@@ -24,7 +24,7 @@ interface Block { name: string; lines: Line[] }
 
 const HEADER = /^(title|artist|key|bpm|time|order)\s*:\s*(\S.*)$/i
 const BRACKET = /^\[\s*([^\]]+?)\s*\]$/
-const COLON = /^([^:|[\]]+?)\s*:$/
+const COLON = /^([A-Z0-9][\w'-]*(?:\s+[A-Z0-9][\w'-]*){0,2})\s*:$/
 
 const isMark = (t: string) => t === 'N.C.' || t === REPEAT_BAR || t === BEAT || isRepeatCount(t)
 
@@ -38,7 +38,6 @@ function chordTokens(line: string): string[] | null {
 export function readChartText(text: string): ChartDraft {
   const draft: ChartDraft = { sections: [], barred: false, chordLines: [] }
   const blocks: Block[] = []
-  const playing: string[] = []
   let order: string[] | undefined
   let current: Block | null = null
 
@@ -62,7 +61,6 @@ export function readChartText(text: string): ChartDraft {
     if (name && !chordTokens(line)) {
       current = { name, lines: [] }
       blocks.push(current)
-      playing.push(name)
       continue
     }
     if (!current) continue
@@ -75,13 +73,19 @@ export function readChartText(text: string): ChartDraft {
     })
   }
 
-  // A header repeated with no lines plays the earlier section again.
-  const seen = new Set<string>()
-  const kept = blocks.filter(b => {
-    const again = seen.has(b.name)
-    seen.add(b.name)
-    return !(again && b.lines.length === 0)
-  })
+  // A repeated header with the same chords (or none) plays the earlier section again;
+  // with different chords it is a section of its own: "Name 2", "Name 3"...
+  const kept: Block[] = []
+  const playing: string[] = []
+  const content = (b: Block) => b.lines.map(l => l.chords.join(' ')).join('\n')
+  for (const b of blocks) {
+    const same = kept.filter(k => k.name === b.name || k.name.startsWith(b.name + ' '))
+    const earlier = same.find(k => b.lines.length === 0 || content(k) === content(b))
+    if (earlier) { playing.push(earlier.name); continue }
+    const name = same.length ? `${b.name} ${same.length + 1}` : b.name
+    kept.push({ name, lines: b.lines })
+    playing.push(name)
+  }
 
   draft.barred = kept.length > 0 && kept.every(b => b.lines.length > 0 && b.lines.every(l => l.barred))
   draft.sections = kept.map(b => ({
