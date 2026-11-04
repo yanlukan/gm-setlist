@@ -123,8 +123,9 @@ leave unpaired in the line-up. A record chord the chart lacks is set against
 the chart chord held over from before. A bar is `Chart`, in the chart's spelling,
 when it holds one chord (no change after beat 1 but passing readings: where a chord
 changes inside a bar is the record's timing alone), that chord agrees with the
-chart chord sounding (whatever the record's confidence), and no chart chord the
-record lacks falls in it. Every other bar is `Unsure` with two different readings,
+chart chord sounding on a beat of at least `MIN_CONFIDENCE`, and no chart chord
+the record lacks falls in it; one agreeing below it is `Unsure` with the chart's
+reading alone. Every other bar is `Unsure` with two different readings,
 Chart and Record, written in the chart's chords on the record's beats; a bar with a
 change inside it has the chart's chords alone (`C Bb`) as its Chart reading. A bar
 whose two readings would be the same is `Chart`. A section played again reuses its

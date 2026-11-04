@@ -20,9 +20,10 @@ chart chord sounding at a record chord is its partner, else the chart chord held
 over from before (a change the chart lacks is set against it). A bar is Chart,
 written in the chart's spelling, when it holds one chord (no change after beat 1 but
 passing readings: where a chord changes inside a bar is the record's timing alone),
-that chord agrees with the chart chord sounding, whatever the record's confidence,
-and no chart chord the record lacks falls inside it. Every other bar is Unsure with
-two different readings, Chart and Record, and is written in the chart's chords on
+that chord agrees with the chart chord sounding on a beat of at least MIN_CONFIDENCE,
+and no chart chord the record lacks falls inside it; one that agrees below it is
+Unsure with the chart's reading alone (one weak source). Every other bar is Unsure
+with two different readings, Chart and Record, and is written in the chart's chords on
 the record's beats; a bar with a change inside it has the chart's chords alone, one
 space apart, as its Chart reading. A bar whose two readings would be the same is
 Chart. A play reuses an earlier section only when its bars and its
@@ -31,7 +32,7 @@ Unsure marks are the same. Detector chords are never fact.
 from recording_check.agree import agrees
 from recording_check.chords import parse, same
 from recording_check.skeleton import _line, parts, unsure_evidence
-from recording_check.verdict import QUARTER
+from recording_check.verdict import MIN_CONFIDENCE, QUARTER
 
 GAP_COST = 1.0   # a chart chord or a record change with no partner
 HOLD = '.'
@@ -128,7 +129,7 @@ def _per_bar(bars, chart, changes, path):
     """Per bar: its chart line, whether it is Chart, its chart spelling, whether it changes
     inside, and the chart chords sounding in it in order."""
     info = [{'line': None, 'sure': True, 'chart': {}, 'extra': [], 'passing': set(), 'inside': False,
-             'order': []} for _ in bars]
+             'order': [], 'weak': False} for _ in bars]
     where = {}   # change index -> chart index
     gapped = []  # (chart index, change index before it or None)
     last = None
@@ -159,6 +160,8 @@ def _per_bar(bars, chart, changes, path):
                 here['line'] = chart[c][0]
         if not held[1]:
             here['sure'] = False
+        if conf < MIN_CONFIDENCE:   # too weak to confirm the chart
+            here['weak'] = True
         here['chart'][beat] = chart[held[0]][2]
         here['order'].append((r, held[0]))
     for c, r in gapped:
@@ -242,18 +245,28 @@ def _chords_in(chart, here):
     return ' '.join(text for _, text in texts)
 
 
+def _weak(text, unsure, index):
+    """A bar the record agrees with too weakly to confirm: Unsure, the chart's one reading."""
+    unsure.append({'bar': index, 'chords': text, 'from': 'Unsure',
+                   'readings': [{'from': 'Chart', 'chords': text}]})
+    return text
+
+
 def _bar(bar, here, chart, unsure, index):
     """The bar as written; an Unsure bar is added to `unsure` with two different readings,
-    the chart's and the record's (a bar whose two readings would be the same is Chart).
-    An Unsure bar is written in the chart's chords on the record's beats; a bar with a
-    change inside it has the chart's chords alone as its Chart reading."""
+    the chart's and the record's, or with the chart's alone when the record agrees below
+    MIN_CONFIDENCE. A bar whose two readings would be the same is Chart (or, read weakly,
+    Unsure with the chart's reading). An Unsure bar is written in the chart's chords on
+    the record's beats; a bar with a change inside it has the chart's chords alone as its
+    Chart reading."""
     if here['sure']:
-        return _chart_spelling(bar, here)
+        text = _chart_spelling(bar, here)
+        return _weak(text, unsure, index) if here['weak'] else text
     spelled = _chart_reading(bar, here) or _chords_in(chart, here)
     record = ' '.join(bar['text'].split())
     reading = _chords_in(chart, here) if here['inside'] else spelled
     if reading == record:   # the chart says what the record says: nothing to settle
-        return spelled
+        return _weak(spelled, unsure, index) if here['weak'] else spelled
     unsure.append({'bar': index, 'chords': spelled, 'from': 'Unsure',
                    'readings': [{'from': 'Chart', 'chords': reading}, {'from': 'Record', 'chords': record}]})
     return spelled
