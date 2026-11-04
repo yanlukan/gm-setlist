@@ -102,7 +102,10 @@ recording alone; every such bar ships as `Unsure`, never as fact.
 - **Bars and parts** (`skeleton.py`): bars on the tracker's steady beats at the
   folded tempo (a tracker under 70 has each beat split, one at 140 or over counts
   two beats as one), bar 1 on the beat phase where the chroma changes most from
-  the beat before (so a long intro moves nothing); each bar read beat by beat and written as one chord when it holds,
+  the beat before (so a long intro moves nothing); each bar read beat by beat,
+  its edges settled (`settle_edges`: in a bar of 4 or more beats, a first or last
+  beat unlike the two next to it, which agree, takes their chord at the lower
+  confidence; the record blurs at the bar line), and written as one chord when it holds,
   else its beats; silent bars at either end and a final partial bar left out.
   Lines of 4 bars; a line equal to an earlier one is that part again (`Part 1`,
   `Part 2`... in playing order). Every bar is `Unsure` with the record's reading.

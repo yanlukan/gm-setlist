@@ -2,7 +2,8 @@ import unittest
 
 import numpy as np
 
-from recording_check.skeleton import bar_starts, parts, record_bars, unsure_evidence
+from recording_check.chords import parse, spell
+from recording_check.skeleton import bar_starts, parts, record_bars, settle_edges, unsure_evidence
 from recording_check.tests.synthetic import analysis
 
 
@@ -39,7 +40,60 @@ class BarPhaseTest(unittest.TestCase):
         self.assertEqual(starts_of(record, 8), record['beats'][2::8])
 
 
+def read(text, confidence=0.9):
+    """A bar's beats as bar_beats gives them: one (Chord, confidence) per beat ('N' is no chord)."""
+    return [(parse(token), confidence) for token in text.split()]
+
+
+def names(bar):
+    return ' '.join('N' if chord.kind == 'none' else spell(chord, 'C') for chord, _ in bar)
+
+
+class SettleEdgesTest(unittest.TestCase):
+    def test_a_first_beat_unlike_the_two_after_it_takes_their_chord(self):
+        bar = read('C Bb Bb Bb')
+        bar[0] = (bar[0][0], 0.4)
+        settled = settle_edges([bar])[0]
+        self.assertEqual(names(settled), 'Bb Bb Bb Bb')
+        self.assertEqual(settled[0][1], 0.4)   # never surer than either beat
+
+    def test_a_last_beat_unlike_the_two_before_it_takes_their_chord(self):
+        self.assertEqual(names(settle_edges([read('C C C Am')])[0]), 'C C C C')
+        self.assertEqual(names(settle_edges([read('C/E C C C/Bb')])[0]), 'C C C C')
+
+    def test_a_settled_last_beat_is_never_surer_and_the_input_is_kept(self):
+        bar = read('C C C Am')
+        bar[1] = (bar[1][0], 0.3)
+        bar[2] = (bar[2][0], 0.6)
+        settled = settle_edges([bar])[0]
+        self.assertEqual(settled[-1][1], 0.6)   # the lower of the last beat (0.9) and beat 3 (0.6)
+        self.assertEqual(names(bar), 'C C C Am')
+
+    def test_a_bar_of_eight_beats_settles_only_its_edges(self):
+        self.assertEqual(names(settle_edges([read('C G G G Am Am Am F')])[0]), 'G G G G Am Am Am Am')
+
+    def test_both_edges_of_one_bar(self):
+        self.assertEqual(names(settle_edges([read('F/A Bb Bb C')])[0]), 'Bb Bb Bb Bb')
+
+    def test_a_bar_in_halves_or_with_an_unclear_middle_is_left_alone(self):
+        for text in ('G G F F', 'C Bb F F', 'C G Am F', 'C C G G'):
+            self.assertEqual(names(settle_edges([read(text)])[0]), text)
+
+    def test_silence_is_never_filled_and_never_fills(self):
+        for text in ('N C C C', 'C C C N', 'C N N C'):
+            self.assertEqual(names(settle_edges([read(text)])[0]), text)
+
+    def test_a_bar_of_fewer_than_four_beats_is_left_alone(self):
+        for text in ('F G G', 'G G F', 'C G'):
+            self.assertEqual(names(settle_edges([read(text)])[0]), text)
+
+
 class RecordBarsTest(unittest.TestCase):
+    def test_a_chord_spilling_one_beat_over_the_bar_line_is_settled(self):
+        # beat 1 of the third bar still sounds the G before it; the last beat of the fourth already the C after
+        record = analysis(['C'] * 4 + ['G'] * 4 + ['G', 'Bb', 'Bb', 'Bb'] + ['F', 'F', 'F', 'C'] + ['C'] * 4, bpm=120)
+        self.assertEqual([b['text'] for b in record_bars(record, 'C')], ['C', 'G', 'Bb', 'F', 'C'])
+
     def test_a_held_bar_is_one_chord_a_changing_bar_keeps_its_beats(self):
         record = analysis(['C'] * 4 + ['C', 'C', 'G', 'G'] + ['Am'] * 4, bpm=120)
         bars = record_bars(record, 'C')

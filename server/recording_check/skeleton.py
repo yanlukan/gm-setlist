@@ -10,9 +10,9 @@ Measured against 18 lined-up songs' charts, this rule found the phase stage 5's
 line-up finds on 16; BTC's chord changes, the bass's changes, held bars and wider
 chroma windows found 12 to 14 (task-3-report.md has the table).
 
-Each bar is read beat by beat (reading.bar_beats) and written by verdict.read_bar
-with no chart: one chord when it holds the whole bar, else the beats' chords and
-dots. Wholly silent bars before the first chord and after the last are not written;
+Each bar is read beat by beat (reading.bar_beats), its edges settled (settle_edges),
+and written by verdict.read_bar with no chart: one chord when it holds the whole
+bar, else the beats' chords and dots. Wholly silent bars before the first chord and after the last are not written;
 a final partial bar is dropped.
 
 Bars go into lines of LINE_BARS; each line is a part, and a line equal to an earlier
@@ -24,6 +24,7 @@ import numpy as np
 
 from recording_check.align import steady_beats
 from recording_check.audio import span
+from recording_check.chords import same
 from recording_check.key import FASTEST, SLOWEST
 from recording_check.reading import bar_beats
 from recording_check.verdict import read_bar
@@ -67,6 +68,37 @@ def bar_starts(beats: list, chroma, hop: float, bar_length: int) -> list:
     return list(beats[_phase(beats, chroma, hop, bar_length)::bar_length])
 
 
+def _chord(beat):
+    return beat[0].kind != 'none'
+
+
+def settle_edges(bars: list) -> list:
+    """Bars of beats (as bar_beats gives them) with each bar's edge beats settled.
+
+    At a bar line the record blurs: the CQT's long low-note windows carry a bass note
+    over the line, and BTC's changes come a little late, so the beat either side of the
+    line often reads its neighbour's chord. A first beat whose chord differs from beats
+    2 and 3, which agree, takes their chord; a last beat likewise from the two before
+    it. The settled beat keeps the lower of the two confidences, so it is never surer
+    than either. Silence is neither filled nor filling. A bar of fewer than four beats
+    is left alone: there beats 2 and 3 are the rest of the bar (a 3/4 bar of 1 + 2), and
+    the measure below is all 4/4. Measured on the 18 lined-up songs against their hand charts:
+    beats read right 4064 -> 4320, bars that match 748 -> 1139 (docs/sessions/late-bars.md);
+    only 9 of their 1979 bars have a chord that starts on beat 2 or sounds on beat 4 alone.
+    """
+    out = []
+    for bar in bars:
+        bar = list(bar)
+        if len(bar) >= 4:
+            for edge, inner, further in ((0, 1, 2), (-1, -2, -3)):
+                beat, next_in, then = bar[edge], bar[inner], bar[further]
+                if (_chord(beat) and _chord(next_in) and _chord(then) and same(next_in[0], then[0])
+                        and not same(beat[0], next_in[0])):
+                    bar[edge] = (next_in[0], min(beat[1], next_in[1]))
+        out.append(bar)
+    return out
+
+
 def _bar_text(record_beats, key):
     tokens = [NO_CHORD if t == 'N' else t for t in read_bar([], record_beats, key).split()]
     return tokens[0] if all(t == '.' for t in tokens[1:]) else ' '.join(tokens)
@@ -94,10 +126,10 @@ def record_bars(analysis, key, beats_per_bar=4) -> list:
     """The record's bars in order: [{'start', 'end', 'text', 'beats'}], beats as bar_beats gives them."""
     beats, stride = beat_grid(analysis)
     starts = bar_starts(beats, analysis['chroma'], analysis['hop'], beats_per_bar * stride)
-    bars = []
-    for start, end in zip(starts, starts[1:]):   # a final partial bar has no end: dropped
-        read = bar_beats(analysis, start, end, beats_per_bar, key)
-        bars.append({'start': start, 'end': end, 'text': _bar_text(read, key), 'beats': read})
+    spans = list(zip(starts, starts[1:]))   # a final partial bar has no end: dropped
+    reads = settle_edges([bar_beats(analysis, start, end, beats_per_bar, key) for start, end in spans])
+    bars = [{'start': start, 'end': end, 'text': _bar_text(read, key), 'beats': read}
+            for (start, end), read in zip(spans, reads)]
     while bars and bars[0]['text'] == NO_CHORD:
         bars.pop(0)
     while bars and bars[-1]['text'] == NO_CHORD:
