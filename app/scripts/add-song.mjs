@@ -6,7 +6,7 @@
 // and writes <out>/<slug>.json (default src/data/added). See server/recording_check/README.md.
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { runnerImport } from 'vite'
@@ -78,23 +78,48 @@ function ask(python, req) {
   }
 }
 
+/** Refuses to overwrite another song's file: two titles with one slug. */
+function checkTarget(file, title) {
+  if (!existsSync(file)) return
+  let held
+  try {
+    held = JSON.parse(readFileSync(file, 'utf8'))?.title
+  } catch {
+    refuse(`${basename(file)} is already there and is not a song file, nothing written`)
+  }
+  if (held !== title) refuse(`${basename(file)} already holds "${held}", not "${title}", nothing written`)
+}
+
+/** The chart's problems that stop the tool, and the warning for a chart only partly in bars. */
+function checkDraft(draft) {
+  if (draft.sections.length === 0 || draft.chordLines.length === 0) refuse('the chart has no sections with chords')
+  if (draft.unknownOrder.length) refuse(`the Order: line names ${draft.unknownOrder.map(n => `"${n}"`).join(', ')}, not a part of the chart, nothing written`)
+  if (!draft.barred && draft.unbarred.length < draft.sections.length) {
+    console.error(`add-song: ${draft.unbarred.join(', ')} ${draft.unbarred.length === 1 ? 'has' : 'have'} no bar lines, so the chart will be lined up chord by chord`)
+  }
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const opts = options(argv)
+  const { addedSong, answerProblem, slug, songFileName } = await appModule('src/music/added-song.ts')
+  if (slug(opts.title) === '') refuse(`"${opts.title}" gives no file name: use letters or digits in --title`)
   const { SONGS } = await appModule('src/data/songs.ts')
   if (SONGS.some(s => s.title === opts.title)) refuse(`"${opts.title}" is already in the library`)
   if (!existsSync(opts.recording)) refuse(`no recording at ${basename(opts.recording)}`)
+  const out = resolve(opts.out ?? join(APP, 'src', 'data', 'added'))
+  const file = join(out, songFileName(opts.title))
+  checkTarget(file, opts.title)
 
   const { readChartText } = await appModule('src/music/chart-text-import.ts')
   let draft = null
   if (opts.chart) {
     if (!existsSync(opts.chart)) refuse(`no chart at ${basename(opts.chart)}`)
     draft = readChartText(readFileSync(opts.chart, 'utf8'))
-    if (draft.sections.length === 0 || draft.chordLines.length === 0) refuse('the chart has no sections with chords')
+    checkDraft(draft)
   }
 
   const req = request(opts, draft)
   const answer = ask(opts.python ?? defaultPython(), req)
-  const { addedSong, answerProblem, songFileName } = await appModule('src/music/added-song.ts')
   const problem = answerProblem(answer)
   if (problem) refuse(`a malformed answer: ${problem}, nothing written`)
   const expected = req.chart ? 'chart' : req.chordLines ? 'words' : 'record'
@@ -105,11 +130,10 @@ export async function main(argv = process.argv.slice(2)) {
   if (!isAddedSong(song)) refuse('the song would not open in the app, nothing written')
   const { openUnsure } = await appModule('src/music/evidence.ts')
 
-  const out = resolve(opts.out ?? join(APP, 'src', 'data', 'added'))
   mkdirSync(out, { recursive: true })
-  const file = join(out, songFileName(opts.title))
   writeFileSync(file, JSON.stringify(song, null, 2) + '\n')
-  console.log(`Wrote ${file}`)
+  const shown = relative(REPO, file)
+  console.log(`Wrote ${shown.startsWith('..') || isAbsolute(shown) ? basename(file) : shown}`)   // never a full local path
   console.log(`${openUnsure(song, undefined).length} unsure bars (route ${answer.route})`)
 }
 

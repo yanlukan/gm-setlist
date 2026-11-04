@@ -9,8 +9,12 @@ export interface ChartDraft {
   key?: string
   bpm?: number
   timeSignature?: string
-  /** From an `Order:` line, names as written; else the sections in playing order. */
+  /** From an `Order:` line when it names only the chart's sections; else the sections in playing order. */
   form?: string[]
+  /** The names an `Order:` line gives that are not sections of the chart. */
+  unknownOrder: string[]
+  /** The sections with no bar lines, or with a line without them. */
+  unbarred: string[]
   /** Barred: chords text as written, one line per bar line. Unbarred: chord lines joined as plain chord text. */
   sections: Section[]
   /** Every section has bar lines. */
@@ -24,7 +28,11 @@ interface Block { name: string; lines: Line[] }
 
 const HEADER = /^(title|artist|key|bpm|time|order)\s*:\s*(\S.*)$/i
 const BRACKET = /^\[\s*([^\]]+?)\s*\]$/
-const COLON = /^([A-Z0-9][\w'-]*(?:\s+[A-Z0-9][\w'-]*){0,2})\s*:$/
+const NAME = String.raw`[A-Z0-9][\w'-]*(?:\s+[A-Z0-9][\w'-]*){0,2}`
+const COLON = new RegExp(`^(${NAME})\\s*:$`)
+/** `Intro: Am F C G`: a section name and its first chord line on one line. */
+const INLINE = new RegExp(`^(${NAME})\\s*:\\s*(\\S.*)$`)
+const HEADER_NAMES = /^(title|artist|key|bpm|time|order)$/i
 
 const isMark = (t: string) => t === 'N.C.' || t === REPEAT_BAR || t === BEAT || isRepeatCount(t)
 
@@ -35,8 +43,14 @@ function chordTokens(line: string): string[] | null {
   return tokens.every(t => isMark(t) || isChordToken(t)) ? tokens : null
 }
 
+const chordLine = (raw: string, tokens: string[]): Line => ({
+  raw,
+  barred: raw.includes(BAR) || hasBars(raw),
+  chords: tokens.filter(isChordToken).filter(t => !isMark(t)),
+})
+
 export function readChartText(text: string): ChartDraft {
-  const draft: ChartDraft = { sections: [], barred: false, chordLines: [] }
+  const draft: ChartDraft = { sections: [], barred: false, chordLines: [], unknownOrder: [], unbarred: [] }
   const blocks: Block[] = []
   let order: string[] | undefined
   let current: Block | null = null
@@ -63,14 +77,21 @@ export function readChartText(text: string): ChartDraft {
       blocks.push(current)
       continue
     }
+    // A name and chords on one line; with any word after the colon the whole line is dropped
+    const inline = INLINE.exec(line)
+    if (inline && !HEADER_NAMES.test(inline[1].trim())) {
+      const rest = inline[2].trim()
+      const tokens = chordTokens(rest)
+      if (!tokens) continue
+      current = { name: inline[1].trim(), lines: [] }
+      blocks.push(current)
+      current.lines.push(chordLine(rest, tokens))
+      continue
+    }
     if (!current) continue
     const tokens = chordTokens(line)
     if (!tokens) continue
-    current.lines.push({
-      raw: line,
-      barred: line.includes(BAR) || hasBars(line),
-      chords: tokens.filter(isChordToken).filter(t => !isMark(t)),
-    })
+    current.lines.push(chordLine(line, tokens))
   }
 
   // A repeated header with the same chords (or none) plays the earlier section again;
@@ -87,15 +108,17 @@ export function readChartText(text: string): ChartDraft {
     playing.push(name)
   }
 
-  draft.barred = kept.length > 0 && kept.every(b => b.lines.length > 0 && b.lines.every(l => l.barred))
+  draft.unbarred = kept.filter(b => b.lines.length === 0 || !b.lines.every(l => l.barred)).map(b => b.name)
+  draft.barred = kept.length > 0 && draft.unbarred.length === 0
   draft.sections = kept.map(b => ({
     name: b.name,
     chords: b.lines.map(l => (draft.barred ? l.raw : l.chords.join(' '))).filter(Boolean).join('\n'),
   }))
-  if (kept.length) draft.form = order ?? playing
   // Every play of a section repeats its lines: the Order line when it names only kept sections, else the text's order
   const byName = new Map(kept.map(b => [b.name, b]))
-  const plays = order && order.every(n => byName.has(n)) ? order : playing
+  draft.unknownOrder = (order ?? []).filter((n, i, all) => !byName.has(n) && all.indexOf(n) === i)
+  const plays = order && draft.unknownOrder.length === 0 ? order : playing
+  if (kept.length) draft.form = plays
   for (const name of plays) {
     for (const l of byName.get(name)!.lines) if (l.chords.length) draft.chordLines.push({ section: name, chords: l.chords })
   }

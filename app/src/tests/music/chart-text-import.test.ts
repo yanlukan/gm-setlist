@@ -3,13 +3,44 @@ import { readChartText } from '../../music/chart-text-import'
 
 describe('readChartText', () => {
   it('reads the header lines', () => {
-    const d = readChartText('title: La Song\nArtist: Nobody\nKey: F#m\nBPM: 92\nTime: 6/8\nOrder: Intro, Verse, Chorus\n[Intro]\n| F#m | A |')
+    const d = readChartText('title: La Song\nArtist: Nobody\nKey: F#m\nBPM: 92\nTime: 6/8\nOrder: Intro, Verse, Chorus\n[Intro]\n| F#m | A |\n[Verse]\n| A |\n[Chorus]\n| D |')
     expect(d.title).toBe('La Song')
     expect(d.artist).toBe('Nobody')
     expect(d.key).toBe('F#m')
     expect(d.bpm).toBe(92)
     expect(d.timeSignature).toBe('6/8')
     expect(d.form).toEqual(['Intro', 'Verse', 'Chorus'])
+    expect(d.unknownOrder).toEqual([])
+  })
+
+  it('an Order line naming a part the chart lacks gives way to the playing order', () => {
+    const d = readChartText('Order: Intro, Bridge, Verse, Coda, Bridge\n[Intro]\nC G\n[Verse]\nAm F\n[Intro]')
+    expect(d.unknownOrder).toEqual(['Bridge', 'Coda'])
+    expect(d.form).toEqual(['Intro', 'Verse', 'Intro'])
+    expect(d.chordLines.map(l => l.section)).toEqual(['Intro', 'Verse', 'Intro'])
+  })
+
+  it('a name and chords on one line is a section and its first chord line', () => {
+    const d = readChartText('Intro: Am F C G\nVerse: | C | G |\n| Am | F |\nChorus:\nF C')
+    expect(d.sections).toEqual([
+      { name: 'Intro', chords: 'Am F C G' }, { name: 'Verse', chords: 'C G\nAm F' }, { name: 'Chorus', chords: 'F C' },
+    ])
+    expect(d.chordLines[0]).toEqual({ section: 'Intro', chords: ['Am', 'F', 'C', 'G'] })
+    expect(d.unbarred).toEqual(['Intro', 'Chorus'])
+  })
+
+  it('a name with words after the colon is a dropped word line', () => {
+    const d = readChartText('[Verse]\nC G\nIntro: la la\nAm F')
+    expect(d.sections).toEqual([{ name: 'Verse', chords: 'C G\nAm F' }])
+    expect(JSON.stringify(d)).not.toContain('la')
+    expect(readChartText('Intro: la la').sections).toEqual([])
+  })
+
+  it('a barred chart written with names on the chord lines stays barred', () => {
+    const d = readChartText('Intro: | Am | F |\nVerse: | C | G |')
+    expect(d.barred).toBe(true)
+    expect(d.unbarred).toEqual([])
+    expect(d.sections[0]).toEqual({ name: 'Intro', chords: '| Am | F |' })
   })
 
   it('a barred chart keeps its bar lines', () => {
@@ -39,6 +70,7 @@ describe('readChartText', () => {
   it('a chart mixing barred and unbarred sections is unbarred', () => {
     const d = readChartText('Verse:\n| C | G |\nChorus:\nF C')
     expect(d.barred).toBe(false)
+    expect(d.unbarred).toEqual(['Chorus'])
     expect(d.sections).toEqual([{ name: 'Verse', chords: 'C G' }, { name: 'Chorus', chords: 'F C' }])
     expect(d.chordLines).toHaveLength(2)
   })

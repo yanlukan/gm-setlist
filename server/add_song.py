@@ -54,13 +54,21 @@ def _request(stdin):
     return request
 
 
-def _answer(request, full, analyze):
+def _signature(request):
+    """The time signature and its beats per bar, checked before the record is read."""
+    chart = request.get('chart') or {}
+    signature = request.get('timeSignature') or chart.get('timeSignature') or '4/4'
+    try:
+        return signature, beats_per_bar(signature)
+    except ValueError as error:
+        _fail(f"{request['title']}: {error}")
+
+
+def _answer(request, full, analyze, signature, per_bar):
     title = request['title']
     print(f'{title}: reading {os.path.basename(full)}', file=sys.stderr)
     analysis = analyze(full, cache_file(audio.CACHE_DIR, title, full))
     chart = request.get('chart')
-    signature = request.get('timeSignature') or (chart or {}).get('timeSignature') or '4/4'
-    per_bar = beats_per_bar(signature)
     key = request.get('key') or (chart or {}).get('key') or key_from_analysis(analysis)
     bpm = request.get('bpm') or (chart or {}).get('bpm') or fold_bpm(analysis['bpm'])
     answer = {'recording': os.path.basename(full), 'duration': analysis['duration'],
@@ -90,9 +98,10 @@ def main(argv=None, analyze=audio.analyze, stdin=sys.stdin, stdout=sys.stdout):
     full = os.path.expanduser(str(request['recording']))
     if not os.path.isfile(full):
         _fail(f"{request['title']}: no recording at {full}", full)
+    signature, per_bar = _signature(request)
     try:
         with contextlib.redirect_stdout(sys.stderr):   # stdout carries only the answer
-            answer = _answer(request, full, analyze)
+            answer = _answer(request, full, analyze, signature, per_bar)
     except Exception as error:
         _fail(f"{request['title']}: cannot read the recording ({type(error).__name__}: {error})", full)
     stdout.write(json.dumps(answer, ensure_ascii=False) + '\n')

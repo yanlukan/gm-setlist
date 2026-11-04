@@ -77,6 +77,53 @@ describe('add-song.mjs', () => {
     expect(JSON.parse(readFileSync(join(out, 'la-song.json'), 'utf8')).bpm).toBe(120)
   })
 
+  it('refuses a title that gives no file name', () => {
+    const r = run(['--title', '!!!'])
+    expect(r.status).toBe(1)
+    expect(r.stderr).toContain('gives no file name')
+    expect(existsSync(out)).toBe(false)
+  })
+
+  it("refuses to overwrite another title's file", () => {
+    expect(run(['--title', 'La Song']).status).toBe(0)
+    const r = run(['--title', 'La-Song'], { ...recordAnswer, bpm: 120 })
+    expect(r.status).toBe(1)
+    expect(r.stderr).toContain('"La Song"')
+    expect(r.stderr).toContain('"La-Song"')
+    expect(JSON.parse(readFileSync(join(out, 'la-song.json'), 'utf8')).bpm).toBe(100)
+  })
+
+  it('refuses an Order line that names a part the chart lacks', () => {
+    writeFileSync(join(dir, 'chart.txt'), 'Order: Verse, Bridge\n[Verse]\nC G\n')
+    const r = run(['--title', 'La Song', '--chart', join(dir, 'chart.txt')], { ...recordAnswer, route: 'words' })
+    expect(r.status).toBe(1)
+    expect(r.stderr).toContain('"Bridge"')
+    expect(existsSync(join(dir, 'request.json'))).toBe(false)
+    expect(existsSync(out)).toBe(false)
+  })
+
+  it('a chart only partly in bars names the sections without bar lines, never their lines', () => {
+    writeFileSync(join(dir, 'chart.txt'), '[Verse]\n| C | G |\n[Chorus]\nF C\nla la la\n[Bridge]\nAm G\n')
+    const r = run(['--title', 'La Song', '--chart', join(dir, 'chart.txt')], { ...recordAnswer, route: 'words' })
+    expect(r.status, r.stderr).toBe(0)
+    expect(r.stderr).toContain('Chorus, Bridge have no bar lines, so the chart will be lined up chord by chord')
+    expect(r.stderr).not.toContain('Verse')
+    expect(r.stderr).not.toContain('F C')
+    expect(r.stderr).not.toContain('la la')
+  })
+
+  it('a chart all in bars or all without them gives no warning', () => {
+    writeFileSync(join(dir, 'chart.txt'), '[Verse]\nC G\n[Chorus]\nF C\n')
+    const r = run(['--title', 'La Song', '--chart', join(dir, 'chart.txt')], { ...recordAnswer, route: 'words' })
+    expect(r.status, r.stderr).toBe(0)
+    expect(r.stderr).not.toContain('bar lines')
+  })
+
+  it('prints no full path', () => {
+    const r = run(['--title', 'La Song'])
+    expect(r.stdout).not.toContain(dir)
+  })
+
   it('a barred chart goes as an exported chart, the key and tempo left for the record', () => {
     writeFileSync(join(dir, 'chart.txt'), '[Verse]\n| C | G | Am | F |\n')
     const check = { recording: 'la-song.m4a', checked: '2026-11-04', shift: 0, verdict: 'lined up', bars: [], unchecked: [] }

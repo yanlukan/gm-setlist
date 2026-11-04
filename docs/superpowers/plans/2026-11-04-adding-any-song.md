@@ -15,9 +15,9 @@
 
 ## Global Constraints
 
-- Branch `rework` in `/Users/krys/Documents/coding/cheetsheetForGuitarPlaying-rework`. Never push, merge or touch `main`.
+- Branch `rework` in `$REPO` (the rework worktree). Never push, merge or touch `main`.
 - Code files 800 lines or fewer, one job per module. Add nothing to `app/src/store/use-store.ts`. Add nothing to `app/src/data/songs.ts`.
-- Python: `/Users/krys/Documents/coding/cheetsheetForGuitarPlaying/server/.venv/bin/python`. BTC: the main checkout's `server/btc` (found by `audio._btc_server`). Install nothing.
+- Python: `$PY` (the main checkout's `server/.venv/bin/python`). BTC: the main checkout's `server/btc` (found by `audio._btc_server`). Install nothing.
 - The repository is public. Never commit audio, local paths or a recording's folder. A song file names its recording by file name only. Validation output goes to the scratchpad, not to `app/src/data/added/`.
 - Detector chords never ship as fact: a bar that comes only from the record is `Unsure`, unless a trusted chart agrees with it.
 - No rule for one song: every threshold is the same for every song, and the stage 5 thresholds are not changed.

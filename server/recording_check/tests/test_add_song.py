@@ -104,6 +104,13 @@ class AddSongTests(unittest.TestCase):
     def test_bad_time_signature_exits_2(self):
         self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'timeSignature': 'fast'}))
 
+    def test_a_bad_time_signature_stops_before_the_record_is_read(self):
+        for signature in ('fast', '0/4', '4/0'):
+            message = self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'timeSignature': signature}))
+            self.assertIn('bad time signature', message)
+            self.assertNotIn('cannot read the recording', message)
+        self.assertEqual(self.calls, 0)
+
     def test_a_reading_that_raises_exits_2_without_the_path(self):
         def boom(path, cache):
             raise ValueError(f'no beats in {path}')

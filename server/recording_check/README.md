@@ -198,3 +198,19 @@ What each route marks:
 | Every section has bar lines | `chart` | the chart's bars, `chordsFrom: Chart`; each bar stage 5's check disputes is Unsure with both readings. A chart that will not line up ships as written with nothing marked, and the notes say so |
 | Chords over words, no bar lines | `words` | the record's bars spelled from the chart, `chordsFrom: Chart`; the bars the chart and record disagree on are Unsure |
 | None | `record` | the record's own bars in parts `Part 1`, `Part 2`…, `chordsFrom: Record`; every bar Unsure with the record's one reading |
+
+The chart text may also put a section's name and its first chord line on one line (`Intro: Am F C G`);
+with any word after the colon the whole line is dropped. An `Order:` line that names a part the chart
+lacks is refused (exit 1, nothing written), with the unknown names. A chart where only some sections have
+bar lines is read as chords over words: the tool names the sections without bar lines on stderr.
+
+What happens next:
+
+- The command prints the file it wrote, the count of Unsure bars and the route it took (`chart`, `words`
+  or `record`). The barred route leaves few bars to confirm; the words and record routes leave most of
+  them. On Freedom! '90 (docs/sessions/add-any-song.md): barred chart 0 of 144 bars Unsure, the same chart
+  without bar lines 125 of 144, recording only 144 of 144.
+- The song joins the library, not the gig list: add it in Practice → Songs → Edit list.
+- Commit the file and build and deploy as usual; the iPad sees the song only after that.
+- Confirm each Unsure bar by ear: tap the bar on the chart, then tap the reading you play; the mark goes.
+- The recording stays where it is. Only its file name goes in the song file, never its folder.

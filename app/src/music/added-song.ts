@@ -1,7 +1,7 @@
 import type { Section, Song } from '../types'
 import type { ChartDraft } from './chart-text-import'
 import { withRecordCheck, type CheckEntry } from './record-check'
-import { openUnsure } from './evidence'
+import { barsOfSection, openUnsure } from './evidence'
 
 /** What server/add_song.py answers for one recording (see server/recording_check/README.md). */
 export interface AddAnswer {
@@ -42,7 +42,16 @@ export function answerProblem(value: unknown): string | null {
   if (!isSections(a.sections)) return `route ${a.route} needs sections`
   if (!Array.isArray(a.form) || !a.form.every(isText)) return `route ${a.route} needs a song order`
   if (a.evidence !== undefined && (typeof a.evidence !== 'object' || a.evidence === null)) return `route ${a.route} has bad evidence`
+  if (a.route === 'record') return recordProblem(a.sections, a.evidence as Song['evidence'])
   return null
+}
+
+/** Route record: every bar comes from the detector alone, so every bar must be an open Unsure bar. */
+function recordProblem(sections: Section[], evidence: Song['evidence']): string | null {
+  const open = new Set(openUnsure({ sections, evidence } as Song, undefined).map(u => `${u.section}:${u.bar}`))
+  const all = sections.flatMap((s, section) => barsOfSection(s.chords).map((_, bar) => `${section}:${bar}`))
+  const first = all.findIndex(key => !open.has(key))
+  return first === -1 ? null : `route record: bar ${first + 1} of ${all.length} is not Unsure`
 }
 
 /** The rule Python's audio.cache_file uses: lower case, every run of other characters one dash. */
@@ -58,6 +67,7 @@ function routeNote(answer: AddAnswer, unsure: number): string {
   if (answer.route === 'chart' && answer.check?.verdict !== 'lined up') {
     return 'From your chart; the recording could not be lined up, so nothing is marked.'
   }
+  if (answer.route === 'words') return `From your chart, its chords placed on the recording's bars; ${bars(unsure)} to check.`
   return `From your chart, lined up with the recording; ${bars(unsure)} to check.`
 }
 

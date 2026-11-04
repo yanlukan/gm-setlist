@@ -38,7 +38,7 @@ describe('addedSong', () => {
     expect(song.chordsFrom).toBe('Chart')
     expect(song.evidence).toEqual(evidence)
     expect(song.form).toEqual(['Verse', 'Verse'])
-    expect(song.notes).toContain('1 bar to check')
+    expect(song.notes).toBe("Recording: la-song.m4a. From your chart, its chords placed on the recording's bars; 1 bar to check.")
     expect(isAddedSong(song)).toBe(true)
   })
 
@@ -75,6 +75,16 @@ describe('answerProblem', () => {
     expect(answerProblem({ ...base, route: 'chart' })).toMatch(/check/)
     expect(answerProblem({ ...base, route: 'other' })).toMatch(/route/)
     expect(answerProblem('nonsense')).not.toBeNull()
+  })
+  it('route record with a bar that is not Unsure is refused', () => {
+    const sections = [{ name: 'Part 1', chords: '| C | G |' }, { name: 'Part 2', chords: '| Am | F |' }]
+    const unsure = (chords: string, bar: number) => ({ bar, chords, from: 'Unsure' as const, readings: [{ from: 'Record' as const, chords }] })
+    const all = { 'Part 1': { bars: [unsure('C', 0), unsure('G', 1)] }, 'Part 2': { bars: [unsure('Am', 0), unsure('F', 1)] } }
+    const record = { ...base, route: 'record', sections, form: ['Part 1', 'Part 2'] }
+    expect(answerProblem({ ...record, evidence: all })).toBeNull()
+    expect(answerProblem({ ...record, evidence: { ...all, 'Part 2': { bars: [unsure('Am', 0)] } } })).toBe('route record: bar 4 of 4 is not Unsure')
+    expect(answerProblem({ ...record, evidence: { ...all, 'Part 1': { bars: [{ ...unsure('C', 0), from: 'Record' }, unsure('G', 1)] } } })).toBe('route record: bar 1 of 4 is not Unsure')
+    expect(answerProblem(record)).toBe('route record: bar 1 of 4 is not Unsure')
   })
 })
 

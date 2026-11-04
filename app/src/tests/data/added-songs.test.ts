@@ -27,8 +27,16 @@ describe('songs added as data', () => {
       './added/d.json': null,
       './added/e.json': { ...song('E'), sections: [] },
       './added/f.json': song('F'),
+      './added/g.json': { ...song('G'), form: 'Verse' },
+      './added/h.json': { ...song('H'), form: ['Part 1', 2] },
+      './added/i.json': { ...song('I'), chordsFrom: 'Unsure' },
+      './added/j.json': { ...song('J'), chordsFrom: 'Guess' },
+      './added/k.json': song('   '),
+      './added/l.json': { ...song('L'), timeSignature: '0/4' },
+      './added/m.json': { ...song('M'), timeSignature: '4/0' },
+      './added/n.json': { ...song('N'), form: ['Part 1', 'Part 1'], chordsFrom: 'Record' },
     }
-    expect(addedSongs(files, SONGS).map(s => s.title)).toEqual(['F'])
+    expect(addedSongs(files, SONGS).map(s => s.title)).toEqual(['F', 'N'])
     expect(isAddedSong(null)).toBe(false)
   })
 
