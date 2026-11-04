@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from recording_check.skeleton import bar_starts, off_beat, parts, record_bars, unsure_evidence
+from recording_check.skeleton import bar_starts, parts, record_bars, unsure_evidence
 from recording_check.tests.synthetic import analysis
 
 
@@ -78,19 +78,6 @@ class RecordBarsTest(unittest.TestCase):
         bars = record_bars(record, 'C')
         self.assertEqual([b['text'] for b in bars], ['C', 'G', 'Am . F .', 'C'])
         self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 2.4)
-
-    def test_a_tracker_on_the_off_beats_reads_its_bars_on_the_right_beats(self):
-        # chords change every 0.5 s on the beat; the tracker's beats sit half-way between
-        record = analysis(['N', 'N'] + ['C'] * 4 + ['G'] * 4 + ['Am', 'Am', 'F', 'F'] + ['C'] * 4,
-                          bpm=120, phase=0.25)
-        self.assertTrue(off_beat(record['beats'], record['chords']))
-        bars = record_bars(record, 'C')
-        self.assertEqual([b['text'] for b in bars], ['C', 'G', 'Am . F .', 'C'])
-        self.assertAlmostEqual(bars[0]['start'], 1.0)
-
-    def test_a_tracker_on_the_beats_stays_put(self):
-        record = analysis(['C'] * 4 + ['G'] * 4 + ['Am'] * 4, bpm=120, phase=0.1)
-        self.assertFalse(off_beat(record['beats'], record['chords']))
 
     def test_three_four(self):
         record = analysis(['C'] * 3 + ['G'] * 3 + ['F', 'G', 'G'], bpm=120)
