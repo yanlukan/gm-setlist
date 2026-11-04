@@ -107,6 +107,21 @@ recording alone; every such bar ships as `Unsure`, never as fact.
   Lines of 4 bars; a line equal to an earlier one is that part again (`Part 1`,
   `Part 2`... in playing order). Every bar is `Unsure` with the record's reading.
 
+## A chart with no bar lines
+
+A trusted chart written as chords over words (the words are dropped on reading)
+is lined up chord by chord with the record's own bars (`words.py`). The bars are
+collapsed to their chord changes; a Needleman-Wunsch line-up pairs the chart's
+chords with them (0 when they agree as in stage 5's `agree.py`, 1 when not,
+`GAP_COST` for a chord or a change with no partner; a bar holding the chord of the
+bar before may take a chart chord, free when it takes none). Each bar belongs to
+the chart line of its first paired change, else the line before; the chart's
+section names give the parts, a name played again differently numbered ` 2`, ` 3`.
+A bar is `Chart`, in the chart's spelling on the record's beats, when every chord
+in it agrees with its chart chord on a beat of at least `MIN_CONFIDENCE` and no
+chart chord the record lacks falls in it; every other bar is `Unsure`, with the
+chart's reading (when a chart chord falls in it) and the record's.
+
 ## Thresholds
 
 The same for every song; never tune one for a single song.
@@ -135,5 +150,6 @@ The same for every song; never tune one for a single song.
 | align.py | BEAT_TOLERANCE, MAX_GAP | 0.15, 2.5 beats | when a tracker beat is off the pulse |
 | skeleton.py | SILENT | 1e-6 | a beat whose chroma is this small is silence and does not vote for the bar phase |
 | skeleton.py | LINE_BARS | 4 | bars per line of a record-only chart |
+| words.py | GAP_COST | 1.0 | a chart chord or a record change with no partner, in the line-up of a chart with no bar lines |
 | key.py | SLOWEST, FASTEST | 70, 140 bpm | the range a record-only tempo is folded into |
 | align.py | SNAP | 0.15 | how near double or half time a tracker must be to keep its phase; else (a 12/8 feel) units follow the chart's tempo |
