@@ -91,6 +91,21 @@ The tests need no audio: `$PY -m unittest discover -s recording_check/tests -t .
    (each chart bar counted once, hand bars left out), or a chart that does not fit in the recording, is
    `not lined up`.
 
+## A song with no chart
+
+For a new song with no trusted chart, the key and the bars are read off the
+recording alone; every such bar ships as `Unsure`, never as fact.
+
+- **Key and tempo** (`key.py`): the summed chroma against the Krumhansl-Kessler
+  major and minor profiles (sharp names for C G D A E B F# and their minors, flat
+  for F Bb Eb Ab Db and theirs); the tracker's bpm doubled or halved into 70-140.
+- **Bars and parts** (`skeleton.py`): bars on the tracker's steady beats, bar 1
+  on the beat phase where most BTC chord changes land (so a long intro moves
+  nothing); each bar read beat by beat and written as one chord when it holds,
+  else its beats; silent bars at either end and a final partial bar left out.
+  Lines of 4 bars; a line equal to an earlier one is that part again (`Part 1`,
+  `Part 2`... in playing order). Every bar is `Unsure` with the record's reading.
+
 ## Thresholds
 
 The same for every song; never tune one for a single song.
@@ -117,4 +132,7 @@ The same for every song; never tune one for a single song.
 | check.py | RHYTHM_TEMPO | 0.10 | rhythm only when the tracker is this close to the chart's bpm |
 | verdict.py | LOCAL_WINDOW, LOCAL_MOST | 5, 3 | of this many consecutive plays in playing order (hand bars included), this many differing mean the line-up slipped |
 | align.py | BEAT_TOLERANCE, MAX_GAP | 0.15, 2.5 beats | when a tracker beat is off the pulse |
+| skeleton.py | PHASE_TOLERANCE | 0.25 beat | how far off a downbeat a chord change may sit and still count for the bar phase |
+| skeleton.py | LINE_BARS | 4 | bars per line of a record-only chart |
+| key.py | SLOWEST, FASTEST | 70, 140 bpm | the range a record-only tempo is folded into |
 | align.py | SNAP | 0.15 | how near double or half time a tracker must be to keep its phase; else (a 12/8 feel) units follow the chart's tempo |
