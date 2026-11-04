@@ -15,8 +15,10 @@ again with the same bars reuses its section, else it is named `<name> 2`, `<name
 
 A record change left unpaired whose run covers no more than verdict.QUARTER of the
 bar and ends in it is a passing reading (stage 5's rule): it disputes nothing and is
-not written, and leaving such a change unpaired costs nothing in the line-up. A bar is Chart, written in the chart's spelling on the record's beats,
-when every other chord written in it (each change, and the chord held over from the
+not written, and leaving such a change unpaired costs nothing in the line-up. A bar
+is Chart, written in the chart's spelling, when it holds one chord (no change after
+beat 1 but passing readings: where a chord changes inside a bar is the record's
+timing alone), the chord written in it (a change, or the chord held over from the
 bar before) comes from an agreeing chart chord on a beat of at least MIN_CONFIDENCE,
 and no chart chord the record lacks falls inside it. Every other bar is Unsure, with
 the chart's reading (when a chart chord falls in it) and the record's; it is written
@@ -130,6 +132,8 @@ def _per_bar(bars, chart, changes, path):
             if beat == 0:
                 here['chart'][0] = chart[held[0]][2]
             continue
+        if beat > 0:   # a change inside the bar: the record's timing alone, never Chart
+            here['sure'] = False
         if change or c is not None:   # a held chord the chart names again starts its chord anew
             held = None if c is None else (c, agrees(chord, chart[c][1], chart[c][2]))
             if c is not None and here['line'] is None:

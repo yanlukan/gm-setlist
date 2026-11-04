@@ -28,9 +28,21 @@ class LineUpTest(unittest.TestCase):
         self.assertEqual(out['form'], ['Verse'])
         self.assertEqual(out['evidence'], {'Verse': {'from': 'Chart', 'bars': []}})
 
-    def test_a_chart_bar_keeps_the_records_beats(self):
+    def test_a_changing_bar_is_written_in_the_charts_chords_on_the_records_beats(self):
         out = line_up(lines(('Verse', 'Gm7 C F')), [bar('Gm Gm C C'), held('F')], 'F')
         self.assertEqual(out['sections'][0]['chords'], '|  Gm7  .  C  .  |  F  |')
+        self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [0])
+
+    def test_a_bar_with_a_change_inside_it_is_unsure(self):
+        out = line_up(lines(('Verse', 'C Bb')), [bar('C C Bb Bb')], 'F')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  .  Bb  .  |')
+        self.assertEqual(out['evidence']['Verse']['bars'], [
+            {'bar': 0, 'chords': 'C . Bb .', 'from': 'Unsure',
+             'readings': [{'from': 'Chart', 'chords': 'C . Bb .'}, {'from': 'Record', 'chords': 'C . Bb .'}]}])
+
+    def test_two_held_bars_are_both_chart(self):
+        out = line_up(lines(('Verse', 'C Bb')), [held('C'), held('Bb')], 'F')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  Bb  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [])
 
     def test_a_held_bar_takes_the_spelling_of_the_chord_it_holds(self):
@@ -162,7 +174,8 @@ class LineUpTest(unittest.TestCase):
         record = analysis(['C'] * 4 + ['G'] * 4 + ['A:min', 'A:min', 'F', 'F'] + ['C'] * 4, bpm=120)
         out = line_up(lines(('Verse', 'Cmaj7 G/B Am7 F C')), record_bars(record, 'C'), 'C')
         self.assertEqual(out['sections'][0]['chords'], '|  Cmaj7  |  G/B  |  Am7  .  F  .  |  C  |')
-        self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [1])
+        # bar 1: G against G/B; bar 2: a change inside the bar
+        self.assertEqual([b['bar'] for b in out['evidence']['Verse']['bars']], [1, 2])
 
 
 if __name__ == '__main__':
