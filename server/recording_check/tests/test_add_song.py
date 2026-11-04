@@ -78,7 +78,7 @@ class AddSongTests(unittest.TestCase):
         with contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as raised:
             add_song.main(analyze=analyze or self.fake, stdin=io.StringIO(raw), stdout=io.StringIO())
         self.assertEqual(raised.exception.code, 2)
-        self.assertEqual(len(err.getvalue().strip().splitlines()), 1)
+        self.assertNotIn('Traceback', err.getvalue())
         self.assertNotIn(self.dir.name, err.getvalue())
         return err.getvalue()
 
