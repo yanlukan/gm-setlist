@@ -4,7 +4,14 @@
 One way in on the Mac: the player's recording, plus a trusted chord chart if one exists, becomes a song file in the beat format with every bar marked by its evidence. It opens in the app like any of the 21; the player confirms the Unsure bars by ear. No song needs code. Version 4.13.0.
 
 ## Decisions
-See "Rulings" in docs/superpowers/plans/2026-11-04-adding-any-song.md.
+See "Rulings" in docs/superpowers/plans/2026-11-04-adding-any-song.md, plus these made during the build:
+- Added songs join the library, not the gig list (Edit list puts one in).
+- Record-only bar phase: beat-to-beat chroma change (16/18 lined-up songs right); bars cut at the folded tempo; wholly N.C. bars trimmed at the record's ends.
+- Words route: stage 5's QUARTER rule for passing readings, in and after the line-up; a bar is trusted only when it holds one chord the chart names and the record is confident; a weak bar is Unsure with one Chart reading; a bar with a change inside it is Unsure with two different readings.
+- An Unsure bar may hold one reading; two or more must differ. The sheet says "the recording only" or "the recording could not confirm it".
+- The half-beat grid move was tried and reverted (worse end to end).
+- The command refuses a title already shipped, an empty slug, another song's file, an Order line naming a missing part; it warns when some parts have no bar lines.
+- Parked: an inline `Name: chords` line of capitalised words could make a lyric word a part name; tighten to known part words later.
 
 ## Progress
 - 2026-11-04: plan written (7 tasks), commit 23a43fc.
@@ -14,6 +21,7 @@ See "Rulings" in docs/superpowers/plans/2026-11-04-adding-any-song.md.
 - Task 4 chord-over-words line-up (8803ea4, 55df8bc, f28a3c5): stage 5's QUARTER rule for passing readings; Freedom! '90 test run 86 of 144 bars Unsure.
 - Task 5 add_song.py (a2acae9, bb185e4, c682879): stdout only the answer, bad input exits 2, paths cut to file names.
 - Task 6 add-song.mjs (18fe415): one command; app modules loaded with Vite's runnerImport; chord lines repeat at each play.
+- Final review fix wave 91c449b: stricter added-file check, Order and unbarred-part messages, `Name: chords` lines, README "what happens next", write-point guards.
 - Task 7 validation and its fixes (d5afd37, 8613fa4 revert of 5a3c427, 9e059b1, 5954f29, 61225d2, 4aa20e0): see below. Version 4.13.0. Pictures docs/rework-shots/added-song-*.png.
 
 ## Validation: Freedom! '90 fed in as if new (2026-11-04)
@@ -40,4 +48,4 @@ Lesson: the barred chart is the route to trust. Without bar lines, or without a 
 None blocking. For the player: added songs are not put in the gig list; add one with Practice → Songs → Edit list.
 
 ## What's left
-Final whole-branch review, one fix wave, scoped re-review. Follow-up: the record's bars read about a beat late on Freedom! '90 (BTC's chords come late against the beats); the words and record routes would gain most from fixing that.
+Done: final review (no Critical, 6 Important fixed in 91c449b), scoped re-review clean; 1193 app tests, 173 Python tests, release check 360 pages / 0 problems. Follow-up: the record's bars read about a beat late on Freedom! '90 (BTC's chords come late against the beats); the words and record routes would gain most from fixing that.
