@@ -15,7 +15,7 @@ again with the same bars reuses its section, else it is named `<name> 2`, `<name
 
 A record change left unpaired whose run covers no more than verdict.QUARTER of the
 bar and ends in it is a passing reading (stage 5's rule): it disputes nothing and is
-not written. A bar is Chart, written in the chart's spelling on the record's beats,
+not written, and leaving such a change unpaired costs nothing in the line-up. A bar is Chart, written in the chart's spelling on the record's beats,
 when every other chord written in it (each change, and the chord held over from the
 bar before) comes from an agreeing chart chord on a beat of at least MIN_CONFIDENCE,
 and no chart chord the record lacks falls inside it. Every other bar is Unsure, with
@@ -72,8 +72,9 @@ def _changes(bars):
 
 
 def _skip(item):
-    """What leaving a record item unpaired costs: a chord held over from the bar before is free."""
-    return GAP_COST if item[4] else 0.0
+    """What leaving a record item unpaired costs: a chord held over from the bar before, or a
+    short change (a passing reading), is free."""
+    return GAP_COST if item[4] and not item[5] else 0.0
 
 
 def _align(chart, changes):

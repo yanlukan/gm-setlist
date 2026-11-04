@@ -103,6 +103,18 @@ class LineUpTest(unittest.TestCase):
         self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |')
         self.assertEqual(out['evidence']['Verse']['bars'], [])
 
+    def test_a_passing_reading_is_left_unpaired_in_the_line_up(self):
+        from recording_check.chords import parse as chord
+        from recording_check.words import _align, _changes, _chart_chords
+        record = [bar('C C C F/A'), held('G')]
+        chart = _chart_chords(lines(('Verse', 'C G')))
+        changes = _changes(record)
+        self.assertEqual(_align(chart, changes), [(0, 0), (None, 1), (1, 2)])
+        self.assertEqual(changes[1][2], chord('F/A'))
+        out = line_up(lines(('Verse', 'C G')), record, 'C')
+        self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |')
+        self.assertEqual(out['evidence']['Verse']['bars'], [])
+
     def test_a_change_covering_half_the_bar_still_disputes_it(self):
         out = line_up(lines(('Verse', 'C G')), [bar('C C F/A F/A'), held('G')], 'C')
         self.assertEqual(out['evidence']['Verse']['bars'], [

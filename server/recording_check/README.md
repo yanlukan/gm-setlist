@@ -118,7 +118,8 @@ bar before may take a chart chord, free when it takes none). Each bar belongs to
 the chart line of its first paired change, else the line before; the chart's
 section names give the parts, a name played again differently numbered ` 2`, ` 3`.
 An unpaired record change covering no more than `QUARTER` of the bar (and ending
-in it) is a passing reading: it disputes nothing and is not written. A bar is
+in it) is a passing reading: it disputes nothing, is not written, and is free to
+leave unpaired in the line-up. A bar is
 `Chart`, in the chart's spelling on the record's beats, when every other chord in
 it agrees with its chart chord on a beat of at least `MIN_CONFIDENCE` and no chart
 chord the record lacks falls in it; every other bar is `Unsure`, with the chart's
