@@ -51,4 +51,16 @@ describe('songs added as data', () => {
     }
     expect(withRecordCheck([own], RECORD_CHECK)).toEqual([own])
   })
+
+  it('a file without notes or capo opens with defaults', () => {
+    const { notes: _n, capo: _c, ...bare } = song('Bare')
+    expect(addedSongs({ './added/a.json': bare }, SONGS)).toEqual([song('Bare')])
+    const bad = { './added/b.json': { ...song('B'), notes: 3 }, './added/c.json': { ...song('C'), capo: '2' } }
+    expect(addedSongs(bad, SONGS)).toEqual([])
+  })
+
+  it('a bad time signature is skipped', () => {
+    const files = { './added/a.json': { ...song('A'), timeSignature: 'four' }, './added/b.json': { ...song('B'), timeSignature: '4/' } }
+    expect(addedSongs(files, SONGS)).toEqual([])
+  })
 })

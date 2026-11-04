@@ -3,12 +3,15 @@ import { SONGS } from './songs'
 
 const isText = (v: unknown): v is string => typeof v === 'string'
 
-/** A song file that can be opened: the text fields, a tempo, and at least one section with chords. */
+/** A song file that can be opened (notes and capo may be missing, addedSongs fills them): the text fields, a tempo, and at least one section with chords. */
 export function isAddedSong(value: unknown): value is Song {
   if (typeof value !== 'object' || value === null) return false
   const s = value as Record<string, unknown>
   if (!isText(s.title) || !isText(s.artist) || !isText(s.key) || !isText(s.timeSignature)) return false
   if (typeof s.bpm !== 'number' || !Number.isFinite(s.bpm)) return false
+  if (!/^\d+\/\d+$/.test(s.timeSignature)) return false
+  if (s.notes !== undefined && !isText(s.notes)) return false
+  if (s.capo !== undefined && s.capo !== null && (typeof s.capo !== 'number' || !Number.isFinite(s.capo))) return false
   if (!Array.isArray(s.sections) || s.sections.length === 0) return false
   return s.sections.every(sec => typeof sec === 'object' && sec !== null && isText((sec as Record<string, unknown>).name) && isText((sec as Record<string, unknown>).chords))
 }
@@ -21,7 +24,7 @@ export function addedSongs(files: Record<string, unknown>, shipped: Song[]): Son
     const file = files[name]
     if (!isAddedSong(file) || taken.has(file.title)) continue
     taken.add(file.title)
-    out.push(file)
+    out.push({ ...file, notes: file.notes ?? '', capo: file.capo ?? null })
   }
   return out
 }
