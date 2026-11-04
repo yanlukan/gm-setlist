@@ -6,30 +6,37 @@ from recording_check.skeleton import bar_starts, parts, record_bars, unsure_evid
 from recording_check.tests.synthetic import analysis
 
 
+def starts_of(record, bar_length=4):
+    return bar_starts(record['beats'], record['chroma'], record['hop'], bar_length)
+
+
 class BarPhaseTest(unittest.TestCase):
     def test_bar_phase_follows_the_chord_changes(self):
-        beats = list(np.arange(0, 10, 0.5))
-        changes = [beats[2], beats[6], beats[10]]
-        starts = bar_starts(beats, changes, 4)
-        self.assertAlmostEqual(starts[0], beats[2])
-        self.assertEqual(starts, beats[2::4])
+        # beats every 0.5 s, chord changes at beats 2, 6 and 10
+        chords = ['N', 'N'] + ['C'] * 4 + ['G'] * 4 + ['Am'] * 4 + ['F'] * 4
+        record = analysis(chords, bpm=120)
+        starts = starts_of(record)
+        self.assertAlmostEqual(starts[0], record['beats'][2])
+        self.assertEqual(starts, record['beats'][2::4])
         # ten silent seconds of beats before the same changes: the phase stays on the changes
-        longer = list(np.arange(0, 20, 0.5))
-        moved = [t + 10 for t in changes]
-        starts = bar_starts(longer, moved, 4)
-        self.assertAlmostEqual(starts[0], longer[2])
-        for t in moved:
+        longer = analysis(chords, bpm=120, lead=10.0)
+        starts = starts_of(longer)
+        self.assertAlmostEqual(starts[0], longer['beats'][2])
+        for t in (11.0, 13.0, 15.0):
             self.assertTrue(any(abs(s - t) < 1e-9 for s in starts))
 
     def test_ties_take_the_earliest_phase(self):
-        beats = list(np.arange(0, 10, 0.5))
-        self.assertEqual(bar_starts(beats, [], 4), beats[0::4])
-        self.assertEqual(bar_starts(beats, [beats[1], beats[2]], 4), beats[1::4])
+        record = analysis(['C'] * 16, bpm=120)
+        self.assertEqual(starts_of(record), record['beats'][0::4])
 
-    def test_a_change_a_little_off_the_beat_still_counts(self):
-        beats = list(np.arange(0, 10, 0.5))
-        self.assertEqual(bar_starts(beats, [beats[3] + 0.1, beats[7] - 0.1], 4), beats[3::4])
-        self.assertEqual(bar_starts(beats, [beats[3] + 0.2], 4), beats[0::4])   # 0.4 of a beat off
+    def test_beats_a_little_off_the_music_still_find_the_phase(self):
+        record = analysis(['F'] + ['C'] * 4 + ['G'] * 4 + ['Am'] * 4 + ['F'] * 4, bpm=120, phase=0.1)
+        self.assertEqual(starts_of(record), record['beats'][1::4])
+
+    def test_a_bar_of_tracker_beats_at_double_time(self):
+        # eight tracker beats a bar; the changes fall on tracker beat 2 of 8
+        record = analysis(['N'] + ['C'] * 4 + ['G'] * 4 + ['Am'] * 4, bpm=100, tracker=2.0)
+        self.assertEqual(starts_of(record, 8), record['beats'][2::8])
 
 
 class RecordBarsTest(unittest.TestCase):
@@ -55,6 +62,22 @@ class RecordBarsTest(unittest.TestCase):
     def test_a_final_partial_bar_is_dropped(self):
         record = analysis(['C'] * 4 + ['G'] * 2, bpm=120, tail=0.0)
         self.assertEqual([b['text'] for b in record_bars(record, 'C')], ['C'])
+
+    def test_a_double_time_tracker_gives_bars_at_the_folded_tempo(self):
+        record = analysis(['N', 'N'] + ['C'] * 4 + ['G'] * 4 + ['Am', 'Am', 'F', 'F'] + ['C'] * 4,
+                          bpm=80, tracker=2.0)
+        self.assertEqual(record['bpm'], 160)
+        bars = record_bars(record, 'C')
+        self.assertEqual([b['text'] for b in bars], ['C', 'G', 'Am . F .', 'C'])
+        self.assertAlmostEqual(bars[0]['start'], 1.5)
+        self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 3.0)
+
+    def test_a_half_time_tracker_gives_bars_at_the_folded_tempo(self):
+        record = analysis(['C'] * 4 + ['G'] * 4 + ['Am', 'Am', 'F', 'F'] + ['C'] * 4, bpm=100, tracker=0.5)
+        self.assertEqual(record['bpm'], 50)
+        bars = record_bars(record, 'C')
+        self.assertEqual([b['text'] for b in bars], ['C', 'G', 'Am . F .', 'C'])
+        self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 2.4)
 
     def test_three_four(self):
         record = analysis(['C'] * 3 + ['G'] * 3 + ['F', 'G', 'G'], bpm=120)
