@@ -14,10 +14,9 @@ describe('where each shipped song came from', () => {
           expect(barChords(barsOfSection(section.chords)[b.bar] ?? []), `${name} bar ${b.bar}`).toBe(b.chords)
         }
         if (b.from === 'Unsure') {
-          // A song read off the record alone has the record's one reading; every other Unsure bar has two or more
-          const recordOnly = song.chordsFrom === 'Record' && b.readings!.length === 1 && b.readings![0].from === 'Record'
-          if (!recordOnly) expect(b.readings!.length).toBeGreaterThanOrEqual(2)
-          expect(new Set(b.readings!.map(r => r.chords)).size).toBe(b.readings!.length)
+          // One reading (one weak source), or two or more that all differ
+          expect(b.readings!.length, `${name} bar ${b.bar}`).toBeGreaterThanOrEqual(1)
+          expect(new Set(b.readings!.map(r => r.chords)).size, `${name} bar ${b.bar}`).toBe(b.readings!.length)
         } else expect(b.readings).toBeUndefined()
       }
     }

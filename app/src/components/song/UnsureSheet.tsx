@@ -34,8 +34,11 @@ export function UnsureSheet({ chart, unsure, onClose }: Props) {
   const charted = bar ? barChords(bar) : unsure.evidence.chords
   const readings = unsure.evidence.readings ?? []
   const listed = readings.some(r => squash(r.chords) === squash(charted))
-  // One reading (a song read off the record alone): nothing disagrees, it is just not checked yet
-  const heading = readings.length === 1 ? `${SOURCE_LABEL[readings[0].from].toLowerCase()} only` : 'the sources disagree'
+  // One reading: nothing disagrees. The record's alone is just not checked yet; any other
+  // source's alone is one the recording agreed with too weakly to confirm
+  const heading = readings.length !== 1 ? 'the sources disagree'
+    : readings[0].from === 'Record' ? `${SOURCE_LABEL.Record.toLowerCase()} only`
+    : 'the recording could not confirm it'
 
   const settle = (chords: string) => {
     settleBar(song.title, unsure, chords)
