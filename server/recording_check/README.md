@@ -159,3 +159,7 @@ The same for every song; never tune one for a single song.
 | words.py | GAP_COST | 1.0 | a chart chord or a record change with no partner, in the line-up of a chart with no bar lines |
 | key.py | SLOWEST, FASTEST | 70, 140 bpm | the range a record-only tempo is folded into |
 | align.py | SNAP | 0.15 | how near double or half time a tracker must be to keep its phase; else (a 12/8 feel) units follow the chart's tempo |
+
+## add_song.py
+
+`server/add_song.py` reads one JSON request on stdin (`title`, `recording`, and optionally `timeSignature`, `key`, `bpm`, `chart`, `chordLines`) and writes one JSON answer on stdout; progress goes to stderr. Route `chart` runs stage 5's check, route `words` lines the chord lines up with the record's bars, route `record` gives the record's own bars, all Unsure. The answer names the recording by file name only. A missing or unreadable recording exits 2.
