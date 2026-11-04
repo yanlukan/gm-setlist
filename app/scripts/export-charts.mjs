@@ -2,7 +2,8 @@
 // Usage, from app/: node scripts/export-charts.mjs > ../server/recording_check/charts.json
 // Node strips the types of the two imports below.
 import { fileURLToPath } from 'node:url'
-import { SONGS as DEFAULT_SONGS } from '../src/data/songs.ts'
+import { SONGS } from '../src/data/songs.ts'
+import { readAddedSongs } from './added-songs.mjs'
 import { barsOf, beatsOf, hasBars, isRepeatCount, REPEAT_BAR } from '../src/music/bars.ts'
 
 const tokensOf = line => line.split(/\s+/).filter(Boolean)
@@ -87,5 +88,5 @@ export function exportChart(song) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  process.stdout.write(JSON.stringify(DEFAULT_SONGS.map(exportChart), null, 1) + '\n')
+  process.stdout.write(JSON.stringify([...SONGS, ...readAddedSongs()].map(exportChart), null, 1) + '\n')
 }

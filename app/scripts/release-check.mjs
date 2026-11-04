@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, webkit } from 'playwright'
+import { readAddedSongs } from './added-songs.mjs'
 import { problems, sortOut } from './release-problems.mjs'
 import { CHECK_MARKS, CHECK_SONG, PUT_SAVED, SAVED } from './release-saved.mjs'
 
@@ -28,7 +29,9 @@ const PORT = 4179
 const URL = `http://localhost:${PORT}/gm-setlist/`
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SHOTS = join(APP, 'release-shots')
-const EXPECTED_SONGS = 21
+const SHIPPED_SONGS = 21
+/** The shipped songs and the ones written as JSON in src/data/added. */
+const EXPECTED_SONGS = SHIPPED_SONGS + readAddedSongs().length
 /** With the check's own song put in the app's store, the Songs sheet has one more. */
 const WITH_CHECK_SONG = EXPECTED_SONGS + 1
 const ENGINES = [
