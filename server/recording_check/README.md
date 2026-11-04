@@ -101,7 +101,9 @@ recording alone; every such bar ships as `Unsure`, never as fact.
   for F Bb Eb Ab Db and theirs); the tracker's bpm doubled or halved into 70-140.
 - **Bars and parts** (`skeleton.py`): bars on the tracker's steady beats at the
   folded tempo (a tracker under 70 has each beat split, one at 140 or over counts
-  two beats as one), bar 1 on the beat phase where the chroma changes most from
+  two beats as one), moved half a beat when the tracker sits on the off-beats
+  (more than `OFFBEAT_SHARE` of BTC's chord changes nearer the midpoint between two
+  beats than a beat), bar 1 on the beat phase where the chroma changes most from
   the beat before (so a long intro moves nothing); each bar read beat by beat and written as one chord when it holds,
   else its beats; silent bars at either end and a final partial bar left out.
   Lines of 4 bars; a line equal to an earlier one is that part again (`Part 1`,
@@ -154,6 +156,7 @@ The same for every song; never tune one for a single song.
 | check.py | RHYTHM_TEMPO | 0.10 | rhythm only when the tracker is this close to the chart's bpm |
 | verdict.py | LOCAL_WINDOW, LOCAL_MOST | 5, 3 | of this many consecutive plays in playing order (hand bars included), this many differing mean the line-up slipped |
 | align.py | BEAT_TOLERANCE, MAX_GAP | 0.15, 2.5 beats | when a tracker beat is off the pulse |
+| skeleton.py | OFFBEAT_SHARE | 0.6 | share of BTC's chord changes nearer a midpoint than a beat above which the beat grid moves half a beat (picked the better grid on 15 of 18 lined-up songs) |
 | skeleton.py | SILENT | 1e-6 | a beat whose chroma is this small is silence and does not vote for the bar phase |
 | skeleton.py | LINE_BARS | 4 | bars per line of a record-only chart |
 | words.py | GAP_COST | 1.0 | a chart chord or a record change with no partner, in the line-up of a chart with no bar lines |

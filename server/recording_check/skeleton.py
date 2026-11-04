@@ -2,7 +2,13 @@
 
 Bars sit on the tracker's steady beats (align.steady_beats), brought to the tempo
 key.fold_bpm writes: a tracker under 70 bpm has each beat split in two, one at 140
-or over counts two of its beats as one. Where bar 1 begins (the bar phase) is the
+or over counts two of its beats as one. A tracker on the off-beats moves the grid by
+half a beat: when more than OFFBEAT_SHARE of BTC's chord changes fall nearer the
+midpoint between two beats than a beat, the beats become those midpoints. Measured
+on the 18 lined-up songs against which grid reads more like the hand chart, this
+rule picked the better grid on 15 (never moving: 11; chroma, bass or reading
+confidence at the beats against the midpoints: 6 to 13; task-7-fix-report.md has
+the table). Where bar 1 begins (the bar phase) is the
 beat phase where the harmony changes most: each beat's chroma against the beat
 before (1 - cosine), summed per phase; silent beats do not vote, ties take the
 earliest phase. So a long intro or fade moves nothing: the phase follows the music.
@@ -24,11 +30,13 @@ import numpy as np
 
 from recording_check.align import steady_beats
 from recording_check.audio import span
+from recording_check.chords import parse, same
 from recording_check.key import FASTEST, SLOWEST
 from recording_check.reading import bar_beats
 from recording_check.verdict import read_bar
 
 LINE_BARS = 4
+OFFBEAT_SHARE = 0.6   # more of BTC's chord changes than this nearer a midpoint than a beat: the grid moves half a beat
 SILENT = 1e-6   # a beat's chroma at or below this length is silence: it votes for no phase
 NO_CHORD = 'N.C.'
 
@@ -72,11 +80,43 @@ def _bar_text(record_beats, key):
     return tokens[0] if all(t == '.' for t in tokens[1:]) else ' '.join(tokens)
 
 
+def _change_times(timeline):
+    """BTC's chord changes: its first chord, a different chord, a chord after no chord."""
+    out, before = [], None
+    for entry in sorted(timeline, key=lambda e: e['time']):
+        chord = parse(entry['chord'])
+        if chord is None or chord.kind == 'none':
+            before = None
+            continue
+        if before is None or not same(chord, before):
+            out.append(entry['time'])
+        before = chord
+    return out
+
+
+def off_beat(beats, timeline) -> bool:
+    """True when more than OFFBEAT_SHARE of the chord changes inside the beats sit
+    nearer the midpoint between two beats than a beat (a tie counts as the midpoint)."""
+    beats = np.asarray(beats, dtype=float)
+    on = off = 0
+    for time in _change_times(timeline):
+        i = int(np.searchsorted(beats, time, side='right')) - 1
+        if i < 0 or i + 1 >= len(beats):
+            continue
+        where = (time - beats[i]) / (beats[i + 1] - beats[i])
+        if abs(where - 0.5) <= min(where, 1 - where):
+            off += 1
+        else:
+            on += 1
+    return on + off > 0 and off / (on + off) > OFFBEAT_SHARE
+
+
 def beat_grid(analysis) -> tuple:
     """(beats, stride): the tracker's steady beats at the folded tempo of key.fold_bpm.
 
     A tracker under 70 bpm has each beat split in two; at 140 or over, a beat of the
     song is `stride` tracker beats (which of them is beat 1 is left to the bar phase).
+    A tracker on the off-beats (off_beat) has its beats moved to the midpoints.
     """
     beats = steady_beats(analysis['beats'], _period(analysis['beats'], analysis.get('bpm')))
     tempo = float(analysis.get('bpm') or (60 / _period(beats)))
@@ -87,6 +127,8 @@ def beat_grid(analysis) -> tuple:
     while tempo >= FASTEST:
         stride *= 2
         tempo /= 2
+    if off_beat(beats, analysis.get('chords') or []):
+        beats = [(a + b) / 2 for a, b in zip(beats, beats[1:])]
     return beats, stride
 
 
