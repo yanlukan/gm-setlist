@@ -75,6 +75,50 @@ Same commands and inputs as in `add-any-song.md` (`add-song.mjs`, output to the 
 - The 4 trusted bars that are wrong (23, 30, 63, 70) are all the kind already known: a held `C` where the hand chart has `F/C C`. The record hears the C pedal and the chart names F/C as one of its chords. Before there were 3 such bars (23, 59, 70).
 - Recording only: every bar is still Unsure, as it must be. It has fewer parts because more 4-bar lines now repeat exactly.
 
+## Fix wave after the independent review (2026-11-14)
+`rework` (80a4899, 5.0.0) merged in first (57b35c6). Each claim was reproduced with a failing test before its fix; a builder and a reviewer per group.
+
+| # | Claim | Verdict | Fix (commit) |
+|---|---|---|---|
+| 4 | `settle_edges` has no confidence floor | confirmed | the two inner beats must be at or above `MIN_CONFIDENCE` (7d164d6) |
+| 1 | a bar the record contradicts on every beat ships as Chart | confirmed (`C | D E F# A | G` gave `C` trusted) | a bar needs a non-passing record chord agreeing with the chart's; passing readings alone confirm nothing (7d164d6) |
+| 2 | a record change with no chart partner is confirmed by the chord held over | confirmed (`Am F C G` once, played 3x: bars 0 and 4 trusted) | such a bar is never Chart; when its reading equals the held chord it is Unsure with the record's reading alone (7d164d6, docs f8a908e) |
+| 3 | words reach the song file through part names, inline names, `Key:` | confirmed | known part words (+ number) only, else `Part`; Key and Time validated; Order names without a part word counted, never kept (f07f237) |
+| 5 | repeat counts dropped, name clashes lose chords, word-only header flips the route, late Order ignored, `Time:` unchecked | all confirmed; review found 5 more gaps (colon headers, marks-only lines, Unicode dashes, replay compare, unbounded counts), all fixed | f07f237 |
+| 6 | given bpm ignored by the bars; fold edge mismatch; 3/8 counts; compound meters | bpm and fold edge confirmed; **3/8 refuted on the Python side** (already 3 beats), confirmed in `export-charts.mjs` (gave 1) | bars fold toward a given bpm (20-400), one `fold_ratio`, 6/8 9/8 12/8 refused without a barred chart, 3/8 = 3 everywhere (d537821, 9a2368d) |
+| 7 | added-file checks too loose; skipped files silent; export crash; title match | confirmed | `addedSongProblem`; release check and a test name skipped files; `exportAll` skips bad files; `sameTitle` ignores case, spacing, apostrophes (9a2368d) |
+| 8 | merge test never merged; words fallback labelled Chart | confirmed | the test now runs the merge with a control; the fallback is `chordsFrom: Record` (9a2368d) |
+| 9 | errors outside the guard; cache ignores a replaced recording | confirmed (plus: a replaced file also reused old BTC chords) | guard covers settings and JSON; caches stamp size + mtime, own temporary file, best-effort writes; a tracker with no tempo uses its beats' spacing (d537821) |
+| 10 | slow tests time out under load | confirmed by the brief, not reproduced idle | 20 s on chord-finder, add-song overwrite and export tests (9a2368d) |
+
+### Re-measured with the confidence floor (18 lined-up songs)
+| Rule | Bar starts | Beats right | Bars match |
+|---|---|---|---|
+| no settling | 1046/1979 | 4064 | 748/1979 |
+| settle_edges, first version (521c636) | 1046/1979 | 4320 | 1139/1979 |
+| **settle_edges with the floor (now)** | **1046/1979** | **4331** | **1067/1979** |
+
+The floor reads 11 more beats right and 72 fewer bars matching: a bar whose inner beats are unsure keeps its edge chord as read.
+
+### Words route on the 18 songs (new measure: each hand chart with its bar lines taken out)
+| Rule | Every line written: agree / trusted right | Repeats written once: agree / trusted right |
+|---|---|---|
+| before items 1-2 | 1341/2157; 755 of 875 (86.3%) | 1096/2157; 638 of 776 (82.2%) |
+| **items 1-2 (now)** | 1341/2157; **751 of 844 (89.0%)** | 1096/2157; **607 of 702 (86.5%)** |
+
+Recognising a line the chart writes once and the record plays again was not built: those bars stay Unsure. Explicit counts (`x2`, `(x4)`, `Chorus x2:`) are played out by the importer.
+
+### Freedom! '90 validation, rerun after the fix wave
+| Route | 2026-11-04 before | after 521c636 | now | Trusted bars right (before / 521c636 / now) |
+|---|---|---|---|---|
+| Hand chart with bar lines | 144/144 | 144/144 | 144/144 | 144/144 throughout |
+| Same chart, bar lines taken out | 86/144 | 122/144 | **116/144** (98 Unsure, 13 parts) | 16/19 / 49/53 / **43/46** |
+| Recording only | 53/144 | 86/144 | **87/144** (144 Unsure, 22 parts) | — |
+
+- The planted wrong bar (Chorus bar 2 `Am` for `Bb`) is still the one Unsure bar: Chart `Am`, Record `Bb/A Bb . .`.
+- The 3 trusted bars that are wrong (23, 30, 70) are the known kind: a held `C` where the hand chart has `F/C C`.
+- Measure scripts and validation inputs: the session scratchpad and a copy in the shared notes folder (`late-bars-measure/`), not committed (local paths).
+
 ## Decisions
 - **Kept `settle_edges` in `skeleton.py`.** In a bar of 4 or more beats, a first beat whose chord differs from beats 2 and 3, which agree, takes their chord; the same goes for a last beat and the two before it. It runs on the record's bars before they are written, so both the words route and the record-only route get it.
 - **The settled beat keeps the lower of the two confidences.** It is never surer than either beat, so the words route's trust test (every beat at or above `MIN_CONFIDENCE`) cannot pass on a beat that was weak. A bar can still become one chord and so trusted when all its beats were confident. That is how trusted bars go from 19 to 53. Of the 53, 49 match the hand chart.
@@ -85,11 +129,13 @@ Same commands and inputs as in `add-any-song.md` (`add-song.mjs`, output to the 
 - **Stage 5 (charts with bar lines) is untouched.** `check.py` and `reading.bar_beats` are unchanged, so `recording-check.json` and the barred route give the same results.
 
 ## Progress
+- 2026-11-14: fix wave above (10 items; 9 confirmed in full, item 6's Python 3/8 part refuted). Python 206 tests OK; app: 1234 vitest tests, tsc, build OK; release check 360 pages, 0 problems.
 - 2026-11-04: measured the baseline: 4064 beats right, the same as Task 7's "never move". Tried BTC lag shifts, narrower windows, phase alternatives and 8 edge rules. Kept the edge rule with tests (`test_skeleton.py`: 9 new) and a README line; a reviewer found no bugs (its two suggested tests added). Python: 182 tests OK; app: 1193 vitest tests, tsc, build OK; release check 360 pages, 0 problems. Freedom! '90 rerun as above.
 
 ## Open questions
 None blocking.
 
 ## What's left
+- A line the chart writes once and the record plays again stays Unsure (no repeat recognition).
 - Outside's bar phase (one beat early) and I Can't Make You Love Me's half-tempo bars are still wrong. Fixing them needs a different kind of evidence than chroma change (for example drums), not a re-weighting.
 - The half-beat-off songs (Fastlove, Amazing): stage 5's starts sit between tracker beats, so a record bar start can never land there. 8613fa4 settled that the grid stays.

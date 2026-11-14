@@ -88,7 +88,7 @@ def settle_edges(bars: list) -> list:
     than either. Silence is neither filled nor filling. A bar of fewer than four beats
     is left alone: there beats 2 and 3 are the rest of the bar (a 3/4 bar of 1 + 2), and
     the measure below is all 4/4. Measured on the 18 lined-up songs against their hand charts:
-    beats read right 4064 -> 4320, bars that match 748 -> 1139 (docs/sessions/late-bars.md);
+    beats read right 4064 -> 4331, bars that match 748 -> 1067 (docs/sessions/late-bars.md);
     only 9 of their 1979 bars have a chord that starts on beat 2 or sounds on beat 4 alone.
     """
     out = []
