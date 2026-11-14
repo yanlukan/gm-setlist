@@ -9,6 +9,7 @@ The analysis is a plain dict so the line-up and the tests never need audio:
   bass     one 12-bin bass-band energy per frame, from a CQT from E1
   chords   BTC timeline [{chord, time, duration, confidence}], times on the record
   beat_chroma / beat_bass  the same, summed per tracker beat (for reading by hand)
+  source   the recording's size and modified time: a replaced recording is read again
 """
 import json
 import os
@@ -116,15 +117,69 @@ def _per_beat(frames, hop, beats):
     return [np.round(span(frames, hop, a, b), 4).tolist() for a, b in zip(edges, edges[1:])]
 
 
+def source_of(path) -> dict:
+    """What tells one recording file from its replacement: its size and modified time."""
+    stat = os.stat(path)
+    return {'size': stat.st_size, 'mtime_ns': stat.st_mtime_ns}
+
+
+def _usable_cache(path, cache_path) -> dict:
+    """The cache when it is of this very recording, else {}. A cache of another file name
+    (the cache is keyed by its stem) or of a replaced recording (another size or modified
+    time) keeps nothing, not even BTC's chords. A cache written before recordings were
+    stamped is taken as this recording's: it is trusted and stamped (analyze)."""
+    if not os.path.exists(cache_path):
+        return {}
+    with open(cache_path) as f:
+        cached = json.load(f)
+    if cached.get('recording') not in (None, os.path.basename(path)):
+        return {}
+    if 'source' in cached and cached['source'] != source_of(path):
+        return {}
+    return cached
+
+
+def _write(cache_path, analysis) -> bool:
+    """Best effort, whole or not at all: a temporary file of its own in the cache folder
+    (so runs writing the same cache at once never clash), then put in place. A cache
+    that cannot be written (a read-only folder, a full disk) is left as it was and the
+    analysis is still returned; no temporary file is left behind."""
+    temporary = None
+    try:
+        folder = os.path.dirname(cache_path)
+        os.makedirs(folder, exist_ok=True)
+        handle, temporary = tempfile.mkstemp(dir=folder, suffix='.part')
+        with os.fdopen(handle, 'w') as f:
+            json.dump(analysis, f)
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, cache_path)
+        return True
+    except OSError:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
+        return False
+
+
 def analyze(path: str, cache_path: str) -> dict:
     """The analysis of one recording, read from the cache when it is up to date."""
+    cached = _usable_cache(path, cache_path)
+    if cached.get('version') == VERSION:
+        if 'source' not in cached:
+            cached['source'] = source_of(path)
+            _write(cache_path, cached)
+        return cached
+    analysis = _read(path, cached)
+    analysis['source'] = source_of(path)
+    if not _write(cache_path, analysis):   # never the folder: the repo's output is public
+        print(f'{os.path.basename(path)}: the analysis could not be cached; it is read again next time',
+              file=sys.stderr)
+    return analysis
+
+
+def _read(path, cached) -> dict:
+    """The recording read afresh; BTC's chords are kept from `cached` (this recording's
+    older cache) when BTC and the tuning are unchanged."""
     import librosa
-    cached = {}
-    if os.path.exists(cache_path):
-        with open(cache_path) as f:
-            cached = json.load(f)
-        if cached.get('version') == VERSION:
-            return cached
     y, sr = librosa.load(path, sr=SR, mono=True)
     tuning = float(librosa.estimate_tuning(y=y, sr=sr))
     cents = round(tuning * 100, 1)
@@ -144,7 +199,4 @@ def analyze(path: str, cache_path: str) -> dict:
     }
     analysis['beat_chroma'] = _per_beat(analysis['chroma'], hop, beats)
     analysis['beat_bass'] = _per_beat(analysis['bass'], hop, beats)
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-    with open(cache_path, 'w') as f:
-        json.dump(analysis, f)
     return analysis

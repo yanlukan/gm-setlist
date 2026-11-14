@@ -45,7 +45,12 @@ The tests need no audio: `$PY -m unittest discover -s recording_check/tests -t .
 - `docs/recording-check/report.md`: the same as tables, one per song, with each
   song's line-up `score` (its fit, 0 to 1) and its unchecked bars.
 - `data/recording-check/<song>--<file>.json`: the cached analysis, keyed by title and
-  recording file name (git-ignored). If `btc_chords.py` is not found the tool stops
+  recording file name (git-ignored), stamped with the recording's file name, size and
+  modified time: a recording replaced under the same name (another size or modified
+  time, or another extension of the same stem) is read again from scratch, its old BTC
+  chords not kept. A cache from before the stamp is trusted once and stamped. Caches are
+  written through a temporary file of their own, then put in place; a cache that cannot
+  be written (a read-only folder) is skipped and the analysis still used. If `btc_chords.py` is not found the tool stops
   with an error naming `$BTC_SERVER`.
 
 ## How it works
@@ -98,10 +103,13 @@ recording alone; every such bar ships as `Unsure`, never as fact.
 
 - **Key and tempo** (`key.py`): the summed chroma against the Krumhansl-Kessler
   major and minor profiles (sharp names for C G D A E B F# and their minors, flat
-  for F Bb Eb Ab Db and theirs); the tracker's bpm doubled or halved into 70-140.
-- **Bars and parts** (`skeleton.py`): bars on the tracker's steady beats at the
-  folded tempo (a tracker under 70 has each beat split, one at 140 or over counts
-  two beats as one), bar 1 on the beat phase where the chroma changes most from
+  for F Bb Eb Ab Db and theirs); the tracker's bpm doubled or halved until it is
+  70-139 as written, rounded (`fold_ratio`: 139.6 rounds to 140, so it is halved to 70).
+- **Bars and parts** (`skeleton.py`): bars on the tracker's steady beats doubled or
+  halved by the same `fold_ratio` (doubling splits each beat, halving counts two
+  beats as one), so the bars always sit at the bpm written; when the player gives a
+  bpm (`--bpm`, a chart's `BPM:`), toward that bpm instead (the power of two nearest
+  it by ratio, ties to the slower), bar 1 on the beat phase where the chroma changes most from
   the beat before (so a long intro moves nothing); each bar read beat by beat,
   its edges settled (`settle_edges`: in a bar of 4 or more beats, a first or last
   beat unlike the two next to it, which agree, takes their chord at the lower
@@ -123,15 +131,19 @@ section names give the parts, a name played again differently numbered ` 2`, ` 3
 An unpaired record change covering no more than `QUARTER` of the bar (and ending
 in it) is a passing reading: it disputes nothing, is not written, and is free to
 leave unpaired in the line-up. A record chord the chart lacks is set against
-the chart chord held over from before. A bar is `Chart`, in the chart's spelling,
-when it holds one chord (no change after beat 1 but passing readings: where a chord
-changes inside a bar is the record's timing alone), that chord agrees with the
-chart chord sounding on a beat of at least `MIN_CONFIDENCE`, and no chart chord
-the record lacks falls in it; one agreeing below it is `Unsure` with the chart's
-reading alone. Every other bar is `Unsure` with two different readings,
+the chart chord held over from before, but never confirms it. A bar is `Chart`, in
+the chart's spelling, when it holds one chord (no change after beat 1 but passing
+readings: where a chord changes inside a bar is the record's timing alone), the
+record's own chord there (not a passing reading) agrees with the chart chord
+sounding on a beat of at least `MIN_CONFIDENCE`, no chart chord the record lacks
+falls in it, and no record change in it is one the chart has no chord for; one
+agreeing below it is `Unsure` with the chart's reading alone. A bar of passing
+readings alone confirms nothing. Every other bar is `Unsure` with two different readings,
 Chart and Record, written in the chart's chords on the record's beats; a bar with a
 change inside it has the chart's chords alone (`C Bb`) as its Chart reading. A bar
-whose two readings would be the same is `Chart`. A section played again reuses its
+whose two readings would be the same is `Chart`, unless the record's change there
+has no chord in the chart (a line the chart writes once and the record plays again):
+then it is `Unsure` with the record's reading alone. A section played again reuses its
 section only with the same bars and the same marks; a name ending in a number is
 numbered ` (2)`, ` (3)`.
 
@@ -164,12 +176,14 @@ The same for every song; never tune one for a single song.
 | skeleton.py | SILENT | 1e-6 | a beat whose chroma is this small is silence and does not vote for the bar phase |
 | skeleton.py | LINE_BARS | 4 | bars per line of a record-only chart |
 | words.py | GAP_COST | 1.0 | a chart chord or a record change with no partner, in the line-up of a chart with no bar lines |
-| key.py | SLOWEST, FASTEST | 70, 140 bpm | the range a record-only tempo is folded into |
+| key.py | SLOWEST, FASTEST | 70, 140 bpm | the range a record-only tempo is folded into, judged on the rounded bpm as written |
+| add_song.py | SLOWEST_GIVEN, FASTEST_GIVEN | 20, 400 bpm | a given bpm outside this is refused, exit 2 (`add-song.mjs` refuses the same `--bpm`) |
+| add_song.py | TEMPO_WARN | 0.10 | warn on stderr when the record's bars, folded toward a given bpm, still sit further than this share from it |
 | align.py | SNAP | 0.15 | how near double or half time a tracker must be to keep its phase; else (a 12/8 feel) units follow the chart's tempo |
 
 ## add_song.py
 
-`server/add_song.py` reads one JSON request on stdin (`title`, `recording`, and optionally `timeSignature`, `key`, `bpm`, `chart`, `chordLines`) and writes one JSON answer on stdout; progress goes to stderr. Route `chart` runs stage 5's check, route `words` lines the chord lines up with the record's bars, route `record` gives the record's own bars, all Unsure. The answer names the recording by file name only. A missing or unreadable recording exits 2.
+`server/add_song.py` reads one JSON request on stdin (`title`, `recording`, and optionally `timeSignature`, `key`, `bpm`, `chart`, `chordLines`) and writes one JSON answer on stdout; progress goes to stderr. Route `chart` runs stage 5's check, route `words` lines the chord lines up with the record's bars, route `record` gives the record's own bars, all Unsure. The answer names the recording by file name only. A `bpm` given (or the chart's) is written as the song's bpm and the record's bars are laid at it (the tracker doubled or halved toward it); when no power of two brings the tracker within `TEMPO_WARN` of it, a warning on stderr names both tempos. `3/8` is three beats; `6/8`, `9/8`, `12/8` are two, three, four dotted-quarter beats, and with no barred `chart` they are refused (exit 2): the tracker may count the eighth or the dotted quarter, and doubling or halving cannot turn one into the other, so bars cut from the record would be wrong. A missing or unreadable recording, a bad request (time signature, a bpm that is not a number from 20 to 400 (0 included), a chart that is not an object), or an answer that is not JSON (NaN, a value JSON cannot hold) exits 2 with one line on stderr.
 
 ## Adding a song
 
@@ -199,7 +213,7 @@ What each route marks:
 | Chart | Route | Song file |
 |---|---|---|
 | Every section has bar lines | `chart` | the chart's bars, `chordsFrom: Chart`; each bar stage 5's check disputes is Unsure with both readings. A chart that will not line up ships as written with nothing marked, and the notes say so |
-| Chords over words, no bar lines | `words` | the record's bars spelled from the chart, `chordsFrom: Chart`; the bars the chart and record disagree on are Unsure |
+| Chords over words, no bar lines | `words` | the record's bars spelled from the chart, `chordsFrom: Chart`; the bars the chart and record disagree on, and any the record alone vouches for, are Unsure. A chart with no chords to line up falls back to the record's own parts, every bar Unsure, `chordsFrom: Record` |
 | None | `record` | the record's own bars in parts `Part 1`, `Part 2`…, `chordsFrom: Record`; every bar Unsure with the record's one reading |
 
 The chart text may also put a section's name and its first chord line on one line (`Intro: Am F C G`);

@@ -6,7 +6,10 @@ import os
 import tempfile
 import unittest
 
+import numpy as np
+
 import add_song
+from recording_check.key import fold_bpm
 from recording_check.tests.synthetic import analysis, chart
 
 BARS = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
@@ -118,5 +121,84 @@ class AddSongTests(unittest.TestCase):
         self.assertIn('song.m4a', message)
 
     def test_beats_per_bar(self):
-        self.assertEqual([add_song.beats_per_bar(s) for s in ('4/4', '3/4', '6/8', '12/8', '7/8')],
-                         [4, 3, 2, 4, 7])
+        self.assertEqual([add_song.beats_per_bar(s) for s in ('4/4', '3/4', '6/8', '12/8', '7/8', '3/8', '9/8')],
+                         [4, 3, 2, 4, 7, 3, 3])
+
+    def test_a_given_bpm_lays_the_bars_at_that_tempo(self):
+        at_tracker = self.run_tool()
+        doubled = self.run_tool(bpm=200)   # the tracker reads 100
+        self.assertEqual(doubled['bpm'], 200)
+        self.assertEqual(len(doubled['form']), 2 * len(at_tracker['form']))
+
+    def run_noting(self, **request):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            answer = self.run_tool(**request)
+        return answer, err.getvalue()
+
+    def test_a_given_bpm_far_from_the_tracker_is_warned(self):
+        answer, err = self.run_noting(bpm=150)
+        self.assertEqual(answer['bpm'], 150)
+        self.assertIn('bars are laid at 200 bpm', err)
+        for near in (100, 104, 50):
+            self.assertNotIn('bars are laid', self.run_noting(bpm=near)[1])
+
+    def test_a_tracker_with_no_tempo_still_takes_a_given_bpm(self):
+        def no_tempo(path, cache):
+            return dict(self.fake(path, cache), bpm=0)
+        out = io.StringIO()
+        with contextlib.redirect_stderr(io.StringIO()):
+            add_song.main(analyze=no_tempo, stdout=out,
+                          stdin=io.StringIO(json.dumps({'title': 'T', 'recording': self.audio, 'bpm': 100})))
+        self.assertEqual(json.loads(out.getvalue())['bpm'], 100)
+
+    def test_a_tracker_with_no_tempo_writes_the_tempo_of_its_beats(self):
+        def no_tempo(path, cache):
+            return dict(self.fake(path, cache), bpm=0)
+        out = io.StringIO()
+        with contextlib.redirect_stderr(io.StringIO()):
+            add_song.main(analyze=no_tempo, stdout=out,
+                          stdin=io.StringIO(json.dumps({'title': 'T', 'recording': self.audio})))
+        fake = self.fake(self.audio, None)
+        spacing = (fake['beats'][-1] - fake['beats'][0]) / (len(fake['beats']) - 1)
+        self.assertEqual(json.loads(out.getvalue())['bpm'], fold_bpm(60 / spacing))
+
+    def test_a_bpm_given_as_zero_or_out_of_range_exits_2(self):
+        for bpm in (0, 0.0, 19, 401, 30000, 1e9):
+            message = self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'bpm': bpm}))
+            self.assertIn('bpm', message)
+        message = self.fails(json.dumps({'title': 'T', 'recording': self.audio,
+                                         'chart': dict(chart('T', BARS), bpm=0)}))
+        self.assertIn('bpm', message)
+        self.assertEqual(self.calls, 0)
+        self.assertEqual(self.run_tool(bpm=20)['bpm'], 20)
+        self.assertEqual(self.run_tool(bpm=400)['bpm'], 400)
+
+    def test_a_bpm_that_is_not_a_tempo_exits_2(self):
+        for bpm in ('fast', -3):
+            message = self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'bpm': bpm}))
+            self.assertIn('bpm', message)
+        self.assertEqual(self.calls, 0)
+
+    def test_compound_time_with_no_barred_chart_is_refused_before_reading(self):
+        for signature in ('6/8', '9/8', '12/8'):
+            message = self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'timeSignature': signature}))
+            self.assertIn(signature, message)
+            self.assertIn('barred chart', message)
+        self.assertEqual(self.calls, 0)
+        self.assertEqual(self.run_tool(timeSignature='3/8')['timeSignature'], '3/8')
+
+    def test_compound_time_with_a_barred_chart_runs_the_check(self):
+        answer = self.run_tool(chart=chart('Test Song', BARS), timeSignature='6/8')
+        self.assertEqual(answer['route'], 'chart')
+
+    def test_a_chart_that_is_not_an_object_exits_2(self):
+        message = self.fails(json.dumps({'title': 'T', 'recording': self.audio, 'chart': ['C']}))
+        self.assertIn('chart', message)
+
+    def test_an_answer_that_cannot_be_written_exits_2(self):
+        for bad in (np.float32(1.5), float('nan')):
+            def odd(path, cache, bad=bad):
+                return dict(self.fake(path, cache), duration=bad)
+            message = self.fails(json.dumps({'title': 'T', 'recording': self.audio}), odd)
+            self.assertIn('cannot write the answer', message)

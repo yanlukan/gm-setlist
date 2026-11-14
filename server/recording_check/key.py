@@ -6,9 +6,12 @@ the 24 wins (ties go to the first: majors before minors, C upward). Keys are nam
 the usual way: sharps for C G D A E B F# and their relative minors, flats for
 F Bb Eb Ab Db and theirs.
 
-The tempo is the beat tracker's, doubled or halved into [70, 140) bpm: a tracker
-often counts in half or double time, and the player fixes a wrong fold in More.
+The tempo is the beat tracker's, doubled or halved into [70, 140) bpm as written
+(fold_ratio): a tracker often counts in half or double time, and the player fixes a
+wrong fold in More or gives the bpm, which the bars then follow.
 """
+import math
+
 import numpy as np
 
 MAJOR_PROFILE = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
@@ -43,14 +46,32 @@ def key_from_analysis(analysis) -> str:
     return key_of(frames.sum(axis=0) if frames.size else np.zeros(12))
 
 
-def fold_bpm(bpm: float) -> int:
-    """The tracker's tempo doubled or halved into [70, 140), rounded."""
+def _tempo(bpm, what) -> float:
     bpm = float(bpm)
-    if not bpm > 0:
-        raise ValueError(f'no tempo to fold: {bpm}')
-    while bpm >= FASTEST:
-        bpm /= 2
-    while bpm < SLOWEST:
-        bpm *= 2
-    out = int(round(bpm))
-    return out // 2 if out >= FASTEST else out   # 139.6 rounds out of range: half of 140
+    if not (bpm > 0 and math.isfinite(bpm)):
+        raise ValueError(f'{what} is not a tempo: {bpm}')
+    return bpm
+
+
+def fold_ratio(bpm: float, toward: float = None) -> float:
+    """The power of two the tracker's tempo is multiplied by: one rule for the bpm written
+    (fold_bpm) and the bars laid (skeleton.beat_grid), so the two always agree.
+
+    With no tempo given: doubled or halved until the tempo, rounded as it is written,
+    lies in [70, 140) (139.6 rounds to 140, so it is halved to 70). With a tempo given
+    (the player's --bpm or the chart's BPM:): the power of two that brings the tracker
+    nearest to it by ratio (ties to the slower)."""
+    bpm = _tempo(bpm, 'the tracker tempo')
+    if toward is not None:
+        return 2.0 ** math.ceil(math.log2(_tempo(toward, 'the given bpm') / bpm) - 0.5)
+    ratio = 1.0
+    while bpm * ratio >= FASTEST:
+        ratio /= 2
+    while bpm * ratio < SLOWEST:
+        ratio *= 2
+    return ratio / 2 if round(bpm * ratio) >= FASTEST else ratio
+
+
+def fold_bpm(bpm: float) -> int:
+    """The tracker's tempo doubled or halved into [70, 140), rounded (fold_ratio)."""
+    return int(round(float(bpm) * fold_ratio(bpm)))

@@ -1,8 +1,9 @@
 """A song's bars, parts and evidence read off the recording alone, for a song with no chart.
 
-Bars sit on the tracker's steady beats (align.steady_beats), brought to the tempo
-key.fold_bpm writes: a tracker under 70 bpm has each beat split in two, one at 140
-or over counts two of its beats as one. Where bar 1 begins (the bar phase) is the
+Bars sit on the tracker's steady beats (align.steady_beats), doubled or halved by
+key.fold_ratio: to the tempo key.fold_bpm writes, or toward the bpm the player gives,
+so the bars and the song's bpm always agree. Doubling splits each beat in two; halving
+counts two tracker beats as one. Where bar 1 begins (the bar phase) is the
 beat phase where the harmony changes most: each beat's chroma against the beat
 before (1 - cosine), summed per phase; silent beats do not vote, ties take the
 earliest phase. So a long intro or fade moves nothing: the phase follows the music.
@@ -25,7 +26,7 @@ import numpy as np
 from recording_check.align import steady_beats
 from recording_check.audio import span
 from recording_check.chords import same
-from recording_check.key import FASTEST, SLOWEST
+from recording_check.key import fold_ratio
 from recording_check.reading import bar_beats
 from recording_check.verdict import MIN_CONFIDENCE, read_bar
 
@@ -108,27 +109,40 @@ def _bar_text(record_beats, key):
     return tokens[0] if all(t == '.' for t in tokens[1:]) else ' '.join(tokens)
 
 
-def beat_grid(analysis) -> tuple:
-    """(beats, stride): the tracker's steady beats at the folded tempo of key.fold_bpm.
+def _steady(analysis):
+    return steady_beats(analysis['beats'], _period(analysis['beats'], analysis.get('bpm')))
 
-    A tracker under 70 bpm has each beat split in two; at 140 or over, a beat of the
-    song is `stride` tracker beats (which of them is beat 1 is left to the bar phase).
+
+def tracker_tempo(analysis) -> float:
+    """The tracker's tempo, else (a tracker that read none) the tempo of its steady beats."""
+    return float(analysis.get('bpm') or (60 / _period(_steady(analysis))))
+
+
+def beat_grid(analysis, bpm=None) -> tuple:
+    """(beats, stride): the tracker's steady beats doubled or halved by key.fold_ratio,
+    toward `bpm` when one is given, else to the tempo key.fold_bpm writes.
+
+    Doubling splits each beat in two; halving makes a beat of the song `stride` tracker
+    beats (which of them is beat 1 is left to the bar phase).
     """
-    beats = steady_beats(analysis['beats'], _period(analysis['beats'], analysis.get('bpm')))
-    tempo = float(analysis.get('bpm') or (60 / _period(beats)))
+    beats = _steady(analysis)
+    tempo = tracker_tempo(analysis)
+    ratio = fold_ratio(tempo, bpm) if tempo > 0 else 1.0
     stride = 1
-    while 0 < tempo < SLOWEST and len(beats) > 1:
-        beats = sorted(beats + [(a + b) / 2 for a, b in zip(beats, beats[1:])])
-        tempo *= 2
-    while tempo >= FASTEST:
+    while ratio > 1:
+        if len(beats) > 1:
+            beats = sorted(beats + [(a + b) / 2 for a, b in zip(beats, beats[1:])])
+        ratio /= 2
+    while ratio < 1:
         stride *= 2
-        tempo /= 2
+        ratio *= 2
     return beats, stride
 
 
-def record_bars(analysis, key, beats_per_bar=4) -> list:
-    """The record's bars in order: [{'start', 'end', 'text', 'beats'}], beats as bar_beats gives them."""
-    beats, stride = beat_grid(analysis)
+def record_bars(analysis, key, beats_per_bar=4, bpm=None) -> list:
+    """The record's bars in order: [{'start', 'end', 'text', 'beats'}], beats as bar_beats
+    gives them; laid at `bpm` (doubled or halved from the tracker) when one is given."""
+    beats, stride = beat_grid(analysis, bpm)
     starts = bar_starts(beats, analysis['chroma'], analysis['hop'], beats_per_bar * stride)
     spans = list(zip(starts, starts[1:]))   # a final partial bar has no end: dropped
     reads = settle_edges([bar_beats(analysis, start, end, beats_per_bar, key) for start, end in spans])

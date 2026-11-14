@@ -3,7 +3,8 @@ import unittest
 import numpy as np
 
 from recording_check.chords import parse, spell
-from recording_check.skeleton import bar_starts, parts, record_bars, settle_edges, unsure_evidence
+from recording_check.key import fold_bpm
+from recording_check.skeleton import bar_starts, beat_grid, parts, record_bars, settle_edges, unsure_evidence
 from recording_check.tests.synthetic import analysis
 
 
@@ -141,6 +142,20 @@ class RecordBarsTest(unittest.TestCase):
         bars = record_bars(record, 'C')
         self.assertEqual([b['text'] for b in bars], ['C', 'G', 'Am . F .', 'C'])
         self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 2.4)
+
+    def test_bars_match_the_written_tempo_at_the_fold_edges(self):
+        for bpm in (69.7, 69.75, 69.8, 139.4, 139.6, 279.2, 34.9):
+            record = analysis(['C'] * 64, bpm=bpm)
+            beats, stride = beat_grid(record)
+            grid = 60 / float(np.median(np.diff(beats))) / stride
+            self.assertAlmostEqual(grid, fold_bpm(bpm), delta=0.5, msg=bpm)
+
+    def test_a_given_tempo_lays_the_bars_at_that_tempo(self):
+        record = analysis(['C'] * 4 + ['G'] * 4 + ['Am', 'Am', 'F', 'F'] + ['C'] * 4, bpm=80, tracker=2.0)
+        bars = record_bars(record, 'C', bpm=160)
+        self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 1.5)
+        bars = record_bars(record, 'C', bpm=75)
+        self.assertAlmostEqual(bars[0]['end'] - bars[0]['start'], 3.0)
 
     def test_three_four(self):
         record = analysis(['C'] * 3 + ['G'] * 3 + ['F', 'G', 'G'], bpm=120)
