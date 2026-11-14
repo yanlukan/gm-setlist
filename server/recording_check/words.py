@@ -17,16 +17,19 @@ A record change left unpaired whose run covers no more than verdict.QUARTER of t
 bar and ends in it is a passing reading (stage 5's rule): it disputes nothing and is
 not written, and leaving such a change unpaired costs nothing in the line-up. The
 chart chord sounding at a record chord is its partner, else the chart chord held
-over from before (a change the chart lacks is set against it). A bar is Chart,
-written in the chart's spelling, when it holds one chord (no change after beat 1 but
-passing readings: where a chord changes inside a bar is the record's timing alone),
-that chord agrees with the chart chord sounding on a beat of at least MIN_CONFIDENCE,
-and no chart chord the record lacks falls inside it; one that agrees below it is
-Unsure with the chart's reading alone (one weak source). Every other bar is Unsure
+over from before (a change the chart lacks is set against it, but never confirms it).
+A bar is Chart, written in the chart's spelling, when it holds one chord (no change
+after beat 1 but passing readings: where a chord changes inside a bar is the record's
+timing alone), the record's own chord there (not a passing reading) agrees with the
+chart chord sounding on a beat of at least MIN_CONFIDENCE, no chart chord the record
+lacks falls inside it, and no record change in it lacks a chart partner; one that
+agrees below it is Unsure with the chart's reading alone (one weak source). A bar of
+passing readings alone confirms nothing. Every other bar is Unsure
 with two different readings, Chart and Record, and is written in the chart's chords on
 the record's beats; a bar with a change inside it has the chart's chords alone, one
 space apart, as its Chart reading. A bar whose two readings would be the same is
-Chart. A play reuses an earlier section only when its bars and its
+Chart, unless its record change has no chart partner (a line the chart writes once
+and the record plays again): then it is Unsure with the record's reading alone. A play reuses an earlier section only when its bars and its
 Unsure marks are the same. Detector chords are never fact.
 """
 from recording_check.agree import agrees
@@ -262,7 +265,8 @@ def _bar(bar, here, chart, unsure, index):
     """The bar as written; an Unsure bar is added to `unsure` with two different readings,
     the chart's and the record's, or with the chart's alone when the record agrees below
     MIN_CONFIDENCE. A bar whose two readings would be the same is Chart (or, read weakly,
-    Unsure with the chart's reading). An Unsure bar is written in the chart's chords on
+    Unsure with the chart's reading), unless its record change has no chart partner:
+    then Unsure with the record's reading alone. An Unsure bar is written in the chart's chords on
     the record's beats; a bar with a change inside it has the chart's chords alone as its
     Chart reading."""
     if here['sure']:
