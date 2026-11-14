@@ -15,6 +15,8 @@ const [added] = addedSongs({
   './added/test-song.json': {
     title: 'Test Song (added)', artist: 'Nobody', key: 'C', bpm: 100, timeSignature: '4/4',
     sections: [{ name: 'Part 1', chords: '| C | F | G | C |' }], chordsFrom: 'Record',
+    // From the record, so every bar Unsure, as add-song writes it
+    evidence: { 'Part 1': { bars: ['C', 'F', 'G', 'C'].map((chords, bar) => ({ bar, chords, from: 'Unsure', readings: [{ from: 'Record', chords }] })) } },
   },
 }, SONGS)
 

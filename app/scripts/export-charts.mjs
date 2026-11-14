@@ -3,16 +3,19 @@
 // Node strips the types of the two imports below.
 import { fileURLToPath } from 'node:url'
 import { SONGS } from '../src/data/songs.ts'
-import { readAddedSongs } from './added-songs.mjs'
+import { loadAddedSongs } from './added-songs.mjs'
 import { barsOf, beatsOf, hasBars, isRepeatCount, REPEAT_BAR } from '../src/music/bars.ts'
 
 const tokensOf = line => line.split(/\s+/).filter(Boolean)
 const round = x => Math.round(x * 1e6) / 1e6
 
+/** 6/8, 9/8 and 12/8 count three eighths to a beat (server/add_song.py's COMPOUND); 3/8 is three beats. */
+const COMPOUND = [6, 9, 12]
+
 /** Beats in a bar: the top number, or top / 3 in 6/8, 9/8, 12/8 (the tempo counts dotted quarters). */
 function beatsPerBar(timeSignature) {
   const [top, bottom] = (timeSignature ?? '4/4').split('/').map(Number)
-  return bottom === 8 && top % 3 === 0 ? top / 3 : top
+  return bottom === 8 && COMPOUND.includes(top) ? top / 3 : top
 }
 
 /** The chords of a bar on its beats, as fractions of the bar. */
@@ -87,6 +90,13 @@ export function exportChart(song) {
   }
 }
 
+/** Every shipped song and every added song that opens; an added file that does not is named on stderr and left out. */
+export async function exportAll(dir) {
+  const { songs, skipped } = await loadAddedSongs(dir)
+  for (const { file, reason } of skipped) console.error(`export-charts: skipping ${file}: ${reason}`)
+  return [...SONGS, ...songs].map(exportChart)
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  process.stdout.write(JSON.stringify([...SONGS, ...readAddedSongs()].map(exportChart), null, 1) + '\n')
+  process.stdout.write(JSON.stringify(await exportAll(), null, 1) + '\n')
 }

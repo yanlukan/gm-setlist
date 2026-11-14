@@ -1,7 +1,7 @@
 import type { Section, Song } from '../types'
 import type { ChartDraft } from './chart-text-import'
 import { withRecordCheck, type CheckEntry } from './record-check'
-import { barsOfSection, openUnsure } from './evidence'
+import { openUnsure, sureBarProblem } from './evidence'
 
 /** What server/add_song.py answers for one recording (see server/recording_check/README.md). */
 export interface AddAnswer {
@@ -42,17 +42,13 @@ export function answerProblem(value: unknown): string | null {
   if (!isSections(a.sections)) return `route ${a.route} needs sections`
   if (!Array.isArray(a.form) || !a.form.every(isText)) return `route ${a.route} needs a song order`
   if (a.evidence !== undefined && (typeof a.evidence !== 'object' || a.evidence === null)) return `route ${a.route} has bad evidence`
-  if (a.route === 'record') return recordProblem(a.sections, a.evidence as Song['evidence'])
-  return null
+  // Route record: every bar comes from the detector alone, so every bar must be an open Unsure bar
+  const sure = a.route === 'record' ? sureBarProblem({ sections: a.sections, evidence: a.evidence as Song['evidence'] }) : null
+  return sure && `route record: ${sure}`
 }
 
-/** Route record: every bar comes from the detector alone, so every bar must be an open Unsure bar. */
-function recordProblem(sections: Section[], evidence: Song['evidence']): string | null {
-  const open = new Set(openUnsure({ sections, evidence } as Song, undefined).map(u => `${u.section}:${u.bar}`))
-  const all = sections.flatMap((s, section) => barsOfSection(s.chords).map((_, bar) => `${section}:${bar}`))
-  const first = all.findIndex(key => !open.has(key))
-  return first === -1 ? null : `route record: bar ${first + 1} of ${all.length} is not Unsure`
-}
+/** Route words with a chart it could not line up falls back to the record's own parts: no part says it is from the chart. */
+const fromChart = (answer: AddAnswer) => Object.values(answer.evidence ?? {}).some(section => section.from === 'Chart')
 
 /** The rule Python's audio.cache_file uses: lower case, every run of other characters one dash. */
 export const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -63,6 +59,9 @@ const bars = (n: number) => `${n} ${n === 1 ? 'bar' : 'bars'}`
 
 /** What the route did, in plain words, with the count of Unsure bars. */
 function routeNote(answer: AddAnswer, unsure: number): string {
+  if (answer.route === 'words' && !fromChart(answer)) {
+    return `Your chart could not be lined up, so the bars and chords are read off the recording; every bar is unsure until you hear it (${bars(unsure)}).`
+  }
   if (answer.route === 'record') return `Bars and chords read off the recording; every bar is unsure until you hear it (${bars(unsure)}).`
   if (answer.route === 'chart' && answer.check?.verdict !== 'lined up') {
     return 'From your chart; the recording could not be lined up, so nothing is marked.'
@@ -94,7 +93,7 @@ export function addedSong(input: { title: string; artist: string; draft: ChartDr
       ...base,
       sections: answer.sections,
       form: answer.form,
-      chordsFrom: answer.route === 'words' ? 'Chart' : 'Record',
+      chordsFrom: answer.route === 'words' && fromChart(answer) ? 'Chart' : 'Record',
       ...(answer.evidence ? { evidence: answer.evidence } : {}),
     }
   }

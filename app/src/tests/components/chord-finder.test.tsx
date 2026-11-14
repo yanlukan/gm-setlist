@@ -15,7 +15,8 @@ const shapes = (chord: string) => screen.getByRole('group', { name: `Shapes for 
 const more = (chord: string) => screen.getByRole('group', { name: `More shapes for ${chord}` })
 const own = () => useStore.getState().ownShapes
 
-describe('the chord finder', () => {
+// Some of these open every shape on the neck: slow when the machine is busy, so 20 s, not 5
+describe('the chord finder', { timeout: 20_000 }, () => {
   it('reads the name as it is typed, names the notes and suggests chords that start the same way', () => {
     render(<ChordFinder onClose={() => {}} />)
     lookUp('em1')

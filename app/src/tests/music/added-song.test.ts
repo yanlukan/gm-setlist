@@ -42,6 +42,16 @@ describe('addedSong', () => {
     expect(isAddedSong(song)).toBe(true)
   })
 
+  it("route words that fell back to the record's own parts is from the record, not the chart", () => {
+    // add_song.py's words route with a chart it could not line up: the record's parts, every bar Unsure, no part from the chart
+    const sections = [{ name: 'Part 1', chords: '| C | G |' }]
+    const evidence = { 'Part 1': { bars: ['C', 'G'].map((chords, bar) => ({ bar, chords, from: 'Unsure' as const, readings: [{ from: 'Record' as const, chords }] })) } }
+    const song = addedSong({ ...input, draft: readChartText('[Verse]\nla la la') }, { ...base, route: 'words', sections, form: ['Part 1'], evidence })
+    expect(song.chordsFrom).toBe('Record')
+    expect(song.notes).toBe('Recording: la-song.m4a. Your chart could not be lined up, so the bars and chords are read off the recording; every bar is unsure until you hear it (2 bars).')
+    expect(isAddedSong(song)).toBe(true)
+  })
+
   it('route record has every bar Unsure, from the record', () => {
     const sections = [{ name: 'Part 1', chords: '| C | G | Am | F |' }]
     const evidence = { 'Part 1': { bars: ['C', 'G', 'Am', 'F'].map((chords, bar) => ({ bar, chords, from: 'Unsure' as const, readings: [{ from: 'Record' as const, chords }] })) } }

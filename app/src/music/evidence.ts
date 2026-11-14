@@ -110,6 +110,14 @@ export function openUnsure(song: Song, edits: SongEdits | undefined): UnsureBar[
   return found
 }
 
+/** A song from the record alone has every bar an open Unsure bar: the first that is not, as "bar n of m", or null. */
+export function sureBarProblem(song: Pick<Song, 'sections' | 'evidence'>): string | null {
+  const open = new Set(openUnsure(song as Song, undefined).map(u => `${u.section}:${u.bar}`))
+  const all = song.sections.flatMap((s, section) => barsOfSection(s.chords).map((_, bar) => `${section}:${bar}`))
+  const first = all.findIndex(key => !open.has(key))
+  return first === -1 ? null : `bar ${first + 1} of ${all.length} is not Unsure`
+}
+
 const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
 const bars = (count: number) => `${count} ${count === 1 ? 'bar' : 'bars'}`
 

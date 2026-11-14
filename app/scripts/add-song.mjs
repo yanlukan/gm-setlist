@@ -37,7 +37,8 @@ function options(argv) {
     options: Object.fromEntries(['title', 'artist', 'recording', 'chart', 'key', 'bpm', 'time', 'out', 'python'].map(n => [n, { type: 'string' }])),
   })
   for (const need of ['title', 'artist', 'recording']) if (!values[need]?.trim()) refuse(`--${need} is needed`)
-  if (values.bpm !== undefined && !(Number(values.bpm) > 0)) refuse(`--bpm ${values.bpm} is not a tempo`)
+  // add_song.py lays the bars at this tempo: the same 20-400 it accepts
+  if (values.bpm !== undefined && !(Number(values.bpm) >= 20 && Number(values.bpm) <= 400)) refuse(`--bpm ${values.bpm} is not a tempo (20 to 400)`)
   if (values.time !== undefined && !/^\d+\/\d+$/.test(values.time)) refuse(`--time ${values.time} is not a time signature`)
   return { ...values, title: values.title.trim(), artist: values.artist.trim() }
 }
@@ -93,7 +94,10 @@ function checkTarget(file, title) {
 /** The chart's problems that stop the tool, and the warning for a chart only partly in bars. */
 function checkDraft(draft) {
   if (draft.sections.length === 0 || draft.chordLines.length === 0) refuse('the chart has no sections with chords')
-  if (draft.unknownOrder.length) refuse(`the Order: line names ${draft.unknownOrder.map(n => `"${n}"`).join(', ')}, not a part of the chart, nothing written`)
+  for (const warning of draft.warnings ?? []) console.error(`add-song: ${warning}`)
+  const notParts = draft.unknownOrder.map(n => `"${n}"`)   // part names only: never the chart's own words
+  if (draft.orderWithoutPart) notParts.push(`${draft.orderWithoutPart} ${draft.orderWithoutPart === 1 ? 'name' : 'names'} with no part word`)
+  if (notParts.length) refuse(`the Order: line names ${notParts.join(', ')}, not a part of the chart, nothing written`)
   if (!draft.barred && draft.unbarred.length < draft.sections.length) {
     console.error(`add-song: ${draft.unbarred.join(', ')} ${draft.unbarred.length === 1 ? 'has' : 'have'} no bar lines, so the chart will be lined up chord by chord`)
   }
@@ -104,7 +108,9 @@ export async function main(argv = process.argv.slice(2)) {
   const { addedSong, answerProblem, slug, songFileName } = await appModule('src/music/added-song.ts')
   if (slug(opts.title) === '') refuse(`"${opts.title}" gives no file name: use letters or digits in --title`)
   const { SONGS } = await appModule('src/data/songs.ts')
-  if (SONGS.some(s => s.title === opts.title)) refuse(`"${opts.title}" is already in the library`)
+  const { isAddedSong, sameTitle } = await appModule('src/data/added-songs.ts')
+  const shipped = SONGS.find(s => sameTitle(s.title, opts.title))
+  if (shipped) refuse(`"${opts.title}" is already in the library${shipped.title === opts.title ? '' : ` as "${shipped.title}"`}`)
   if (!existsSync(opts.recording)) refuse(`no recording at ${basename(opts.recording)}`)
   const out = resolve(opts.out ?? join(APP, 'src', 'data', 'added'))
   const file = join(out, songFileName(opts.title))
@@ -126,7 +132,6 @@ export async function main(argv = process.argv.slice(2)) {
   if (answer.route !== expected) refuse(`a malformed answer: route ${answer.route}, expected ${expected}, nothing written`)
 
   const song = addedSong({ title: opts.title, artist: opts.artist, draft }, answer)
-  const { isAddedSong } = await appModule('src/data/added-songs.ts')
   if (!isAddedSong(song)) refuse('the song would not open in the app, nothing written')
   const { openUnsure } = await appModule('src/music/evidence.ts')
 

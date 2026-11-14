@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest'
+// @ts-expect-error -- the project has no Node types; the tests only ever run under Node
+import { spawnSync } from 'node:child_process'
+// @ts-expect-error -- the project has no Node types; the tests only ever run under Node
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+// @ts-expect-error -- the project has no Node types; the tests only ever run under Node
+import { tmpdir } from 'node:os'
+// @ts-expect-error -- the project has no Node types; the tests only ever run under Node
+import { join } from 'node:path'
 import { DEFAULT_SONGS } from '../../data/library'
+import { SONGS } from '../../data/songs'
 import { barsOfSection, barChords } from '../../music/evidence'
 import { by, formBars } from '../songs-in-bars-helpers'
 // @ts-expect-error -- the chart export is a plain script with no types
@@ -64,6 +73,12 @@ describe('exporting charts for the recording check', () => {
     expect(exportChart(song({ timeSignature: '6/8' })).beatsPerBar).toBe(2)
     expect(exportChart(song({ timeSignature: '12/8' })).beatsPerBar).toBe(4)
     expect(exportChart(song({ timeSignature: '3/4' })).beatsPerBar).toBe(3)
+    expect(exportChart(song({ timeSignature: '9/8' })).beatsPerBar).toBe(3)
+  })
+
+  it('only 6/8, 9/8 and 12/8 count dotted quarters: 3/8 is 3 beats, as add_song.py counts it', () => {
+    expect(exportChart(song({ timeSignature: '3/8' })).beatsPerBar).toBe(3)
+    expect(exportChart(song({ timeSignature: '15/8' })).beatsPerBar).toBe(15)
   })
 
   it('every shipped song exports, numbered like the evidence, and its order matches its length', () => {
@@ -85,6 +100,27 @@ describe('exporting charts for the recording check', () => {
       } else {
         expect(out.played, s.title).toEqual([])
       }
+    }
+  })
+
+  // Node with Vite's loader, as the script runs: slow when the machine is busy, so 20 s, not 5
+  it('an added file that is not a song is left out and named, never a crash', { timeout: 20_000 }, () => {
+    const dir = mkdtempSync(join(tmpdir(), 'export-charts-'))
+    try {
+      writeFileSync(join(dir, 'a-note.json'), JSON.stringify({ hello: 1 }))
+      writeFileSync(join(dir, 'broken.json'), '{')
+      const good = { title: 'Made Up Tune', artist: 'Nobody', key: 'C', bpm: 100, timeSignature: '4/4', sections: [{ name: 'A', chords: '| C | G |' }], form: ['A'] }
+      writeFileSync(join(dir, 'made-up-tune.json'), JSON.stringify(good))
+      const code = `const { exportAll } = await import('./scripts/export-charts.mjs'); const out = await exportAll(${JSON.stringify(dir)}); console.log(JSON.stringify(out.map(c => c.title)))`
+      const r = spawnSync('node', ['--input-type=module', '-e', code], { encoding: 'utf8' })
+      expect(r.status, r.stderr).toBe(0)
+      const titles = JSON.parse(r.stdout)
+      expect(titles.at(-1)).toBe('Made Up Tune')
+      expect(titles).toHaveLength(SONGS.length + 1)
+      expect(r.stderr).toContain('skipping a-note.json')
+      expect(r.stderr).toContain('skipping broken.json: not valid JSON')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
     }
   })
 })

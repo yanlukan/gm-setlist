@@ -10,6 +10,7 @@
 //   <engine> <size> <screen> <nn> <song> bar <n>: <problem>
 //   <engine> <size> <screen> <nn> <song> section <n>: runs past its width
 //   webkit <size> <screen> saved <song> bar <n>: <problem>
+//   added <file>: skipped, <why>   (a file in src/data/added the app will not open)
 // On the phone, a row that cannot fit even at 20 px (a section too wide, a chord off the screen)
 // is a `phone warning: ...` line instead, and does not fail the check (release-problems.mjs).
 // Pictures: release-shots/<engine>/<size>/<screen>/<nn>-<song>.png (saved-<song>.png for the saved
@@ -21,7 +22,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, webkit } from 'playwright'
-import { readAddedSongs } from './added-songs.mjs'
+import { loadAddedSongs } from './added-songs.mjs'
 import { problems, sortOut } from './release-problems.mjs'
 import { CHECK_MARKS, CHECK_SONG, PUT_SAVED, SAVED } from './release-saved.mjs'
 
@@ -32,7 +33,8 @@ const SHOTS = join(APP, 'release-shots')
 /** The songs in the gig running order, the default list. */
 const SHIPPED_SONGS = 21
 /** The songs written as JSON in src/data/added: in the library, not in the gig list, so the check puts them in its list. */
-const ADDED_TITLES = readAddedSongs().map(song => song.title)
+const ADDED = await loadAddedSongs()
+const ADDED_TITLES = ADDED.songs.map(song => song.title)
 /** The gig list and the added songs, as the Songs sheet shows them once the check has added them. */
 const EXPECTED_SONGS = SHIPPED_SONGS + ADDED_TITLES.length
 /** With the check's own song put in the app's store, the Songs sheet has one more. */
@@ -212,7 +214,7 @@ async function onScreen(page, screen) {
 
 const hashes = existsSync(join(SHOTS, 'hashes.json')) ? JSON.parse(readFileSync(join(SHOTS, 'hashes.json'), 'utf8')) : {}
 const changed = []
-const lines = []
+const lines = ADDED.skipped.map(({ file, reason }) => `added ${file}: skipped, ${reason}`)
 const warnings = []
 let pages = 0
 

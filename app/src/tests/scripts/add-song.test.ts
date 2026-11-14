@@ -70,11 +70,31 @@ describe('add-song.mjs', () => {
     expect(existsSync(out)).toBe(false)
   })
 
-  it('overwrites its own file', () => {
+  it('refuses a title already in the library whatever its case or apostrophes', () => {
+    for (const title of ['FAITH', 'i\u2019m your man', "I'M YOUR MAN", 'Father  Figure']) {
+      const r = run(['--title', title])
+      expect(r.status, title).toBe(1)
+      expect(r.stderr).toContain('already in the library')
+    }
+    expect(existsSync(out)).toBe(false)
+  })
+
+  // Runs the tool twice: slow when the machine is busy, so 20 s, not 5
+  it('overwrites its own file', { timeout: 20_000 }, () => {
     expect(run(['--title', 'La Song']).status).toBe(0)
     expect(run(['--title', 'La Song'], { ...recordAnswer, bpm: 120 }).status).toBe(0)
     expect(readdirSync(out)).toEqual(['la-song.json'])
     expect(JSON.parse(readFileSync(join(out, 'la-song.json'), 'utf8')).bpm).toBe(120)
+  })
+
+  it('refuses a --bpm outside 20 to 400 before reading the record', () => {
+    for (const bpm of ['0', '19', '401', '30000', 'fast']) {
+      const r = run(['--title', 'La Song', '--bpm', bpm])
+      expect(r.status).toBe(1)
+      expect(r.stderr).toContain('is not a tempo')
+      expect(existsSync(join(dir, 'request.json'))).toBe(false)
+    }
+    expect(run(['--title', 'La Song', '--bpm', '400']).status).toBe(0)
   })
 
   it('refuses a title that gives no file name', () => {
