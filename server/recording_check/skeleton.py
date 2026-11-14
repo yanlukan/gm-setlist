@@ -27,7 +27,7 @@ from recording_check.audio import span
 from recording_check.chords import same
 from recording_check.key import FASTEST, SLOWEST
 from recording_check.reading import bar_beats
-from recording_check.verdict import read_bar
+from recording_check.verdict import MIN_CONFIDENCE, read_bar
 
 LINE_BARS = 4
 SILENT = 1e-6   # a beat's chroma at or below this length is silence: it votes for no phase
@@ -72,14 +72,18 @@ def _chord(beat):
     return beat[0].kind != 'none'
 
 
+def _sure(beat):
+    return _chord(beat) and beat[1] >= MIN_CONFIDENCE
+
+
 def settle_edges(bars: list) -> list:
     """Bars of beats (as bar_beats gives them) with each bar's edge beats settled.
 
     At a bar line the record blurs: the CQT's long low-note windows carry a bass note
     over the line, and BTC's changes come a little late, so the beat either side of the
     line often reads its neighbour's chord. A first beat whose chord differs from beats
-    2 and 3, which agree, takes their chord; a last beat likewise from the two before
-    it. The settled beat keeps the lower of the two confidences, so it is never surer
+    2 and 3, which agree and are both sure (MIN_CONFIDENCE), takes their chord; a last
+    beat likewise from the two before it. The settled beat keeps the lower of the two confidences, so it is never surer
     than either. Silence is neither filled nor filling. A bar of fewer than four beats
     is left alone: there beats 2 and 3 are the rest of the bar (a 3/4 bar of 1 + 2), and
     the measure below is all 4/4. Measured on the 18 lined-up songs against their hand charts:
@@ -92,7 +96,7 @@ def settle_edges(bars: list) -> list:
         if len(bar) >= 4:
             for edge, inner, further in ((0, 1, 2), (-1, -2, -3)):
                 beat, next_in, then = bar[edge], bar[inner], bar[further]
-                if (_chord(beat) and _chord(next_in) and _chord(then) and same(next_in[0], then[0])
+                if (_chord(beat) and _sure(next_in) and _sure(then) and same(next_in[0], then[0])
                         and not same(beat[0], next_in[0])):
                     bar[edge] = (next_in[0], min(beat[1], next_in[1]))
         out.append(bar)

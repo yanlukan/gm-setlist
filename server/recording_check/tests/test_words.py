@@ -190,6 +190,24 @@ class LineUpTest(unittest.TestCase):
         self.assertNotIn('la', json.dumps(out))
         self.assertEqual(out['sections'][0]['chords'], '|  C  |  G  |')
 
+    def test_a_bar_the_record_contradicts_on_every_beat_is_unsure_with_both_readings(self):
+        out = line_up(lines(('Verse', 'C G')), [held('C'), bar('D E F# A'), held('G')], 'C')
+        bars = out['evidence']['Verse']['bars']
+        self.assertEqual([b['bar'] for b in bars], [1])
+        self.assertEqual(bars[0]['readings'], [{'from': 'Chart', 'chords': 'C'},
+                                               {'from': 'Record', 'chords': 'D E F# A'}])
+
+    def test_a_line_played_again_that_the_chart_writes_once_is_never_trusted_off_the_chart(self):
+        # the chart writes its line once; the record plays it three times
+        out = line_up(lines(('Verse', 'Am F C G')), [held(c) for c in ['Am', 'F', 'C', 'G'] * 3], 'C')
+        trusted = []
+        for name in out['form']:
+            unsure = {b['bar'] for b in out['evidence'][name]['bars']}
+            cells = [c for c in out['sections'][[s['name'] for s in out['sections']].index(name)]['chords'].split('|')
+                     if c.strip()]
+            trusted += [i for i in range(len(cells)) if i not in unsure]
+        self.assertLessEqual(len(trusted), 4)   # only the one play the chart writes can be confirmed
+
     def test_no_chart_chords_gives_the_records_parts_all_unsure(self):
         out = line_up([], [held('C'), held('G')], 'C')
         self.assertEqual(out['form'], ['Part 1'])

@@ -63,7 +63,7 @@ class SettleEdgesTest(unittest.TestCase):
 
     def test_a_settled_last_beat_is_never_surer_and_the_input_is_kept(self):
         bar = read('C C C Am')
-        bar[1] = (bar[1][0], 0.3)
+        bar[1] = (bar[1][0], 0.7)
         bar[2] = (bar[2][0], 0.6)
         settled = settle_edges([bar])[0]
         self.assertEqual(settled[-1][1], 0.6)   # the lower of the last beat (0.9) and beat 3 (0.6)
@@ -71,6 +71,15 @@ class SettleEdgesTest(unittest.TestCase):
 
     def test_a_bar_of_eight_beats_settles_only_its_edges(self):
         self.assertEqual(names(settle_edges([read('C G G G Am Am Am F')])[0]), 'G G G G Am Am Am Am')
+
+    def test_unsure_inner_beats_settle_nothing(self):
+        weak = read('G C C Am')
+        weak[1] = (weak[1][0], 0.2)
+        weak[2] = (weak[2][0], 0.2)
+        self.assertEqual(names(settle_edges([weak])[0]), 'G C C Am')
+        one_sure = read('C Bb Bb Bb', 0.3)
+        one_sure[0] = (one_sure[0][0], 0.9)
+        self.assertEqual(names(settle_edges([one_sure])[0]), 'C Bb Bb Bb')
 
     def test_both_edges_of_one_bar(self):
         self.assertEqual(names(settle_edges([read('F/A Bb Bb C')])[0]), 'Bb Bb Bb Bb')

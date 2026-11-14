@@ -129,7 +129,7 @@ def _per_bar(bars, chart, changes, path):
     """Per bar: its chart line, whether it is Chart, its chart spelling, whether it changes
     inside, and the chart chords sounding in it in order."""
     info = [{'line': None, 'sure': True, 'chart': {}, 'extra': [], 'passing': set(), 'inside': False,
-             'order': [], 'weak': False} for _ in bars]
+             'order': [], 'weak': False, 'confirmed': False, 'unpaired': False} for _ in bars]
     where = {}   # change index -> chart index
     gapped = []  # (chart index, change index before it or None)
     last = None
@@ -153,6 +153,8 @@ def _per_bar(bars, chart, changes, path):
             continue
         if beat > 0:   # a change inside the bar: the record's timing alone, never Chart
             here['sure'], here['inside'] = False, True
+        if change and r not in where:   # a change the chart has no chord for never confirms it
+            here['sure'], here['unpaired'] = False, True
         if change or c is not None:   # a held chord the chart names again starts its chord anew
             c = sounding[r] if c is None else c   # a change the chart lacks: the chart chord held over
             held = (c, agrees(chord, chart[c][1], chart[c][2]))
@@ -160,6 +162,8 @@ def _per_bar(bars, chart, changes, path):
                 here['line'] = chart[c][0]
         if not held[1]:
             here['sure'] = False
+        else:
+            here['confirmed'] = True
         if conf < MIN_CONFIDENCE:   # too weak to confirm the chart
             here['weak'] = True
         here['chart'][beat] = chart[held[0]][2]
@@ -174,6 +178,8 @@ def _per_bar(bars, chart, changes, path):
                 info[b]['line'] = chart[c][0]
     line = 0
     for here in info:
+        if not here['confirmed']:   # passing readings alone, or nothing: the record confirms nothing
+            here['sure'] = False
         line = here['line'] if here['line'] is not None else line
         here['line'] = line
     return info
@@ -265,6 +271,10 @@ def _bar(bar, here, chart, unsure, index):
     spelled = _chart_reading(bar, here) or _chords_in(chart, here)
     record = ' '.join(bar['text'].split())
     reading = _chords_in(chart, here) if here['inside'] else spelled
+    if reading == record and here['unpaired']:   # the chart has no chord here: the record alone
+        unsure.append({'bar': index, 'chords': spelled, 'from': 'Unsure',
+                       'readings': [{'from': 'Record', 'chords': record}]})
+        return spelled
     if reading == record:   # the chart says what the record says: nothing to settle
         return _weak(spelled, unsure, index) if here['weak'] else spelled
     unsure.append({'bar': index, 'chords': spelled, 'from': 'Unsure',
