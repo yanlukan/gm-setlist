@@ -29,9 +29,9 @@ describe('readChartText', () => {
     expect(d.unbarred).toEqual(['Intro', 'Chorus'])
   })
 
-  it('a name with words after the colon is a dropped word line', () => {
+  it('a part name with words after the colon opens the part; the words are dropped', () => {
     const d = readChartText('[Verse]\nC G\nIntro: la la\nAm F')
-    expect(d.sections).toEqual([{ name: 'Verse', chords: 'C G\nAm F' }])
+    expect(d.sections).toEqual([{ name: 'Verse', chords: 'C G' }, { name: 'Intro', chords: 'Am F' }])
     expect(JSON.stringify(d)).not.toContain('la')
     expect(readChartText('Intro: la la').sections).toEqual([])
   })
@@ -82,9 +82,9 @@ describe('readChartText', () => {
     expect(d.chordLines).toEqual([])
   })
 
-  it('a word line ending in a colon is dropped', () => {
+  it('a word line ending in a colon is dropped; a part header keeps only its part word', () => {
     const d = readChartText('[Verse]\nC G\nand then la la:\nAm F\nGuitar Solo:\nD A')
-    expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Guitar Solo'])
+    expect(d.sections.map(s => s.name)).toEqual(['Verse', 'Solo'])
     expect(JSON.stringify(d)).not.toContain('la')
   })
 
