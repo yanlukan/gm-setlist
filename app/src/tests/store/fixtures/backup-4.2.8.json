@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "exportedAt": "2026-11-04T12:00:00.000Z",
+  "songEdits": [
+    {
+      "title": "Faith",
+      "bpm": 96,
+      "capo": 2,
+      "guitar": "acoustic",
+      "transpose": -2,
+      "key": "A"
+    },
+    {
+      "title": "Fastlove",
+      "neck": 5,
+      "shapes": {
+        "Am7": 1
+      }
+    },
+    {
+      "title": "I Can't Make You Love Me",
+      "sections": [
+        {
+          "name": "Intro",
+          "chords": "|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |"
+        },
+        {
+          "name": "Verse",
+          "chords": "|  Cadd9  Em11  Em11  |  C  C  |  G/B  |  Em7  Am7  |\n|  Am7  |  G/D  |  D  G/B  |"
+        },
+        {
+          "name": "Chorus",
+          "chords": "Daad9  G  Cadd9\nG/B  C  D"
+        }
+      ],
+      "notes": "Sparse arpeggios. My own note.",
+      "form": [
+        "Intro",
+        "Verse",
+        "Chorus",
+        "Verse",
+        "Chorus"
+      ],
+      "shapes": {
+        "Em11": 2,
+        "Cadd9": "x-3-2-0-3-3"
+      }
+    },
+    {
+      "title": "Our Song",
+      "notes": "Edited note on the player's own song."
+    }
+  ],
+  "setlists": {
+    "lists": {
+      "default": {
+        "id": "default",
+        "name": "GM Tribute",
+        "songTitles": [
+          "Faith",
+          "Fastlove",
+          "I Can't Make You Love Me",
+          "Our Song"
+        ]
+      },
+      "saturday": {
+        "id": "saturday",
+        "name": "Saturday",
+        "songTitles": [
+          "Fastlove",
+          "Faith"
+        ]
+      },
+      "rehearsal-2026-10": {
+        "id": "rehearsal-2026-10",
+        "name": "Next rehearsal",
+        "songTitles": [
+          "Faith"
+        ]
+      }
+    },
+    "activeId": "saturday"
+  },
+  "customSongs": [
+    {
+      "title": "Our Song",
+      "artist": "The Band",
+      "key": "E",
+      "bpm": 120,
+      "timeSignature": "4/4",
+      "capo": null,
+      "sections": [
+        {
+          "name": "Verse",
+          "chords": "|  E  |  A  |  B  |  E  |"
+        },
+        {
+          "name": "Chorus",
+          "chords": "|  A  B  |  E  C#m  |  A  |  B  |"
+        }
+      ]
+    }
+  ],
+  "theme": "light",
+  "selectedVoicings": {
+    "F#m": 1,
+    "Bm7": 2
+  },
+  "ownShapes": {
+    "Em11": [
+      "x-x-2-2-3-5"
+    ],
+    "D/F#": [
+      "2-x-0-2-3-x"
+    ]
+  }
+}
