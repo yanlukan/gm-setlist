@@ -4,12 +4,10 @@ import sounds from '../data/gx10-sounds.json'
  * The GX-10 set-up for the gig, from the GX-10 session's sounds file
  * (data/gx10-sounds.json, copied from gx10/sounds.json on the gx10 branch).
  * The unit is in UP/DOWN mode with one memory per song, and CTL1 switches the
- * song's special part on and off. The memories were laid out in the September
- * 2026 running order, where ▲ was the next song and ▼ the previous one. The
- * Cryer Arts Theatre order (2026-11-22) is different, so until the unit is
- * laid out again and this file copied again, the memory shown for a song is
- * where its sound is, not one step from the last. Bundled at build time, so
- * it works offline.
+ * song's special part on and off. Since 2026-11-22 the memories follow the
+ * Cryer Arts Theatre running order (song n is memory n, three to a bank), so
+ * ▲ is the next song and ▼ the previous one. Bundled at build time, so it
+ * works offline.
  */
 export interface Gx10Sound {
   title: string

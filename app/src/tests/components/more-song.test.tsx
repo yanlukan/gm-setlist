@@ -36,7 +36,7 @@ describe('the song in More', () => {
     expect(within(more).getByRole('button', { name: /^Played on acoustic guitar/ })).toBeInTheDocument()
     expect(within(more).getByRole('button', { name: 'Edit the chart' })).toBeInTheDocument()
     expect(within(more).getByText('George Michael Complete, no. 12')).toBeInTheDocument()
-    expect(within(more).getByLabelText('GX-10 sound: U01-1 ACOUSTIC')).toBeInTheDocument()
+    expect(within(more).getByLabelText('GX-10 sound: U04-2 ACOUSTIC')).toBeInTheDocument()
   })
 
   it('says the capo and the lower key in words', () => {
@@ -112,7 +112,7 @@ describe('the song in More', () => {
   })
 
   it("follows the song's sound, and switches the guitar for this song only", () => {
-    render(<Screens />) // Faith's sound is ACOUSTIC on the GX-10 (U01-1)
+    render(<Screens />) // Faith's sound is ACOUSTIC on the GX-10 (U04-2)
     fireEvent.click(within(openMore()).getByRole('button', { name: /^Played on acoustic guitar/ }))
     expect(useStore.getState().edits['Faith'].guitar).toBe('electric')
     expect(screen.getByRole('button', { name: /^Played on electric guitar/ })).toHaveTextContent('Electric')

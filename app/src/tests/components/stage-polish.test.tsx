@@ -78,6 +78,6 @@ describe('next song', () => {
   it('names the GX-10 sound for the next song on the Next button', () => {
     openBefore('A Different Corner')
     render(<BottomBar />)
-    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-2 PAD')
+    expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-3 PAD')
   })
 })

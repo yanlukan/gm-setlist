@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-10-22",
+  "updated": "2026-11-22",
   "mode": "up/down",
   "switches": {
     "up": "next song",
@@ -10,52 +10,56 @@
   "pedal": "volume, tuner when fully back",
   "songs": [
     {
-      "title": "Faith",
+      "title": "Waiting (Reprise)",
       "memory": "U01-1",
       "sound": "ACOUSTIC",
-      "ctl1": {
-        "name": "SOLO",
-        "what": "drive + delay, acoustic sim off"
-      },
-      "changes": [
-        {
-          "section": "Solo",
-          "ctl1": "on"
-        },
-        {
-          "section": "Pre-Chorus",
-          "ctl1": "off"
-        }
-      ],
-      "playing": null
-    },
-    {
-      "title": "I'm Your Man",
-      "memory": "U01-2",
-      "sound": "FUNK",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Club Tropicana",
-      "memory": "U01-3",
-      "sound": "80s CLEAN",
       "ctl1": null,
       "changes": [],
       "playing": null
     },
     {
       "title": "Amazing",
-      "memory": "U02-1",
+      "memory": "U01-2",
       "sound": "ACOUSTIC",
       "ctl1": null,
       "changes": [],
       "playing": null
     },
     {
-      "title": "A Different Corner",
+      "title": "I'm Your Man",
+      "memory": "U01-3",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Papa Was a Rolling Stone",
+      "memory": "U02-1",
+      "sound": "SYNTH",
+      "ctl1": {
+        "name": "WAH",
+        "what": "synth off, touch wah on"
+      },
+      "changes": [
+        {
+          "section": "Papa",
+          "ctl1": "on"
+        }
+      ],
+      "playing": "switch by ear at the big change"
+    },
+    {
+      "title": "I Can't Make You Love Me",
       "memory": "U02-2",
+      "sound": "WARM JAZZ",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "A Different Corner",
+      "memory": "U02-3",
       "sound": "PAD",
       "ctl1": {
         "name": "NYLON",
@@ -78,8 +82,116 @@
       "playing": "nylon: pickup position 4, tone 5"
     },
     {
+      "title": "Fastlove",
+      "memory": "U03-1",
+      "sound": "FUNK",
+      "ctl1": {
+        "name": "FUNK",
+        "what": "chorus and compressor off, reverb down"
+      },
+      "changes": [
+        {
+          "section": "Chorus",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        }
+      ],
+      "playing": "verse: chorus sound; tight funk on CTL1"
+    },
+    {
+      "title": "Too Funky",
+      "memory": "U03-2",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Club Tropicana",
+      "memory": "U03-3",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Father Figure",
+      "memory": "U04-1",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Faith",
+      "memory": "U04-2",
+      "sound": "ACOUSTIC",
+      "ctl1": {
+        "name": "SOLO",
+        "what": "drive + delay, acoustic sim off"
+      },
+      "changes": [
+        {
+          "section": "Solo",
+          "ctl1": "on"
+        },
+        {
+          "section": "Pre-Chorus",
+          "ctl1": "off"
+        }
+      ],
+      "playing": null
+    },
+    {
+      "title": "Everything She Wants",
+      "memory": "U04-3",
+      "sound": "80s CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
+      "title": "Outside",
+      "memory": "U05-1",
+      "sound": "FUNK",
+      "ctl1": {
+        "name": "ROTARY",
+        "what": "wah off, rotary on (piano part)"
+      },
+      "changes": [
+        {
+          "section": "Verse",
+          "ctl1": "on"
+        },
+        {
+          "section": "Chorus",
+          "ctl1": "off"
+        }
+      ],
+      "playing": "neck pickup; wah lick rocks by itself; toe switch = 2:40 part (parked bright wah)"
+    },
+    {
+      "title": "Jesus to a Child",
+      "memory": "U05-2",
+      "sound": "ACOUSTIC",
+      "ctl1": null,
+      "changes": [],
+      "playing": "nylon: pickup position 4, tone 5"
+    },
+    {
+      "title": "Wake Me Up Before You Go-Go",
+      "memory": "U05-3",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
       "title": "Freedom! '90",
-      "memory": "U02-3",
+      "memory": "U06-1",
       "sound": "ACOUSTIC",
       "ctl1": {
         "name": "TOUCH WAH",
@@ -106,104 +218,32 @@
       "playing": null
     },
     {
-      "title": "Papa Was a Rolling Stone",
-      "memory": "U03-1",
-      "sound": "SYNTH",
-      "ctl1": {
-        "name": "WAH",
-        "what": "synth off, touch wah on"
-      },
-      "changes": [
-        {
-          "section": "Papa",
-          "ctl1": "on"
-        }
-      ],
-      "playing": "switch by ear at the big change"
-    },
-    {
-      "title": "Too Funky",
-      "memory": "U03-2",
-      "sound": "FUNK",
+      "title": "Roxanne",
+      "memory": "U06-2",
+      "sound": "WARM JAZZ",
       "ctl1": null,
       "changes": [],
       "playing": null
     },
     {
-      "title": "Jesus to a Child",
-      "memory": "U03-3",
-      "sound": "ACOUSTIC",
+      "title": "Kissing a Fool",
+      "memory": "U06-3",
+      "sound": "WARM JAZZ",
       "ctl1": null,
       "changes": [],
-      "playing": "nylon: pickup position 4, tone 5"
+      "playing": null
     },
     {
-      "title": "Everything She Wants",
-      "memory": "U04-1",
+      "title": "Careless Whisper",
+      "memory": "U07-1",
       "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Fastlove",
-      "memory": "U04-2",
-      "sound": "FUNK",
-      "ctl1": {
-        "name": "FUNK",
-        "what": "chorus and compressor off, reverb down"
-      },
-      "changes": [
-        {
-          "section": "Chorus",
-          "ctl1": "on"
-        },
-        {
-          "section": "Verse",
-          "ctl1": "off"
-        }
-      ],
-      "playing": "verse: chorus sound; tight funk on CTL1"
-    },
-    {
-      "title": "Outside",
-      "memory": "U04-3",
-      "sound": "FUNK",
-      "ctl1": {
-        "name": "ROTARY",
-        "what": "wah off, rotary on (piano part)"
-      },
-      "changes": [
-        {
-          "section": "Verse",
-          "ctl1": "on"
-        },
-        {
-          "section": "Chorus",
-          "ctl1": "off"
-        }
-      ],
-      "playing": "neck pickup; wah lick rocks by itself; toe switch = 2:40 part (parked bright wah)"
-    },
-    {
-      "title": "Father Figure",
-      "memory": "U05-1",
-      "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Wake Me Up Before You Go-Go",
-      "memory": "U05-2",
-      "sound": "FUNK",
       "ctl1": null,
       "changes": [],
       "playing": null
     },
     {
       "title": "Somebody to Love",
-      "memory": "U05-3",
+      "memory": "U07-2",
       "sound": "CRUNCH",
       "ctl1": {
         "name": "SOLO",
@@ -219,46 +259,6 @@
           "ctl1": "off"
         }
       ],
-      "playing": null
-    },
-    {
-      "title": "Careless Whisper",
-      "memory": "U06-1",
-      "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "I Can't Make You Love Me",
-      "memory": "U06-2",
-      "sound": "WARM JAZZ",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Roxanne",
-      "memory": "U06-3",
-      "sound": "WARM JAZZ",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Waiting (Reprise)",
-      "memory": "U07-1",
-      "sound": "ACOUSTIC",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
-    },
-    {
-      "title": "Kissing a Fool",
-      "memory": "U07-2",
-      "sound": "WARM JAZZ",
-      "ctl1": null,
-      "changes": [],
       "playing": null
     },
     {
