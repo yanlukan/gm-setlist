@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BandBars } from '../../components/song/BandBars'
 import { SongSheet } from '../../components/song/SongSheet'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 const draw = (line: string) => render(<BandBars lines={[line]} renderTokens={t => t} />)
 
@@ -66,6 +67,7 @@ describe('bars in beat columns', () => {
 
   it('draws a dot in a line that is not in bars as nothing', () => {
     useStore.setState(useStore.getInitialState())
+    startOn('Faith')
     useStore.getState().saveSections('Faith', [{ name: 'Verse', chords: '|  D  |\nN.C.  .  E' }])
     const { container } = render(<SongSheet />)
     expect(container.querySelector('.bar-plain')!.textContent!.replace('N.C.', '')).not.toContain('.')

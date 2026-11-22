@@ -4,12 +4,14 @@ import { SongSheet } from '../../components/song/SongSheet'
 import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { FAITH_ONE_LINE, faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 // Faith, the first song, one line a section as it was before bars: Intro B | Verse B E B E B | Pre-Chorus E B E B E B G#m C#m F# N.C. | Chorus B | Solo B E B E B
 const FAITH = FAITH_ONE_LINE
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   faithOneLine()
   useStore.setState({ editMode: true })
 })
@@ -272,12 +274,12 @@ describe('moving to another song while editing', () => {
     gap('Intro', 'Cursor at the end of line 1')
     tap('E')
     expect(key('Undo')).toBeEnabled()
-    act(() => { useStore.getState().nextSong() }) // I'm Your Man
-    expect(screen.getByRole('heading', { name: "I'm Your Man" })).toBeInTheDocument()
+    act(() => { useStore.getState().nextSong() }) // Everything She Wants
+    expect(screen.getByRole('heading', { name: "Everything She Wants" })).toBeInTheDocument()
     expect(key('Undo')).toBeDisabled()
     // A fresh cursor: at the end of the new song's first section
     expect(screen.getByText(/^Adding to the end of /)).toBeInTheDocument()
-    expect(useStore.getState().edits["I'm Your Man"]).toBeUndefined()
+    expect(useStore.getState().edits["Everything She Wants"]).toBeUndefined()
     expect(useStore.getState().edits['Faith'].sections![0].chords).toBe('B  E') // and Faith keeps its edit
   })
 })

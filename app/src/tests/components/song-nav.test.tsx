@@ -90,7 +90,7 @@ describe('the Songs sheet', () => {
   })
 
   it('marks the song playing now', () => {
-    useStore.getState().goToSong(2)
+    useStore.getState().goToSong(G.indexOf('Club Tropicana'))
     render(<BottomBar />)
     openSongs()
     expect(row('Club Tropicana').getAttribute('aria-current')).toBe('true')

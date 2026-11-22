@@ -4,6 +4,7 @@ import { CurrentScreen } from '../../App'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { DEFAULT_SONGS } from '../../data/library'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const mine = faith.sections.map((s, i) => (i === 1 ? { ...s, chords: 'B  A' } : s))
@@ -24,6 +25,7 @@ const openMore = () => fireEvent.click(screen.getByRole('button', { name: 'More'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
 })
 afterEach(() => {
   vi.restoreAllMocks()

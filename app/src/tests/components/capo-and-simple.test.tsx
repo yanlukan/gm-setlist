@@ -7,9 +7,11 @@ import { useShownSong } from '../../hooks/use-shown-song'
 import { useSongChart } from '../../hooks/use-song-chart'
 import { useStore } from '../../store/use-store'
 import { faithOneLine } from '../faith-one-line'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   faithOneLine()
 })
 

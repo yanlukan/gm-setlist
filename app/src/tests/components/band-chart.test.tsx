@@ -7,11 +7,15 @@ import { BandChart } from '../../components/song/BandChart'
 import { hasShapes } from '../../music/voicings'
 import { faithOneLine } from '../faith-one-line'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 // A chart written in bars is drawn in bands: each section tinted in its colour
 // and lettered A, B, C in chart order, with the song order in the same letters.
 
-beforeEach(() => useStore.setState(useStore.getInitialState()))
+beforeEach(() => {
+  useStore.setState(useStore.getInitialState())
+  startOn('Faith')
+})
 
 /** Moving to a song leaves edit mode. */
 function open(title: string) {

@@ -32,7 +32,7 @@ export const defaultSetlistData: SetlistData = {
   lists: {
     default: {
       id: 'default',
-      name: 'GM Tribute — Sept 2026',
+      name: 'GM Tribute — Cryer Arts',
       songTitles: [...GIG_SETLIST_2026],
     },
   },
@@ -631,7 +631,7 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
 
-  /** Rebuild the active setlist as the printed Sept 2026 running order. */
+  /** Rebuild the active setlist as the printed running order (GIG_SETLIST_2026). */
   restoreGigOrder: () => {
     const previous = get().setlistData
     set(state => {

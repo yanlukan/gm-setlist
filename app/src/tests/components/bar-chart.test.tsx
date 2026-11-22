@@ -2,12 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 // A section written in bars shows as a cell per bar in a grid of four columns
 // (eight in landscape, two on a phone). Every line is padded to four cells, so
 // bar 1 of every line is in the first column.
 
-beforeEach(() => useStore.setState(useStore.getInitialState()))
+beforeEach(() => {
+  useStore.setState(useStore.getInitialState())
+  startOn('Faith')
+})
 
 const faith = (chords: string) => {
   useStore.getState().saveSections('Faith', [{ name: 'Verse', chords }])

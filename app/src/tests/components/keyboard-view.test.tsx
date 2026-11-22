@@ -6,9 +6,11 @@ import { BottomBar } from '../../components/layout/BottomBar'
 import { useStore } from '../../store/use-store'
 import { faithOneLine } from '../faith-one-line'
 import { soundFor } from '../../music/gx10'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   faithOneLine()
 })
 

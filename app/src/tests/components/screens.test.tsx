@@ -6,9 +6,11 @@ import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 import { setOwnShapes } from '../../music/voicings'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   setOwnShapes({})
 })
 

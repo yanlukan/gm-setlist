@@ -13,6 +13,11 @@ const open = (title: string) => {
   const { setlistData } = useStore.getState()
   useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf(title))
 }
+/** Opens the song played just before this one, so this one is on the Next button. */
+const openBefore = (title: string) => {
+  const { setlistData } = useStore.getState()
+  useStore.getState().goToSong(setlistData.lists[setlistData.activeId].songTitles.indexOf(title) - 1)
+}
 
 // Tap tempo is gone: the BPM is text (screens.test.tsx). Chord taps on Stage,
 // the Next up line and the key button are in stage-screen.test.tsx and
@@ -56,13 +61,14 @@ describe('chart marks', () => {
 
 describe('next song', () => {
   it('shows the key the band plays it in', () => {
+    openBefore("I'm Your Man") // charted in D, played in C
     render(<BottomBar />)
-    // Song 2 is I'm Your Man: charted in D, played in C
     const next = screen.getByRole('button', { name: /^Next song/ })
     expect(next.querySelector('.bb-key')).toHaveTextContent(/^C$/)
   })
 
   it('follows a transpose set on the device', () => {
+    openBefore("I'm Your Man")
     useStore.getState().setTranspose("I'm Your Man", -3)
     render(<BottomBar />)
     const next = screen.getByRole('button', { name: /^Next song/ })
@@ -70,7 +76,7 @@ describe('next song', () => {
   })
 
   it('names the GX-10 sound for the next song on the Next button', () => {
-    useStore.setState({ currentIndex: 3 }) // Amazing; next is A Different Corner
+    openBefore('A Different Corner')
     render(<BottomBar />)
     expect(screen.getByRole('button', { name: /^Next song/ })).toHaveTextContent('U02-2 PAD')
   })

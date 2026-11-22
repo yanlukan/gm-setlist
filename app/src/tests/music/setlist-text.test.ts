@@ -23,41 +23,42 @@ describe('formatSetlist', () => {
     const lines = text.split('\n')
     expect(lines[0]).toBe('GM Tribute')
     expect(lines[1]).toBe('21 songs, about 1 h 39 m by the recordings')
-    expect(lines[3]).toBe('1. Faith (B)')
-    expect(lines[20]).toBe('18. Roxanne (Bm)')
+    expect(lines[3]).toBe('1. Waiting (Reprise) (G)')
+    expect(lines[13]).toBe('11. Faith (B)')
+    expect(lines[19]).toBe('17. Roxanne (Bm)')
     expect(lines).toHaveLength(3 + 21)
   })
 
   it('flags a lower-key song whose key is not settled yet', () => {
     const unsettled = inGigOrder.map(song =>
       song.title === "I'm Your Man" ? { ...song, transpose: undefined } : song)
-    expect(formatSetlist('GM', unsettled, {})).toContain("2. I'm Your Man (D, lower key TBC)")
+    expect(formatSetlist('GM', unsettled, {})).toContain("3. I'm Your Man (D, lower key TBC)")
   })
 
-  it('has every lower key settled for the September set', () => {
+  it('has every lower key settled for the gig set', () => {
     const text = formatSetlist('GM', inGigOrder, {})
     expect(text).not.toContain('TBC')
-    expect(text).toContain("2. I'm Your Man (C, orig. D)")
-    expect(text).toContain('3. Club Tropicana (A, orig. B)')
-    expect(text).toContain('14. Wake Me Up Before You Go-Go (B, orig. C)')
-    expect(text).toContain('16. Careless Whisper (Cm, orig. Dm)')
+    expect(text).toContain("3. I'm Your Man (C, orig. D)")
+    expect(text).toContain('9. Club Tropicana (A, orig. B)')
+    expect(text).toContain('15. Wake Me Up Before You Go-Go (B, orig. C)')
+    expect(text).toContain('19. Careless Whisper (Cm, orig. Dm)')
   })
 
   it('shows the new key and the original once transposed', () => {
     const text = formatSetlist('GM', inGigOrder, { "I'm Your Man": { transpose: -2 } })
-    expect(text).toContain("2. I'm Your Man (C, orig. D)")
+    expect(text).toContain("3. I'm Your Man (C, orig. D)")
   })
 })
 
 describe('band keys in the shared setlist', () => {
   it('lists A Different Corner in Gb, a semitone below the book, as the band plays it', () => {
     const text = formatSetlist('GM', inGigOrder, {})
-    expect(text).toContain('5. A Different Corner (Gb)')
+    expect(text).toContain('6. A Different Corner (Gb)')
   })
 
   it('lists Amazing in the key the band plays it', () => {
     const text = formatSetlist('GM', inGigOrder, {})
-    expect(text).toContain('4. Amazing (Am, orig. Bbm)')
+    expect(text).toContain('2. Amazing (Am, orig. Bbm)')
     expect(text).not.toContain('4. Amazing (Bbm, lower key TBC)')
   })
 })

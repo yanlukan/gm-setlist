@@ -679,31 +679,36 @@ export const SONGS: Song[] = [
 ]
 
 /**
- * George Michael Tribute — running order for the September 2026 concert.
- * This is the order the band plays; it seeds the default setlist on a fresh
- * install and is what "Restore GM Tribute order" rebuilds.
+ * George Michael Tribute — running order for the Cryer Arts Theatre concert
+ * (the band's list of 2026-11-22), in two parts: ten songs, the interval
+ * after Father Figure, then eleven. Song 4 is the Killer / Papa medley, one
+ * chart. This is the order the band plays; it seeds the default setlist on a
+ * fresh install and is what "Restore the GM Tribute order" rebuilds. A device
+ * that already has saved setlists keeps them until the player restores.
  */
 export const GIG_SETLIST_2026: string[] = [
-  'Faith',
-  "I'm Your Man",
-  'Club Tropicana',
-  'Amazing',
-  'A Different Corner',
-  "Freedom! '90",
-  'Papa Was a Rolling Stone',
-  'Too Funky',
-  'Jesus to a Child',
-  'Everything She Wants',
-  'Fastlove',
-  'Outside',
-  'Father Figure',
-  'Wake Me Up Before You Go-Go',
-  'Somebody to Love',
-  'Careless Whisper',
-  "I Can't Make You Love Me",
-  'Roxanne',
+  // Part 1
   'Waiting (Reprise)',
+  'Amazing',
+  "I'm Your Man",
+  'Papa Was a Rolling Stone',
+  "I Can't Make You Love Me",
+  'A Different Corner',
+  'Fastlove',
+  'Too Funky',
+  'Club Tropicana',
+  'Father Figure',
+  // Part 2
+  'Faith',
+  'Everything She Wants',
+  'Outside',
+  'Jesus to a Child',
+  'Wake Me Up Before You Go-Go',
+  "Freedom! '90",
+  'Roxanne',
   'Kissing a Fool',
+  'Careless Whisper',
+  'Somebody to Love',
   'Last Christmas',
 ]
 

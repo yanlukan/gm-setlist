@@ -16,12 +16,14 @@ describe('song notes and cues', () => {
     }
   })
 
-  it('give every song in the gig set its own GX-10 memory, in gig order (UP/DOWN mode)', () => {
-    // Three memories a bank: U01-1 for the first song, U07-3 for the 21st
-    GIG_SETLIST_2026.forEach((title, i) => {
-      const memory = `U${String(Math.floor(i / 3) + 1).padStart(2, '0')}-${(i % 3) + 1}`
-      expect(soundFor(title)?.memory, title).toBe(memory)
-    })
+  it('give every song in the gig set its own GX-10 memory, three to a bank from U01-1 to U07-3', () => {
+    // The memories are where the unit has them, which is still the September
+    // 2026 order. The Cryer Arts Theatre running order (2026-11-22) moved the
+    // songs, so UP/DOWN no longer steps through the set: that holds until the
+    // unit is laid out again and data/gx10-sounds.json is copied from gx10.
+    const slots = Array.from({ length: 21 }, (_, i) => `U${String(Math.floor(i / 3) + 1).padStart(2, '0')}-${(i % 3) + 1}`)
+    const memories = GIG_SETLIST_2026.map(title => soundFor(title)?.memory ?? `none for ${title}`)
+    expect([...memories].sort()).toEqual(slots)
   })
 
   it('switch CTL1 only at sections the chart has', () => {

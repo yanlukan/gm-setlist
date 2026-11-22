@@ -9,12 +9,14 @@ import { StageScreen } from '../../components/stage/StageScreen'
 import { DEFAULT_SONGS } from '../../data/library'
 import { playedKey } from '../../music/setlist-text'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const mine = faith.sections.map((s, i) => (i === 1 ? { ...s, chords: 'B  A' } : s))
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
 })
 
 const header = () => document.querySelector('.song-head') as HTMLElement

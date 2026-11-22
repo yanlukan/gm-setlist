@@ -8,6 +8,7 @@ import { DEFAULT_SONGS } from '../../data/library'
 import { useStore } from '../../store/use-store'
 import { db, resetDb } from '../../store/persistence'
 import { keepVersion, whenHistorySaved } from '../../store/song-history'
+import { startOn } from '../start-on'
 
 /** The title line, where the save status sits beside Done. */
 const setup = () => document.querySelector('.song-head') as HTMLElement
@@ -29,6 +30,7 @@ beforeEach(async () => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(start)
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   resetDb()
   const d = await db()
   await d.clear('settings')

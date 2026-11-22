@@ -5,12 +5,14 @@ import { DEFAULT_SONGS } from '../../data/library'
 import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { playedKey } from '../../music/setlist-text'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 const song = (title: string) => DEFAULT_SONGS.find(s => s.title === title)!
 const faith = song('Faith')
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   useStore.setState({ viewMode: 'stage' })
 })
 
@@ -120,7 +122,7 @@ describe('the Stage chart', () => {
 
 describe('Next up', () => {
   it('warns one song early when the next song has a cue', () => {
-    goTo("Freedom! '90") // the song before Papa Was a Rolling Stone
+    goTo(G[G.indexOf('Papa Was a Rolling Stone') - 1]) // the song before it
     render(<StageScreen />)
     const note = screen.getByRole('note')
     expect(note).toHaveTextContent('Next up')

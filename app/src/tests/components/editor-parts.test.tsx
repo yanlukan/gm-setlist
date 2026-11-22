@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 // The editor opens a section in the lines the chart shows it in: each time
 // through a part on a line of its own, not one chord after another.
@@ -12,6 +13,7 @@ const LOVE_VERSE = 'Cadd9  Em11  C  G/B  Em7  Am7  Cadd9  Em11  C  G/B  Em7  Am7
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   useStore.setState({ editMode: true })
 })
 

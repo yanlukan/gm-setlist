@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { SongSheet } from '../../components/song/SongSheet'
 import { GIG_SETLIST_2026 } from '../../data/songs'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 // Bar lines and repeat bars go in from the chord keyboard, and the editor
 // saves the lines it shows.
@@ -11,6 +12,7 @@ const LOVE = "I Can't Make You Love Me"
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   useStore.setState({ editMode: true })
 })
 

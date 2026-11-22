@@ -4,9 +4,11 @@ import { CurrentScreen } from '../../App'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { useStore } from '../../store/use-store'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
 })
 
 function Screens() {

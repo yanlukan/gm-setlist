@@ -5,12 +5,14 @@ import { DEFAULT_SONGS } from '../../data/library'
 import { GIG_SETLIST_2026 as G } from '../../data/songs'
 import { useStore } from '../../store/use-store'
 import { APP_VERSION } from '../../version'
+import { startOn } from '../start-on'
 
 const faith = DEFAULT_SONGS.find(s => s.title === 'Faith')!
 const mine = faith.sections.map((s, i) => (i === 1 ? { ...s, chords: 'B  A' } : s))
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
 })
 afterEach(() => {
   vi.restoreAllMocks()

@@ -4,9 +4,11 @@ import { CurrentScreen } from '../../App'
 import { BottomBar } from '../../components/layout/BottomBar'
 import { useStore } from '../../store/use-store'
 import { moveChords } from '../../store/song-shapes'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
 })
 
 /** The screen with its bar, and More open: the position is in the song's settings. */

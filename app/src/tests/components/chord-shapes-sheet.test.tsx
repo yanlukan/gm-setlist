@@ -4,9 +4,11 @@ import { PracticeScreen } from '../../components/practice/PracticeScreen'
 import { useStore } from '../../store/use-store'
 import { pickSongShape } from '../../store/song-shapes'
 import { setOwnShapes } from '../../music/voicings'
+import { startOn } from '../start-on'
 
 beforeEach(() => {
   useStore.setState(useStore.getInitialState())
+  startOn('Faith')
   setOwnShapes({})
 })
 

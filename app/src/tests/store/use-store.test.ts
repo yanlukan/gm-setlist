@@ -211,7 +211,7 @@ describe('gig-critical behaviour', () => {
   })
 
   describe('the default setlist', () => {
-    it('is the full 21-song September 2026 running order', () => {
+    it('is the full 21-song running order', () => {
       const { setlistData } = useStore.getState()
       const active = setlistData.lists[setlistData.activeId]
       expect(active.songTitles).toEqual(GIG_SETLIST_2026)
@@ -313,7 +313,7 @@ describe('duplicateSetlist', () => {
     const { setlistData } = useStore.getState()
     expect(setlistData.activeId).not.toBe(original)
     const copy = setlistData.lists[setlistData.activeId]
-    expect(copy.name).toBe('GM Tribute — Sept 2026 (copy)')
+    expect(copy.name).toBe('GM Tribute — Cryer Arts (copy)')
     expect(copy.songTitles).toEqual(GIG_SETLIST_2026)
   })
 
