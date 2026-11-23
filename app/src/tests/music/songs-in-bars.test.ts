@@ -177,8 +177,20 @@ describe('Roxanne in bars (songbook no. 49)', () => {
     // Measured on the recording (bass and voice stems, 2026-11-23): 4 bars of
     // the vamp from 0:03, the verse chords from 0:15, the voice at 0:38.
     expect(by(ROX).sections.find(s => s.name === 'Intro')!.chords).toBe(
-      '|  Bm7  |  B11  |  Bm7  |  B11  |\n|  Bm  |  D/A  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  B11  |  %  |',
+      '|  Bm7  |  A  |  Bm7  |  A  |\n|  Bm  |  F#m  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  B11  |  %  |',
     )
+  })
+
+  it("has the chords the player hears: A in the vamp, F#m in the verse's second bar", () => {
+    // The player, 2026-11-23: "starts from Bm7, A, later Bm, F#m, Gmaj7 f#m7". The
+    // recording agrees: the bass plays A under the vamp's second chord (the book's
+    // B11 has B), and the piano plays F# A C# over the bass's A (the book: D/A).
+    const chords = (name: string) => by(ROX).sections.find(s => s.name === name)!.chords
+    expect(chords('Interlude')).toBe('|  Bm7  |  A  |  Bm7  |  A  |')
+    for (const name of ['Verse', 'Verse 2']) {
+      expect(chords(name).split('\n')[0], name).toBe('|  Bm  |  F#m  |  Gmaj7  |  F#m7  |')
+    }
+    expect(chordsOf(ROX)).not.toContain('D/A')
   })
 
   it('ends the second verse on both stabs and holds the B11 two bars before the N.C.', () => {
@@ -202,7 +214,9 @@ describe('Roxanne in bars (songbook no. 49)', () => {
     const song = by(ROX)
     expect(song.key).toBe('Bm')
     expect(song.transpose).toBeUndefined()
-    expect(chordsOf(ROX).filter(c => !song.shapes?.[c])).toEqual([])
+    // A and F#m are the player's chords, not in the book: the app recommends their shapes
+    expect(chordsOf(ROX).filter(c => !song.shapes?.[c]).sort()).toEqual(['A', 'F#m'])
+    expect(Object.keys(song.shapes ?? {})).not.toContain('D/A')
   })
 })
 

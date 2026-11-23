@@ -262,20 +262,7 @@
   "shift": 0,
   "verdict": "lined up",
   "bars": [],
-  "unchecked": [
-   {
-    "section": "Interlude",
-    "bar": 0
-   },
-   {
-    "section": "Interlude",
-    "bar": 1
-   },
-   {
-    "section": "Interlude",
-    "bar": 3
-   }
-  ]
+  "unchecked": []
  },
  "Waiting (Reprise)": {
   "recording": "1-10 Waiting (Reprise).m4a",
