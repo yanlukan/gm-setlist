@@ -141,7 +141,7 @@
  },
  "Everything She Wants": {
   "recording": "1-01 Everything She Wants.m4a",
-  "checked": "2026-11-03",
+  "checked": "2026-11-23",
   "shift": 0,
   "verdict": "lined up",
   "bars": [
@@ -183,28 +183,14 @@
     "chords": "Esus24",
     "kind": "chord",
     "record": "Bm . . .",
-    "confidence": 0.66,
+    "confidence": 0.67,
     "at": [
      126.1,
      134.5,
      210.0,
      218.3,
-     260.1,
-     268.4
-    ]
-   },
-   {
-    "section": "Outro",
-    "bar": 2,
-    "chords": "F#m",
-    "kind": "chord",
-    "record": "C#m/E C# F#m .",
-    "confidence": 0.84,
-    "at": [
-     296.4,
-     304.7,
-     313.1,
-     321.5
+     326.7,
+     335.0
     ]
    }
   ],

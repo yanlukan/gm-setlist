@@ -392,14 +392,15 @@ describe('Jesus to a Child in bars (songbook no. 35)', () => {
 describe("Everything She Wants in bars (songbook no. 11, the 12-inch version)", () => {
   const ESW = 'Everything She Wants'
   const GROOVE = '|  F#sus4  |  F#  |  Esus24  |  Eadd9  |'
-  // The record is the 12-inch remix: after the third chorus it plays 32 bars
-  // the book doesn't have (4:16 to 5:23), which are not charted.
-  const REMIX_BARS = 32
+  // The record is the 12-inch version: after the third chorus comes a sung
+  // part the book doesn't have, 16 bars twice (4:16 to 5:23). The player
+  // missed it on the chart (2026-11-23); its chords are read from the recording.
+  const MIDDLE = '|  F#m  |  %  |  C#m7  |  C#7  |  (x2)\n|  Bm7  |  C#m7  |  F#m  |  B7  |\n|  D  |  %  |  G#m7  |  C#7  |'
   it('writes every line of every section in bars', () => everyLineInBars(ESW))
 
   it("has the book's bars, with the intro from the recording", () => {
     expect(sectionBars(ESW)).toEqual({
-      Intro: 26, Verse: 16, 'Post-Verse': 8, 'Pre-Chorus': 2, Chorus: 6, Instrumental: 8, Bridge: 8, Outro: 16,
+      Intro: 26, Verse: 16, 'Post-Verse': 8, 'Pre-Chorus': 2, Chorus: 6, Instrumental: 8, Bridge: 8, Middle: 16, Outro: 16,
     })
     const chords = Object.fromEntries(by(ESW).sections.map(s => [s.name, s.chords]))
     expect(chords.Intro).toBe(`|  N.C.  |  %  |\n${GROOVE}  (x6)`)
@@ -407,26 +408,28 @@ describe("Everything She Wants in bars (songbook no. 11, the 12-inch version)", 
     expect(chords['Pre-Chorus']).toBe('|  Bm  C#aug  |  C#  |')
     expect(chords.Chorus).toBe('|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |')
     expect(chords.Bridge).toBe('|  F#sus4  |  %  |  Bm  |  %  |  (x2)')
+    expect(chords.Middle).toBe(MIDDLE)
     expect(chords.Outro).toBe('|  Bm  C#aug  |  C#  |  F#m  |  %  |  (x4)')
   })
 
-  it('plays the verse chords after each chorus but the last, and the bridge before the third chorus', () => {
+  it('plays the bridge before the third chorus and the middle part twice after it', () => {
     expect(by(ESW).form).toEqual([
       'Intro', 'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
       'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
-      'Bridge', 'Pre-Chorus', 'Chorus', 'Instrumental', 'Pre-Chorus', 'Chorus', 'Outro',
+      'Bridge', 'Pre-Chorus', 'Chorus', 'Middle', 'Middle', 'Instrumental', 'Pre-Chorus', 'Chorus', 'Outro',
     ])
   })
 
-  it('comes to the length of the recording with the remix section, up to the end of the fade (6:29)', () => {
-    expect(Math.abs(formBars(ESW) + REMIX_BARS - recordingBars(ESW, 0.58, 389.3))).toBeLessThanOrEqual(1)
+  it('comes to the length of the recording, up to the end of the fade (6:29)', () => {
+    expect(Math.abs(formBars(ESW) - recordingBars(ESW, 0.58, 389.3))).toBeLessThanOrEqual(1)
   })
 
-  it('stays in F#m with a songbook shape for every chord and its sound', () => {
+  it('stays in F#m with a songbook shape for every chord of the book and its sound', () => {
     const song = by(ESW)
     expect(song.key).toBe('F#m')
     expect(song.transpose).toBeUndefined()
-    expect(chordsOf(ESW).filter(c => !song.shapes?.[c])).toEqual([])
+    // The middle part's chords are not in the book: the app recommends their shapes
+    expect(chordsOf(ESW).filter(c => !song.shapes?.[c]).sort()).toEqual(['B7', 'Bm7', 'C#7', 'C#m7', 'D', 'G#m7'])
   })
 })
 

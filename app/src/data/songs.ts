@@ -387,17 +387,18 @@ export const SONGS: Song[] = [
     evidence: {
       'Intro': { from: 'Record' },
       Chorus: { from: 'Ear' },
+      Middle: { from: 'Record' },
     },
     shapes: {
       'F#sus4': 'x-x-4-4-2-2', 'F#': 'x-x-4-3-2-2', Esus24: 'x-x-2-2-0-2', Eadd9: 'x-x-2-1-0-2',
       'F#m': '2-4-4-2-2-2', Bm: 'x-2-4-4-3-2', 'C#': 'x-4-6-6-6-4', 'C#aug': 'x-4-x-6-6-5',
     },
     shapesFrom: 'Songbook',
-    notes: "From the songbook (no. 11). Synth-driven. Form: Intro, Verse, Post-Verse, Pre-Chorus, Chorus, Instrumental on the verse chords; the verses and Chorus again, Instrumental; Bridge, Chorus, Instrumental, Chorus; Outro to fade (from 6:21). Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove; the intro (two drum bars, then the verse chords six times round) is from the recording. The chart keeps the book's Bm C#aug | C#; on the record the Bm fills its bar and the C#aug takes the first half of the next. This is the 12-inch version (6:33): after the third chorus it has 32 bars the book doesn't have (4:16 to 5:23), not charted. The verse shapes stay on the top four strings (F#sus4 x-x-4-4-2-2, F# x-x-4-3-2-2, Esus24 x-x-2-2-0-2, Eadd9 x-x-2-1-0-2); the chorus uses barres, with C#aug as x-4-x-6-6-5.",
+    notes: "From the songbook (no. 11). Synth-driven. Form: Intro, Verse, Post-Verse, Pre-Chorus, Chorus, Instrumental on the verse chords; the verses and Chorus again, Instrumental; Bridge, Chorus, the Middle twice, Instrumental, Chorus; Outro to fade (from 6:21). Esus24 is E with both the 2nd and the 4th and no 3rd. The book starts straight into the verse groove; the intro (two drum bars, then the verse chords six times round) is from the recording. The chart keeps the book's Bm C#aug | C#; on the record the Bm fills its bar and the C#aug takes the first half of the next. This is the 12-inch version (6:33). After the third chorus comes the Middle, 16 sung bars played twice (4:16 to 5:23): the book doesn't print it, so its chords are from the recording. In each C#m7, C#7 pair the bass climbs from C# back to F#. The verse shapes stay on the top four strings (F#sus4 x-x-4-4-2-2, F# x-x-4-3-2-2, Esus24 x-x-2-2-0-2, Eadd9 x-x-2-1-0-2); the chorus uses barres, with C#aug as x-4-x-6-6-5.",
     form: [
       'Intro', 'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
       'Verse', 'Post-Verse', 'Pre-Chorus', 'Chorus', 'Instrumental',
-      'Bridge', 'Pre-Chorus', 'Chorus', 'Instrumental', 'Pre-Chorus', 'Chorus', 'Outro',
+      'Bridge', 'Pre-Chorus', 'Chorus', 'Middle', 'Middle', 'Instrumental', 'Pre-Chorus', 'Chorus', 'Outro',
     ],
     sections: [
       { name: 'Intro', chords: '|  N.C.  |  %  |\n|  F#sus4  |  F#  |  Esus24  |  Eadd9  |  (x6)' },
@@ -407,6 +408,7 @@ export const SONGS: Song[] = [
       { name: 'Chorus', chords: '|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |' },
       { name: 'Instrumental', chords: '|  F#sus4  |  F#  |  Esus24  |  Eadd9  |  (x2)' },
       { name: 'Bridge', chords: '|  F#sus4  |  %  |  Bm  |  %  |  (x2)' },
+      { name: 'Middle', chords: '|  F#m  |  %  |  C#m7  |  C#7  |  (x2)\n|  Bm7  |  C#m7  |  F#m  |  B7  |\n|  D  |  %  |  G#m7  |  C#7  |' },
       { name: 'Outro', chords: '|  Bm  C#aug  |  C#  |  F#m  |  %  |  (x4)' },
     ],
   },

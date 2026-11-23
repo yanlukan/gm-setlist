@@ -122,7 +122,7 @@ describe('the song order as lines to read', () => {
     expect(words(esw.form!)).toEqual([
       'Intro → Verse → Post-Verse → Pre-Chorus → Chorus → Instrumental',
       'Verse → Post-Verse → Pre-Chorus → Chorus → Instrumental → Bridge',
-      'Pre-Chorus → Chorus → Instrumental',
+      'Pre-Chorus → Chorus → Middle×2 → Instrumental',
       'Pre-Chorus → Chorus → Outro',
     ])
   })
