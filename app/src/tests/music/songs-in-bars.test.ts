@@ -128,6 +128,28 @@ describe('Club Tropicana in bars (the NoTreble bass transcription)', () => {
     ])
   })
 
+  it('moves to E in the second half of every second groove bar, as the recording does (2026-11-23)', () => {
+    // Bass, guitar and keys stems over every verse, the instrumental and the
+    // outro: bar 1 is F#m7; bar 2 is B, then E on its last two beats (bass
+    // B D# E D#, the keys on E major 7). The chart had a whole bar of B7.
+    const chords = Object.fromEntries(by(TROP).sections.map(s => [s.name, s.chords]))
+    const GROOVE = '|  F#m7  |  B  E  |  F#m7  |  B  E  |'
+    expect(chords['Intro 2']).toBe(GROOVE)
+    expect(chords.Verse).toBe(`${GROOVE}\n|  F#m7  |  B  E  |  F#m7  |  B  B/D#  .  E  |`)
+    expect(chords.Instrumental).toBe(`${GROOVE}  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  B/D#  .  E  |`)
+    expect(chords['Last verse']).toBe(`${GROOVE}  (x3)\n|  F#m7  |  B  E  |`)
+    expect(chords['Walk-up']).toBe('|  F#m7  |  B  C#m  B/D#  E  |')
+    expect(chords.Outro).toBe(`${GROOVE}  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  C#m  B/D#  E  |\n${GROOVE}\n|  F#m7  |  B  E  |`)
+    // Under the bass solo the keys stay on B
+    expect(chords['Bass solo']).toBe('|  F#m7  |  B  |  F#m7  |  B  |  (x2)')
+    // The slap-bass opening and the chorus are as they were
+    expect(chords.Intro).toBe('|  F#m7  |  %  |  %  |  %  |  (x2)')
+    expect(chords.Chorus).toBe('|  B  |  D#m7  |  B  |  D#m7  |\n|  B  |  D#m7  |  B  |  D#m7  Dm7  C#m7  |')
+    for (const name of ['Intro 2', 'Verse', 'Instrumental', 'Bass solo', 'Last verse', 'Outro']) {
+      expect(by(TROP).evidence?.[name]?.from, name).toBe('Record')
+    }
+  })
+
   it('comes to the length of the recording after its sound-effects opening (35 s)', () => {
     expect(Math.abs(formBars(TROP) - recordingBars(TROP, 35))).toBeLessThanOrEqual(2)
   })
@@ -285,13 +307,21 @@ describe('Papa Was a Rolling Stone in bars (songbook no. 36, the Killer / Papa m
   const PAPA = 'Papa Was a Rolling Stone'
   it('writes every line of every section in bars', () => everyLineInBars(PAPA))
 
-  it("has the book's bars, played in order, with the ending from the recording", () => {
+  it("has the book's bars, played in order, with the opening riff and the ending counted from the recording", () => {
     expect(by(PAPA).form).toBeUndefined()
+    // The opening, from the recording's voice stem (2026-11-23): the two-bar
+    // riff 3 times before the voice, 7 times under the first verse, 6 times
+    // alone (the voice picks up in its last bar), 4 times under the second
+    // verse: 40 bars before the first chord. The book has 9, 16, 8 and 8.
     expect(sectionBars(PAPA)).toEqual({
-      Intro: 9, 'Killer verse': 16, Riff: 8, 'Killer verse 2': 8, Killer: 24, 'Trumpet solo': 8, Break: 4, Papa: 40, Outro: 8,
+      Intro: 6, 'Killer verse': 14, Riff: 12, 'Killer verse 2': 8, Killer: 24, 'Trumpet solo': 8, Break: 4, Papa: 40, Outro: 8,
     })
     const chords = Object.fromEntries(by(PAPA).sections.map(s => [s.name, s.chords]))
-    expect(chords.Intro).toBe('|  N.C.  |  %  |  (x4)\n|  %  |')
+    expect(chords.Intro).toBe('|  N.C.  |  %  |  (x3)')
+    expect(chords['Killer verse']).toBe('|  N.C.  |  %  |  (x7)')
+    expect(chords.Riff).toBe('|  N.C.  |  %  |  (x6)')
+    expect(chords['Killer verse 2']).toBe('|  N.C.  |  %  |  %  |  %  |  (x2)')
+    for (const name of ['Intro', 'Killer verse', 'Riff']) expect(by(PAPA).evidence?.[name]?.from, name).toBe('Record')
     expect(chords.Killer).toBe('|  Bbm  |  Bbm  Gb  |  Fm  |  %  |  (x6)')
     expect(chords['Trumpet solo']).toBe('|  Bbm  Gb  |  Fm  Ab  |  Bbm  Gb  |  Fm  Ab  |\n|  Bbm  Gb  |  Fm  Ab  |  Bbm  Gb  |  Ab  |')
     expect(chords.Papa).toBe('|  Bbm7  |  %  |  %  |  %  |  (x10)')

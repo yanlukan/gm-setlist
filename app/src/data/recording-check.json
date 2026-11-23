@@ -38,41 +38,10 @@
  },
  "Wake Me Up Before You Go-Go": {
   "recording": "01 Wake Me Up Before You Go-Go.m4a",
-  "checked": "2026-11-03",
+  "checked": "2026-11-23",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Chorus",
-    "bar": 1,
-    "chords": "Dm",
-    "kind": "chord",
-    "record": "Dm . C C/G",
-    "confidence": 0.77,
-    "at": [
-     40.6,
-     99.5,
-     156.9,
-     180.4,
-     204.0
-    ]
-   },
-   {
-    "section": "Chorus",
-    "bar": 5,
-    "chords": "Dm",
-    "kind": "chord",
-    "record": "Dm . C G",
-    "confidence": 0.72,
-    "at": [
-     52.3,
-     111.2,
-     168.6,
-     192.2,
-     215.8
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Amazing": {
@@ -198,29 +167,15 @@
  },
  "Club Tropicana": {
   "recording": "04 Club Tropicana.m4a",
-  "checked": "2026-11-03",
+  "checked": "2026-11-23",
   "shift": 0,
   "verdict": "lined up",
-  "bars": [
-   {
-    "section": "Last verse",
-    "bar": 0,
-    "chords": "F#m7",
-    "kind": "chord",
-    "record": "F# . B .",
-    "confidence": 0.6,
-    "at": [
-     173.5,
-     181.8,
-     190.0
-    ]
-   }
-  ],
+  "bars": [],
   "unchecked": []
  },
  "Somebody to Love": {
   "recording": "2-15 Somebody to Love.m4a",
-  "checked": "2026-11-03",
+  "checked": "2026-11-23",
   "shift": 0,
   "verdict": "lined up",
   "bars": [],

@@ -100,20 +100,50 @@ describe('Wake Me Up Before You Go-Go in bars (published chords, bars and form f
   const WMU = 'Wake Me Up Before You Go-Go'
   it('writes every line of every section in bars', () => everyLineInBars(WMU))
 
-  it('keeps the published chords, a bar each as the recording plays them', () => {
-    expect(sectionBars(WMU)).toEqual({ Intro: 4, Verse: 4, 'Pre-Chorus': 4, Chorus: 8, Bridge: 4 })
+  it('keeps the published chords, placed in the bar as the recording plays them', () => {
+    expect(sectionBars(WMU)).toEqual({ Intro: 4, Verse: 4, 'Pre-Chorus': 4, Chorus: 8, Link: 4, Instrumental: 4, Bridge: 4 })
     const chords = chordsIn(WMU)
     expect(chords.Intro).toBe('|  C  |  %  |  %  |  %  |')
-    expect(chords.Verse).toBe('|  C  Dm  |  %  |  %  |  %  |')
     expect(chords['Pre-Chorus']).toBe('|  Em  F  |  Em  Dm  |  Em  F  |  G  |')
-    expect(chords.Chorus).toBe('|  C  |  Dm  |  C  |  Dm  |\n|  C  |  Dm  |  C  |  %  |')
     expect(chords.Bridge).toBe('|  Dm  Em  |  F  Em  |  Dm  Em  |  F  G  |')
   })
 
-  it('plays the vamp before every verse, the bridge after the third, and the chorus three times to the end', () => {
+  it('reads the verse and the chorus from the recording, bar by bar (2026-11-23)', () => {
+    // Bass, guitar and keys stems, a beat at a time. Verse: the Dm sits on the
+    // third beat of bars 1 and 3 and C is back on the fourth; bar 2 stays on C
+    // and bar 4 is Dm (the chart had C Dm in all four). Chorus: every second
+    // bar is Dm for two beats and C again for the other two, the last one too
+    // (the chart had a whole bar of Dm, and C for the last bar).
+    const chords = chordsIn(WMU)
+    expect(chords.Verse).toBe('|  C  .  Dm  C  |  C  |  C  .  Dm  C  |  Dm  |')
+    expect(chords.Chorus).toBe('|  C  |  Dm  C  |  C  |  Dm  C  |  (x2)')
+    expect(by(WMU).evidence?.Verse?.from).toBe('Record')
+    expect(by(WMU).evidence?.Chorus?.from).toBe('Record')
+  })
+
+  it('writes the organ link after the first two choruses, not the opening vamp again', () => {
+    // 1:02 to 1:14 and 2:01 to 2:13 on the recording: the keys play F and C7,
+    // two bars each time round, and the last bar comes home to C. The chart
+    // repeated the 4 bars of C from the start there.
+    const chords = chordsIn(WMU)
+    expect(chords.Link).toBe('|  F  C7  |  C7  |  F  C7  |  C7  C  |')
+    expect(by(WMU).evidence?.Link?.from).toBe('Record')
+  })
+
+  it('has the verse chords without the voice before the bridge, ending on C', () => {
+    // 2:13 to 2:22: the band plays the verse once with no singing. Its last
+    // bar is C, and only half as long (a sentence in the notes): the bridge
+    // comes in two beats early.
+    const chords = chordsIn(WMU)
+    expect(chords.Instrumental).toBe('|  C  .  Dm  C  |  C  |  C  .  Dm  C  |  C  |')
+    expect(by(WMU).evidence?.Instrumental?.from).toBe('Record')
+    expect(by(WMU).notes).toMatch(/half as long/)
+  })
+
+  it('plays the link after the first two choruses, the instrumental and the bridge, and the chorus three times to the end', () => {
     expect(by(WMU).form).toEqual([
-      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Intro', 'Verse', 'Pre-Chorus', 'Chorus',
-      'Intro', 'Verse', 'Bridge', 'Chorus', 'Chorus', 'Chorus',
+      'Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Link', 'Verse', 'Pre-Chorus', 'Chorus',
+      'Link', 'Instrumental', 'Bridge', 'Chorus', 'Chorus', 'Chorus',
     ])
   })
 
@@ -157,7 +187,13 @@ describe('Somebody to Love in bars (songbook no. 52)', () => {
     expect(chords.Break).toBe('|  N.C.  |  %  |  %  |  %  |  %  |')
     expect(chords.Riff).toBe('|  G5  |  %  |  (x5)')
     expect(chords.Build).toBe('|  G  D/F#  Em  C  |  D  |  %  |  G5  |\n|  N.C.  |  %  |  %  |')
-    expect(chords.Outro).toBe('|  G  D/F#  Em  |  C  D  |  (x8)\n|  G  |')
+  })
+
+  it('places the ending riff as the recording plays it: two chords in the first bar, three in the second', () => {
+    // 4:05 to 4:52, eight times round: G and D/F# share the first bar, Em
+    // takes half of the second and C and D the rest. The intro has the same
+    // chords in the book's rhythm (G D/F# Em in one bar).
+    expect(chordsIn(STL).Outro).toBe('|  G  D/F#  |  Em  .  C  D  |  (x8)\n|  G  |')
   })
 
   it('plays the solo over a verse and a chorus, then the coda, the riff and the long ending', () => {

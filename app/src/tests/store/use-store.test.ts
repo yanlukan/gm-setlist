@@ -401,7 +401,7 @@ describe('Club Tropicana', () => {
     const chorus = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Chorus')!
     expect(chorus.chords).toBe('|  A  |  C#m7  |  A  |  C#m7  |\n|  A  |  C#m7  |  A  |  C#m7  Cm7  Bm7  |')
     const verse = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Verse')!
-    expect(verse.chords).toBe('|  Em7  |  A7  |  Em7  |  A7  |\n|  Em7  |  A7  |  Em7  |  A7  A/C#  D  |')
+    expect(verse.chords).toBe('|  Em7  |  A  D  |  Em7  |  A  D  |\n|  Em7  |  A  D  |  Em7  |  A  A/C#  .  D  |')
   })
 })
 
@@ -451,9 +451,9 @@ describe('charts checked against the recordings', () => {
     expect(corner.cue).toBeUndefined()
   })
 
-  it('has the Killer / Papa medley as written in the songbook', () => {
+  it('has the Killer / Papa medley as written in the songbook, the opening riff counted from the recording', () => {
     const byName = Object.fromEntries(song('Papa Was a Rolling Stone').sections.map(s => [s.name, s.chords]))
-    expect(byName['Killer verse']).toBe('|  N.C.  |  %  |  %  |  %  |  (x4)')   // riff only, no chords
+    expect(byName['Killer verse']).toBe('|  N.C.  |  %  |  (x7)')   // riff only, no chords
     expect(byName.Killer).toBe('|  Bbm  |  Bbm  Gb  |  Fm  |  %  |  (x6)')
     expect(byName['Trumpet solo']).toContain('Ab')
     expect(byName.Papa).toBe('|  Bbm7  |  %  |  %  |  %  |  (x10)')            // one-chord vamp
