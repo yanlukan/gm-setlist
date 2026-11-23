@@ -195,7 +195,9 @@ describe('Roxanne in bars (songbook no. 49)', () => {
 
   it('ends the second verse on both stabs and holds the B11 two bars before the N.C.', () => {
     const chords = (name: string) => by(ROX).sections.find(s => s.name === name)!.chords
-    expect(chords('Verse 2').endsWith('|  N.C.  E  Bm7  |  %  |')).toBe(true)
+    // The last bar from the recording (2026-11-23): the Bm7 still rings on beat 1,
+    // then bass and piano walk up a beat each, G#, C#, F#, into the chorus's Em9.
+    expect(chords('Verse 2').endsWith('|  N.C.  E  Bm7  |  Bm7  E/G#  A/C#  F#m  |')).toBe(true)
     expect(chords('Chorus')).toBe('|  Em9  |  G/A  |  B11  |  %  |\n|  Em9  |  G/A  |  B11  |  B11  N.C.  |')
   })
 
@@ -214,8 +216,8 @@ describe('Roxanne in bars (songbook no. 49)', () => {
     const song = by(ROX)
     expect(song.key).toBe('Bm')
     expect(song.transpose).toBeUndefined()
-    // A and F#m are the player's chords, not in the book: the app recommends their shapes
-    expect(chordsOf(ROX).filter(c => !song.shapes?.[c]).sort()).toEqual(['A', 'F#m'])
+    // A and F#m are the player's chords and the walk-up is from the recording: the app recommends their shapes
+    expect(chordsOf(ROX).filter(c => !song.shapes?.[c]).sort()).toEqual(['A', 'A/C#', 'E/G#', 'F#m'])
     expect(Object.keys(song.shapes ?? {})).not.toContain('D/A')
   })
 })

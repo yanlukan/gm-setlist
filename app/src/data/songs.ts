@@ -557,7 +557,7 @@ export const SONGS: Song[] = [
       'Intro': { from: 'Ear' },
       'Interlude': { from: 'Record' },
       'Verse': { bars: [{ bar: 1, chords: 'F#m', from: 'Ear' }] },
-      'Verse 2': { bars: [{ bar: 1, chords: 'F#m', from: 'Ear' }] },
+      'Verse 2': { bars: [{ bar: 1, chords: 'F#m', from: 'Ear' }, { bar: 7, chords: 'Bm7 E/G# A/C# F#m', from: 'Record' }] },
     },
     cue: 'GUITAR TACET / SPARSE — GM arrangement in Bm, not the Police version in Gm.',
     shapes: {
@@ -567,12 +567,12 @@ export const SONGS: Song[] = [
       'C6/9': 'x-3-2-2-3-x', 'A#m11': '6-x-6-6-4-x', Bm11: '7-x-7-7-5-x',
     },
     shapesFrom: 'Songbook',
-    notes: "From the songbook (no. 49): George Michael's reharmonisation, a jazz ballad in 12/8, four beats (dotted quarters) to the bar. Form: Intro, Verse, Verse 2 into the Chorus, Interlude, Verse, Pre-Chorus, Chorus 2, Outro, then a free, slowing Ending. The Intro is from the recording (the book starts at the verse): the Interlude's four bars, Bm7 and A, then the verse chords once with no voice, where the bass comes in and the B11 is held two bars. The singer starts at the Verse, about 0:38 on the recording. The verse's second bar is F#m, as the player hears it and the piano plays it, over the bass's A; the book prints D/A there. N.C. means no chord: the band stops and the guitar is silent. At the end of the first chorus it comes on beat 3, after two beats of B11. In the Pre-Chorus the B11 comes in an eighth early, at the end of the bar before. In the Ending the middle bar is a short 6/8 bar, and the last chord is held as long as the singer wants. Guitar sits out or plays long sustained voicings only. The book marks 83 BPM. The book's jazz voicings mostly skip a string; the E and Bm7 stabs after each N.C. are three-note shapes on the top strings, with no root (the bass has it).",
+    notes: "From the songbook (no. 49): George Michael's reharmonisation, a jazz ballad in 12/8, four beats (dotted quarters) to the bar. Form: Intro, Verse, Verse 2 into the Chorus, Interlude, Verse, Pre-Chorus, Chorus 2, Outro, then a free, slowing Ending. The Intro is from the recording (the book starts at the verse): the Interlude's four bars, Bm7 and A, then the verse chords once with no voice, where the bass comes in and the B11 is held two bars. The singer starts at the Verse, about 0:38 on the recording. The verse's second bar is F#m, as the player hears it and the piano plays it, over the bass's A; the book prints D/A there. In the last bar of Verse 2 the Bm7 rings on, then the bass and piano walk up a beat each, E/G#, A/C#, F#m, into the Chorus (from the recording; the book holds Bm7). N.C. means no chord: the band stops and the guitar is silent. At the end of the first chorus it comes on beat 3, after two beats of B11. In the Pre-Chorus the B11 comes in an eighth early, at the end of the bar before. In the Ending the middle bar is a short 6/8 bar, and the last chord is held as long as the singer wants. Guitar sits out or plays long sustained voicings only. The book marks 83 BPM. The book's jazz voicings mostly skip a string; the E and Bm7 stabs after each N.C. are three-note shapes on the top strings, with no root (the bass has it).",
     form: ['Intro', 'Verse', 'Verse 2', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus 2', 'Outro', 'Ending'],
     sections: [
       { name: 'Intro', chords: '|  Bm7  |  A  |  Bm7  |  A  |\n|  Bm  |  F#m  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  B11  |  %  |' },
       { name: 'Verse', chords: '|  Bm  |  F#m  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  B11  |  N.C.  F#7#5  |' },
-      { name: 'Verse 2', chords: '|  Bm  |  F#m  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  N.C.  E  Bm7  |  %  |' },
+      { name: 'Verse 2', chords: '|  Bm  |  F#m  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  N.C.  E  Bm7  |  Bm7  E/G#  A/C#  F#m  |' },
       { name: 'Chorus', chords: '|  Em9  |  G/A  |  B11  |  %  |\n|  Em9  |  G/A  |  B11  |  B11  N.C.  |' },
       { name: 'Interlude', chords: '|  Bm7  |  A  |  Bm7  |  A  |' },
       { name: 'Pre-Chorus', chords: '|  Bm7  |  Dmaj9  |  Em9  |  F#m7  |\n|  Gmaj7  |  G13  F#7#5  |  B11  |  %  |' },
