@@ -414,7 +414,7 @@ describe('Outside', () => {
     // the turnaround on Dsus4 is the chorus's last line, no section of its own
     expect(byName.Chorus).toBe('|  Cm7  |  Cm6  |  Gm9  |  Gm  |  (x3)\n|  Cm7  |  Cm6  |  Dsus4  |  Dsus4  |')
     expect(byName['Chorus end']).toBeUndefined()
-    expect(byName.Instrumental).toBe('|  N.C.  |  %  |  %  |  %  |  (x2)') // guitar lays out
+    expect(byName.Instrumental).toBe('|  N.C.  |  %  |  %  |  %  |\n|  F/G  |  %  |  %  |  F/G  G7  |') // the break, from the recording
     expect(byName.Outro).toBe('|  Gm9  |  C6  |  Gm9  |  C6  |  (x4)')
     expect(byName.Bridge).toBeUndefined()                // the chorus was once mislabelled Bridge
   })

@@ -19,8 +19,19 @@ describe('Outside in bars (songbook no. 47)', () => {
     expect(chords.Verse).toBe(`${GROOVE}  (x4)`)
     expect(chords.Chorus).toBe('|  Cm7  |  Cm6  |  Gm9  |  Gm  |  (x3)\n|  Cm7  |  Cm6  |  Dsus4  |  Dsus4  |')
     expect(chords['Post-Chorus']).toBe(`${GROOVE}  (x2)`)
-    expect(chords.Instrumental).toBe('|  N.C.  |  %  |  %  |  %  |  (x2)')
     expect(chords.Outro).toBe(`${GROOVE}  (x4)`)
+  })
+
+  it('writes what the recording plays in the break, not eight empty bars', () => {
+    // The player missed this part on the chart (2026-11-23): it read N.C. for
+    // 8 bars, as the book prints it. On the recording (3:01 to 3:16) bass and
+    // drums play alone for 4 bars, the bass on a low G; then the keys play F
+    // over that G, and a G7 on the last two beats leads into the chorus's Cm7.
+    const song = by(OUT)
+    expect(song.sections.find(s => s.name === 'Instrumental')!.chords).toBe(
+      '|  N.C.  |  %  |  %  |  %  |\n|  F/G  |  %  |  %  |  F/G  G7  |',
+    )
+    expect(song.evidence?.Instrumental?.from).toBe('Record')
   })
 
   it('has a song order: two verses, the chorus, and the guitar out for the instrumental', () => {
@@ -33,11 +44,12 @@ describe('Outside in bars (songbook no. 47)', () => {
     expect(Math.abs(formBars(OUT) - recordingBars(OUT, 8.28, 279.45))).toBeLessThanOrEqual(2)
   })
 
-  it('stays in Gm with a songbook shape for every chord and its sound', () => {
+  it('stays in Gm with a songbook shape for every chord of the book and its sound', () => {
     const song = by(OUT)
     expect(song.key).toBe('Gm')
     expect(song.transpose).toBeUndefined()
-    expect(withoutShape(OUT)).toEqual([])
+    // F/G and G7 are the break's chords, from the recording: the app recommends their shapes
+    expect(withoutShape(OUT).sort()).toEqual(['F/G', 'G7'])
     expect(song.shapes).toEqual({
       Gm9: '3-5-3-3-3-5', C6: 'x-3-5-5-5-5', Cm7: 'x-3-5-3-4-3', Cm6: 'x-3-7-5-4-3', Gm: '3-5-5-3-3-3', Dsus4: 'x-5-7-7-3-3',
     })
