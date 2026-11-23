@@ -167,26 +167,34 @@ describe('Roxanne in bars (songbook no. 49)', () => {
   const ROX = 'Roxanne'
   it('writes every line of every section in bars', () => everyLineInBars(ROX))
 
-  it("has the book's bars, with the intro and the chorus line played three times from the recording", () => {
+  it("has the book's bars, and before them the 12-bar intro of the recording", () => {
     expect(sectionBars(ROX)).toEqual({
-      Intro: 4, Verse: 8, 'Verse 2': 8, Chorus: 12, Interlude: 4, 'Pre-Chorus': 8, 'Chorus 2': 9, Outro: 12, Ending: 3,
+      Intro: 12, Verse: 8, 'Verse 2': 8, Chorus: 8, Interlude: 4, 'Pre-Chorus': 8, 'Chorus 2': 9, Outro: 12, Ending: 3,
     })
+  })
+
+  it('plays the verse chords once with no voice before the singer comes in, the B11 held two bars', () => {
+    // Measured on the recording (bass and voice stems, 2026-11-23): 4 bars of
+    // the vamp from 0:03, the verse chords from 0:15, the voice at 0:38.
+    expect(by(ROX).sections.find(s => s.name === 'Intro')!.chords).toBe(
+      '|  Bm7  |  B11  |  Bm7  |  B11  |\n|  Bm  |  D/A  |  Gmaj7  |  F#m7  |\n|  Em7  |  G/A  |  B11  |  %  |',
+    )
   })
 
   it('ends the second verse on both stabs and holds the B11 two bars before the N.C.', () => {
     const chords = (name: string) => by(ROX).sections.find(s => s.name === name)!.chords
     expect(chords('Verse 2').endsWith('|  N.C.  E  Bm7  |  %  |')).toBe(true)
-    expect(chords('Chorus')).toBe('|  Em9  |  G/A  |  B11  |  %  |  (x2)\n|  Em9  |  G/A  |  B11  |  B11  N.C.  |')
+    expect(chords('Chorus')).toBe('|  Em9  |  G/A  |  B11  |  %  |\n|  Em9  |  G/A  |  B11  |  B11  N.C.  |')
   })
 
-  it('opens with the interlude chords, as the recording does', () => {
+  it('keeps the order of its parts', () => {
     expect(by(ROX).form).toEqual([
       'Intro', 'Verse', 'Verse 2', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus 2', 'Outro', 'Ending',
     ])
   })
 
-  it('comes to the length of the recording, with the 4 unclear bars before the first chorus not charted and the free ending (from 3:48) left out', () => {
-    const charted = formBars(ROX) - sectionBars(ROX).Ending + 4
+  it('comes to the length of the recording, with the free ending (from 3:48) left out', () => {
+    const charted = formBars(ROX) - sectionBars(ROX).Ending
     expect(Math.abs(charted - recordingBars(ROX, 3, 228.5))).toBeLessThanOrEqual(1)
   })
 

@@ -258,23 +258,11 @@
  },
  "Roxanne": {
   "recording": "3-03 Roxanne.m4a",
-  "checked": "2026-11-03",
+  "checked": "2026-11-23",
   "shift": 0,
   "verdict": "lined up",
   "bars": [],
   "unchecked": [
-   {
-    "section": "Verse 2",
-    "bar": 2
-   },
-   {
-    "section": "Verse 2",
-    "bar": 5
-   },
-   {
-    "section": "Verse 2",
-    "bar": 6
-   },
    {
     "section": "Interlude",
     "bar": 0
