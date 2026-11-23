@@ -5,7 +5,7 @@ import {
   getCustomSongs, getSongEdits, getSetting, saveSetting,
 } from '../../store/persistence'
 import type { SetlistData } from '../../types'
-import { REHEARSAL_SETLIST, GIG_SETLIST_2026 as G } from '../../data/songs'
+import { CRYER_SETLIST, REHEARSAL_SETLIST, GIG_SETLIST_2026 as G } from '../../data/songs'
 
 beforeEach(async () => {
   resetDb()
@@ -20,6 +20,9 @@ beforeEach(async () => {
   await tx.objectStore('settings').clear()
   await tx.objectStore('snapshots').clear()
   await tx.done
+  // These tests are about a device that was already given the Cryer Arts
+  // setlist; its own tests, at the end, start without this.
+  await saveSetting(`seeded:${CRYER_SETLIST.id}`, true)
   useStore.setState(useStore.getInitialState())
 })
 
@@ -362,5 +365,110 @@ describe('the next rehearsal', () => {
   it('only names songs the app has', () => {
     const titles = new Set(useStore.getState().songs.map(song => song.title))
     for (const title of REHEARSAL_SETLIST.songTitles) expect(titles.has(title), title).toBe(true)
+  })
+})
+
+/**
+ * The running order changed on 2026-11-22. A device that already had setlists
+ * kept showing its old one, and the new order sat behind a menu entry: the
+ * player could not see it. It now arrives as a setlist of its own.
+ */
+describe('the Cryer Arts Theatre setlist', () => {
+  const september = ['Faith', "I'm Your Man", 'Club Tropicana', 'Amazing', 'A Different Corner', "Freedom! '90"]
+  const saved: SetlistData = {
+    lists: { default: { id: 'default', name: 'GM Tribute — Sept 2026', songTitles: september } },
+    activeId: 'default',
+  }
+
+  beforeEach(async () => {
+    await (await db()).delete('settings', `seeded:${CRYER_SETLIST.id}`)
+  })
+
+  it('is added to a device that has its own setlists, and opened at its first song', async () => {
+    await saveSetlistData(saved)
+    await saveSetting('places', { default: 4 })
+    await useStore.getState().hydrate()
+
+    const state = useStore.getState()
+    expect(state.setlistData.activeId).toBe(CRYER_SETLIST.id)
+    expect(state.setlistData.lists[CRYER_SETLIST.id]).toEqual({
+      id: CRYER_SETLIST.id,
+      name: 'GM Tribute — Cryer Arts',
+      songTitles: G,
+    })
+    expect(state.currentIndex).toBe(0)
+    expect(state.toast).toBe('New setlist: GM Tribute — Cryer Arts')
+    // The player's own setlist is left as it was, and keeps its place
+    expect(state.setlistData.lists.default).toEqual(saved.lists.default)
+    expect(state.places.default).toBe(4)
+    await toLand(async () => {
+      const disk = await getSetlistData()
+      expect(disk?.activeId).toBe(CRYER_SETLIST.id)
+      expect(disk?.lists[CRYER_SETLIST.id].songTitles).toEqual(G)
+    })
+  })
+
+  it('makes no copy where a setlist already has that order', async () => {
+    const restored: SetlistData = {
+      lists: {
+        default: { id: 'default', name: 'GM Tribute — Sept 2026', songTitles: [...G] },
+        own: { id: 'own', name: 'Wedding', songTitles: ['Faith'] },
+      },
+      activeId: 'own',
+    }
+    await saveSetlistData(restored)
+    await useStore.getState().hydrate()
+
+    const after = useStore.getState().setlistData
+    expect(after.lists[CRYER_SETLIST.id]).toBeUndefined()
+    expect(after.activeId).toBe('own')
+    expect(useStore.getState().toast).toBeNull()
+    await toLand(async () => {
+      expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
+      expect(await getSetting(`seeded:${REHEARSAL_SETLIST.id}`)).toBe(true)
+    })
+  })
+
+  it('makes no copy on a new install, which opens in that order already', async () => {
+    await useStore.getState().hydrate()
+    const after = useStore.getState().setlistData
+    expect(after.lists[CRYER_SETLIST.id]).toBeUndefined()
+    expect(after.activeId).toBe('default')
+    expect(after.lists.default.songTitles).toEqual(G)
+    await toLand(async () => {
+      expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
+      expect(await getSetting(`seeded:${REHEARSAL_SETLIST.id}`)).toBe(true)
+    })
+  })
+
+  it('opens only once: the setlist the player goes back to stays open', async () => {
+    await saveSetlistData(saved)
+    await useStore.getState().hydrate()
+    useStore.getState().setActiveSetlist('default')
+    await toLand(async () => {
+      expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
+      expect((await getSetlistData())?.activeId).toBe('default')
+    })
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().setlistData.activeId).toBe('default')
+    expect(useStore.getState().toast).toBeNull()
+  })
+
+  it('is yours once added: deleted, it does not come back', async () => {
+    await saveSetlistData(saved)
+    await useStore.getState().hydrate()
+    await toLand(async () => {
+      expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
+    })
+    useStore.getState().deleteSetlist(CRYER_SETLIST.id)
+    await toLand(async () => {
+      expect((await getSetlistData())?.lists[CRYER_SETLIST.id]).toBeUndefined()
+    })
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().setlistData.lists[CRYER_SETLIST.id]).toBeUndefined()
   })
 })

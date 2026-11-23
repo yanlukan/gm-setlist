@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { openDB } from 'idb'
 // @ts-expect-error -- the project has no Node types; the tests only ever run under Node
 import { readFileSync } from 'node:fs'
 import { useStore } from '../../store/use-store'
 import {
-  db, resetDb, exportAllData, importAllData, getSongHistory, listSnapshots,
+  db, resetDb, exportAllData, importAllData, getSongHistory, listSnapshots, getSetlistData, getSetting,
 } from '../../store/persistence'
+import { CRYER_SETLIST } from '../../data/songs'
 import device from './fixtures/device-4.2.8.json'
 import backup from './fixtures/backup-4.2.8.json'
 
@@ -51,6 +52,17 @@ async function dump() {
 
 const title = "I Can't Make You Love Me"
 
+/**
+ * Opening adds the Cryer Arts setlist to a device that has its own setlists
+ * and opens it (5.1.2). Wait until that is on disk, so a test reads the
+ * finished state and leaves no save running into the next test.
+ */
+const opened = () =>
+  vi.waitFor(async () => {
+    expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
+    expect((await getSetlistData())?.activeId).toBe(CRYER_SETLIST.id)
+  }, { timeout: 5000, interval: 5 })
+
 /** What the player saved, as the reworked app holds it after opening. */
 function expectDeviceLoaded() {
   const s = useStore.getState()
@@ -62,7 +74,11 @@ function expectDeviceLoaded() {
   expect(s.edits.Faith).toMatchObject({ bpm: 96, capo: 2, guitar: 'acoustic', transpose: -2, key: 'A' })
   expect(s.edits.Fastlove).toMatchObject({ neck: 5, shapes: { Am7: 1 } })
   expect(s.edits['Our Song'].notes).toBe("Edited note on the player's own song.")
-  expect(s.setlistData).toEqual(device.setlists.current)
+  // The player's setlists as saved, and beside them the new running order, open
+  const { [CRYER_SETLIST.id]: cryer, ...own } = s.setlistData.lists
+  expect(own).toEqual(device.setlists.current.lists)
+  expect(cryer).toEqual({ ...CRYER_SETLIST })
+  expect(s.setlistData.activeId).toBe(CRYER_SETLIST.id)
   expect(s.customSongs.map(c => c.title)).toEqual(['Our Song'])
   expect(s.allSongs().some(song => song.title === 'Our Song')).toBe(true)
   expect(s.selectedVoicings).toEqual(device.settings.selectedVoicings)
@@ -99,19 +115,32 @@ describe('a 4.2.8 device opened by the reworked app, no backup used', () => {
     expect(s.simpleChords).toBe(true)
     expect(s.guitar).toBe('electric')
     expect(s.instrument).toBe('guitar')
+    // Each setlist keeps its place; the new one opens at its first song
     expect(s.places).toEqual({ saturday: 1, default: 3 })
-    expect(s.currentIndex).toBe(1)
+    expect(s.currentIndex).toBe(0)
     expect(await getSongHistory(title)).toEqual(device.settings[`history:${title}`])
-    expect((await listSnapshots()).map(x => x.reason)).toEqual(['before import'])
+    await opened()
+    expect((await listSnapshots()).map(x => x.reason).sort()).toEqual(
+      ['add GM Tribute — Cryer Arts', 'before import', 'switch setlist'],
+    )
   })
 
-  it('writes nothing over what 4.2.8 saved', async () => {
+  it('writes nothing over what 4.2.8 saved: it only adds the new setlist, behind restore points', async () => {
     await seedDevice()
-    const before = await dump()
+    const before = await dump() as Record<string, [unknown, unknown][]>
     await useStore.getState().hydrate()
-    // Let any save started on opening land before looking
-    await new Promise(r => setTimeout(r, 50))
-    expect(await dump()).toEqual(before)
+    await opened()
+    const after = await dump() as Record<string, [unknown, unknown][]>
+
+    expect(after.songEdits).toEqual(before.songEdits)
+    expect(after.customSongs).toEqual(before.customSongs)
+    expect(after.settings.filter(([key]) => key !== `seeded:${CRYER_SETLIST.id}`)).toEqual(before.settings)
+    const lists = (await getSetlistData())!.lists
+    const { [CRYER_SETLIST.id]: _added, ...own } = lists
+    expect(own).toEqual(device.setlists.current.lists)
+    // The restore points 4.2.8 kept are still there, and two came before the change
+    expect(after.snapshots.slice(0, before.snapshots.length)).toEqual(before.snapshots)
+    expect(after.snapshots).toHaveLength(before.snapshots.length + 2)
   })
 
   it('exports the same backup 4.2.8 exported', async () => {
@@ -126,6 +155,7 @@ describe("a 4.2.8 backup loaded into the reworked app on an empty device", () =>
     await importAllData(JSON.stringify(backup))
     await useStore.getState().hydrate()
     expectDeviceLoaded()
+    await opened()
   })
 
   it('a second import of the same file changes nothing', async () => {
@@ -146,5 +176,6 @@ describe("a 4.2.8 backup loaded into the reworked app on an empty device", () =>
     expect(s.viewMode).toBe(initial.viewMode)
     expect(s.guitar).toBe(initial.guitar)
     expect(await getSongHistory(title)).toEqual([])
+    await opened()
   })
 })

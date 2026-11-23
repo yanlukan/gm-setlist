@@ -684,7 +684,8 @@ export const SONGS: Song[] = [
  * after Father Figure, then eleven. Song 4 is the Killer / Papa medley, one
  * chart. This is the order the band plays; it seeds the default setlist on a
  * fresh install and is what "Restore the GM Tribute order" rebuilds. A device
- * that already has saved setlists keeps them until the player restores.
+ * that already has saved setlists keeps them, and is given this order as a
+ * setlist of its own (`CRYER_SETLIST`).
  */
 export const GIG_SETLIST_2026: string[] = [
   // Part 1
@@ -711,6 +712,18 @@ export const GIG_SETLIST_2026: string[] = [
   'Somebody to Love',
   'Last Christmas',
 ]
+
+/**
+ * The Cryer Arts Theatre order as a setlist of its own, for a device that had
+ * setlists before the order changed: added once and opened, beside the
+ * player's own (see `seedSetlist`). A device where a setlist already has this
+ * order (a new install, or after "Restore the GM Tribute order") gets no copy.
+ */
+export const CRYER_SETLIST = {
+  id: 'cryer-arts-2026',
+  name: 'GM Tribute — Cryer Arts',
+  songTitles: GIG_SETLIST_2026,
+}
 
 /**
  * The next rehearsal, in the order the band will play it. Added once to the

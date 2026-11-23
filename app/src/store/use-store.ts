@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { useMemo } from 'react'
 import type { Song, Section, SongEdits, SongVersion, Setlist, SetlistData } from '../types'
 import { DEFAULT_SONGS } from '../data/library'
-import { GIG_SETLIST_2026, REHEARSAL_SETLIST } from '../data/songs'
+import { CRYER_SETLIST, GIG_SETLIST_2026, REHEARSAL_SETLIST } from '../data/songs'
 import { transposeInKey, transposeChord, shouldUseFlats } from '../music/theory'
 import { transposeFor } from '../music/setlist-text'
 import { sameSections } from '../music/chart-edits'
@@ -141,8 +141,11 @@ function persistSetlist(previous: SetlistData, next: SetlistData, reason: string
  * Add a setlist that ships with the app, once per device. It goes in beside
  * the player's own setlists, never over them, and a restore point is taken
  * first. Once added it is the player's: changed or deleted, it stays that way.
+ * A device that already has a setlist in this very order gets no copy. With
+ * `open` the new setlist is the one showing, and a line on screen says so: a
+ * new running order must not wait behind a menu to be seen.
  */
-async function seedSetlist(list: Setlist): Promise<void> {
+async function seedSetlist(list: Setlist, { open = false } = {}): Promise<void> {
   if (readOnly) return
   const flag = `seeded:${list.id}`
   try {
@@ -151,7 +154,9 @@ async function seedSetlist(list: Setlist): Promise<void> {
     return // unreadable: try again next launch rather than risk a second copy
   }
   const previous = useStore.getState().setlistData
-  if (previous.lists[list.id]) {
+  const sameOrder = (titles: string[]) =>
+    titles.length === list.songTitles.length && titles.every((title, i) => title === list.songTitles[i])
+  if (previous.lists[list.id] || Object.values(previous.lists).some(own => sameOrder(own.songTitles))) {
     saveSetting(flag, true).catch(() => {})
     return
   }
@@ -164,6 +169,10 @@ async function seedSetlist(list: Setlist): Promise<void> {
     await saveSetlistData(next)
     await saveSetting(flag, true)
   })
+  if (open) {
+    useStore.getState().setActiveSetlist(list.id)
+    useStore.getState().showToast(`New setlist: ${list.name}`)
+  }
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
@@ -729,6 +738,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
     // The next rehearsal's running order, added to the setlists once
     await seedSetlist(REHEARSAL_SETLIST)
+    // The current running order, for a device that still shows an older one
+    await seedSetlist(CRYER_SETLIST, { open: true })
   },
 }))
 
