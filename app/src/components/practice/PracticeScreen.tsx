@@ -7,11 +7,13 @@ import { ChordShapesSheet } from '../song/ChordShapesSheet'
 import { UnsureSheet } from '../song/UnsureSheet'
 import type { UnsureBar } from '../../music/evidence'
 import { SongHeader } from '../song/SongHeader'
+import { ShapesRow } from './ShapesRow'
 
 /**
- * For home and rehearsal: the title line, and the chart
- * (which may scroll). Tap a chord and its shapes open over the chart. While
- * editing, the chord keyboard sits under the chart.
+ * For home and rehearsal: the title line, the chart (which may scroll) and,
+ * under it, a row with the shape of every chord in the song. Tap a chord, on
+ * the chart or in the row, and all its shapes open over the chart. While
+ * editing, the chord keyboard sits under the chart instead of the row.
  */
 export function PracticeScreen() {
   const { song, extraFrom } = useShownSong()
@@ -54,6 +56,7 @@ export function PracticeScreen() {
       <div className="practice-body">
         {/* A second tap on the picked chord lets go of it */}
         <SongSheet picked={pickedChord} onPick={chord => pick(chord === pickedChord ? null : chord)} onUnsure={askUnsure} />
+        {chart && !editMode && !chart.keyboard && <ShapesRow chart={chart} picked={pickedChord} onPick={pick} />}
       </div>
       {chart && !editMode && !chart.keyboard && pickedChord && (
         <ChordShapesSheet chart={chart} chord={pickedChord} onClose={() => pick(null)} />

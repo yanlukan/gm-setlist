@@ -21,6 +21,8 @@ export interface ViewSettings {
   guitar: Guitar | 'auto'
   /** Who is reading: the keyboard player gets chords as they sound, no shapes. Saved. */
   instrument: Instrument
+  /** Practice shows the song's chord shapes in a row under the chart. Saved. */
+  shapesRow: boolean
   /** The bar's open sheet, if any. Not saved. Previous, Next and the pedal close it. */
   openSheet: SheetName | null
   toggleTheme: () => void
@@ -28,6 +30,7 @@ export interface ViewSettings {
   toggleSimpleChords: () => void
   setGuitar: (guitar: Guitar | 'auto') => void
   setInstrument: (instrument: Instrument) => void
+  toggleShapesRow: () => void
   /** Opens the sheet, or closes it when it is already open. */
   toggleSheet: (name: SheetName) => void
   closeSheet: () => void
@@ -50,6 +53,7 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
     simpleChords: false,
     guitar: 'auto',
     instrument: 'guitar',
+    shapesRow: true,
     openSheet: null,
 
     toggleTheme: () => {
@@ -82,6 +86,11 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
       persist('save instrument', () => saveSetting('instrument', instrument))
     },
 
+    toggleShapesRow: () => {
+      set(state => ({ shapesRow: !state.shapesRow }))
+      persist('save shapesRow', () => saveSetting('shapesRow', get().shapesRow))
+    },
+
     toggleSheet: name => set(state => ({ openSheet: state.openSheet === name ? null : name })),
     closeSheet: () => set({ openSheet: null }),
   }
@@ -92,14 +101,15 @@ export function viewSettings(set: Set, get: Get, canSave: () => boolean): ViewSe
  * or not one the app knows is left out, so the default stays.
  */
 export async function readViewSettings(): Promise<
-  Partial<Pick<ViewSettings, 'theme' | 'viewMode' | 'simpleChords' | 'guitar' | 'instrument'>>
+  Partial<Pick<ViewSettings, 'theme' | 'viewMode' | 'simpleChords' | 'guitar' | 'instrument' | 'shapesRow'>>
 > {
-  const [theme, viewMode, simpleChords, guitar, instrument] = await Promise.all([
+  const [theme, viewMode, simpleChords, guitar, instrument, shapesRow] = await Promise.all([
     getTheme(),
     getSetting<ViewMode>('viewMode'),
     getSetting<boolean>('simpleChords'),
     getSetting<Guitar | 'auto'>('guitar'),
     getSetting<Instrument>('instrument'),
+    getSetting<boolean>('shapesRow'),
   ])
   return {
     ...(theme && { theme }),
@@ -107,5 +117,6 @@ export async function readViewSettings(): Promise<
     ...(typeof simpleChords === 'boolean' && { simpleChords }),
     ...((guitar === 'auto' || guitar === 'acoustic' || guitar === 'electric') && { guitar }),
     ...((instrument === 'guitar' || instrument === 'keyboard') && { instrument }),
+    ...(typeof shapesRow === 'boolean' && { shapesRow }),
   }
 }

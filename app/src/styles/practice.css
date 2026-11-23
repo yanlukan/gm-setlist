@@ -37,3 +37,52 @@ button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit
   /* Practice keeps four bars a row on its side */
   .practice-screen .band-chart { --cols: 4; }
 }
+
+/* ---------- The song's chord shapes, in a row under the chart (ShapesRow.tsx) ---------- */
+.shapes-row-wrap { flex: none; border-top: 1px solid var(--border); background: var(--bg); }
+/* The bar that puts the row away and brings it back: thin, but the whole width takes the tap */
+.shapes-row-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+.shapes-row-grip { width: 36px; height: 4px; border-radius: 2px; background: var(--border); }
+.shapes-row {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.shapes-row::-webkit-scrollbar { display: none; }
+.shape {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 4px 3px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--diagram-tile);
+  color: var(--text);
+  cursor: pointer;
+}
+.shape.is-picked { border-color: #facc15; }
+.shape-name { font-size: 15px; font-weight: 800; line-height: 18px; }
+.shape-where { font-size: 11px; line-height: 13px; color: var(--text-muted); }
+
+/* A phone on its side has no height to give: the chart keeps it all */
+@media (max-height: 520px) {
+  .shapes-row-wrap { display: none; }
+}

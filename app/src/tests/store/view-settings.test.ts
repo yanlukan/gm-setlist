@@ -39,3 +39,26 @@ describe('instrument', () => {
     expect(useStore.getState().instrument).toBe('guitar')
   })
 })
+
+describe('the chord shapes row in Practice', () => {
+  it('shows until the player puts it away', () => {
+    expect(useStore.getState().shapesRow).toBe(true)
+  })
+
+  it('stays put away across a relaunch', async () => {
+    useStore.getState().toggleShapesRow()
+    expect(useStore.getState().shapesRow).toBe(false)
+    await toLand(async () => expect(await getSetting('shapesRow')).toBe(false))
+
+    useStore.setState(useStore.getInitialState())
+    await useStore.getState().hydrate()
+    expect(useStore.getState().shapesRow).toBe(false)
+  })
+
+  it('ignores a saved value that is not yes or no', async () => {
+    const database = await db()
+    await database.put('settings', 'maybe', 'shapesRow')
+    await useStore.getState().hydrate()
+    expect(useStore.getState().shapesRow).toBe(true)
+  })
+})

@@ -18,10 +18,12 @@ const dialog = () => screen.getByRole('dialog', { name: /^Shapes for / })
 const OWN = '0-x-6-4-0-0' // an E with its third and fifth up the neck: no generator makes it
 
 describe('shapes on tap', () => {
-  it('practice shows no chord diagram until a chord is tapped', () => {
+  it('practice keeps its chord diagrams in the row under the chart until a chord is tapped', () => {
     render(<PracticeScreen />)
     const main = screen.getByRole('main', { name: 'Practice' })
-    expect(within(main).queryAllByRole('img')).toHaveLength(0)
+    const row = within(main).getByRole('list', { name: 'Chord shapes' })
+    expect(within(main).queryAllByRole('img').every(img => row.contains(img))).toBe(true)
+    expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.queryByLabelText('Shapes and the book')).toBeNull()
   })
 

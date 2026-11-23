@@ -100,8 +100,9 @@ const READ_CHORDS = () => {
     .map((grid, i) => (grid.scrollWidth > grid.clientWidth + 1 ? i + 1 : 0))
     .filter(Boolean)
   const chart = document.querySelector('.band-chart')
-  // Chord diagrams on the page before anything is tapped: there should be none
-  const diagrams = document.querySelectorAll('main svg[role="img"]').length
+  // Chord diagrams on the page before anything is tapped: only in Practice's row of shapes
+  // under the chart (ShapesRow.tsx), never in front of the chart and never on Stage
+  const diagrams = [...document.querySelectorAll('main svg[role="img"]')].filter(d => !d.closest('.practice-screen .shapes-row')).length
   return { chords, sections, bars: barInfo, diagrams, marks, chartPx: chart ? parseFloat(getComputedStyle(chart).fontSize) : 0 }
 }
 

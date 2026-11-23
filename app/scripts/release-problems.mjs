@@ -17,8 +17,9 @@ export const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b
  */
 export function problems({ chords, sections, bars = [], diagrams = 0, marks = [] }) {
   const found = sections.map(n => [`section ${n}`, 'runs past its width', 'width'])
-  // The chart comes first: no chord diagram shows until a chord is tapped
-  if (diagrams > 0) found.push(['screen', `${diagrams} chord diagram(s) shown before any tap`])
+  // The chart comes first: until a chord is tapped, chord diagrams show only in Practice's
+  // row of shapes under it. `diagrams` counts the ones anywhere else
+  if (diagrams > 0) found.push(['screen', `${diagrams} chord diagram(s) outside the shapes row before any tap`])
   // The same chords in one section are drawn the same way: on one line, or staggered
   bars.forEach((b, i) => {
     const first = bars.findIndex(o => o.section === b.section && o.chords === b.chords)

@@ -56,6 +56,9 @@ That is not one bug. It comes from four things in how the app is built:
 - A chart that looks different from one release to the next without the
   player asking for it.
 - Chord diagrams or other panels in front of the chart by default.
+  (Changed 2026-11-23, 5.2.0: the player asked where the shapes had gone and chose a row of the
+  song's shapes under the chart in Practice, with a bar to hide it. Nothing sits in front of the
+  chart; Stage still has no shapes.)
 - Any rule that exists for one song.
 
 ## Constraints
