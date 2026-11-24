@@ -182,7 +182,8 @@ export function sectionColor(name: string): string {
   if (lower.endsWith('prechorus')) return 'var(--section-prechorus)';
   if (lower.endsWith('verse')) return 'var(--section-verse)';
   if (lower.endsWith('chorus')) return 'var(--section-chorus)';
-  if (lower.endsWith('bridge')) return 'var(--section-bridge)';
+  // A middle part ("Middle 8") is a bridge by another name
+  if (lower.endsWith('bridge') || lower === 'middle') return 'var(--section-bridge)';
   // A solo on one instrument (Bass solo) stays plain: only the band's solo gets the colour
   if (lower === 'solo') return 'var(--section-solo)';
   if (lower === 'intro' || lower === 'outro') return 'var(--section-intro)';

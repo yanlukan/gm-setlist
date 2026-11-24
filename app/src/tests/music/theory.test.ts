@@ -176,6 +176,9 @@ describe('sectionColor', () => {
 
   it('colours a numbered section like its family', () => {
     expect(sectionColor('Bridge 2')).toBe('var(--section-bridge)');
+    // A middle part is a bridge by another name (Kissing a Fool's Middle 8, Everything She Wants' Middle)
+    expect(sectionColor('Middle 8')).toBe('var(--section-bridge)');
+    expect(sectionColor('Middle')).toBe('var(--section-bridge)');
     expect(sectionColor('Verse 3')).toBe('var(--section-verse)');
   });
 

@@ -69,12 +69,12 @@ describe('a chart in bands', () => {
     expect(gOverB.querySelector('.ch-bass')).toHaveTextContent('/B')
   })
 
-  it('colours a last verse as a verse and a second bridge as a bridge', () => {
+  it('colours a last verse as a verse and a middle 8 as a bridge', () => {
     render(<SongSheet />)
     open('Kissing a Fool')
-    expect(heads()).toEqual(['A Intro', 'B Verse', 'C Chorus', 'D Bridge', 'E Bridge 2', 'F Last verse', 'G Outro'])
+    expect(heads()).toEqual(['A Intro', 'B Verse', 'C Bridge', 'D Middle 8', 'E Last verse', 'F Outro'])
     expect(band('Last verse').style.getPropertyValue('--band')).toBe('var(--section-verse)')
-    expect(band('Bridge 2').style.getPropertyValue('--band')).toBe('var(--section-bridge)')
+    expect(band('Middle 8').style.getPropertyValue('--band')).toBe('var(--section-bridge)')
   })
 
   it('shows a part played twice running once, with its count', () => {
