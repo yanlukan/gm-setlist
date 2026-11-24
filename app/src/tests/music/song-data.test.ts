@@ -31,7 +31,8 @@ describe('song notes and cues', () => {
     }
     expect(ctl1Tags('Faith').get('Solo')).toBe('CTL1 ON · SOLO')
     expect(ctl1Tags('Faith').get('Pre-Chorus')).toBe('CTL1 OFF')
-    expect(ctl1Tags("I'm Your Man").size).toBe(0)
+    // A song whose memory has no CTL1 part gets no tags.
+    expect(ctl1Tags('Waiting (Reprise)').size).toBe(0)
   })
 
   it('keep the sound out of the cue, which is for stage directions', () => {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-11-22",
+  "updated": "2026-11-24",
   "mode": "up/down",
   "switches": {
     "up": "next song",
@@ -21,41 +21,50 @@
       "title": "Amazing",
       "memory": "U01-2",
       "sound": "ACOUSTIC",
-      "ctl1": null,
+      "ctl1": {
+        "name": "DOUBLER",
+        "what": "light chorus as a doubler"
+      },
       "changes": [],
-      "playing": null
+      "playing": "CTL1 is a suggestion for the intro and the verses"
     },
     {
       "title": "I'm Your Man",
       "memory": "U01-3",
       "sound": "FUNK",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
+      "ctl1": {
+        "name": "DRIVE",
+        "what": "overdrive on, doubler off: drier, tighter, louder"
+      },
+      "changes": [
+        {
+          "section": "Instrumental",
+          "ctl1": "on"
+        }
+      ],
+      "playing": "CTL1 stays on from the instrumental to the end"
     },
     {
       "title": "Papa Was a Rolling Stone",
       "memory": "U02-1",
-      "sound": "SYNTH",
+      "sound": "OCTAVE",
       "ctl1": {
         "name": "WAH",
-        "what": "synth off, touch wah on"
+        "what": "auto wah, octave off"
       },
-      "changes": [
-        {
-          "section": "Papa",
-          "ctl1": "on"
-        }
-      ],
-      "playing": "switch by ear at the big change"
+      "changes": [],
+      "playing": "light off: one strong sound for the Bb chords and the bass line; the pedal is volume, the toe switch does nothing"
     },
     {
       "title": "I Can't Make You Love Me",
       "memory": "U02-2",
-      "sound": "WARM JAZZ",
-      "ctl1": null,
+      "sound": "WARM CLEAN",
+      "ctl1": {
+        "name": "LIFT",
+        "what": "clean boost, louder, delay on"
+      },
       "changes": [],
-      "playing": null
+      "playing": "CTL1 on at the second chorus, stays on through the outro"
     },
     {
       "title": "A Different Corner",
@@ -63,7 +72,7 @@
       "sound": "PAD",
       "ctl1": {
         "name": "NYLON",
-        "what": "nylon acoustic"
+        "what": "nylon melody, swell off"
       },
       "changes": [
         {
@@ -79,15 +88,15 @@
           "ctl1": "on"
         }
       ],
-      "playing": "nylon: pickup position 4, tone 5"
+      "playing": "pad: strum each chord once and let it swell in; toe switch = echo cloud off"
     },
     {
       "title": "Fastlove",
       "memory": "U03-1",
-      "sound": "FUNK",
+      "sound": "VIBE PAD",
       "ctl1": {
-        "name": "FUNK",
-        "what": "chorus and compressor off, reverb down"
+        "name": "DRY CHOPS",
+        "what": "vibe off: dry funk chops"
       },
       "changes": [
         {
@@ -99,31 +108,82 @@
           "ctl1": "off"
         }
       ],
-      "playing": "verse: chorus sound; tight funk on CTL1"
+      "playing": null
     },
     {
       "title": "Too Funky",
       "memory": "U03-2",
       "sound": "FUNK",
-      "ctl1": null,
-      "changes": [],
+      "ctl1": {
+        "name": "PHASER",
+        "what": "slow phaser on"
+      },
+      "changes": [
+        {
+          "section": "Keyboard",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        },
+        {
+          "section": "Pre-Chorus",
+          "ctl1": "off"
+        },
+        {
+          "section": "Break",
+          "ctl1": "off"
+        },
+        {
+          "section": "Outro",
+          "ctl1": "on"
+        }
+      ],
       "playing": null
     },
     {
       "title": "Club Tropicana",
       "memory": "U03-3",
       "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
+      "ctl1": {
+        "name": "PHASER",
+        "what": "phaser on, one sweep per bar"
+      },
+      "changes": [
+        {
+          "section": "Instrumental",
+          "ctl1": "on"
+        },
+        {
+          "section": "Chorus",
+          "ctl1": "off"
+        },
+        {
+          "section": "Bass solo",
+          "ctl1": "on"
+        },
+        {
+          "section": "Last verse",
+          "ctl1": "off"
+        },
+        {
+          "section": "Outro",
+          "ctl1": "on"
+        }
+      ],
       "playing": null
     },
     {
       "title": "Father Figure",
       "memory": "U04-1",
       "sound": "80s CLEAN",
-      "ctl1": null,
+      "ctl1": {
+        "name": "NYLON SOLO",
+        "what": "nylon solo voice, shimmer off"
+      },
       "changes": [],
-      "playing": null
+      "playing": "CTL1 for the solo at the breakdown; toe switch = shimmer off"
     },
     {
       "title": "Faith",
@@ -131,7 +191,7 @@
       "sound": "ACOUSTIC",
       "ctl1": {
         "name": "SOLO",
-        "what": "drive + delay, acoustic sim off"
+        "what": "electric only, slapback, louder"
       },
       "changes": [
         {
@@ -149,14 +209,38 @@
       "title": "Everything She Wants",
       "memory": "U04-3",
       "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
+      "ctl1": {
+        "name": "SCRATCH",
+        "what": "chorus off, light overdrive"
+      },
+      "changes": [
+        {
+          "section": "Instrumental",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        },
+        {
+          "section": "Bridge",
+          "ctl1": "off"
+        },
+        {
+          "section": "Pre-Chorus",
+          "ctl1": "off"
+        },
+        {
+          "section": "Outro",
+          "ctl1": "on"
+        }
+      ],
       "playing": null
     },
     {
       "title": "Outside",
       "memory": "U05-1",
-      "sound": "FUNK",
+      "sound": "WAH FUNK",
       "ctl1": {
         "name": "ROTARY",
         "what": "wah off, rotary on (piano part)"
@@ -171,31 +255,37 @@
           "ctl1": "off"
         }
       ],
-      "playing": "neck pickup; wah lick rocks by itself; toe switch = 2:40 part (parked bright wah)"
+      "playing": "the pedal is the wah: rock it yourself; toe switch = wah off, pedal is volume (chorus chords)"
     },
     {
       "title": "Jesus to a Child",
       "memory": "U05-2",
-      "sound": "ACOUSTIC",
-      "ctl1": null,
+      "sound": "NYLON",
+      "ctl1": {
+        "name": "SOLO",
+        "what": "solo voice: more sustain, louder, more reverb"
+      },
       "changes": [],
-      "playing": "nylon: pickup position 4, tone 5"
+      "playing": "CTL1 for the instrumental melody"
     },
     {
       "title": "Wake Me Up Before You Go-Go",
       "memory": "U05-3",
-      "sound": "FUNK",
-      "ctl1": null,
+      "sound": "CLEAN",
+      "ctl1": {
+        "name": "DRIVE",
+        "what": "light overdrive, chorus off"
+      },
       "changes": [],
-      "playing": null
+      "playing": "CTL1 is optional: the muted riff in the choruses"
     },
     {
       "title": "Freedom! '90",
       "memory": "U06-1",
       "sound": "ACOUSTIC",
       "ctl1": {
-        "name": "TOUCH WAH",
-        "what": "touch wah"
+        "name": "ELECTRIC",
+        "what": "electric up front, acoustic down"
       },
       "changes": [
         {
@@ -221,25 +311,56 @@
       "title": "Roxanne",
       "memory": "U06-2",
       "sound": "WARM JAZZ",
-      "ctl1": null,
-      "changes": [],
+      "ctl1": {
+        "name": "DELAY",
+        "what": "long echo for the ending"
+      },
+      "changes": [
+        {
+          "section": "Outro",
+          "ctl1": "on"
+        }
+      ],
       "playing": null
     },
     {
       "title": "Kissing a Fool",
       "memory": "U06-3",
       "sound": "WARM JAZZ",
-      "ctl1": null,
+      "ctl1": {
+        "name": "DELAY",
+        "what": "dark echo"
+      },
       "changes": [],
-      "playing": null
+      "playing": "CTL1 is a suggestion for the intro and the last chord"
     },
     {
       "title": "Careless Whisper",
       "memory": "U07-1",
-      "sound": "80s CLEAN",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
+      "sound": "CLEAN",
+      "ctl1": {
+        "name": "NYLON",
+        "what": "nylon lines for the sax riff"
+      },
+      "changes": [
+        {
+          "section": "Intro (sax)",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        },
+        {
+          "section": "Sax riff",
+          "ctl1": "on"
+        },
+        {
+          "section": "Outro (sax)",
+          "ctl1": "on"
+        }
+      ],
+      "playing": "press CTL1 before the count-in"
     },
     {
       "title": "Somebody to Love",
@@ -247,7 +368,7 @@
       "sound": "CRUNCH",
       "ctl1": {
         "name": "SOLO",
-        "what": "boost + delay"
+        "what": "mid boost, louder, tape echo"
       },
       "changes": [
         {
@@ -259,15 +380,31 @@
           "ctl1": "off"
         }
       ],
-      "playing": null
+      "playing": "guitar volume 6-7 for the first verse, full from the first chorus"
     },
     {
       "title": "Last Christmas",
       "memory": "U07-3",
       "sound": "FUNK CHORUS",
-      "ctl1": null,
-      "changes": [],
-      "playing": null
+      "ctl1": {
+        "name": "BELLS",
+        "what": "octave-up hook with a short echo"
+      },
+      "changes": [
+        {
+          "section": "Instrumental",
+          "ctl1": "on"
+        },
+        {
+          "section": "Verse",
+          "ctl1": "off"
+        },
+        {
+          "section": "Outro",
+          "ctl1": "off"
+        }
+      ],
+      "playing": "the bells also fit the intro hook"
     }
   ]
 }
