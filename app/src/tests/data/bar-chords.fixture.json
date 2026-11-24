@@ -1138,7 +1138,7 @@
    "Eb6 Db6(b5)",
    "C7",
    "Fm11 Fm7",
-   "Bb13 Bb7(b9)",
+   "Abmaj7/Bb Bb7(b9)",
    "Eb6",
    "Db(b5) C7(b9)",
    "Fm7",
@@ -1147,10 +1147,10 @@
    "C7",
    "Fm7",
    "Abm6 Bb7",
-   "Eb6 Fdim7/Eb"
+   "Eb6 Abm6/Eb"
   ],
   [
-   "Eb Cm7 C7(b9)",
+   "Eb . Cm7 C7(b9)",
    "Fm7",
    "Bb",
    "Fm7",
@@ -1170,7 +1170,7 @@
    "Cb6",
    "Bb7sus4 Cm7",
    "Fm7",
-   "Bb",
+   "Bb7sus4 Bb",
    "Bb7(b9)"
   ],
   [
@@ -1184,7 +1184,8 @@
    "C7(b9)",
    "Cb7 Bb7",
    "Eb6 C9",
-   "Cb7 Bb7",
+   "Cb7",
+   "Bb7",
    "Ebmaj9"
   ]
  ],

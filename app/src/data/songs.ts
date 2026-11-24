@@ -650,17 +650,22 @@ export const SONGS: Song[] = [
     capo: null,
     chordsFrom: 'Book',
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
+    evidence: {
+      'Verse': { bars: [{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }, { bar: 24, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
+      'Middle 8': { bars: [{ bar: 9, chords: 'Bb7sus4 Bb', from: 'Record' }] },
+      'Outro': { bars: [{ bar: 3, chords: 'Cb7', from: 'Record' }, { bar: 4, chords: 'Bb7', from: 'Record' }] },
+    },
     shapes: {
       D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
       D6: 'x-x-0-2-0-2', Em7: '0-2-0-0-0-3', 'Bb(b5)': 'x-1-2-3-3-x', A7: 'x-0-2-0-2-0', 'B7(b9)': 'x-2-1-2-1-x',
-      'A7(b9)': 'x-0-2-3-2-3', 'C6(b5)': 'x-x-2-2-1-2', B7: 'x-2-4-2-4-2', Em11: '0-2-0-2-0-2', A13: 'x-0-2-0-2-2',
-      'C(b5)': 'x-3-4-5-5-x', Gm: '3-5-5-3-3-3', 'Edim7/D': 'x-x-0-3-2-3', Bm7: 'x-2-4-2-3-2', Dm7: 'x-x-0-2-1-1',
+      'A7(b9)': 'x-0-2-3-2-3', 'C6(b5)': 'x-x-2-2-1-2', B7: 'x-2-4-2-4-2', Em11: '0-2-0-2-0-2',
+      'C(b5)': 'x-3-4-5-5-x', Gm: '3-5-5-3-3-3', Bm7: 'x-2-4-2-3-2', Dm7: 'x-x-0-2-1-1',
       G7: '3-2-0-0-0-1', C: 'x-3-2-0-1-0', 'C/B': 'x-2-2-0-1-0', Bb7: 'x-1-3-1-3-1', 'D/A': 'x-0-0-2-3-2',
       C6: 'x-3-2-2-1-0', Em9: '0-2-0-0-3-2', Bb6: 'x-1-3-3-3-3', A7sus4: 'x-0-2-0-3-0', B9: 'x-2-1-2-2-2',
       Dmaj9: 'x-5-4-6-3-0',
     },
     shapesFrom: 'Songbook',
-    notes: 'From the songbook (no. 37). The band plays it a semitone below the book and the record; the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Bridge, Verse, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round, and one link bar; the title is only sung at the very end. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. The book names the verse\'s last chord as a plain diminished chord over the bass, but its box holds the diminished seventh, so the chart shows it as a dim7. On the record the last two bars of the Outro are held and left to ring, about 13 seconds.',
+    notes: 'From the songbook (no. 37). The band plays it a semitone below the book (the record sits about halfway between the two); the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Bridge, Verse, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round, and one link bar; the title is only sung at the very end. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. Every bar was read from the recording on 2026-11-24, with its pitch corrected. Five places follow the recording where it differs from the book. Bar 16 of the Verse starts on a suspended chord, written as the chord the keys play over the bass note: no third until the chord after it. The Verse\'s last chord is the minor sixth chord from bar 12 again, over the bass note held from the chord before; the book\'s name for it means the same notes, but its box has a note nobody plays, and that box is gone. The Bridge\'s first bar is two beats, then a beat each. Bar 10 of the Middle 8 has the fourth first, then the third; in the bar after it the band drops out and lets the chord ring. In the Outro the band slows down: the last two chords before the final one take a bar each, the voice finishes alone, and the final chord comes in at about 4:26 and rings.',
     form: ['Intro', 'Verse', 'Bridge', 'Verse', 'Middle 8', 'Last verse', 'Outro'],
     sections: [
       { name: 'Intro', chords: '|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |' },
@@ -668,16 +673,16 @@ export const SONGS: Song[] = [
         name: 'Verse',
         chords:
           '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
-          '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Bb13  Bb7(b9)  |\n' +
-          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Fdim7/Eb  |',
+          '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
+          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Abm6/Eb  |',
       },
-      { name: 'Bridge', chords: '|  Eb  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |' },
+      { name: 'Bridge', chords: '|  Eb  .  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |' },
       {
         name: 'Middle 8',
-        chords: '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb  |  Bb7(b9)  |',
+        chords: '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',
       },
       { name: 'Last verse', chords: '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |' },
-      { name: 'Outro', chords: '|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  Bb7  |\n|  Ebmaj9  |' },
+      { name: 'Outro', chords: '|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  |\n|  Bb7  |  Ebmaj9  |' },
     ],
   },
   {

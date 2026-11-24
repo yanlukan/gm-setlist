@@ -271,7 +271,8 @@ describe('the list of shapes', () => {
       Abadd9: { 23: '4-x-1-3-1-x' }, Absus2: { 27: '4-x-1-3-4-x' }, Bbadd9: { 21: 'x-1-3-5-3-1' }, Gbadd9: { 25: '2-x-4-3-2-4' },
       'C/D': { 9: 'x-x-0-0-1-0' }, 'G/F#': { 11: '2-x-0-0-0-3' }, B11: { 22: 'x-2-x-2-2-0' }, Bm7: { 25: 'x-x-x-2-3-2' },
       Em9: { 11: 'x-x-2-0-3-2', 12: '0-2-0-0-3-2' }, 'F#m7': { 25: 'x-x-4-2-2-0' }, 'G/A': { 9: 'x-0-5-4-3-x' },
-      'C/B': { 13: 'x-2-2-0-1-0' }, Dmaj9: { 11: 'x-5-4-6-3-0' }, 'Edim7/D': { 12: 'x-x-0-3-2-3' }, Em: { 25: '0-2-2-0-0-3' },
+      'C/B': { 13: 'x-2-2-0-1-0' }, Dmaj9: { 11: 'x-5-4-6-3-0' }, Em: { 25: '0-2-2-0-0-3' },
+      // 3.26.0's Edim7/D box went with its chord in 5.2.9: the recording plays Gm6 over D there (Kissing a Fool)
       // 3.27.0
       F6: { 27: 'x-x-3-2-3-1' }, 'G/B': { 16: 'x-2-0-0-0-x' },
       // 3.30.0's Abm7 and Db/Gb (and 3.29.0's D/G) went with their chords, which no song has any more

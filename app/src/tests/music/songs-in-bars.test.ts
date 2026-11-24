@@ -508,13 +508,41 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
 
   it("has the book's bars, four to a line, with the odd last bar on a line of its own", () => {
     expect(sectionBars(KISS)).toEqual({
-      Intro: 4, Verse: 25, Bridge: 9, 'Middle 8': 11, 'Last verse': 5, Outro: 5,
+      Intro: 4, Verse: 25, Bridge: 9, 'Middle 8': 11, 'Last verse': 5, Outro: 6,
     })
     const c = chords()
     expect(c.Intro).toBe('|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |')
-    expect(c.Bridge).toBe('|  Eb  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |')
     expect(c['Last verse']).toBe('|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |')
-    expect(c.Outro).toBe('|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  Bb7  |\n|  Ebmaj9  |')
+  })
+
+  it('has the five places where the recording differs from the book (read 2026-11-24)', () => {
+    // Every bar read from the recording's stems with the pitch corrected (the
+    // record sits half a semitone under Eb): bass note, notes of each
+    // instrument and the chord model, a beat at a time. 79 of 84 bars are the
+    // book's. These are not:
+    const c = chords()
+    const verse = c.Verse.split('\n')
+    // Verse bar 16, both rounds: C, Eb, G and Ab over the bass's Bb, and no third (D)
+    // until the Bb7(b9). The book's Bb13 has that D. Written as the notes played:
+    // Abmaj7 over Bb (a Bb13 with the fourth for its third), which the chord library draws
+    expect(verse[3]).toBe('|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |')
+    // Verse bar 25: F, Ab, Cb over the held Eb, as the book NAMES it (a plain
+    // diminished chord over the bass); the dim7 of the book's box has a D that
+    // nobody plays
+    expect(verse[6]).toBe('|  Eb6  Abm6/Eb  |')
+    // Bridge bar 1: Eb for two beats, then a beat each
+    expect(c.Bridge).toBe('|  Eb  .  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |')
+    // Middle 8 bar 10: the fourth first, then the third
+    expect(c['Middle 8'].split('\n')[3]).toBe('|  Bb7sus4  Bb  |  Bb7(b9)  |')
+    // Outro: the band slows down, and the last Cb7 and Bb7 take a bar each
+    expect(c.Outro).toBe('|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  |\n|  Bb7  |  Ebmaj9  |')
+    const ev = by(KISS).evidence!
+    expect(ev.Verse.bars).toEqual([
+      { bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' },
+      { bar: 24, chords: 'Eb6 Abm6/Eb', from: 'Record' },
+    ])
+    expect(ev['Middle 8'].bars).toEqual([{ bar: 9, chords: 'Bb7sus4 Bb', from: 'Record' }])
+    expect(ev.Outro.bars).toEqual([{ bar: 3, chords: 'Cb7', from: 'Record' }, { bar: 4, chords: 'Bb7', from: 'Record' }])
   })
 
   it('names the parts as the player hears them: one long verse, no chorus (2026-11-24)', () => {
@@ -530,11 +558,11 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     expect(c['Bridge 2']).toBeUndefined()
     expect(c.Verse).toBe(
       '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
-        '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Bb13  Bb7(b9)  |\n' +
-        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Fdim7/Eb  |',
+        '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
+        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Abm6/Eb  |',
     )
     expect(c['Middle 8']).toBe(
-      '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb  |  Bb7(b9)  |',
+      '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',
     )
     expect(by(KISS).form).toEqual(['Intro', 'Verse', 'Bridge', 'Verse', 'Middle 8', 'Last verse', 'Outro'])
     expect(by(KISS).notes).toContain('Form: Intro, Verse, Bridge, Verse, Middle 8, Last verse, Outro.')
@@ -550,8 +578,11 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     expect(song.key).toBe('Eb')
     expect(song.transpose).toBe(-1)
     expect(song.lowerKey).toBe(true)
-    expect(song.shapes?.['Edim7/D']).toBe('x-x-0-3-2-3')
-    expect(chordsOf(KISS).map(c => transposeInKey(c, 'Eb', -1)).filter(c => !song.shapes?.[c])).toEqual([])
+    // The two chords read from the recording have no box in the book; the box of the
+    // chord that went (Edim7/D) went with it
+    expect(song.shapes?.['Edim7/D']).toBeUndefined()
+    expect(chordsOf(KISS).map(c => transposeInKey(c, 'Eb', -1)).filter(c => !song.shapes?.[c]).sort()).toEqual(['Gm6/D', 'Gmaj7/A'])
+    expect(song.shapes?.A13).toBeUndefined()
   })
 })
 
