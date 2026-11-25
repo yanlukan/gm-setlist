@@ -29,8 +29,11 @@
 .bb-btn:disabled { opacity: 0.4; }
 .bb-btn[aria-expanded='true'] { border-color: var(--accent); color: var(--accent); }
 .bb-prev { flex: 1 1 0; min-width: 0; justify-content: flex-start; }
-.bb-next { flex: 1.6 1 0; min-width: 0; justify-content: space-between; background: var(--accent); border-color: var(--accent); color: var(--bg); }
+/* A button like Previous, its word and arrow in the accent colour: as a big blue block it read as the song's title */
+.bb-next { flex: 1 1 0; min-width: 0; justify-content: space-between; }
+.bb-next :is(.bb-kicker, .bb-arrow) { color: var(--accent); opacity: 1; }
 .bb-next.is-return { background: #f59e0b; border-color: #f59e0b; color: #111; }
+.bb-next.is-return :is(.bb-kicker, .bb-arrow) { color: inherit; }
 .bb-text { display: flex; flex-direction: column; min-width: 0; text-align: left; line-height: 1.15; }
 .bb-kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
 .bb-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -41,6 +44,8 @@
 @media (max-width: 599px) {
   .bb-title, .bb-key, .bb-preset { display: none; }
   .bb-btn { padding: 0 8px; }
+  /* A phone's bar is as it was: Next takes the larger share of the little room left */
+  .bb-next { flex-grow: 1.6; }
 }
 
 /* A newer version is published: one tap starts it (Practice only) */

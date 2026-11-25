@@ -36,7 +36,14 @@
   font-weight: 600;
 }
 .sheet-action + .sheet-action { margin-left: 0; }
-.set-song-list { display: grid; gap: 6px; }
+/* A list's songs: short rows in as many columns as fit, read down each column, so a
+   whole set shows on an iPad without scrolling and the sheet's width is used */
+.set-song-list { columns: 300px; column-gap: 8px; }
+.set-song-list .songtile { width: 100%; min-height: 52px; margin-bottom: 6px; padding: 6px 12px; align-items: center; break-inside: avoid; }
+.set-song-list .songtile-num { min-width: 1.5em; font-size: 20px; }
+.set-song-list .songtile-main { gap: 2px; }
+.set-song-list .songtile-title { font-size: 16px; line-height: 1.2; -webkit-line-clamp: 1; }
+.set-song-list .songtile-meta { flex-wrap: nowrap; overflow: hidden; font-size: 12px; white-space: nowrap; }
 .songtile-left { color: var(--accent); font-weight: 600; }
 
 /* Setlists sheet: the lists on the left, the tapped list's songs on the right */

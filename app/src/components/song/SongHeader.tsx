@@ -13,7 +13,8 @@ interface Props {
 
 /**
  * One title line for both screens: the title and what changes the hands, then
- * the song order in letters, then the cue. On its side the same on one row
+ * the song order in letters, then on Practice the cue (Stage keeps that row
+ * for the chart; the cue is under Notes). On its side the same on one row
  * (stage.css). Nothing here is a button, except Done and Reset while editing.
  */
 export function SongHeader({ chart, extraFrom, screen }: Props) {
@@ -42,7 +43,7 @@ export function SongHeader({ chart, extraFrom, screen }: Props) {
           <FormStrip form={chart.form} letters={chart.letters} short />
         </div>
       )}
-      {song.cue && <div className="song-cue">{song.cue}</div>}
+      {song.cue && screen === 'practice' && <div className="song-cue">{song.cue}</div>}
     </header>
   )
 }

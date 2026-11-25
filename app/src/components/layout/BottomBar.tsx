@@ -12,9 +12,10 @@ import { ChordFinder } from '../finder/ChordFinder'
 
 /**
  * The only bar, at the bottom of both screens. Getting around comes first and
- * is the same on Stage and Practice; the screen's own buttons follow. Next is
- * the big one: it names the song it goes to, with its key and GX-10 sound, and
- * after an extra it reads Back to the set.
+ * is the same on Stage and Practice; the screen's own buttons follow. Next
+ * names the song it goes to, with its key and GX-10 sound, and after an extra
+ * it reads Back to the set. It is a button like Previous: as a blue block it
+ * read as the title of the song on screen.
  */
 export function BottomBar() {
   const { song, previous, next, returning, setSongs, place: index } = useShownSong()

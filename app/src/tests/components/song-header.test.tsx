@@ -81,13 +81,14 @@ describe.each(screens)('the title line on %s', (_name, Screen) => {
     expect(order.querySelector('.form-name')).toBeNull()
   })
 
-  it('shows the cue only for a song that has one', () => {
+  it('shows the cue only on Practice, and only for a song that has one', () => {
     const { unmount } = render(<Screen />)
     expect(header().querySelector('.song-cue')).toBeNull()
     unmount()
     useStore.getState().goToSong(useStore.getState().setlistSongs().findIndex(s => s.cue))
     render(<Screen />)
-    expect(header().querySelector('.song-cue')).not.toBeNull()
+    // Stage keeps the row for the chart (the player, 2026-11-25); the cue is under Notes
+    expect(header().querySelector('.song-cue') !== null).toBe(_name === 'Practice')
   })
 })
 

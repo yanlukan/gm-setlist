@@ -23,6 +23,8 @@ const openBefore = (title: string) => {
 // the Next up line and the key button are in stage-screen.test.tsx and
 // song-header.test.tsx and more-song.test.tsx.
 
+// The player, 2026-11-25: the song note on top "is kinda waste of space". It is no
+// longer in the Stage header; it is under Notes, and on Practice as before.
 describe('the cue on Stage', () => {
   it('shows CTL1 switches at their sections, not in the cue, and the sound in the title line only', () => {
     open('Somebody to Love')
@@ -31,13 +33,14 @@ describe('the cue on Stage', () => {
     expect(container.querySelector('.song-head [aria-label^="GX-10 sound: "]')).not.toBeNull()
     expect(screen.getByLabelText('CTL1 ON · SOLO')).toBeInTheDocument()
     expect(screen.getByLabelText('CTL1 OFF')).toBeInTheDocument()
-    expect(container.querySelector('.song-cue')).not.toHaveTextContent('CTL1')
+    expect(container.querySelector('.song-cue')).toBeNull()
   })
 
-  it('leaves the stage directions in the cue', () => {
+  it('keeps the song note out of the header: every row it can get goes to the chart', () => {
     open('Roxanne')
     const { container } = render(<StageScreen />)
-    expect(container.querySelector('.song-cue')).toHaveTextContent(/^GUITAR TACET/)
+    expect(container.querySelector('.song-cue')).toBeNull()
+    expect(container.querySelector('.song-head')).not.toHaveTextContent('GUITAR TACET')
   })
 })
 

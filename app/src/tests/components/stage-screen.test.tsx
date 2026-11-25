@@ -59,11 +59,12 @@ describe('the Stage title line', () => {
     expect(order.querySelector('.form-name')).toBeNull()
   })
 
-  it('shows the cue in the header, only for songs that have one', () => {
+  it('has no song note in the header, even for a song that has one (it is under Notes)', () => {
     render(<StageScreen />)
     expect(header().querySelector('.song-cue')).toBeNull()
     goTo('Papa Was a Rolling Stone')
-    expect(header().querySelector('.song-cue')).toHaveTextContent(song('Papa Was a Rolling Stone').cue!)
+    expect(song('Papa Was a Rolling Stone').cue).toBeTruthy()
+    expect(header().querySelector('.song-cue')).toBeNull()
   })
 
   it('tags an extra song with the list it is from', () => {
