@@ -20,7 +20,7 @@ const openBefore = (title: string) => {
 }
 
 // Tap tempo is gone: the BPM is text (screens.test.tsx). Chord taps on Stage,
-// the Next up line and the key button are in stage-screen.test.tsx and
+// the key button are in stage-screen.test.tsx and
 // song-header.test.tsx and more-song.test.tsx.
 
 // The player, 2026-11-25: the song note on top "is kinda waste of space". It is no

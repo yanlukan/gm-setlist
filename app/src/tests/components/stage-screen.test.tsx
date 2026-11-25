@@ -121,17 +121,15 @@ describe('the Stage chart', () => {
   })
 })
 
+// The player, 2026-11-25: the song note on Stage is a waste of space, and asked
+// for the "Next up" line (the next song's note, one song early) to go as well.
 describe('Next up', () => {
-  it('warns one song early when the next song has a cue', () => {
+  it('is gone: no note of the next song above the bar, even when that song has one', () => {
     goTo(G[G.indexOf('Papa Was a Rolling Stone') - 1]) // the song before it
-    render(<StageScreen />)
-    const note = screen.getByRole('note')
-    expect(note).toHaveTextContent('Next up')
-    expect(note).toHaveTextContent(song('Papa Was a Rolling Stone').cue!)
-  })
-
-  it('stays out of the way when the next song has no cue', () => {
-    render(<StageScreen />)
+    expect(song('Papa Was a Rolling Stone').cue).toBeTruthy()
+    const { container } = render(<StageScreen />)
     expect(screen.queryByRole('note')).toBeNull()
+    expect(container).not.toHaveTextContent('Next up')
+    expect(container).not.toHaveTextContent(song('Papa Was a Rolling Stone').cue!)
   })
 })

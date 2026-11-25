@@ -33,22 +33,6 @@
 .song-cue { color: #facc15; font-size: 17px; font-weight: 700; }
 .form-strip.is-short .form-chip { padding: 2px 6px 2px 3px; }
 
-/* One line above the bar; a long cue is cut with … */
-.next-up {
-  flex: none;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 6px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--picker-bg);
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.next-up-label { flex: none; color: #facc15; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-.next-up-text { overflow: hidden; text-overflow: ellipsis; }
-
 /* ---------- On its side: the header on one row ---------- */
 @media (orientation: landscape) and (min-width: 900px) {
   .song-head { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px; padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }

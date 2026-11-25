@@ -7,15 +7,14 @@ import { useSwipe } from '../../hooks/use-swipe'
 import { ChartBody } from '../song/ChartBody'
 import { SongHeader } from '../song/SongHeader'
 import { EmptyList } from '../song/EmptyList'
-import { NextUp } from './NextUp'
 
 /**
- * The screen played from: the header, the whole chart fitted between it and
- * the bar, and the Next up line. Nothing on it can be edited, and nothing on
+ * The screen played from: the header and the whole chart fitted between it
+ * and the bar. Nothing on it can be edited, and nothing on
  * the chart reacts to a tap; a swipe still changes song.
  */
 export function StageScreen() {
-  const { song, extraFrom, next } = useShownSong()
+  const { song, extraFrom } = useShownSong()
   const chart = useSongChart(song)
   const nextSong = useStore(s => s.nextSong)
   const prevSong = useStore(s => s.prevSong)
@@ -24,8 +23,7 @@ export function StageScreen() {
   const fitRef = useRef<HTMLDivElement>(null)
   const sectionsRef = useRef<HTMLDivElement>(null)
 
-  // The Next up line takes room from the chart, so it is part of what is fitted
-  const fitKey = chart ? JSON.stringify([chart.fitKey, 'stage', next?.cue ?? '']) : ''
+  const fitKey = chart ? JSON.stringify([chart.fitKey, 'stage']) : ''
   useChartFit(scrollRef, fitRef, sectionsRef, fitKey, { bands: chart?.bands ?? false, enabled: !!chart })
 
   // Every song opens at its top
@@ -48,7 +46,6 @@ export function StageScreen() {
           <EmptyList />
         )}
       </div>
-      <NextUp next={next} />
     </main>
   )
 }
