@@ -93,6 +93,19 @@ describe('the band chart stylesheet', () => {
     expect(between(css('practice.css'), LANDSCAPE)).toContain('.practice-screen .band-chart { --cols: 4; }')
   })
 
+  it('draws the blank cells of the row it has: four bars a row, or eight', () => {
+    // A short line's blank cells differ between the two rows (BandBars.tsx)
+    const bands = css('bands.css')
+    expect(bands).toContain('.band-chart .pad-eight { display: none; }')
+    const landscape = between(bands, LANDSCAPE, PHONE)
+    expect(landscape).toContain('.band-chart .pad-eight { display: block; }')
+    expect(landscape).toContain('.band-chart .pad-four { display: none; }')
+    // Practice keeps four bars a row on its side, so it keeps their blank cells
+    const practice = between(css('practice.css'), LANDSCAPE)
+    expect(practice).toContain('.practice-screen .band-chart .pad-eight { display: none; }')
+    expect(practice).toContain('.practice-screen .band-chart .pad-four { display: block; }')
+  })
+
   it('is loaded, and the old bar view is gone', () => {
     expect(css('global.css')).toContain("@import './bands.css';")
     expect(css('bars.css')).not.toContain('.bar-grid')

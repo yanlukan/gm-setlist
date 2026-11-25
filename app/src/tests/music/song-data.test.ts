@@ -72,10 +72,10 @@ describe('song order from the notes (2026-10-09)', () => {
     for (const title of ['Papa Was a Rolling Stone']) expect(by(title).form, title).toBeUndefined()
   })
 
-  it('Club Tropicana comes back to the chorus after the bass solo and after the last verse walk-up', () => {
+  it('Club Tropicana comes back to the chorus after the bass solo and after the last verse', () => {
     expect(by('Club Tropicana').form).toEqual([
       'Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus',
-      'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro',
+      'Bass solo', 'Last verse', 'Chorus', 'Outro',
     ])
   })
 
@@ -97,5 +97,23 @@ describe('song order from the notes (2026-10-09)', () => {
     expect(by('Father Figure').form).toEqual([
       'Intro', 'Verse', 'Verse', 'Chorus', 'Instrumental', 'Verse', 'Chorus', 'Bridge', 'Bridge 2', 'Verse', 'Chorus', 'Outro',
     ])
+  })
+})
+
+describe('where a part starts (2026-11-24)', () => {
+  // After a rehearsal the player said parts looked as if they began with the
+  // chords of the part before, and that a whole line held one bar. A bar left
+  // over from a phrase belongs at the end of its own part (or in a link of
+  // its own), never alone on the first line of the next one.
+  it('no part of a built-in song opens with a single bar on a line of its own', () => {
+    const opensOnOneBar = DEFAULT_SONGS.flatMap(song =>
+      song.sections
+        .filter(s => {
+          const lines = s.chords.split('\n').filter(l => l.trim())
+          return lines.length > 1 && lines[0].split('|').filter(b => b.trim()).length === 1
+        })
+        .map(s => `${song.title}: ${s.name}`),
+    )
+    expect(opensOnOneBar).toEqual([])
   })
 })

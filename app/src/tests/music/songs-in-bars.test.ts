@@ -19,11 +19,27 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
   })
 
   it('has the bars the book has, with the piano intro from the recording', () => {
-    expect(sectionBars(LOVE)).toEqual({ Intro: 8, Verse: 11, Chorus: 15, 'Chorus end': 1, Outro: 15 })
+    expect(sectionBars(LOVE)).toEqual({ Intro: 8, Verse: 11, Chorus: 16, 'Last chorus': 16, Outro: 14 })
   })
 
   it('plays the whole chorus both times, the first going back to the verse, the second into the outro', () => {
-    expect(by(LOVE).form).toEqual(['Intro', 'Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'])
+    expect(by(LOVE).form).toEqual(['Intro', 'Verse', 'Chorus', 'Verse', 'Last chorus', 'Outro'])
+  })
+
+  it('keeps the last bar of each chorus in the chorus, not in a part of its own (2026-11-24)', () => {
+    // The chorus ends on the intro's four bars. Their last bar differs the two
+    // times round (the book's first and second ending), and it had been cut
+    // off: a one-bar Chorus end the first time, and the first bar of the Outro
+    // the second. The player said parts looked as if they began with the
+    // chords of the part before. Each chorus now ends on its own whole line.
+    const c = Object.fromEntries(by(LOVE).sections.map(s => [s.name, s.chords]))
+    const START = '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n'
+    expect(c.Chorus).toBe(`${START}|  Cadd9  Em11  |  C  |  G/B  |  Am7  |`)
+    expect(c['Last chorus']).toBe(`${START}|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |`)
+    expect(c['Chorus end']).toBeUndefined()
+    expect(c.Outro).toBe(
+      '|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |',
+    )
   })
 
   it('comes to the length of the recording at its tempo, give or take the slowing down at the end', () => {
@@ -118,13 +134,13 @@ describe('Club Tropicana in bars (the NoTreble bass transcription)', () => {
 
   it("has the transcription's bars, with the walk-up it plays once more in the fade", () => {
     expect(sectionBars(TROP)).toEqual({
-      Intro: 8, 'Intro 2': 4, Verse: 8, Chorus: 8, Instrumental: 12, 'Bass solo': 8, 'Last verse': 14, 'Walk-up': 2, Outro: 18,
+      Intro: 8, 'Intro 2': 4, Verse: 8, Chorus: 8, Instrumental: 12, 'Bass solo': 8, 'Last verse': 16, Outro: 18,
     })
   })
 
   it('keeps the song order', () => {
     expect(by(TROP).form).toEqual([
-      'Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro',
+      'Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Chorus', 'Outro',
     ])
   })
 
@@ -137,8 +153,9 @@ describe('Club Tropicana in bars (the NoTreble bass transcription)', () => {
     expect(chords['Intro 2']).toBe(GROOVE)
     expect(chords.Verse).toBe(`${GROOVE}\n|  F#m7  |  B  E  |  F#m7  |  B  B/D#  .  E  |`)
     expect(chords.Instrumental).toBe(`${GROOVE}  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  B/D#  .  E  |`)
-    expect(chords['Last verse']).toBe(`${GROOVE}  (x3)\n|  F#m7  |  B  E  |`)
-    expect(chords['Walk-up']).toBe('|  F#m7  |  B  C#m  B/D#  E  |')
+    // The walk-up is the last two bars of the last verse's fourth time round, not a part of its own (2026-11-24)
+    expect(chords['Last verse']).toBe(`${GROOVE}  (x3)\n|  F#m7  |  B  E  |  F#m7  |  B  C#m  B/D#  E  |`)
+    expect(chords['Walk-up']).toBeUndefined()
     expect(chords.Outro).toBe(`${GROOVE}  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  C#m  B/D#  E  |\n${GROOVE}\n|  F#m7  |  B  E  |`)
     // Under the bass solo the keys stay on B
     expect(chords['Bass solo']).toBe('|  F#m7  |  B  |  F#m7  |  B  |  (x2)')
@@ -506,13 +523,21 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
   const chords = () => Object.fromEntries(by(KISS).sections.map(s => [s.name, s.chords]))
   it('writes every line of every section in bars', () => everyLineInBars(KISS))
 
-  it("has the book's bars, four to a line, with the odd last bar on a line of its own", () => {
+  it("has the book's bars, four to a line, and no part opens on a bar left over from the part before (2026-11-24)", () => {
+    // After the rehearsal of 2026-11-24 the player found the chart confusing: a
+    // whole line with one bar of two chords, and parts that seemed to begin with
+    // the chords of the part before. The verse's 25th bar and the bar that leads
+    // into the Bridge (and into the Middle 8) are a two-bar turnaround: they are
+    // now a Link of their own, so the Verse is three clean rounds of 8 bars and
+    // the Bridge and the Middle 8 start on their own first bar. The last verse's
+    // fifth bar is the Outro's first.
     expect(sectionBars(KISS)).toEqual({
-      Intro: 4, Verse: 25, Bridge: 9, 'Middle 8': 11, 'Last verse': 5, Outro: 6,
+      Intro: 4, Verse: 24, Link: 2, Bridge: 8, 'Link 2': 2, 'Middle 8': 10, 'Last verse': 4, Outro: 7,
     })
     const c = chords()
     expect(c.Intro).toBe('|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |')
-    expect(c['Last verse']).toBe('|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |')
+    expect(c['Last verse']).toBe('|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |')
+    for (const s of by(KISS).sections) expect(s.chords.split('\n')[0].split('|').filter(b => b.trim()).length, s.name).toBeGreaterThan(1)
   })
 
   it('has the five places where the recording differs from the book (read 2026-11-24)', () => {
@@ -529,20 +554,22 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     // Verse bar 25: F, Ab, Cb over the held Eb, as the book NAMES it (a plain
     // diminished chord over the bass); the dim7 of the book's box has a D that
     // nobody plays
-    expect(verse[6]).toBe('|  Eb6  Abm6/Eb  |')
-    // Bridge bar 1: Eb for two beats, then a beat each
-    expect(c.Bridge).toBe('|  Eb  .  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |')
-    // Middle 8 bar 10: the fourth first, then the third
-    expect(c['Middle 8'].split('\n')[3]).toBe('|  Bb7sus4  Bb  |  Bb7(b9)  |')
+    expect(verse[6]).toBeUndefined()
+    // The bar that leads into the Bridge: Eb for two beats, then a beat each.
+    // Into the Middle 8 it is two beats each, without the last chord
+    expect(c.Link).toBe('|  Eb6  Abm6/Eb  |  Eb  .  Cm7  C7(b9)  |')
+    expect(c['Link 2']).toBe('|  Eb6  Abm6/Eb  |  Eb  Cm7  |')
+    expect(c.Bridge).toBe('|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |')
+    // Middle 8 bar 9: the fourth first, then the third
+    expect(c['Middle 8'].split('\n')[2]).toBe('|  Bb7sus4  Bb  |  Bb7(b9)  |')
     // Outro: the band slows down, and the last Cb7 and Bb7 take a bar each
-    expect(c.Outro).toBe('|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  |\n|  Bb7  |  Ebmaj9  |')
+    expect(c.Outro).toBe('|  Eb6  |  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |\n|  Cb7  |  Bb7  |  Ebmaj9  |')
     const ev = by(KISS).evidence!
-    expect(ev.Verse.bars).toEqual([
-      { bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' },
-      { bar: 24, chords: 'Eb6 Abm6/Eb', from: 'Record' },
-    ])
-    expect(ev['Middle 8'].bars).toEqual([{ bar: 9, chords: 'Bb7sus4 Bb', from: 'Record' }])
-    expect(ev.Outro.bars).toEqual([{ bar: 3, chords: 'Cb7', from: 'Record' }, { bar: 4, chords: 'Bb7', from: 'Record' }])
+    expect(ev.Verse.bars).toEqual([{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }])
+    expect(ev.Link.bars).toEqual([{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }])
+    expect(ev['Link 2'].bars).toEqual([{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }])
+    expect(ev['Middle 8'].bars).toEqual([{ bar: 8, chords: 'Bb7sus4 Bb', from: 'Record' }])
+    expect(ev.Outro.bars).toEqual([{ bar: 4, chords: 'Cb7', from: 'Record' }, { bar: 5, chords: 'Bb7', from: 'Record' }])
   })
 
   it('names the parts as the player hears them: one long verse, no chorus (2026-11-24)', () => {
@@ -550,8 +577,7 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     // labelled Chorus by the chart's writer; they run on the verse's chord
     // loop twice more (voice stem: a new tune each time round, the same words
     // in both rounds), and the title is only sung at the very end. The player
-    // said the names were wrong and chose Verse for all 24 bars and their link
-    // bar. The two contrasting parts are different music: the first stays
+    // said the names were wrong and chose Verse for all 24 bars. The two contrasting parts are different music: the first stays
     // Bridge, the second (3:15, the high part) is the Middle 8.
     const c = chords()
     expect(c.Chorus).toBeUndefined()
@@ -559,13 +585,13 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     expect(c.Verse).toBe(
       '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
         '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
-        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Abm6/Eb  |',
+        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
     )
     expect(c['Middle 8']).toBe(
-      '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',
+      '|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',
     )
-    expect(by(KISS).form).toEqual(['Intro', 'Verse', 'Bridge', 'Verse', 'Middle 8', 'Last verse', 'Outro'])
-    expect(by(KISS).notes).toContain('Form: Intro, Verse, Bridge, Verse, Middle 8, Last verse, Outro.')
+    expect(by(KISS).form).toEqual(['Intro', 'Verse', 'Link', 'Bridge', 'Verse', 'Link 2', 'Middle 8', 'Last verse', 'Outro'])
+    expect(by(KISS).notes).toContain('Form: Intro, Verse, Link, Bridge, Verse, Link 2, Middle 8, Last verse, Outro.')
     expect(by(KISS).notes).not.toMatch(/chorus/i)
   })
 

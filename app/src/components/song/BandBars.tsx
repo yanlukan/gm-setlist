@@ -13,32 +13,43 @@ interface Props {
 
 type Cell =
   | { kind: 'plain'; text: string }
-  | { kind: 'pad'; className: 'pad-both' | 'pad-wide' }
+  | { kind: 'pad'; className: string }
   | { kind: 'bar'; tokens: string[]; classes: string[]; held?: string; number: number }
+
+/** A line of one or two bars shares an eight-bar row with the line after it. */
+const SHORT = 2
 
 /**
  * One cell per bar. Each written line is padded with blank cells to a
  * multiple of four, so every line starts a row and bar 1 of every line is in
- * the first column, in rows of four, eight or two. A bar of only dots holds
- * the chord still sounding: the section's last chord before it, across bar
- * lines and lines in bars; none at the section's start, after N.C. or after
- * a line not in bars.
+ * the first column, in rows of four or two. A row of eight is laid out a
+ * little differently: a line of one or two bars is followed straight away by
+ * the next line when both fit in the row, so the row has no hole in its
+ * middle and reads left to right; the blank cells come at its end. The cells
+ * only one of the two rows draws are pad-four and pad-eight (bands.css).
+ * A bar of only dots holds the chord still sounding: the section's last chord
+ * before it, across bar lines and lines in bars; none at the section's start,
+ * after N.C. or after a line not in bars.
  */
 function layOut(lines: string[]): Cell[] {
   const cells: Cell[] = []
+  // Where the next cell goes on a row of eight
   let column = 0
   let sounding: string | undefined
   let number = 0
-  lines.forEach((line, li) => {
+  const barLines = lines.map(line => {
     const tokens = line.split(/\s+/).filter(Boolean)
-    if (!hasBars(tokens)) {
+    return hasBars(tokens) ? barsOf(tokens) : null
+  })
+  lines.forEach((line, li) => {
+    const bars = barLines[li]
+    if (!bars) {
       // N.C., a blank line or a line not in bars runs across the whole row
       cells.push({ kind: 'plain', text: line })
       column = 0
       sounding = undefined
       return
     }
-    const bars = barsOf(tokens)
     bars.forEach((bar, bi) => {
       const classes = ['bar']
       if (bi === 0) classes.push('bar-first')
@@ -46,10 +57,12 @@ function layOut(lines: string[]): Cell[] {
       // The double bar where the section starts
       if (li === 0 && bi === 0) classes.push('bar-double')
       if (beatsOf(bar).chords.length > 1) classes.push('bar-shared')
-      // Halfway along an eight-bar row: the line between the two phrases is the stronger one
-      if (column % 8 === 4) {
+      // A line, or the second four bars of a long one, starting part-way along an
+      // eight-bar row: the line between the two phrases is the stronger one
+      if (bi % 4 === 0 && column % 8 !== 0) {
         classes.push('phrase-start')
-        const before = cells[cells.length - 1]
+        // The cell before it on a row of eight
+        const before = [...cells].reverse().find(c => !(c.kind === 'pad' && c.className.includes('pad-four')))
         if (before?.kind === 'bar') before.classes.push('phrase-end')
       }
       const { chords } = beatsOf(bar)
@@ -59,10 +72,14 @@ function layOut(lines: string[]): Cell[] {
       cells.push({ kind: 'bar', tokens: bar, classes, held, number: number++ })
       column++
     })
-    for (const pad of padsAfter(bars.length)) {
-      cells.push({ kind: 'pad', className: pad })
-      column++
-    }
+    // The blank cells of a row of four, and how many of them a row of eight draws
+    const four = padsAfter(bars.length)
+    const next = barLines[li + 1]
+    const joins = bars.length <= SHORT && !!next && column % 8 !== 0 && (column % 8) + next.length <= 8
+    const eight = joins ? 0 : (4 - (column % 4)) % 4
+    four.forEach((pad, i) => cells.push({ kind: 'pad', className: i < eight ? pad : `${pad} pad-four` }))
+    for (let i = four.length; i < eight; i++) cells.push({ kind: 'pad', className: 'pad-eight' })
+    column += eight
   })
   return cells
 }

@@ -788,9 +788,7 @@
    "F#m7",
    "B E (x3)",
    "F#m7",
-   "B E"
-  ],
-  [
+   "B E",
    "F#m7",
    "B C#m B/D# E"
   ],
@@ -961,13 +959,28 @@
    "G/C",
    "Cadd9 Em11",
    "C",
-   "G/B"
-  ],
-  [
+   "G/B",
    "Am7"
   ],
   [
-   "Em7 Am7",
+   "Cadd9 G",
+   "Cadd9",
+   "G",
+   "G/B C D",
+   "Em7 G/C",
+   "D/F# Em7",
+   "G/C",
+   "D/F# Em7",
+   "Am7",
+   "G/D D G/B",
+   "Cadd9 G",
+   "G/C",
+   "Cadd9 Em11",
+   "C",
+   "G/B",
+   "Em7 Am7"
+  ],
+  [
    "Cadd9 Em11",
    "C",
    "G/B",
@@ -1146,11 +1159,13 @@
    "Eb6 Db6(b5)",
    "C7",
    "Fm7",
-   "Abm6 Bb7",
-   "Eb6 Abm6/Eb"
+   "Abm6 Bb7"
   ],
   [
-   "Eb . Cm7 C7(b9)",
+   "Eb6 Abm6/Eb",
+   "Eb . Cm7 C7(b9)"
+  ],
+  [
    "Fm7",
    "Bb",
    "Fm7",
@@ -1161,7 +1176,10 @@
    "Bb7"
   ],
   [
-   "Eb Cm7",
+   "Eb6 Abm6/Eb",
+   "Eb Cm7"
+  ],
+  [
    "Fm7",
    "Cb7",
    "Eb/Bb Eb",
@@ -1177,10 +1195,10 @@
    "Eb6",
    "Edim7",
    "Fm7",
-   "Cb(b5) Bb7",
-   "Eb6"
+   "Cb(b5) Bb7"
   ],
   [
+   "Eb6",
    "C7(b9)",
    "Cb7 Bb7",
    "Eb6 C9",

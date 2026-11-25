@@ -72,7 +72,7 @@ describe('a chart in bands', () => {
   it('colours a last verse as a verse and a middle 8 as a bridge', () => {
     render(<SongSheet />)
     open('Kissing a Fool')
-    expect(heads()).toEqual(['A Intro', 'B Verse', 'C Bridge', 'D Middle 8', 'E Last verse', 'F Outro'])
+    expect(heads()).toEqual(['A Intro', 'B Verse', 'C Link', 'D Bridge', 'E Link 2', 'F Middle 8', 'G Last verse', 'H Outro'])
     expect(band('Last verse').style.getPropertyValue('--band')).toBe('var(--section-verse)')
     expect(band('Middle 8').style.getPropertyValue('--band')).toBe('var(--section-bridge)')
   })

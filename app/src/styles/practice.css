@@ -36,6 +36,8 @@ button.chart-chord-tap { padding: 0; border: 0; background: none; color: inherit
 @media (orientation: landscape) and (min-width: 900px) {
   /* Practice keeps four bars a row on its side */
   .practice-screen .band-chart { --cols: 4; }
+  .practice-screen .band-chart .pad-eight { display: none; }
+  .practice-screen .band-chart .pad-four { display: block; }
 }
 
 /* ---------- The song's chord shapes, in a row under the chart (ShapesRow.tsx) ---------- */

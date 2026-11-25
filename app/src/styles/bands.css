@@ -83,6 +83,8 @@
 .band-chart .bar-plain { grid-column: 1 / -1; min-height: 44px; }
 .band-chart .bar,
 .band-chart .bar-pad { min-height: 44px; }
+/* A blank cell only a row of eight draws (BandBars.tsx); pad-four is its opposite */
+.band-chart .pad-eight { display: none; }
 .band-chart .bar {
   /* A bar is a grid of its beats: each chord starts in the column of its beat (BandBars.tsx).
      A bar written without dots has one beat a chord, so its chords share it equally. Every
@@ -195,6 +197,8 @@
   /* Two four-bar phrases a row: the line between them is the stronger one */
   .band-chart .bar.phrase-start { border-left-color: var(--text); }
   .band-chart .bar.phrase-end { border-right: none; }
+  .band-chart .pad-eight { display: block; }
+  .band-chart .pad-four { display: none; }
   /* Stage on its side: the letter alone beside each part, and every row it
      can get (the iPad's status bar and home bar take 44 px in the home-screen app) */
   .stage-screen .band-chart { --gutter: 44px; --band-gap: 4px; }

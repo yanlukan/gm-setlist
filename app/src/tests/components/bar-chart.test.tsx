@@ -17,11 +17,19 @@ const faith = (chords: string) => {
   useStore.getState().saveSections('Faith', [{ name: 'Verse', chords }])
   return render(<SongSheet />).container
 }
-/** The grid's cells: a bar by its text, a blank cell by the rows it shows in. */
+/**
+ * The grid's cells as a row of four draws them (and a phone's row of two): a
+ * bar by its text, a blank cell by the rows it shows in.
+ */
 const cells = (grid: Element) =>
-  Array.from(grid.children).map(cell =>
-    cell.classList.contains('pad-both') ? 'both' : cell.classList.contains('pad-wide') ? 'wide' : cell.textContent,
-  )
+  Array.from(grid.children)
+    .filter(cell => !cell.classList.contains('pad-eight'))
+    .map(cell => (cell.classList.contains('pad-both') ? 'both' : cell.classList.contains('pad-wide') ? 'wide' : cell.textContent))
+/** The cells as a row of eight draws them: a blank cell as a dot. */
+const eight = (grid: Element) =>
+  Array.from(grid.children)
+    .filter(cell => !cell.classList.contains('pad-four'))
+    .map(cell => (cell.classList.contains('bar-pad') ? '·' : cell.textContent))
 const named = (page: Element, cls: string) => Array.from(page.querySelectorAll(`.${cls}`)).map(cell => cell.textContent)
 
 const LINES = [
@@ -48,8 +56,8 @@ describe('a section written in bars', () => {
   })
 
   it('marks where the second four bars of an eight-bar row start', () => {
-    const page = faith(LINES)
-    expect(named(page, 'phrase-start')).toEqual(['G', 'D', 'E'])
+    const page = faith('|  D  |  G  |  A  |  D  |  E  |')
+    expect(named(page, 'phrase-start')).toEqual(['E'])
     expect(named(page, 'phrase-end')).toEqual(['D'])
   })
 
@@ -58,7 +66,57 @@ describe('a section written in bars', () => {
     expect(named(page, 'phrase-start')).toEqual(['E'])
     expect(named(page, 'phrase-end')).toEqual(['D'])
   })
+})
 
+// After the rehearsal of 2026-11-24 the player found the Stage chart confusing:
+// a line of one or two bars sat in its own half of an eight-bar row, with a
+// hole after it and the next line starting past the hole. On a row of eight a
+// line of one or two bars is now followed straight away by the next line, when
+// both fit in the row, with the strong phrase line between them. Rows of four
+// (the iPad upright, Practice) and a phone's rows of two keep a row per line.
+describe('a short line on a row of eight bars', () => {
+  it('is followed straight away by the next line, with the holes at the end of the row', () => {
+    const grid = faith('|  D  |\n|  G  |  A  |  Bm  |  C  |\n|  E  |  F  |  G  |  A  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['D', 'G', 'A', 'Bm', 'C', '·', '·', '·', 'E', 'F', 'G', 'A'])
+    // A row of four keeps a row for each line
+    expect(cells(grid)).toEqual(['D', 'both', 'wide', 'wide', 'G', 'A', 'Bm', 'C', 'E', 'F', 'G', 'A'])
+  })
+
+  it('draws the strong phrase line where the next line starts, and not in the middle of it', () => {
+    const page = faith('|  D  |\n|  G  |  A  |  Bm  |  C  |\n|  E  |  F  |  G  |  A  |')
+    expect(named(page, 'phrase-start')).toEqual(['G'])
+    expect(named(page, 'phrase-end')).toEqual(['D'])
+  })
+
+  it('joins a two-bar line and the three-bar line after it', () => {
+    const grid = faith('|  G  |  A  |\n|  Bm  |  C  |  D  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['G', 'A', 'Bm', 'C', 'D', '·', '·', '·'])
+    expect(cells(grid)).toEqual(['G', 'A', 'wide', 'wide', 'Bm', 'C', 'D', 'both'])
+  })
+
+  it('keeps its own half of the row when the next line would not fit beside it', () => {
+    const grid = faith('|  A  |  B  |  C  |  D  |\n|  E  |  F  |\n|  G  |  A  |  B  |  C  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', '·', '·', 'G', 'A', 'B', 'C'])
+  })
+
+  it('leaves a line of three bars in its half, so the four bars after it start the second half', () => {
+    const grid = faith('|  A  |  B  |  C  |\n|  D  |  E  |  F  |  G  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['A', 'B', 'C', '·', 'D', 'E', 'F', 'G'])
+  })
+
+  it('pads to the end of the row after the joined lines, so the line after them starts a row', () => {
+    const grid = faith('|  A  |  B  |\n|  C  |  D  |  E  |  F  |\n|  G  |  A  |  B  |  C  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', '·', '·', 'G', 'A', 'B', 'C'])
+    expect(cells(grid)).toEqual(['A', 'B', 'wide', 'wide', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'])
+  })
+
+  it('a short last line is as it was: on its own, with the holes after it', () => {
+    const grid = faith('|  A  |  B  |  C  |  D  |\n|  E  |').querySelector('.bar-grid')!
+    expect(eight(grid)).toEqual(['A', 'B', 'C', 'D', 'E', '·', '·', '·'])
+  })
+})
+
+describe('a section written in bars, drawn', () => {
   it('keeps a repeat count at the end of its bar, marks shared bars and draws one double bar', () => {
     const page = faith('|  A  |  B  (x2)  |\n|  F#  N.C.  |')
     const bars = page.querySelectorAll('.bar')

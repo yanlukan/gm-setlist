@@ -448,7 +448,7 @@ export const SONGS: Song[] = [
     shapes: { Em7: 'x-7-9-7-8-7', A: '5-7-7-6-5-5', 'C#m7': 'x-4-6-4-5-4', 'A/C#': 'x-4-7-6-5-5', D: 'x-5-7-7-7-5' },
     shapesFrom: 'Songsterr',
     notes: 'From a bass transcription of the record (Deon Estus\'s part, transcribed by Tim Fletcher for NoTreble) and two guitar charts that agree with it (Ultimate Guitar version 3, Guvna Guitars). Form: Intro (8 bars of slap bass alone, then the groove), Verse, Chorus, Verse, Chorus, Instrumental, Chorus, Bass solo, Last verse with its longer walk-up, Chorus, Outro to fade. The chorus slides down a semitone at a time into the verse; the verses and the instrumental end on a walk-up to the fourth. The groove is two bars, read from the recording\'s bass, guitar and keys: the second bar moves up to the fourth for its last two beats, and under the bass solo it stays where it is. 118 BPM. The shapes marked Songsterr are the record\'s rhythm guitar as Songsterr\'s transcription plays it, barres between the 6th and 11th frets, moved down two frets to the band\'s key.',
-    form: ['Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Walk-up', 'Chorus', 'Outro'],
+    form: ['Intro', 'Intro 2', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Instrumental', 'Chorus', 'Bass solo', 'Last verse', 'Chorus', 'Outro'],
     // Bars from the bass transcription, 114 in all, matching the recording at
     // 118 after its sound-effects opening. The fade plays the walk-up once more.
     sections: [
@@ -458,8 +458,7 @@ export const SONGS: Song[] = [
       { name: 'Chorus', chords: '|  B  |  D#m7  |  B  |  D#m7  |\n|  B  |  D#m7  |  B  |  D#m7  Dm7  C#m7  |' },
       { name: 'Instrumental', chords: '|  F#m7  |  B  E  |  F#m7  |  B  E  |  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  B/D#  .  E  |' },
       { name: 'Bass solo', chords: '|  F#m7  |  B  |  F#m7  |  B  |  (x2)' },
-      { name: 'Last verse', chords: '|  F#m7  |  B  E  |  F#m7  |  B  E  |  (x3)\n|  F#m7  |  B  E  |' },
-      { name: 'Walk-up', chords: '|  F#m7  |  B  C#m  B/D#  E  |' },
+      { name: 'Last verse', chords: '|  F#m7  |  B  E  |  F#m7  |  B  E  |  (x3)\n|  F#m7  |  B  E  |  F#m7  |  B  C#m  B/D#  E  |' },
       { name: 'Outro', chords: '|  F#m7  |  B  E  |  F#m7  |  B  E  |  (x2)\n|  F#m7  |  B  E  |  F#m7  |  B  C#m  B/D#  E  |\n|  F#m7  |  B  E  |  F#m7  |  B  E  |\n|  F#m7  |  B  E  |' },
     ],
   },
@@ -555,16 +554,16 @@ export const SONGS: Song[] = [
     // The Em11 the player plays (asked for 2026-10-12): E A D A, no open strings
     playerShapes: { Em11: 'x-x-2-2-3-5' },
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
-    notes: "From the songbook (no. 25), in George Michael's key of G, with the 8-bar piano intro from his recording (the book starts at the verse). Piano-led; guitar plays sparse arpeggios, no strumming. In the verse lines the C and the G/B come in late, after the piano: about beat 3 and beat 2 of their bars. The first time, the Am7 bar before G/D is only two beats (a 2/4 bar); the second time it is a full bar. Chorus end (Am7) goes back to the verse; the second chorus goes straight into the Outro, which opens on Em7 Am7. The last two bars slow down; hold the Fmaj9. The book marks 60 BPM; the recording measures 58.",
-    form: ['Intro', 'Verse', 'Chorus', 'Chorus end', 'Verse', 'Chorus', 'Outro'],
+    notes: "From the songbook (no. 25), in George Michael's key of G, with the 8-bar piano intro from his recording (the book starts at the verse). Piano-led; guitar plays sparse arpeggios, no strumming. In the verse lines the C and the G/B come in late, after the piano: about beat 3 and beat 2 of their bars. The first time, the Am7 bar before G/D is only two beats (a 2/4 bar); the second time it is a full bar. The chorus ends on a whole bar of Am7 the first time and goes back to the verse; the last chorus ends on Em7 Am7 and goes straight into the Outro. The last two bars slow down; hold the Fmaj9. The book marks 60 BPM; the recording measures 58.",
+    form: ['Intro', 'Verse', 'Chorus', 'Verse', 'Last chorus', 'Outro'],
     // In bars, as the book writes them (one bar line per bar, a chord held
     // into the next bar written again rather than %, which repeats a whole bar)
     sections: [
       { name: 'Intro', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |' },
       { name: 'Verse', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Am7  |  G/D  |  D  G/B  |' },
-      { name: 'Chorus', chords: '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n|  Cadd9  Em11  |  C  |  G/B  |' },
-      { name: 'Chorus end', chords: '|  Am7  |' },
-      { name: 'Outro', chords: '|  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |' },
+      { name: 'Chorus', chords: '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |' },
+      { name: 'Last chorus', chords: '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |' },
+      { name: 'Outro', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |' },
     ],
   },
   {
@@ -651,9 +650,11 @@ export const SONGS: Song[] = [
     chordsFrom: 'Book',
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
     evidence: {
-      'Verse': { bars: [{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }, { bar: 24, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
-      'Middle 8': { bars: [{ bar: 9, chords: 'Bb7sus4 Bb', from: 'Record' }] },
-      'Outro': { bars: [{ bar: 3, chords: 'Cb7', from: 'Record' }, { bar: 4, chords: 'Bb7', from: 'Record' }] },
+      'Verse': { bars: [{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }] },
+      'Link': { bars: [{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
+      'Link 2': { bars: [{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
+      'Middle 8': { bars: [{ bar: 8, chords: 'Bb7sus4 Bb', from: 'Record' }] },
+      'Outro': { bars: [{ bar: 4, chords: 'Cb7', from: 'Record' }, { bar: 5, chords: 'Bb7', from: 'Record' }] },
     },
     shapes: {
       D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
@@ -665,8 +666,8 @@ export const SONGS: Song[] = [
       Dmaj9: 'x-5-4-6-3-0',
     },
     shapesFrom: 'Songbook',
-    notes: 'From the songbook (no. 37). The band plays it a semitone below the book (the record sits about halfway between the two); the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Bridge, Verse, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round, and one link bar; the title is only sung at the very end. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. Every bar was read from the recording on 2026-11-24, with its pitch corrected. Five places follow the recording where it differs from the book. Bar 16 of the Verse starts on a suspended chord, written as the chord the keys play over the bass note: no third until the chord after it. The Verse\'s last chord is the minor sixth chord from bar 12 again, over the bass note held from the chord before; the book\'s name for it means the same notes, but its box has a note nobody plays, and that box is gone. The Bridge\'s first bar is two beats, then a beat each. Bar 10 of the Middle 8 has the fourth first, then the third; in the bar after it the band drops out and lets the chord ring. In the Outro the band slows down: the last two chords before the final one take a bar each, the voice finishes alone, and the final chord comes in at about 4:26 and rings.',
-    form: ['Intro', 'Verse', 'Bridge', 'Verse', 'Middle 8', 'Last verse', 'Outro'],
+    notes: 'From the songbook (no. 37). The band plays it a semitone below the book (the record sits about halfway between the two); the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Link, Bridge, Verse, Link 2, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round; the title is only sung at the very end. Each Link is the two bars that turn the verse round into the part after it: the second is the first without its last chord. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. Every bar was read from the recording on 2026-11-24, with its pitch corrected. Five places follow the recording where it differs from the book. Bar 16 of the Verse starts on a suspended chord, written as the chord the keys play over the bass note: no third until the chord after it. The Link\'s second chord is the minor sixth chord from bar 12 of the Verse again, over the bass note held from the chord before; the book\'s name for it means the same notes, but its box has a note nobody plays, and that box is gone. The first Link\'s second bar is two beats, then a beat each. Bar 9 of the Middle 8 has the fourth first, then the third; in the bar after it the band drops out and lets the chord ring. In the Outro the band slows down: the last two chords before the final one take a bar each, the voice finishes alone, and the final chord comes in at about 4:26 and rings.',
+    form: ['Intro', 'Verse', 'Link', 'Bridge', 'Verse', 'Link 2', 'Middle 8', 'Last verse', 'Outro'],
     sections: [
       { name: 'Intro', chords: '|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |' },
       {
@@ -674,15 +675,14 @@ export const SONGS: Song[] = [
         chords:
           '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
           '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
-          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |\n|  Eb6  Abm6/Eb  |',
+          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
       },
-      { name: 'Bridge', chords: '|  Eb  .  Cm7  C7(b9)  |\n|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |' },
-      {
-        name: 'Middle 8',
-        chords: '|  Eb  Cm7  |\n|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',
-      },
-      { name: 'Last verse', chords: '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |' },
-      { name: 'Outro', chords: '|  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |  Cb7  |\n|  Bb7  |  Ebmaj9  |' },
+      { name: 'Link', chords: '|  Eb6  Abm6/Eb  |  Eb  .  Cm7  C7(b9)  |' },
+      { name: 'Bridge', chords: '|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |' },
+      { name: 'Link 2', chords: '|  Eb6  Abm6/Eb  |  Eb  Cm7  |' },
+      { name: 'Middle 8', chords: '|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |' },
+      { name: 'Last verse', chords: '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |' },
+      { name: 'Outro', chords: '|  Eb6  |  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |\n|  Cb7  |  Bb7  |  Ebmaj9  |' },
     ],
   },
   {

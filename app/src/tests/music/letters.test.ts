@@ -10,7 +10,7 @@ describe('section letters', () => {
   })
 
   it('gives each section of a song its letter in chart order', () => {
-    expect(letters('Kissing a Fool')).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+    expect(letters('Kissing a Fool')).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
     expect(letters('Faith')).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
     const longest = letters('Somebody to Love')
     expect(longest[longest.length - 1]).toBe('L')
