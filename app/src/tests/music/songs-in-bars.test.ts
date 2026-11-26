@@ -45,8 +45,8 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
 
   it('changes chord in the middle of the bar all through the intro\'s line, as the recording does (2026-11-26)', () => {
     // The player: "bars are still wrong". The book writes a whole bar of C and
-    // of G/B; on the record the Em11 is held two beats into the second bar and
-    // the C two beats into the third, in every round of the line.
+    // of G/B; on the record the Em11 is played again on beat 1 of the second
+    // bar (the player hears it struck, not held) and the C on beat 1 of the third.
     const c = Object.fromEntries(by(LOVE).sections.map(s => [s.name, s.chords]))
     const LINE = '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |'
     expect(c.Intro).toBe(`${LINE}\n${LINE}`)
