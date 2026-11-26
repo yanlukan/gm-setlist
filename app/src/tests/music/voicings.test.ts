@@ -279,6 +279,8 @@ describe('the list of shapes', () => {
       // 3.26.0's D/A box went the same way in 5.2.2: it was the last of its list, and Roxanne's bar is F#m
       // 3.32.0
       'Gb/Db': { 16: 'x-4-4-3-2-2' },
+      // 5.2.17: the keys' opening chord in Fastlove, over a low A
+      'Fmaj7/A': { 10: 'x-0-3-2-1-0' },
     }
     const found: Record<string, Record<number, string>> = {}
     for (const song of DEFAULT_SONGS) {

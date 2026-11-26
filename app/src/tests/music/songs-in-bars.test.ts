@@ -501,10 +501,11 @@ describe('Fastlove in bars (songbook no. 13)', () => {
 
   it("has the book's bars, with the intro, the drum break and the outro counted on the recording", () => {
     expect(sectionBars(FAST)).toEqual({
-      Intro: 12, Verse: 16, Chorus: 8, Instrumental: 8, 'Post-Chorus': 8, 'Drum break': 4, Bridge: 24, Outro: 8,
+      Intro: 16, Verse: 16, Chorus: 8, Instrumental: 8, 'Post-Chorus': 8, 'Drum break': 4, Bridge: 24, Outro: 8,
     })
     const chords = Object.fromEntries(by(FAST).sections.map(s => [s.name, s.chords]))
-    expect(chords.Intro).toBe(`${VAMP}  (x3)`)
+    // 16 bars from the record's first sound: the keys alone over a low A, then the groove
+    expect(chords.Intro).toBe(`|  Fmaj7/A  |  Am11  |  Fmaj7/A  |  Am11  |\n${VAMP}  (x3)`)
     expect(chords.Verse).toBe(`${VAMP}  (x4)`)
     expect(chords.Chorus).toBe('|  Am7  |  Fmaj7  |  Am7  |  Dm9  |\n|  Am7  |  Fmaj7  |  Em7  |  Dm9  |')
     expect(chords.Instrumental).toBe(`${VAMP}  (x2)`)
@@ -519,8 +520,8 @@ describe('Fastlove in bars (songbook no. 13)', () => {
     ])
   })
 
-  it('comes to the length of the recording, from the groove after four quiet bars to the held A at the end (0:10 to 4:48)', () => {
-    expect(Math.abs(formBars(FAST) - recordingBars(FAST, 9.77, 287.6))).toBeLessThanOrEqual(1)
+  it('comes to the length of the recording, from its first sound to the held A at the end (0:01 to 4:48)', () => {
+    expect(Math.abs(formBars(FAST) - recordingBars(FAST, 0.58, 287.6))).toBeLessThanOrEqual(1)
   })
 
   it('stays in Am with a songbook shape for every chord and its sound', () => {

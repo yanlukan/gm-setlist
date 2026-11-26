@@ -87,14 +87,14 @@ export const SONGS: Song[] = [
       'Intro': { from: 'Record' },
     },
     shapes: {
-      Dm9: 'x-5-3-5-5-x', Am11: 'x-0-5-4-3-3', Am7: 'x-0-2-0-1-0', Fmaj7: 'x-x-3-2-1-0',
+      Dm9: 'x-5-3-5-5-x', Am11: 'x-0-5-4-3-3', Am7: 'x-0-2-0-1-0', Fmaj7: 'x-x-3-2-1-0', 'Fmaj7/A': 'x-0-3-2-1-0',
       Em7: 'x-x-2-0-3-0', Fmaj9: '1-x-2-0-1-0', G6: '3-2-0-0-0-0',
     },
     shapesFrom: 'Songbook',
-    notes: "From the songbook (no. 13), which is in the band's key. Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Form: Intro, Verse, Chorus, Instrumental, Verse, Chorus, Instrumental, Post-Chorus hook twice, drum break, Bridge, Outro. The 12-bar intro is from the recording, after four quiet bars that are not charted; the book starts with the singer's pickup. The drum break is 4 bars on the record. The book plays the Outro 4 times; the record goes round twice, then holds an A to the end. The book marks 100 BPM. The verse swaps two shapes at the 3rd to 5th fret: Dm9 x-5-3-5-5-x and Am11 over the open A (x-0-5-4-3-3, no third); the bridge chords are open.",
+    notes: "From the songbook (no. 13), which is in the band's key. Loop-based groove on Patrice Rushen's 'Forget Me Nots': keep it understated. Form: Intro, Verse, Chorus, Instrumental, Verse, Chorus, Instrumental, Post-Chorus hook twice, drum break, Bridge, Outro. The 16-bar intro is counted on the recording from its first sound; the book starts with the singer's pickup. Its first four bars are the keys alone, the same two chords over a low A with no bass (the first one sounds as Fmaj7 over A); the bass comes in at bar 5, the drums and the guitar at bar 9, and the voice sings over bars 13 to 16 before the verse. The drum break is 4 bars on the record. The book plays the Outro 4 times; the record goes round twice, then holds an A to the end. The book marks 100 BPM. The verse swaps two shapes at the 3rd to 5th fret: Dm9 x-5-3-5-5-x and Am11 over the open A (x-0-5-4-3-3, no third); the bridge chords are open.",
     form: ['Intro', 'Verse', 'Chorus', 'Instrumental', 'Verse', 'Chorus', 'Instrumental', 'Post-Chorus', 'Drum break', 'Bridge', 'Outro'],
     sections: [
-      { name: 'Intro', chords: '|  Dm9  |  Am11  |  Dm9  |  Am11  |  (x3)' },
+      { name: 'Intro', chords: '|  Fmaj7/A  |  Am11  |  Fmaj7/A  |  Am11  |\n|  Dm9  |  Am11  |  Dm9  |  Am11  |  (x3)' },
       { name: 'Verse', chords: '|  Dm9  |  Am11  |  Dm9  |  Am11  |  (x4)' },
       { name: 'Chorus', chords: '|  Am7  |  Fmaj7  |  Am7  |  Dm9  |\n|  Am7  |  Fmaj7  |  Em7  |  Dm9  |' },
       { name: 'Instrumental', chords: '|  Dm9  |  Am11  |  Dm9  |  Am11  |  (x2)' },
