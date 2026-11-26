@@ -939,7 +939,9 @@
    "Cadd9 Em11",
    "C",
    "G/B",
-   "Em7 Am7",
+   "Em7 Am7"
+  ],
+  [
    "Am7",
    "G/D",
    "D G/B"
@@ -947,7 +949,7 @@
   [
    "Cadd9 G",
    "Cadd9",
-   "G",
+   "Cadd9 G",
    "G/B C D",
    "Em7 G/C",
    "D/F# Em7",
@@ -956,31 +958,19 @@
    "Am7",
    "G/D D G/B",
    "Cadd9 G",
-   "G/C",
+   "G/C"
+  ],
+  [
    "Cadd9 Em11",
    "C",
    "G/B",
    "Am7"
   ],
   [
-   "Cadd9 G",
-   "Cadd9",
-   "G",
-   "G/B C D",
-   "Em7 G/C",
-   "D/F# Em7",
-   "G/C",
-   "D/F# Em7",
-   "Am7",
-   "G/D D G/B",
-   "Cadd9 G",
-   "G/C",
    "Cadd9 Em11",
    "C",
    "G/B",
-   "Em7 Am7"
-  ],
-  [
+   "Em7 Am7",
    "Cadd9 Em11",
    "C",
    "G/B",

@@ -19,27 +19,28 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
   })
 
   it('has the bars the book has, with the piano intro from the recording', () => {
-    expect(sectionBars(LOVE)).toEqual({ Intro: 8, Verse: 11, Chorus: 16, 'Last chorus': 16, Outro: 14 })
+    expect(sectionBars(LOVE)).toEqual({ Intro: 8, Verse: 8, 'Pre-Chorus': 3, Chorus: 12, Interlude: 4, Outro: 18 })
   })
 
-  it('plays the whole chorus both times, the first going back to the verse, the second into the outro', () => {
-    expect(by(LOVE).form).toEqual(['Intro', 'Verse', 'Chorus', 'Verse', 'Last chorus', 'Outro'])
-  })
-
-  it('keeps the last bar of each chorus in the chorus, not in a part of its own (2026-11-24)', () => {
-    // The chorus ends on the intro's four bars. Their last bar differs the two
-    // times round (the book's first and second ending), and it had been cut
-    // off: a one-bar Chorus end the first time, and the first bar of the Outro
-    // the second. The player said parts looked as if they began with the
-    // chords of the part before. Each chorus now ends on its own whole line.
+  it('names the parts by what is sung: the riff after the chorus is not chorus (2026-11-26)', () => {
+    // The player said the sections were wrong. The sung chorus is 12 bars; the
+    // intro's line comes back after it (an Interlude the first time, the start
+    // of the Outro the second), and the three bars that leave the verse's line
+    // are a Pre-Chorus. Every part starts on its own first bar, whole lines only.
+    expect(by(LOVE).form).toEqual(['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus', 'Outro'])
     const c = Object.fromEntries(by(LOVE).sections.map(s => [s.name, s.chords]))
-    const START = '|  Cadd9  G  |  Cadd9  |  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |\n'
-    expect(c.Chorus).toBe(`${START}|  Cadd9  Em11  |  C  |  G/B  |  Am7  |`)
-    expect(c['Last chorus']).toBe(`${START}|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |`)
+    expect(c['Pre-Chorus']).toBe('|  Am7  |  G/D  |  D  G/B  |')
+    expect(c.Interlude).toBe('|  Cadd9  Em11  |  C  |  G/B  |  Am7  |')
+    expect(c['Last chorus']).toBeUndefined()
     expect(c['Chorus end']).toBeUndefined()
     expect(c.Outro).toBe(
-      '|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |',
+      '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |',
     )
+  })
+
+  it("plays the chorus's third bar as its first, both chords, as the recording does (2026-11-26)", () => {
+    const chorus = by(LOVE).sections.find(s => s.name === 'Chorus')!.chords
+    expect(chorus.split('\n')[0]).toBe('|  Cadd9  G  |  Cadd9  |  Cadd9  G  |  G/B  C  D  |')
   })
 
   it('comes to the length of the recording at its tempo, give or take the slowing down at the end', () => {
