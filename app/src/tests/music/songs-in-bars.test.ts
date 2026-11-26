@@ -29,18 +29,30 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
     // are a Pre-Chorus. Every part starts on its own first bar, whole lines only.
     expect(by(LOVE).form).toEqual(['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus', 'Outro'])
     const c = Object.fromEntries(by(LOVE).sections.map(s => [s.name, s.chords]))
-    expect(c['Pre-Chorus']).toBe('|  Am7  |  G/D  |  D  G/B  |')
-    expect(c.Interlude).toBe('|  Cadd9  Em11  |  C  |  G/B  |  Am7  |')
+    expect(c['Pre-Chorus']).toBe('|  Am7  |  G/D  |  D  .  .  G/B  |')
+    expect(c.Interlude).toBe('|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Am7  |')
     expect(c['Last chorus']).toBeUndefined()
     expect(c['Chorus end']).toBeUndefined()
     expect(c.Outro).toBe(
-      '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |',
+      '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Am7  |\n|  C  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  C  Em11  |  Em11  Cadd9  |  Cadd9  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |',
     )
   })
 
   it("plays the chorus's third bar as its first, both chords, as the recording does (2026-11-26)", () => {
     const chorus = by(LOVE).sections.find(s => s.name === 'Chorus')!.chords
-    expect(chorus.split('\n')[0]).toBe('|  Cadd9  G  |  Cadd9  |  Cadd9  G  |  G/B  C  D  |')
+    expect(chorus.split('\n')[0]).toBe('|  Cadd9  G  |  Cadd9  |  Cadd9  G  |  G/B  .  C  D  |')
+  })
+
+  it('changes chord in the middle of the bar all through the intro\'s line, as the recording does (2026-11-26)', () => {
+    // The player: "bars are still wrong". The book writes a whole bar of C and
+    // of G/B; on the record the Em11 is held two beats into the second bar and
+    // the C two beats into the third, in every round of the line.
+    const c = Object.fromEntries(by(LOVE).sections.map(s => [s.name, s.chords]))
+    const LINE = '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |'
+    expect(c.Intro).toBe(`${LINE}\n${LINE}`)
+    expect(c.Verse).toBe(`${LINE}\n${LINE}`)
+    expect(c.Chorus.split('\n')[1]).toBe('|  Em7  G/C  |  D/F#  Em7  |  Em7  G/C  |  D/F#  Em7  |')
+    expect(c.Chorus.split('\n')[2]).toBe('|  Am7  |  G/D  D  .  G/B  |  Cadd9  G  |  G/C  |')
   })
 
   it('comes to the length of the recording at its tempo, give or take the slowing down at the end', () => {
@@ -50,7 +62,7 @@ describe("I Can't Make You Love Me in bars (songbook no. 25)", () => {
   it('stays in G with a shape for every chord, and keeps the Em11 as the player plays it', () => {
     const song = by(LOVE)
     expect(song.key).toBe('G')
-    const chords = song.sections.flatMap(s => tokens(s.chords)).filter(t => t !== '|' && t !== REPEAT_BAR && !isRepeatCount(t))
+    const chords = song.sections.flatMap(s => tokens(s.chords)).filter(t => t !== '|' && t !== '.' && t !== REPEAT_BAR && !isRepeatCount(t))
     const missing = [...new Set(chords)].filter(c => !song.shapes?.[c])
     expect(missing).toEqual([])
     expect(song.playerShapes).toEqual({ Em11: 'x-x-2-2-3-5' })

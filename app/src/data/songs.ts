@@ -542,7 +542,11 @@ export const SONGS: Song[] = [
     chordsFrom: 'Book',
     evidence: {
       'Intro': { from: 'Record' },
-      'Chorus': { bars: [{ bar: 2, chords: 'Cadd9 G', from: 'Record' }] },
+      'Verse': { bars: [{ bar: 1, chords: 'Em11 C', from: 'Record' }, { bar: 2, chords: 'C G/B', from: 'Record' }, { bar: 5, chords: 'Em11 C', from: 'Record' }, { bar: 6, chords: 'C G/B', from: 'Record' }] },
+      'Pre-Chorus': { bars: [{ bar: 2, chords: 'D . . G/B', from: 'Record' }] },
+      'Chorus': { bars: [{ bar: 2, chords: 'Cadd9 G', from: 'Record' }, { bar: 3, chords: 'G/B . C D', from: 'Record' }, { bar: 6, chords: 'Em7 G/C', from: 'Record' }, { bar: 9, chords: 'G/D D . G/B', from: 'Record' }] },
+      'Interlude': { bars: [{ bar: 1, chords: 'Em11 C', from: 'Record' }, { bar: 2, chords: 'C G/B', from: 'Record' }] },
+      'Outro': { bars: [{ bar: 1, chords: 'Em11 C', from: 'Record' }, { bar: 2, chords: 'C G/B', from: 'Record' }, { bar: 5, chords: 'Em11 C', from: 'Record' }, { bar: 6, chords: 'C G/B', from: 'Record' }, { bar: 9, chords: 'Em11 C', from: 'Record' }, { bar: 10, chords: 'C G/B', from: 'Record' }, { bar: 13, chords: 'Em11 Cadd9', from: 'Record' }, { bar: 14, chords: 'Cadd9 G/B', from: 'Record' }] },
     },
     // The songbook's own boxes (no. 25): a D and G drone rings on the top two
     // strings through almost every chord.
@@ -555,17 +559,17 @@ export const SONGS: Song[] = [
     // The Em11 the player plays (asked for 2026-10-12): E A D A, no open strings
     playerShapes: { Em11: 'x-x-2-2-3-5' },
     cue: 'MTV Unplugged 1996 arrangement — slow, spacious, let it breathe.',
-    notes: "From the songbook (no. 25), in George Michael's key of G, with the 8-bar piano intro from his recording (the book starts at the verse). Piano-led; guitar plays sparse arpeggios, no strumming. In the verse lines the C and the G/B come in late, after the piano: about beat 3 and beat 2 of their bars. The Pre-Chorus is the three bars that leave the verse's line and lead into the Chorus; the first time, its Am7 bar is only two beats (a 2/4 bar), the second time a full bar. The Chorus is 12 bars; its third bar is its first again, both chords, as the recording plays it (bass, piano and guitar). After the first Chorus the intro's line comes back once as the Interlude, ending on a whole bar of Am7, and goes back to the verse; after the second Chorus the same line starts the Outro. The last two bars slow down; hold the Fmaj9. The book marks 60 BPM; the recording measures 58.",
+    notes: "From the songbook (no. 25), in George Michael's key of G, with the 8-bar piano intro from his recording (the book starts at the verse). Piano-led; guitar plays sparse arpeggios, no strumming. In the intro's line every chord changes in the middle of the bar, an eighth before beat 3: the Em11 is held over the bar line for two beats before the C, and the C for two beats before the G/B (bars as the recording plays them; the book writes a whole bar of C and of G/B). In the Pre-Chorus the D lasts three beats and the G/B comes on beat 4. The Pre-Chorus is the three bars that leave the verse's line and lead into the Chorus; the first time, its Am7 bar is only two beats (a 2/4 bar), the second time a full bar. The Chorus is 12 bars; its third bar is its first again, both chords, as the recording plays it (bass, piano and guitar). After the first Chorus the intro's line comes back once as the Interlude, ending on a whole bar of Am7, and goes back to the verse; after the second Chorus the same line starts the Outro. The last two bars slow down; hold the Fmaj9. The book marks 60 BPM; the recording measures 58.",
     form: ['Intro', 'Verse', 'Pre-Chorus', 'Chorus', 'Interlude', 'Verse', 'Pre-Chorus', 'Chorus', 'Outro'],
     // In bars, as the book writes them (one bar line per bar, a chord held
     // into the next bar written again rather than %, which repeats a whole bar)
     sections: [
-      { name: 'Intro', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |' },
-      { name: 'Verse', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |' },
-      { name: 'Pre-Chorus', chords: '|  Am7  |  G/D  |  D  G/B  |' },
-      { name: 'Chorus', chords: '|  Cadd9  G  |  Cadd9  |  Cadd9  G  |  G/B  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  G/B  |  Cadd9  G  |  G/C  |' },
-      { name: 'Interlude', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Am7  |' },
-      { name: 'Outro', chords: '|  Cadd9  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  C  |  G/B  |  Am7  |\n|  C  Em11  |  C  |  G/B  |  Em7  Am7  |\n|  C  Em11  |  Cadd9  |  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |' },
+      { name: 'Intro', chords: '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |' },
+      { name: 'Verse', chords: '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |' },
+      { name: 'Pre-Chorus', chords: '|  Am7  |  G/D  |  D  .  .  G/B  |' },
+      { name: 'Chorus', chords: '|  Cadd9  G  |  Cadd9  |  Cadd9  G  |  G/B  .  C  D  |\n|  Em7  G/C  |  D/F#  Em7  |  Em7  G/C  |  D/F#  Em7  |\n|  Am7  |  G/D  D  .  G/B  |  Cadd9  G  |  G/C  |' },
+      { name: 'Interlude', chords: '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Am7  |' },
+      { name: 'Outro', chords: '|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  Cadd9  Em11  |  Em11  C  |  C  G/B  |  Am7  |\n|  C  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |\n|  C  Em11  |  Em11  Cadd9  |  Cadd9  G/B  |  Em7  Cadd9  |\n|  Cadd9  |  Fmaj9  |' },
     ],
   },
   {

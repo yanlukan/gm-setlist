@@ -66,7 +66,7 @@ describe('bars in the editor', () => {
     love()
     chord('Verse', 1) // the Cadd9, after the opening bar line
     tap('Bar line')
-    expect(saved(LOVE, 1)?.split('\n')[0]).toBe('|  Cadd9  |  Em11  |  C  |  G/B  |  Em7  Am7  |')
+    expect(saved(LOVE, 1)?.split('\n')[0]).toBe('|  Cadd9  |  Em11  |  Em11  C  |  C  G/B  |  Em7  Am7  |')
     tap('Undo')
     expect(useStore.getState().edits[LOVE]).toBeUndefined()
   })
