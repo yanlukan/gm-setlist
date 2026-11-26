@@ -566,7 +566,11 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     // Outro: the band slows down, and the last Cb7 and Bb7 take a bar each
     expect(c.Outro).toBe('|  Eb6  |  C7(b9)  |  Cb7  Bb7  |  Eb6  C9  |\n|  Cb7  |  Bb7  |  Ebmaj9  |')
     const ev = by(KISS).evidence!
-    expect(ev.Verse.bars).toEqual([{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }])
+    expect(ev.Verse.bars).toEqual([
+      { bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' },
+      // read again 2026-11-26: keys and guitar play the seventh both times round
+      { bar: 19, chords: 'Abm7 Bb7', from: 'Record' },
+    ])
     expect(ev.Link.bars).toEqual([{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }])
     expect(ev['Link 2'].bars).toEqual([{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }])
     expect(ev['Middle 8'].bars).toEqual([{ bar: 8, chords: 'Bb7sus4 Bb', from: 'Record' }])
@@ -586,7 +590,7 @@ describe('Kissing a Fool in bars (songbook no. 37)', () => {
     expect(c.Verse).toBe(
       '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
         '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
-        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
+        '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm7  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
     )
     expect(c['Middle 8']).toBe(
       '|  Fm7  |  Cb7  |  Eb/Bb  Eb  |  Db6  C7  |\n|  Fm9  |  Cb6  |  Bb7sus4  Cm7  |  Fm7  |\n|  Bb7sus4  Bb  |  Bb7(b9)  |',

@@ -652,7 +652,7 @@ export const SONGS: Song[] = [
     chordsFrom: 'Book',
     cue: 'Jazz ballad, comping only. The last verse is short: straight into the Outro.',
     evidence: {
-      'Verse': { bars: [{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }] },
+      'Verse': { bars: [{ bar: 15, chords: 'Abmaj7/Bb Bb7(b9)', from: 'Record' }, { bar: 19, chords: 'Abm7 Bb7', from: 'Record' }] },
       'Link': { bars: [{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
       'Link 2': { bars: [{ bar: 0, chords: 'Eb6 Abm6/Eb', from: 'Record' }] },
       'Middle 8': { bars: [{ bar: 8, chords: 'Bb7sus4 Bb', from: 'Record' }] },
@@ -662,13 +662,13 @@ export const SONGS: Song[] = [
       D: 'x-x-0-2-3-2', 'D#dim7': 'x-x-1-2-1-2', Em: '0-2-2-0-0-3', Gm6: '3-x-2-3-3-x', A: 'x-0-2-2-2-0',
       D6: 'x-x-0-2-0-2', Em7: '0-2-0-0-0-3', 'Bb(b5)': 'x-1-2-3-3-x', A7: 'x-0-2-0-2-0', 'B7(b9)': 'x-2-1-2-1-x',
       'A7(b9)': 'x-0-2-3-2-3', 'C6(b5)': 'x-x-2-2-1-2', B7: 'x-2-4-2-4-2', Em11: '0-2-0-2-0-2',
-      'C(b5)': 'x-3-4-5-5-x', Gm: '3-5-5-3-3-3', Bm7: 'x-2-4-2-3-2', Dm7: 'x-x-0-2-1-1',
+      'C(b5)': 'x-3-4-5-5-x', Gm7: '3-5-3-3-3-3', Bm7: 'x-2-4-2-3-2', Dm7: 'x-x-0-2-1-1',
       G7: '3-2-0-0-0-1', C: 'x-3-2-0-1-0', 'C/B': 'x-2-2-0-1-0', Bb7: 'x-1-3-1-3-1', 'D/A': 'x-0-0-2-3-2',
       C6: 'x-3-2-2-1-0', Em9: '0-2-0-0-3-2', Bb6: 'x-1-3-3-3-3', A7sus4: 'x-0-2-0-3-0', B9: 'x-2-1-2-2-2',
       Dmaj9: 'x-5-4-6-3-0',
     },
     shapesFrom: 'Songbook',
-    notes: 'From the songbook (no. 37). The band plays it a semitone below the book (the record sits about halfway between the two); the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Link, Bridge, Verse, Link 2, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round; the title is only sung at the very end. Each Link is the two bars that turn the verse round into the part after it: the second is the first without its last chord. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. Every bar was read from the recording on 2026-11-24, with its pitch corrected. Five places follow the recording where it differs from the book. Bar 16 of the Verse starts on a suspended chord, written as the chord the keys play over the bass note: no third until the chord after it. The Link\'s second chord is the minor sixth chord from bar 12 of the Verse again, over the bass note held from the chord before; the book\'s name for it means the same notes, but its box has a note nobody plays, and that box is gone. The first Link\'s second bar is two beats, then a beat each. Bar 9 of the Middle 8 has the fourth first, then the third; in the bar after it the band drops out and lets the chord ring. In the Outro the band slows down: the last two chords before the final one take a bar each, the voice finishes alone, and the final chord comes in at about 4:26 and rings.',
+    notes: 'From the songbook (no. 37). The band plays it a semitone below the book (the record sits about halfway between the two); the book\'s chord boxes, played without its capo, are already in the band\'s key, and they are the shapes shown here. The book prints no part names. Form: Intro, Verse, Link, Bridge, Verse, Link 2, Middle 8, Last verse, Outro. The Verse is the same 8-bar loop three times, with a different tune each time round; the title is only sung at the very end. Each Link is the two bars that turn the verse round into the part after it: the second is the first without its last chord. The Bridge and the Middle 8 are different music. Swung eighths, triplet feel. Every bar was read from the recording on 2026-11-24, with its pitch corrected. Six places follow the recording where it differs from the book. Bar 16 of the Verse starts on a suspended chord, written as the chord the keys play over the bass note: no third until the chord after it. Bar 20 of the Verse is a minor seventh chord (the keys and the guitar both play the seventh, both times round; the book prints a plain minor). The Link\'s second chord is the minor sixth chord from bar 12 of the Verse again, over the bass note held from the chord before; the book\'s name for it means the same notes, but its box has a note nobody plays, and that box is gone. The first Link\'s second bar is two beats, then a beat each. Bar 9 of the Middle 8 has the fourth first, then the third; in the bar after it the band drops out and lets the chord ring. In the Outro the band slows down: the last two chords before the final one take a bar each, the voice finishes alone, and the final chord comes in at about 4:26 and rings.',
     form: ['Intro', 'Verse', 'Link', 'Bridge', 'Verse', 'Link 2', 'Middle 8', 'Last verse', 'Outro'],
     sections: [
       { name: 'Intro', chords: '|  Eb  |  Edim7  |  Fm  |  Abm6  Bb  |' },
@@ -677,7 +677,7 @@ export const SONGS: Song[] = [
         chords:
           '|  Eb6  |  Edim7  |  Fm7  |  Cb(b5)  Bb7  |\n|  Eb6  |  C7(b9)  |  Fm7  |  Cb(b5)  Bb  |\n' +
           '|  Eb6  |  Edim7  |  Fm7  |  Abm6  Bb7(b9)  |\n|  Eb6  Db6(b5)  |  C7  |  Fm11  Fm7  |  Abmaj7/Bb  Bb7(b9)  |\n' +
-          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
+          '|  Eb6  |  Db(b5)  C7(b9)  |  Fm7  |  Abm7  Bb7  |\n|  Eb6  Db6(b5)  |  C7  |  Fm7  |  Abm6  Bb7  |',
       },
       { name: 'Link', chords: '|  Eb6  Abm6/Eb  |  Eb  .  Cm7  C7(b9)  |' },
       { name: 'Bridge', chords: '|  Fm7  |  Bb  |  Fm7  |  Bb  |\n|  Ebm7  |  Ab7  |  Db  Db/C  |  Bb7  |' },
