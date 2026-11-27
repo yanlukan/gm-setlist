@@ -17,8 +17,8 @@ describe('song notes and cues', () => {
   })
 
   it('give every song in the gig set its own GX-10 memory, in running order, three to a bank from U01-1 to U07-3', () => {
-    // The unit was laid out in the Cryer Arts Theatre running order on
-    // 2026-11-22, so UP/DOWN steps through the set: song n is memory n.
+    // The unit is laid out in the Cryer Arts Theatre running order (final on
+    // 2026-11-27), so UP/DOWN steps through the set: song n is memory n.
     const slots = Array.from({ length: 21 }, (_, i) => `U${String(Math.floor(i / 3) + 1).padStart(2, '0')}-${(i % 3) + 1}`)
     const memories = GIG_SETLIST_2026.map(title => soundFor(title)?.memory ?? `none for ${title}`)
     expect(memories).toEqual(slots)
@@ -33,6 +33,35 @@ describe('song notes and cues', () => {
     expect(ctl1Tags('Faith').get('Pre-Chorus')).toBe('CTL1 OFF')
     // A song whose memory has no CTL1 part gets no tags.
     expect(ctl1Tags('Waiting (Reprise)').size).toBe(0)
+  })
+
+  it('promise no CTL1 part in the twelve songs that run on a plain shared sound (2026-11-27)', () => {
+    // Their memories were replaced on the unit by three shared sounds and the
+    // acoustic one, none with a CTL1 part: a tag or a note about CTL1 there
+    // would send the player to a switch that does nothing.
+    const plain: Record<string, string> = {
+      'Waiting (Reprise)': 'ACOUSTIC',
+      Amazing: 'ACOUSTIC',
+      "I'm Your Man": 'FUNK',
+      "I Can't Make You Love Me": 'CLEAN',
+      'Too Funky': 'FUNK',
+      'Club Tropicana': 'CHORUS CLEAN',
+      'Everything She Wants': 'CHORUS CLEAN',
+      'Wake Me Up Before You Go-Go': 'CHORUS CLEAN',
+      Roxanne: 'CLEAN',
+      'Kissing a Fool': 'CLEAN',
+      'Careless Whisper': 'CHORUS CLEAN',
+      'Last Christmas': 'FUNK',
+    }
+    for (const [title, name] of Object.entries(plain)) {
+      expect(soundFor(title), title).toMatchObject({ sound: name, ctl1: null, changes: [], playing: null })
+      expect(ctl1Tags(title).size, title).toBe(0)
+    }
+    const withCtl1 = GIG_SETLIST_2026.filter(title => soundFor(title)?.ctl1)
+    expect(withCtl1).toEqual([
+      'Papa Was a Rolling Stone', 'A Different Corner', 'Fastlove', 'Father Figure', 'Faith',
+      'Outside', 'Jesus to a Child', "Freedom! '90", 'Somebody to Love',
+    ])
   })
 
   it('keep the sound out of the cue, which is for stage directions', () => {

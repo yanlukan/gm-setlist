@@ -121,7 +121,7 @@ describe('a 4.2.8 device opened by the reworked app, no backup used', () => {
     expect(await getSongHistory(title)).toEqual(device.settings[`history:${title}`])
     await opened()
     expect((await listSnapshots()).map(x => x.reason).sort()).toEqual(
-      ['add GM Tribute — Cryer Arts', 'before import', 'switch setlist'],
+      [`add ${CRYER_SETLIST.name}`, 'before import', 'switch setlist'],
     )
   })
 

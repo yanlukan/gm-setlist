@@ -371,7 +371,8 @@ describe('the next rehearsal', () => {
 /**
  * The running order changed on 2026-11-22. A device that already had setlists
  * kept showing its old one, and the new order sat behind a menu entry: the
- * player could not see it. It now arrives as a setlist of its own.
+ * player could not see it. It now arrives as a setlist of its own. The final
+ * order of 2026-11-27 arrives the same way, under a new id and name.
  */
 describe('the Cryer Arts Theatre setlist', () => {
   const september = ['Faith', "I'm Your Man", 'Club Tropicana', 'Amazing', 'A Different Corner', "Freedom! '90"]
@@ -393,11 +394,11 @@ describe('the Cryer Arts Theatre setlist', () => {
     expect(state.setlistData.activeId).toBe(CRYER_SETLIST.id)
     expect(state.setlistData.lists[CRYER_SETLIST.id]).toEqual({
       id: CRYER_SETLIST.id,
-      name: 'GM Tribute — Cryer Arts',
+      name: 'Cryer Arts — final order',
       songTitles: G,
     })
     expect(state.currentIndex).toBe(0)
-    expect(state.toast).toBe('New setlist: GM Tribute — Cryer Arts')
+    expect(state.toast).toBe('New setlist: Cryer Arts — final order')
     // The player's own setlist is left as it was, and keeps its place
     expect(state.setlistData.lists.default).toEqual(saved.lists.default)
     expect(state.places.default).toBe(4)
@@ -405,6 +406,43 @@ describe('the Cryer Arts Theatre setlist', () => {
       const disk = await getSetlistData()
       expect(disk?.activeId).toBe(CRYER_SETLIST.id)
       expect(disk?.lists[CRYER_SETLIST.id].songTitles).toEqual(G)
+    })
+  })
+
+  it('reaches a device that was given the order of 2026-11-22, and leaves that setlist alone', async () => {
+    // On 2026-11-27 songs 3 and 4 changed places. The iPad already holds the
+    // setlist 5.1.2 added, in the older order, perhaps changed by the player.
+    const older = [...G]
+    ;[older[2], older[3]] = [older[3], older[2]]
+    const given: SetlistData = {
+      lists: {
+        ...saved.lists,
+        'cryer-arts-2026': { id: 'cryer-arts-2026', name: 'GM Tribute — Cryer Arts', songTitles: older },
+      },
+      activeId: 'cryer-arts-2026',
+    }
+    await saveSetlistData(given)
+    await saveSetting('seeded:cryer-arts-2026', true)
+    await saveSetting('places', { 'cryer-arts-2026': 7 })
+    await useStore.getState().hydrate()
+
+    const state = useStore.getState()
+    expect(G.slice(0, 4)).toEqual(['Waiting (Reprise)', 'Amazing', 'Papa Was a Rolling Stone', "I'm Your Man"])
+    expect(CRYER_SETLIST.id).not.toBe('cryer-arts-2026')
+    expect(state.setlistData.activeId).toBe(CRYER_SETLIST.id)
+    expect(state.setlistData.lists[CRYER_SETLIST.id].songTitles).toEqual(G)
+    expect(state.currentIndex).toBe(0)
+    expect(state.toast).toBe(`New setlist: ${CRYER_SETLIST.name}`)
+    // Told apart by name, and the older setlist is as the player left it
+    expect(CRYER_SETLIST.name).not.toBe(given.lists['cryer-arts-2026'].name)
+    expect(state.setlistData.lists['cryer-arts-2026']).toEqual(given.lists['cryer-arts-2026'])
+    expect(state.setlistData.lists.default).toEqual(saved.lists.default)
+    expect(state.places['cryer-arts-2026']).toBe(7)
+    await toLand(async () => {
+      const disk = await getSetlistData()
+      expect(disk?.activeId).toBe(CRYER_SETLIST.id)
+      expect(disk?.lists['cryer-arts-2026']).toEqual(given.lists['cryer-arts-2026'])
+      expect(await getSetting(`seeded:${CRYER_SETLIST.id}`)).toBe(true)
     })
   })
 

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-11-24",
+  "updated": "2026-11-27",
   "mode": "up/down",
   "switches": {
     "up": "next song",
@@ -21,32 +21,13 @@
       "title": "Amazing",
       "memory": "U01-2",
       "sound": "ACOUSTIC",
-      "ctl1": {
-        "name": "DOUBLER",
-        "what": "light chorus as a doubler"
-      },
+      "ctl1": null,
       "changes": [],
-      "playing": "CTL1 is a suggestion for the intro and the verses"
-    },
-    {
-      "title": "I'm Your Man",
-      "memory": "U01-3",
-      "sound": "FUNK",
-      "ctl1": {
-        "name": "DRIVE",
-        "what": "overdrive on, doubler off: drier, tighter, louder"
-      },
-      "changes": [
-        {
-          "section": "Instrumental",
-          "ctl1": "on"
-        }
-      ],
-      "playing": "CTL1 stays on from the instrumental to the end"
+      "playing": null
     },
     {
       "title": "Papa Was a Rolling Stone",
-      "memory": "U02-1",
+      "memory": "U01-3",
       "sound": "OCTAVE",
       "ctl1": {
         "name": "WAH",
@@ -56,15 +37,20 @@
       "playing": "light off: one strong sound for the Bb chords and the bass line; the pedal is volume, the toe switch does nothing"
     },
     {
+      "title": "I'm Your Man",
+      "memory": "U02-1",
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
+    },
+    {
       "title": "I Can't Make You Love Me",
       "memory": "U02-2",
-      "sound": "WARM CLEAN",
-      "ctl1": {
-        "name": "LIFT",
-        "what": "clean boost, louder, delay on"
-      },
+      "sound": "CLEAN",
+      "ctl1": null,
       "changes": [],
-      "playing": "CTL1 on at the second chorus, stays on through the outro"
+      "playing": null
     },
     {
       "title": "A Different Corner",
@@ -114,64 +100,16 @@
       "title": "Too Funky",
       "memory": "U03-2",
       "sound": "FUNK",
-      "ctl1": {
-        "name": "PHASER",
-        "what": "slow phaser on"
-      },
-      "changes": [
-        {
-          "section": "Keyboard",
-          "ctl1": "on"
-        },
-        {
-          "section": "Verse",
-          "ctl1": "off"
-        },
-        {
-          "section": "Pre-Chorus",
-          "ctl1": "off"
-        },
-        {
-          "section": "Break",
-          "ctl1": "off"
-        },
-        {
-          "section": "Outro",
-          "ctl1": "on"
-        }
-      ],
+      "ctl1": null,
+      "changes": [],
       "playing": null
     },
     {
       "title": "Club Tropicana",
       "memory": "U03-3",
-      "sound": "80s CLEAN",
-      "ctl1": {
-        "name": "PHASER",
-        "what": "phaser on, one sweep per bar"
-      },
-      "changes": [
-        {
-          "section": "Instrumental",
-          "ctl1": "on"
-        },
-        {
-          "section": "Chorus",
-          "ctl1": "off"
-        },
-        {
-          "section": "Bass solo",
-          "ctl1": "on"
-        },
-        {
-          "section": "Last verse",
-          "ctl1": "off"
-        },
-        {
-          "section": "Outro",
-          "ctl1": "on"
-        }
-      ],
+      "sound": "CHORUS CLEAN",
+      "ctl1": null,
+      "changes": [],
       "playing": null
     },
     {
@@ -208,33 +146,9 @@
     {
       "title": "Everything She Wants",
       "memory": "U04-3",
-      "sound": "80s CLEAN",
-      "ctl1": {
-        "name": "SCRATCH",
-        "what": "chorus off, light overdrive"
-      },
-      "changes": [
-        {
-          "section": "Instrumental",
-          "ctl1": "on"
-        },
-        {
-          "section": "Verse",
-          "ctl1": "off"
-        },
-        {
-          "section": "Bridge",
-          "ctl1": "off"
-        },
-        {
-          "section": "Pre-Chorus",
-          "ctl1": "off"
-        },
-        {
-          "section": "Outro",
-          "ctl1": "on"
-        }
-      ],
+      "sound": "CHORUS CLEAN",
+      "ctl1": null,
+      "changes": [],
       "playing": null
     },
     {
@@ -271,13 +185,10 @@
     {
       "title": "Wake Me Up Before You Go-Go",
       "memory": "U05-3",
-      "sound": "CLEAN",
-      "ctl1": {
-        "name": "DRIVE",
-        "what": "light overdrive, chorus off"
-      },
+      "sound": "CHORUS CLEAN",
+      "ctl1": null,
       "changes": [],
-      "playing": "CTL1 is optional: the muted riff in the choruses"
+      "playing": null
     },
     {
       "title": "Freedom! '90",
@@ -310,57 +221,26 @@
     {
       "title": "Roxanne",
       "memory": "U06-2",
-      "sound": "WARM JAZZ",
-      "ctl1": {
-        "name": "DELAY",
-        "what": "long echo for the ending"
-      },
-      "changes": [
-        {
-          "section": "Outro",
-          "ctl1": "on"
-        }
-      ],
+      "sound": "CLEAN",
+      "ctl1": null,
+      "changes": [],
       "playing": null
     },
     {
       "title": "Kissing a Fool",
       "memory": "U06-3",
-      "sound": "WARM JAZZ",
-      "ctl1": {
-        "name": "DELAY",
-        "what": "dark echo"
-      },
+      "sound": "CLEAN",
+      "ctl1": null,
       "changes": [],
-      "playing": "CTL1 is a suggestion for the intro and the last chord"
+      "playing": null
     },
     {
       "title": "Careless Whisper",
       "memory": "U07-1",
-      "sound": "CLEAN",
-      "ctl1": {
-        "name": "NYLON",
-        "what": "nylon lines for the sax riff"
-      },
-      "changes": [
-        {
-          "section": "Intro (sax)",
-          "ctl1": "on"
-        },
-        {
-          "section": "Verse",
-          "ctl1": "off"
-        },
-        {
-          "section": "Sax riff",
-          "ctl1": "on"
-        },
-        {
-          "section": "Outro (sax)",
-          "ctl1": "on"
-        }
-      ],
-      "playing": "press CTL1 before the count-in"
+      "sound": "CHORUS CLEAN",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
     },
     {
       "title": "Somebody to Love",
@@ -385,26 +265,10 @@
     {
       "title": "Last Christmas",
       "memory": "U07-3",
-      "sound": "FUNK CHORUS",
-      "ctl1": {
-        "name": "BELLS",
-        "what": "octave-up hook with a short echo"
-      },
-      "changes": [
-        {
-          "section": "Instrumental",
-          "ctl1": "on"
-        },
-        {
-          "section": "Verse",
-          "ctl1": "off"
-        },
-        {
-          "section": "Outro",
-          "ctl1": "off"
-        }
-      ],
-      "playing": "the bells also fit the intro hook"
+      "sound": "FUNK",
+      "ctl1": null,
+      "changes": [],
+      "playing": null
     }
   ]
 }
