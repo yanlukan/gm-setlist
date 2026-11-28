@@ -249,8 +249,26 @@ describe('Roxanne in bars (songbook no. 49)', () => {
     const chords = (name: string) => by(ROX).sections.find(s => s.name === name)!.chords
     // The last bar from the recording (2026-11-23): the Bm7 still rings on beat 1,
     // then bass and piano walk up a beat each, G#, C#, F#, into the chorus's Em9.
-    expect(chords('Verse 2').endsWith('|  N.C.  E  Bm7  |  Bm7  E/G#  A/C#  F#m  |')).toBe(true)
-    expect(chords('Chorus')).toBe('|  Em9  |  G/A  |  B11  |  %  |\n|  Em9  |  G/A  |  B11  |  B11  N.C.  |')
+    expect(chords('Verse 2').endsWith('|  N.C.  E  Bm7  .  |  Bm7  E/G#  A/C#  F#m  |')).toBe(true)
+    expect(chords('Chorus')).toBe('|  Em9  |  G/A  |  B11  |  %  |\n|  Em9  |  G/A  |  B11  |  B11  .  .  N.C.  |')
+  })
+
+  it('puts the chords around each stop on the beats the recording plays them', () => {
+    // Read from the stems an eighth at a time (2026-11-28). The band stops for
+    // one beat, not half a bar: the F#7#5 comes on beat 2 and is held; the E
+    // stab is beat 2 and the Bm7 beats 3 and 4; the chorus's B11 lasts three
+    // beats and the piano's far chord (N.C. for the guitar) is beat 4.
+    const chords = (name: string) => by(ROX).sections.find(s => s.name === name)!.chords
+    expect(chords('Verse').endsWith('|  B11  |  N.C.  F#7#5  .  .  |')).toBe(true)
+    const outro = chords('Outro').split('\n')
+    expect(outro[0]).toBe('|  F#7#5  C9  |  N.C.  E  Bm7  .  |  Bm7  |  G13  |')
+    expect(outro[2]).toBe('|  F#7#5  C9  |  N.C.  E  Bm7  .  |  %  |  G13  |')
+    // every bar that gives its beats gives all four
+    for (const section of by(ROX).sections) {
+      for (const bar of section.chords.split('|').map(b => b.trim().split(/\s+/)).filter(b => b.includes('.'))) {
+        expect(bar, `${section.name}: ${bar.join(' ')}`).toHaveLength(4)
+      }
+    }
   })
 
   it('keeps the order of its parts', () => {
