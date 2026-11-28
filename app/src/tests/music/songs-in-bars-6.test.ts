@@ -163,7 +163,7 @@ describe('Wake Me Up Before You Go-Go in bars (published chords, bars and form f
 
 describe('Somebody to Love in bars (songbook no. 52)', () => {
   const STL = 'Somebody to Love'
-  const VERSE = '|  G  D/F#  Em  |  G  A  D  |\n|  G  D/F#  Em  |  A7  D7  |  G  A7  D  |'
+  const VERSE = '|  G  D/F#  Em  .  |  G  A  D  .  |\n|  G  D/F#  Em  .  |  A7  D7  |  G  A7  D  .  |'
   const CHORUS = '|  D  A/C#  D  C  |  G  |  G  D/F#  Em  C  |'
   // Six bars in the song order are 6/8, half a 12/8 bar each: two in each
   // Turnaround, one in the Chorus end and one in the Bridge.
@@ -176,7 +176,7 @@ describe('Somebody to Love in bars (songbook no. 52)', () => {
       Coda: 3, Break: 5, Riff: 10, Build: 7, Outro: 17,
     })
     const chords = chordsIn(STL)
-    expect(chords.Intro).toBe('|  G  D/F#  Em  |  C  D  |')
+    expect(chords.Intro).toBe('|  G  D/F#  Em  .  |  C  D  |')
     expect(chords.Verse).toBe(VERSE)
     expect(chords.Chorus).toBe(CHORUS)
     expect(chords.Turnaround).toBe('|  C/D  |  G  G/F#  |  Em  |  C  D  |')

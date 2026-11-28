@@ -18,8 +18,8 @@ describe('the keyboard view', () => {
   it('shows the chords at the sounding pitch even with a capo on', () => {
     // Faith is in B; with a capo on 2 the guitar plays A shapes
     const verse = (view?: ChartView) => shapeSections(faith, { capo: 2 }, view)[1].chords.split('\n')[0]
-    expect(verse()).toBe('|  A  |  %  |  D  A  |  A  |')
-    expect(verse(KEYBOARD)).toBe('|  B  |  %  |  E  B  |  B  |')
+    expect(verse()).toBe('|  A  |  %  |  D  |  A  |  (x2)')
+    expect(verse(KEYBOARD)).toBe('|  B  |  %  |  E  |  B  |  (x2)')
   })
 
   it('simplifies to plain chords, whatever sound the song has on the guitar', () => {

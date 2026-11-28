@@ -399,7 +399,7 @@ describe('Club Tropicana', () => {
     expect(s.getDisplayKey('Club Tropicana')).toBe('A')
     // The bass transcription and two guitar charts: a chromatic slide into the verse
     const chorus = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Chorus')!
-    expect(chorus.chords).toBe('|  A  |  C#m7  |  A  |  C#m7  |\n|  A  |  C#m7  |  A  |  C#m7  Cm7  Bm7  |')
+    expect(chorus.chords).toBe('|  A  |  C#m7  |  A  |  C#m7  |\n|  A  |  C#m7  |  A  |  C#m7  .  .  .  .  .  Cm7  Bm7  |')
     const verse = s.getDisplaySections('Club Tropicana').find(sec => sec.name === 'Verse')!
     expect(verse.chords).toBe('|  Em7  |  A  D  |  Em7  |  A  D  |\n|  Em7  |  A  D  |  Em7  |  A  A/C#  .  D  |')
   })
@@ -471,7 +471,7 @@ describe('charts checked against the recordings', () => {
     // Songbook no. 11, and the band plays it as the book has it (user,
     // 2026-09-29). It replaced the F# Bm7 E given earlier for the chorus.
     const chorus = song('Everything She Wants').sections.find(s => s.name === 'Chorus')!
-    expect(chorus.chords).toBe('|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |')
+    expect(chorus.chords).toBe('|  F#m  |  %  |  Bm  .  .  C#aug  |  C#  |\n|  F#m  |  %  |')
   })
 
   it('uses the recorded tempos for Roxanne and Kissing a Fool', () => {

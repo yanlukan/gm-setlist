@@ -9,12 +9,8 @@
   [
    "B",
    "%",
-   "E B",
-   "B",
-   "B",
-   "%",
    "E",
-   "B"
+   "B (x2)"
   ],
   [
    "E",
@@ -24,7 +20,7 @@
    "E",
    "B F#/A# G#m .",
    "C#m",
-   "F# N.C."
+   "F# . . N.C."
   ],
   [
    "B",
@@ -35,12 +31,8 @@
   [
    "B",
    "%",
-   "E B",
-   "B",
-   "B",
-   "%",
    "E",
-   "B"
+   "B (x2)"
   ],
   [
    "N.C."
@@ -693,13 +685,13 @@
    "Eadd9 (x2)"
   ],
   [
-   "Bm C#aug",
+   "Bm . . C#aug",
    "C#"
   ],
   [
    "F#m",
    "%",
-   "Bm C#aug",
+   "Bm . . C#aug",
    "C#",
    "F#m",
    "%"
@@ -731,7 +723,7 @@
    "C#7"
   ],
   [
-   "Bm C#aug",
+   "Bm . . C#aug",
    "C#",
    "F#m",
    "% (x4)"
@@ -768,7 +760,7 @@
    "B",
    "D#m7",
    "B",
-   "D#m7 Dm7 C#m7"
+   "D#m7 . . . . . Dm7 C#m7"
   ],
   [
    "F#m7",
@@ -815,15 +807,15 @@
  ],
  "Somebody to Love": [
   [
-   "G D/F# Em",
+   "G D/F# Em .",
    "C D"
   ],
   [
-   "G D/F# Em",
-   "G A D",
-   "G D/F# Em",
+   "G D/F# Em .",
+   "G A D .",
+   "G D/F# Em .",
    "A7 D7",
-   "G A7 D"
+   "G A7 D ."
   ],
   [
    "D A/C# D C",
@@ -852,11 +844,11 @@
    "G/D"
   ],
   [
-   "G D/F# Em",
-   "G A D",
-   "G D/F# Em",
+   "G D/F# Em .",
+   "G A D .",
+   "G D/F# Em .",
    "A7 D7",
-   "G A7 D",
+   "G A7 D .",
    "D A/C# D C",
    "G",
    "G D/F# Em C"
@@ -895,31 +887,31 @@
  "Careless Whisper": [
   [
    "Dm",
-   "Gm7 Am7",
+   "Gm7 . . Am7",
    "Bbmaj7",
    "Am7 (x2)"
   ],
   [
    "Dm7",
-   "Gm7 Am7",
+   "Gm7 . . Am7",
    "Bbmaj7",
    "Am7 (x2)"
   ],
   [
    "Dm",
-   "Gm7 Am7",
+   "Gm7 . . Am7",
    "Bbmaj7",
    "Am7 (x2)"
   ],
   [
    "Dm",
-   "Gm7 Am7",
+   "Gm7 . . Am7",
    "Bbmaj7",
    "Am7"
   ],
   [
    "Dm7",
-   "Gm7 Am7",
+   "Gm7 . . Am7",
    "Bbmaj7",
    "Am7 (x6)"
   ]

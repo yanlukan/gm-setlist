@@ -174,7 +174,7 @@ describe('Club Tropicana in bars (the NoTreble bass transcription)', () => {
     expect(chords['Bass solo']).toBe('|  F#m7  |  B  |  F#m7  |  B  |  (x2)')
     // The slap-bass opening and the chorus are as they were
     expect(chords.Intro).toBe('|  F#m7  |  %  |  %  |  %  |  (x2)')
-    expect(chords.Chorus).toBe('|  B  |  D#m7  |  B  |  D#m7  |\n|  B  |  D#m7  |  B  |  D#m7  Dm7  C#m7  |')
+    expect(chords.Chorus).toBe('|  B  |  D#m7  |  B  |  D#m7  |\n|  B  |  D#m7  |  B  |  D#m7  .  .  .  .  .  Dm7  C#m7  |')
     for (const name of ['Intro 2', 'Verse', 'Instrumental', 'Bass solo', 'Last verse', 'Outro']) {
       expect(by(TROP).evidence?.[name]?.from, name).toBe('Record')
     }
@@ -483,11 +483,11 @@ describe("Everything She Wants in bars (songbook no. 11, the 12-inch version)", 
     const chords = Object.fromEntries(by(ESW).sections.map(s => [s.name, s.chords]))
     expect(chords.Intro).toBe(`|  N.C.  |  %  |\n${GROOVE}  (x6)`)
     expect(chords.Verse).toBe(`${GROOVE}  (x4)`)
-    expect(chords['Pre-Chorus']).toBe('|  Bm  C#aug  |  C#  |')
-    expect(chords.Chorus).toBe('|  F#m  |  %  |  Bm  C#aug  |  C#  |\n|  F#m  |  %  |')
+    expect(chords['Pre-Chorus']).toBe('|  Bm  .  .  C#aug  |  C#  |')
+    expect(chords.Chorus).toBe('|  F#m  |  %  |  Bm  .  .  C#aug  |  C#  |\n|  F#m  |  %  |')
     expect(chords.Bridge).toBe('|  F#sus4  |  %  |  Bm  |  %  |  (x2)')
     expect(chords.Middle).toBe(MIDDLE)
-    expect(chords.Outro).toBe('|  Bm  C#aug  |  C#  |  F#m  |  %  |  (x4)')
+    expect(chords.Outro).toBe('|  Bm  .  .  C#aug  |  C#  |  F#m  |  %  |  (x4)')
   })
 
   it('plays the bridge before the third chorus and the middle part twice after it', () => {

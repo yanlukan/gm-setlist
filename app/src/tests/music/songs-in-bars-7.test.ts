@@ -9,7 +9,7 @@ const chordsIn = (title: string) => Object.fromEntries(by(title).sections.map(s 
 describe('Careless Whisper in bars (songbook no. 4)', () => {
   const CW = 'Careless Whisper'
   // The loop after its first bar; the passing chord in its second bar comes on the last beat
-  const LOOP = '|  Gm7  Am7  |  Bbmaj7  |  Am7  |'
+  const LOOP = '|  Gm7  .  .  Am7  |  Bbmaj7  |  Am7  |'
   it('writes every line of every section in bars', () => everyLineInBars(CW))
 
   it("has the book's four-bar loop in every part, the outro going round to where the record fades", () => {
