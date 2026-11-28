@@ -28,13 +28,13 @@
     {
       "title": "Papa Was a Rolling Stone",
       "memory": "U01-3",
-      "sound": "OCTAVE",
+      "sound": "SHIMMER",
       "ctl1": {
         "name": "WAH",
-        "what": "auto wah, octave off"
+        "what": "auto wah on the second amp"
       },
       "changes": [],
-      "playing": "light off: one strong sound for the Bb chords and the bass line; the pedal is volume, the toe switch does nothing"
+      "playing": "light off: the first part and the little keys notes; the pedal is volume, the toe switch does nothing"
     },
     {
       "title": "I'm Your Man",
@@ -94,7 +94,7 @@
           "ctl1": "off"
         }
       ],
-      "playing": null
+      "playing": "CTL1 on for the whole ending"
     },
     {
       "title": "Too Funky",
@@ -177,7 +177,7 @@
       "sound": "NYLON",
       "ctl1": {
         "name": "SOLO",
-        "what": "solo voice: more sustain, louder, more reverb"
+        "what": "solo voice: more sustain, louder"
       },
       "changes": [],
       "playing": "CTL1 for the instrumental melody"
@@ -195,8 +195,8 @@
       "memory": "U06-1",
       "sound": "ACOUSTIC",
       "ctl1": {
-        "name": "ELECTRIC",
-        "what": "electric up front, acoustic down"
+        "name": "SCRATCH",
+        "what": "touch wah on, acoustic down"
       },
       "changes": [
         {
@@ -248,7 +248,7 @@
       "sound": "CRUNCH",
       "ctl1": {
         "name": "SOLO",
-        "what": "mid boost, louder, tape echo"
+        "what": "more drive, louder"
       },
       "changes": [
         {
@@ -260,7 +260,7 @@
           "ctl1": "off"
         }
       ],
-      "playing": "guitar volume 6-7 for the first verse, full from the first chorus"
+      "playing": "guitar volume full"
     },
     {
       "title": "Last Christmas",
